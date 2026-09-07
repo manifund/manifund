@@ -4,9 +4,7 @@ import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
 import { ArrowPathIcon, ArrowTrendingUpIcon, EyeIcon } from '@heroicons/react/20/solid'
 import { ArrowLongRightIcon, BeakerIcon, BoltIcon, UserGroupIcon } from '@heroicons/react/24/solid'
-import clsx from 'clsx'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Card } from '@/components/layout/card'
 import { MegaphoneIcon } from '@heroicons/react/24/outline'
 import { Suspense } from 'react'
@@ -238,38 +236,5 @@ function FundingMechanism(props: {
       </Row>
       <p className="text-gray-600">{description}</p>
     </Link>
-  )
-}
-
-function FundingProcessDiagram() {
-  return (
-    <Row className="items-center gap-5">
-      <Col className="gap-5">
-        <Step title="Grant applicant posts project" />
-        <Step title="Regrantor posts project" />
-      </Col>
-      <ArrowLongRightIcon className="ml-1 inline h-6 w-6 stroke-2" />
-      <Stage title="Proposal" />
-    </Row>
-  )
-}
-
-function Step(props: { title: string; description?: string }) {
-  const { title, description } = props
-  return (
-    <div className="rounded-md bg-white p-3 shadow ring-2 ring-orange-600">
-      <h1 className="text-gray-900">{title}</h1>
-      <p className="text-gray-600">{description}</p>
-    </div>
-  )
-}
-
-function Stage(props: { title: string; description?: string }) {
-  const { title, description } = props
-  return (
-    <div className="rounded-md bg-orange-600 p-5 text-white shadow">
-      <h1 className="text-2xl font-bold">{title}</h1>
-      <p className="text-gray-200">{description}</p>
-    </div>
   )
 }
