@@ -22,6 +22,30 @@ function methodLabel(paymentMethod: string) {
   return paymentMethod === 'internationalWire' ? 'International wire' : 'Bank transfer (ACH)'
 }
 
+// Best-effort: a mail hiccup must not fail (or re-run) the money movement.
+async function sendQueuedEmail(admin: SupabaseClient, request: WithdrawalRequest) {
+  try {
+    const email = await getUserEmail(admin, request.profile_id)
+    if (!email) return
+    await sendTemplateEmail(
+      TEMPLATE_IDS.GENERIC_NOTIF,
+      {
+        notifText:
+          `Your withdrawal of $${Number(request.amount).toLocaleString()} is queued and waiting on ` +
+          `approval from the Manifund team. We'll email you as soon as the money is on its way — ` +
+          `usually within a few business days. Nothing more for you to do.`,
+        buttonUrl: REQUEST_URL,
+        buttonText: 'View status',
+        subject: 'Manifund: your withdrawal is queued',
+      },
+      undefined,
+      email
+    )
+  } catch (e) {
+    console.error('queued email failed for', request.id, e)
+  }
+}
+
 async function patch(admin: SupabaseClient, id: string, fields: Record<string, unknown>) {
   await admin
     .from('withdrawal_requests')
@@ -51,6 +75,7 @@ export async function routePayment(admin: SupabaseClient, request: WithdrawalReq
       `Their bank details are already in Mercury under recipient ${recipientId} — ` +
       `just send it from the dashboard.`
   )
+  await sendQueuedEmail(admin, request)
   return null
 }
 
@@ -71,6 +96,7 @@ export async function submitSendMoney(admin: SupabaseClient, request: Withdrawal
     mercury_request_id: sent.requestId,
     submitted_at: new Date().toISOString(),
   })
+  await sendQueuedEmail(admin, request)
   return sent
 }
 
