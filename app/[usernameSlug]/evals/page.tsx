@@ -1,11 +1,9 @@
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getProfileByUsername, getUser } from '@/db/profile'
-import { Project, getSelectProjects } from '@/db/project'
+import { getSelectProjects } from '@/db/project'
 import Link from 'next/link'
-import { Col } from '@/components/layout/col'
 import { ProfileTrust, ProjectEval, getAllEvals, getAllTrusts } from '@/db/eval'
-import { ArrowLongRightIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
-import { Row } from '@/components/layout/row'
+import { ArrowLongRightIcon } from '@heroicons/react/20/solid'
 import { ResultsTable } from './results-table'
 
 export type Result = {
@@ -87,22 +85,6 @@ function calculateResult(evals: ProjectEval[], trusts: ProfileTrust[], evaluator
         resultObj.insideScore * resultObj.confidence +
         resultObj.outsideScore * (1 - resultObj.confidence)
     })
-    // Iterate to convergence
-    let epsilon = 0
-    while (epsilon !== 0 && epsilon > 0.01) {
-      resultsArr.forEach((resultObj) => {
-        const currOverallScore = resultObj.overallScore
-        const otherResults = resultsArr.filter((i) => i.evaluatorId !== resultObj.evaluatorId)
-        resultObj.outsideScore = otherResults.reduce(
-          (acc, r) => acc + r.overallScore * resultObj.trustScores[r.evaluatorId],
-          0
-        )
-        resultObj.overallScore =
-          resultObj.insideScore * resultObj.confidence +
-          resultObj.outsideScore * (1 - resultObj.confidence)
-        epsilon = Math.abs(currOverallScore - resultObj.overallScore)
-      })
-    }
   }
   return thisProfileResult
 }
