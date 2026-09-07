@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/db/supabase-admin'
 import { createServerSupabaseClient } from '@/db/supabase-server'
-import { getProfileById, getUser } from '@/db/profile'
+import { getProfileById, getUser, isAdmin } from '@/db/profile'
 import { getFullTxnsByUser } from '@/db/txn'
 import { getBidsByUser } from '@/db/bid'
 import { calculateCashBalance } from '@/utils/math'
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       { status: 403 }
     )
   }
-  if (!MERCURY_ENABLED || !hasMercuryKeys()) {
+  if (!hasMercuryKeys()) {
     return NextResponse.json({ error: 'Bank withdrawals are not enabled yet.' }, { status: 503 })
   }
 
@@ -46,6 +46,10 @@ export async function POST(req: NextRequest) {
   const user = await getUser(supabase)
   if (!user?.email) {
     return NextResponse.json({ error: 'You must be signed in to withdraw.' }, { status: 401 })
+  }
+  // Dark-launch gate: admins can exercise the full flow before the public flip.
+  if (!MERCURY_ENABLED && !isAdmin(user)) {
+    return NextResponse.json({ error: 'Bank withdrawals are not enabled yet.' }, { status: 503 })
   }
   const profile = await getProfileById(supabase, user.id)
   if (!profile) {
