@@ -1,12 +1,20 @@
 import { revalidateTag, unstable_cache } from 'next/cache'
 import { createPublicSupabaseClient } from './supabase-server'
 import { getHotProjects } from './project-hot'
+import { FullProject } from './project'
+
+let inFlight: Promise<FullProject[]> | null = null
 
 export const getHotProjectsCached = unstable_cache(
   async () => {
-    const supabase = createPublicSupabaseClient()
-    const result = await getHotProjects(supabase, 20)
-    return result
+    // A failed revalidation leaves the cache empty, so without this every concurrent
+    // request starts its own copy of the query and they pile onto each other.
+    if (!inFlight) {
+      inFlight = getHotProjects(createPublicSupabaseClient(), 20).finally(() => {
+        inFlight = null
+      })
+    }
+    return await inFlight
   },
   ['hot-projects'],
   {

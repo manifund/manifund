@@ -7,14 +7,18 @@ export async function getHotProjects(
   supabase: SupabaseClient,
   limit: number = 20
 ): Promise<FullProject[]> {
+  // Scoring-only projection: the page data comes from listProjects() below, so
+  // selecting `*` here shipped every project's full description for nothing.
   const { data: projectsWithStats } = await supabase
     .from('projects')
     .select(
       `
-      *,
-      profiles!projects_creator_fkey(*),
-      rounds(title, slug),
-      causes(title, slug),
+      id,
+      created_at,
+      stage,
+      type,
+      funding_goal,
+      creator,
       project_votes!left(magnitude),
       comments!left(id),
       bids!left(amount, status),
@@ -30,7 +34,9 @@ export async function getHotProjects(
   }
 
   // Calculate hot scores for all projects
-  const projectsWithScores = projectsWithStats.map((project) => {
+  const projectsWithScores = projectsWithStats.map((row) => {
+    // Scoring projection, not a real row — only the fields selected above are present.
+    const project = row as unknown as FullProject
     const voteTotal = countVotes(project)
     const commentCount = project.comments?.length || 0
     const totalRaised = getAmountRaised(project, project.bids, project.txns)
