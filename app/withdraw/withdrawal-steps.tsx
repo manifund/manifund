@@ -11,6 +11,7 @@ import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import Stripe from 'stripe'
 import { StepsDisplay } from './steps-display'
+import { MERCURY_ENABLED } from '@/utils/constants'
 
 export type Step = {
   id: number
@@ -96,7 +97,10 @@ export function WithdrawalSteps(props: {
   } else if (withdrawAmount < 1 && currentStepIdx === 1) {
     errorMessage = 'Minimum withdrawal is $1.'
   } else if (withdrawAmount > 10000) {
-    errorMessage = 'Maximum automatic withdrawal is $10,000.'
+    // The cap stays; it just isn't a dead end any more.
+    errorMessage = MERCURY_ENABLED
+      ? 'Maximum automatic withdrawal is $10,000. Use "Withdraw to your bank" for larger amounts.'
+      : 'Maximum automatic withdrawal is $10,000.'
   } else if (withdrawAmount > withdrawBalance && currentStepIdx === 1) {
     errorMessage = `Your withdrawable balance is only $${withdrawBalance}.`
   } else if (!complete && currentStepIdx === 2) {

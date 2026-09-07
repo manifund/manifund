@@ -14,6 +14,24 @@ export const SIGNUP_DISABLED_MESSAGE =
 export const SPAM_FILTER_ENABLED = true
 export const SPAM_FILTER_ENFORCE = true
 
+// Mercury-backed withdrawals (large or international; Stripe Connect still
+// handles self-serve US withdrawals under $10k).
+// MERCURY_ENABLED: master switch. When false the withdraw page keeps linking to
+//   the old Airtable form, so this can ship dark and be tested in production.
+// MERCURY_REQUIRE_TAX_DOCUMENT: makes Mercury collect a W-9/W-8BEN during
+//   recipient onboarding. Off until someone owning compliance says otherwise.
+export const MERCURY_ENABLED = false
+export const MERCURY_REQUIRE_TAX_DOCUMENT = false
+
+// Floor for Mercury withdrawals only -- the Stripe path keeps its $1 minimum.
+// An international wire costs a flat $15 whatever the size, and small requests
+// are the ones that linger in the queue. Capped at the full balance so someone
+// with less than $1k withdraws all of it rather than being locked out.
+export const MERCURY_MIN_WITHDRAWAL = 1000
+export function mercuryMinWithdrawal(withdrawBalance: number) {
+  return Math.min(MERCURY_MIN_WITHDRAWAL, withdrawBalance)
+}
+
 export function getURL() {
   let url =
     process?.env?.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production env.

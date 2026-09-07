@@ -11,8 +11,18 @@ import { Card } from './layout/card'
 import { FeatureCard } from './feature-card'
 import { Col } from './layout/col'
 import { Row } from './layout/row'
+import { MERCURY_ENABLED } from '@/utils/constants'
 
 export type AccountStatus = 'nonexistent' | 'incomplete' | 'complete'
+
+// Falls back to the old Airtable form while MERCURY_ENABLED is off, so the new
+// flow can ship dark and be tested in production before anyone is sent to it.
+const LARGE_WITHDRAWAL_URL = MERCURY_ENABLED
+  ? '/withdraw/request'
+  : 'https://airtable.com/shrI3XFPivduhbnGa'
+const LARGE_WITHDRAWAL_DESCRIPTION = MERCURY_ENABLED
+  ? 'Enter your bank details with Mercury, our bank, and receive money within 4 business days.'
+  : 'Fill out our manual withdraw form with your bank account details and we will manually send you money within 5 business days.'
 
 export function WithdrawalDetails(props: {
   accountStatus: AccountStatus
@@ -28,7 +38,10 @@ export function WithdrawalDetails(props: {
         <h1 className="text-center text-xl font-semibold text-gray-900">Withdrawals not enabled</h1>
         <p className="mt-1 text-center text-sm text-gray-500">
           {accountStatus === 'nonexistent' ? 'Set up' : 'Finish setting up'} your Stripe connect
-          account to enable withdrawals, or fill out our manual withdraw form.
+          account to enable withdrawals
+          {MERCURY_ENABLED
+            ? ', or withdraw straight to your bank.'
+            : ', or fill out our manual withdraw form.'}
         </p>
         <div className="mt-5 flex w-full flex-col gap-4 sm:flex-row">
           <button
@@ -65,9 +78,9 @@ export function WithdrawalDetails(props: {
             <FeatureCard
               icon={<div className="mx-1 text-xl">🌍</div>}
               title="Large or international"
-              description="Fill out our manual withdraw form with your bank account details and we will manually send you money within 5 business days."
-              url="https://airtable.com/shrI3XFPivduhbnGa"
-              linkText={'Go to form'}
+              description={LARGE_WITHDRAWAL_DESCRIPTION}
+              url={LARGE_WITHDRAWAL_URL}
+              linkText={MERCURY_ENABLED ? 'Withdraw to your bank' : 'Go to form'}
             />
           </div>
         </div>
@@ -81,7 +94,7 @@ export function WithdrawalDetails(props: {
   return (
     <Col className="ph-no-capture gap-10">
       <Link
-        href="https://airtable.com/shrI3XFPivduhbnGa"
+        href={LARGE_WITHDRAWAL_URL}
         className="rounded-md bg-orange-500 p-3 text-sm font-semibold text-white shadow hover:bg-orange-600"
       >
         <Row className="items-center justify-between">

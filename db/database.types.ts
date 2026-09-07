@@ -1023,6 +1023,87 @@ export type Database = {
           },
         ]
       }
+      withdrawal_requests: {
+        Row: {
+          amount: number
+          failure_reason: string | null
+          feedback: string | null
+          id: string
+          idempotency_key: string
+          last_nudged_at: string | null
+          mercury_invite_id: string | null
+          mercury_onboarding_url: string | null
+          mercury_recipient_id: string | null
+          mercury_request_id: string | null
+          mercury_transaction_id: string | null
+          payment_method: string
+          profile_id: string
+          requested_at: string
+          sent_at: string | null
+          status: string
+          submitted_at: string | null
+          txn_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          failure_reason?: string | null
+          feedback?: string | null
+          id?: string
+          idempotency_key?: string
+          last_nudged_at?: string | null
+          mercury_invite_id?: string | null
+          mercury_onboarding_url?: string | null
+          mercury_recipient_id?: string | null
+          mercury_request_id?: string | null
+          mercury_transaction_id?: string | null
+          payment_method: string
+          profile_id: string
+          requested_at?: string
+          sent_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          txn_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          failure_reason?: string | null
+          feedback?: string | null
+          id?: string
+          idempotency_key?: string
+          last_nudged_at?: string | null
+          mercury_invite_id?: string | null
+          mercury_onboarding_url?: string | null
+          mercury_recipient_id?: string | null
+          mercury_request_id?: string | null
+          mercury_transaction_id?: string | null
+          payment_method?: string
+          profile_id?: string
+          requested_at?: string
+          sent_at?: string | null
+          status?: string
+          submitted_at?: string | null
+          txn_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'withdrawal_requests_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'withdrawal_requests_txn_id_fkey'
+            columns: ['txn_id']
+            isOneToOne: false
+            referencedRelation: 'txns'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       users: {
