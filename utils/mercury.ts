@@ -39,6 +39,15 @@ export type MercuryTransaction = {
   counterpartyName?: string | null
 }
 
+export class MercuryApiError extends Error {
+  constructor(
+    message: string,
+    public status: number
+  ) {
+    super(message)
+  }
+}
+
 async function mercuryFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const apiKey = process.env.MERCURY_API_KEY
   if (!apiKey) throw new Error('Missing MERCURY_API_KEY')
@@ -51,8 +60,9 @@ async function mercuryFetch<T>(path: string, init?: RequestInit): Promise<T> {
     },
   })
   if (!res.ok) {
-    throw new Error(
-      `Mercury ${init?.method ?? 'GET'} ${path} failed: ${res.status} ${await res.text()}`
+    throw new MercuryApiError(
+      `Mercury ${init?.method ?? 'GET'} ${path} failed: ${res.status} ${await res.text()}`,
+      res.status
     )
   }
   return (await res.json()) as T

@@ -3,7 +3,7 @@ import { Readable } from 'node:stream'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createAdminClient } from '@/db/edge'
 import { WithdrawalRequest } from '@/db/withdrawal-request'
-import { getTransaction } from '@/utils/mercury'
+import { getTransaction, MercuryApiError, MercuryTransaction } from '@/utils/mercury'
 import { markSent, reverseWithdrawalRequest } from '@/utils/mercury-withdrawals'
 import { sendDiscordAlert } from '@/utils/discord'
 
@@ -89,7 +89,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   const supabaseAdmin = createAdminClient()
   try {
     // The payload is a merge patch, so fetch the transaction for its own fields.
-    const txn = await getTransaction(event.resourceId)
+    let txn: MercuryTransaction
+    try {
+      txn = await getTransaction(event.resourceId)
+    } catch (e) {
+      // The webhook covers every account in the org, but the fetch is scoped to
+      // the grants account -- sibling-account transactions 403 and aren't ours.
+      if (e instanceof MercuryApiError && (e.status === 403 || e.status === 404)) {
+        return res.status(200).send('success')
+      }
+      throw e
+    }
     const { request, looksLikeOurs } = await matchRequest(supabaseAdmin, txn)
     if (!request) {
       // Silence for other people's transactions; alert only when it carried one
