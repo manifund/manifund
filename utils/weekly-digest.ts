@@ -291,11 +291,12 @@ export async function getNotableGrantsLastWeek(
       .from('bids')
       .select(
         `
-      id, amount, bidder, created_at, status,
+      id, amount, bidder, project, created_at, status,
       profiles!bids_bidder_fkey(id, username, full_name, avatar_url),
       projects(id, title, slug, stage)
     `
       )
+      .neq('status', 'deleted')
       .gte('created_at', oneWeekAgo.toISOString())
       .neq('projects.stage', 'hidden')
       .order('created_at', { ascending: false })
@@ -305,7 +306,7 @@ export async function getNotableGrantsLastWeek(
       .from('txns')
       .select(
         `
-      id, amount, from_id, created_at,
+      id, amount, from_id, project, created_at,
       profiles!txns_from_id_fkey(id, username, full_name, avatar_url),
       projects(id, title, slug, stage)
     `
@@ -313,6 +314,7 @@ export async function getNotableGrantsLastWeek(
       .eq('type', 'project donation')
       .eq('token', 'USD')
       .not('project', 'is', null)
+      .not('from_id', 'is', null)
       .gte('created_at', oneWeekAgo.toISOString())
       .neq('projects.stage', 'hidden')
       .order('created_at', { ascending: false })
@@ -321,22 +323,53 @@ export async function getNotableGrantsLastWeek(
 
   const regrantorIds = new Set(regrantors?.map((r) => r.id) || [])
 
+  // When a proposal activates, each pending bid is marked accepted and a
+  // matching txn is inserted (see activate_grant). That txn carries no link
+  // back to its bid, so match on (bidder, project, amount) against accepted
+  // bids for these projects, and drop matched donations. Each grant is then
+  // announced exactly once, in the week the money was committed.
+  const donationProjectIds = Array.from(
+    new Set((donations ?? []).map((txn: any) => txn.project as string))
+  )
+  const acceptedBids = await selectByIdsChunked<{
+    bidder: string
+    project: string
+    amount: number
+    created_at: string
+  }>(donationProjectIds, (chunk) =>
+    supabase
+      .from('bids')
+      .select('bidder, project, amount, created_at')
+      .in('project', chunk)
+      .eq('status', 'accepted')
+  )
+  const unmatchedBids = [...acceptedBids]
+  const isConvertedBid = (txn: any) => {
+    const idx = unmatchedBids.findIndex(
+      (bid) =>
+        bid.bidder === txn.from_id &&
+        bid.project === txn.project &&
+        bid.amount === txn.amount &&
+        bid.created_at <= txn.created_at
+    )
+    if (idx === -1) return false
+    unmatchedBids.splice(idx, 1)
+    return true
+  }
+
   const grants: NotableGrant[] = [
-    // Accepted bids already produced a matching donation txn, so skip them to
-    // avoid listing the same grant twice
-    ...(bids ?? [])
-      .filter((bid: any) => bid.status !== 'accepted' && bid.status !== 'deleted')
-      .map((bid: any) => ({
-        id: bid.id,
-        amount: bid.amount,
-        kind: 'bid' as const,
-        createdAt: bid.created_at,
-        profiles: bid.profiles ?? undefined,
-        projects: bid.projects ?? undefined,
-        isRegrantor: regrantorIds.has(bid.bidder),
-      })),
+    ...(bids ?? []).map((bid: any) => ({
+      id: bid.id,
+      amount: bid.amount,
+      // An accepted bid has already turned into a donation; say so
+      kind: (bid.status === 'accepted' ? 'donation' : 'bid') as NotableGrant['kind'],
+      createdAt: bid.created_at,
+      profiles: bid.profiles ?? undefined,
+      projects: bid.projects ?? undefined,
+      isRegrantor: regrantorIds.has(bid.bidder),
+    })),
     ...(donations ?? [])
-      .filter((txn: any) => txn.from_id !== null)
+      .filter((txn: any) => !isConvertedBid(txn))
       .map((txn: any) => ({
         id: txn.id,
         amount: txn.amount,
