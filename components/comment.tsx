@@ -1,5 +1,5 @@
 import { UserLink } from '@/components/user-link'
-import { formatDistanceToNow } from 'date-fns'
+import { RelativeTime } from '@/components/relative-time'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
 import { Col } from '@/components/layout/col'
@@ -96,14 +96,10 @@ export function Comment(props: {
                 creatorBadge={writtenByCreator}
                 className="text-sm font-semibold"
               />
-              <p
+              <RelativeTime
+                date={comment.created_at}
                 className="min-w-fit text-xs text-gray-500"
-                title={new Date(comment.created_at).toLocaleString()}
-              >
-                {formatDistanceToNow(new Date(comment.created_at), {
-                  addSuffix: true,
-                })}
-              </p>
+              />
               <Tooltip text="Copy link to comment" className="cursor-pointer">
                 <LinkIcon
                   className="h-3 w-3 stroke-2 text-gray-500 hover:text-gray-700"

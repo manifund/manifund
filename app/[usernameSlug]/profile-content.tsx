@@ -19,7 +19,7 @@ import { Row } from '@/components/layout/row'
 import { useState } from 'react'
 import clsx from 'clsx'
 import { RightCarrotIcon } from '@/components/icons'
-import { formatDistanceToNow } from 'date-fns'
+import { RelativeTime } from '@/components/relative-time'
 import { sortBy } from 'es-toolkit'
 import { Col } from '@/components/layout/col'
 import {
@@ -145,7 +145,7 @@ function UserTxns(props: { txns: FullTxn[]; profile: Profile }) {
       <TableRow className="text-sm font-light">
         <TableCell className="max-w-24 truncate">{descriptor}</TableCell>
         <TableCell className="max-w-6 truncate">
-          {formatDistanceToNow(new Date(txn.created_at))} ago
+          <RelativeTime date={txn.created_at} />
         </TableCell>
         <TableCell className="max-w-6 truncate">{txn.type}</TableCell>
         <TableCell className={clsx('w-4 text-right font-bold', sign ? 'text-green-600' : '')}>

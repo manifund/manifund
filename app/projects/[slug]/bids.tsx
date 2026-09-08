@@ -16,7 +16,7 @@ import { useSupabase } from '@/db/supabase-provider'
 import { Modal } from '@/components/modal'
 import { Profile } from '@/db/profile'
 import { Avatar } from '@/components/avatar'
-import { formatDistanceToNow } from 'date-fns'
+import { RelativeTime } from '@/components/relative-time'
 
 export function Bids(props: {
   bids: BidAndProfile[]
@@ -112,11 +112,10 @@ export function Bid(props: {
         )}
       </Row>
       <Row className="items-center justify-end gap-2">
-        <span className="hidden text-right text-gray-500 sm:block">
-          {formatDistanceToNow(new Date(bid.created_at), {
-            addSuffix: true,
-          })}
-        </span>
+        <RelativeTime
+          date={bid.created_at}
+          className="hidden text-right text-gray-500 sm:block"
+        />
         {userProfile && bid.bidder === userProfile.id && <DeleteBid bidId={bid.id} />}
         {showTrade && project && (
           <Trade
