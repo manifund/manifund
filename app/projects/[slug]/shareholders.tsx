@@ -6,9 +6,9 @@ import { TOTAL_SHARES } from '@/db/project'
 import { formatMoneyPrecise, formatPercent, showPrecision } from '@/utils/formatting'
 import clsx from 'clsx'
 import { orderBy } from 'es-toolkit'
-import { formatDistanceToNow } from 'date-fns'
 import { bundleTxns } from '@/utils/math'
 import { Shareholder } from './project-tabs'
+import { RelativeTime } from '@/components/relative-time'
 import { TxnAndProfiles } from '@/db/txn'
 import { calculateAMMPorfolio } from '@/utils/amm'
 import { DividerWithHeader } from '@/components/divider-with-header'
@@ -74,11 +74,10 @@ function Trade(props: {
           <span className="text-gray-500">for</span>
           {formatMoneyPrecise(amountUSD)}
         </Row>
-        <span className="hidden text-right text-gray-500 sm:block">
-          {formatDistanceToNow(new Date(createdAt), {
-            addSuffix: true,
-          })}
-        </span>
+        <RelativeTime
+          date={createdAt}
+          className="hidden text-right text-gray-500 sm:block"
+        />
       </div>
     </Row>
   )

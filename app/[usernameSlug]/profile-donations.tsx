@@ -5,7 +5,7 @@ import { Tooltip } from '@/components/tooltip'
 import { BidAndProject } from '@/db/bid'
 import { FullTxn } from '@/db/txn'
 import { HeartIcon, UserIcon, WrenchIcon, UserGroupIcon } from '@heroicons/react/24/solid'
-import { formatDistanceToNow } from 'date-fns'
+import { RelativeTime } from '@/components/relative-time'
 import { orderBy } from 'es-toolkit'
 import Link from 'next/link'
 
@@ -39,9 +39,7 @@ export function OutgoingDonationsHistory(props: {
         name={name}
         url={url}
         amount={donation.amount}
-        date={formatDistanceToNow(new Date(donation.created_at), {
-          addSuffix: true,
-        })}
+        date={<RelativeTime date={donation.created_at} />}
       />
     )
   })
@@ -74,7 +72,7 @@ function DonationRow(props: {
   name: string
   url: string
   amount: number
-  date?: string
+  date?: React.ReactNode
 }) {
   const { type, name, url, amount, date } = props
   return (

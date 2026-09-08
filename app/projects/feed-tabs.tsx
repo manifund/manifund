@@ -16,7 +16,7 @@ import { Card } from '@/components/layout/card'
 import { FullBid } from '@/db/bid'
 import { Row } from '@/components/layout/row'
 import { UserAvatarAndBadge } from '@/components/user-link'
-import { formatDistanceToNow } from 'date-fns'
+import { RelativeTime } from '@/components/relative-time'
 
 export function FeedTabs(props: {
   recentComments: FullComment[]
@@ -138,11 +138,10 @@ function DonationItem(props: { type: 'donation' | 'bid'; item: FullTxn | FullBid
         </div>
       </Row>
       <Row className="items-center justify-end gap-2">
-        <span className="hidden text-right text-gray-500 sm:block">
-          {formatDistanceToNow(new Date(item.created_at), {
-            addSuffix: true,
-          })}
-        </span>
+        <RelativeTime
+          date={item.created_at}
+          className="hidden text-right text-gray-500 sm:block"
+        />
       </Row>
     </div>
   )
