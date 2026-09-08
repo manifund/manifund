@@ -12,7 +12,7 @@ export const SignInButton = (props: { buttonText: string; className?: string }) 
   })
   return (
     <Link
-      href={`/login?redirect=${pathname}`}
+      href={`/login?next=${pathname}`}
       className={clsx(buttonClass('xl', 'gradient'), className)}
     >
       {buttonText}
