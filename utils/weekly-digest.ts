@@ -33,7 +33,10 @@ interface NotableComment {
 interface NotableGrant {
   id: string
   amount: number
-  bidder: string
+  // Bids are pledges to proposal-stage projects; donations are completed txns
+  // to active projects. Both count as notable grants.
+  kind: 'bid' | 'donation'
+  createdAt: string
   profiles?: { username?: string; full_name?: string }
   projects?: { title?: string; slug?: string }
   isRegrantor: boolean
@@ -282,13 +285,13 @@ export async function getNotableGrantsLastWeek(
 ): Promise<NotableGrant[]> {
   const oneWeekAgo = getOneWeekAgo()
 
-  const [{ data: regrantors }, { data: bids }] = await Promise.all([
+  const [{ data: regrantors }, { data: bids }, { data: donations }] = await Promise.all([
     supabase.from('profiles').select('id').eq('regranter_status', true).throwOnError(),
     supabase
       .from('bids')
       .select(
         `
-      *,
+      id, amount, bidder, created_at, status,
       profiles!bids_bidder_fkey(id, username, full_name, avatar_url),
       projects(id, title, slug, stage)
     `
@@ -297,20 +300,56 @@ export async function getNotableGrantsLastWeek(
       .neq('projects.stage', 'hidden')
       .order('created_at', { ascending: false })
       .throwOnError(),
+    // Donations to active projects don't create bids; they land directly in txns
+    supabase
+      .from('txns')
+      .select(
+        `
+      id, amount, from_id, created_at,
+      profiles!txns_from_id_fkey(id, username, full_name, avatar_url),
+      projects(id, title, slug, stage)
+    `
+      )
+      .eq('type', 'project donation')
+      .eq('token', 'USD')
+      .not('project', 'is', null)
+      .gte('created_at', oneWeekAgo.toISOString())
+      .neq('projects.stage', 'hidden')
+      .order('created_at', { ascending: false })
+      .throwOnError(),
   ])
-
-  if (!bids?.length) return []
 
   const regrantorIds = new Set(regrantors?.map((r) => r.id) || [])
 
-  const notableBids = bids.filter((bid) => {
-    const isRegrantor = regrantorIds.has(bid.bidder)
-    const isLargeAmount = bid.amount >= NOTABLE_GRANT_THRESHOLD
-    return isRegrantor || isLargeAmount
-  })
+  const grants: NotableGrant[] = [
+    // Accepted bids already produced a matching donation txn, so skip them to
+    // avoid listing the same grant twice
+    ...(bids ?? [])
+      .filter((bid: any) => bid.status !== 'accepted' && bid.status !== 'deleted')
+      .map((bid: any) => ({
+        id: bid.id,
+        amount: bid.amount,
+        kind: 'bid' as const,
+        createdAt: bid.created_at,
+        profiles: bid.profiles ?? undefined,
+        projects: bid.projects ?? undefined,
+        isRegrantor: regrantorIds.has(bid.bidder),
+      })),
+    ...(donations ?? [])
+      .filter((txn: any) => txn.from_id !== null)
+      .map((txn: any) => ({
+        id: txn.id,
+        amount: txn.amount,
+        kind: 'donation' as const,
+        createdAt: txn.created_at,
+        profiles: txn.profiles ?? undefined,
+        projects: txn.projects ?? undefined,
+        isRegrantor: regrantorIds.has(txn.from_id),
+      })),
+  ]
 
-  return notableBids
-    .map((bid) => ({ ...bid, isRegrantor: regrantorIds.has(bid.bidder) }))
+  return grants
+    .filter((grant) => grant.isRegrantor || grant.amount >= NOTABLE_GRANT_THRESHOLD)
     .sort((a, b) => b.amount - a.amount)
     .slice(0, limit)
 }
@@ -454,7 +493,7 @@ const generateGrantItem = (grant: NotableGrant): string => {
       <div class="content">
         <span class="name">${escapeHtml(bidderName)}${
           grant.isRegrantor ? ' ⭐️' : ''
-        }</span> offered <span class="amount">$${grant.amount.toLocaleString()}</span> to 
+        }</span> ${grant.kind === 'donation' ? 'donated' : 'offered'} <span class="amount">$${grant.amount.toLocaleString()}</span> to 
         <span><a href="https://manifund.org/projects/${escapeHtml(
           projectSlug
         )}">${escapeHtml(projectTitle)}</a></span>
@@ -579,7 +618,7 @@ export function generatePlaintextDigest(
     const projectTitle = grant.projects?.title || 'Unknown Project'
     return `- ${bidderName}${
       grant.isRegrantor ? ' ⭐️' : ''
-    } offered $${grant.amount.toLocaleString()} to ${projectTitle}\n`
+    } ${grant.kind === 'donation' ? 'donated' : 'offered'} $${grant.amount.toLocaleString()} to ${projectTitle}\n`
   })
 
   return text
