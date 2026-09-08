@@ -201,6 +201,107 @@ export type Database = {
           },
         ]
       }
+      donor_survey_responses: {
+        Row: {
+          advice_sources: string | null
+          already_given: string | null
+          capacity: string[]
+          cause_allocation: Json
+          charities_interested: string | null
+          created_at: string
+          dream_setup: string | null
+          edit_token_hash: string | null
+          email: string
+          evaluation_approach: string | null
+          full_name: string
+          funds_vs_direct: number | null
+          giving_2026: string | null
+          giving_2027: string | null
+          hours_per_month: string | null
+          id: string
+          is_public: boolean
+          landscape_problems: string | null
+          opportunity_frequency: string | null
+          org: string | null
+          other_thoughts: string | null
+          profile_id: string | null
+          referrals: string | null
+          share_with_funders: boolean
+          updated_at: string
+          wants_call: boolean
+          wants_events: boolean
+          wants_opportunities: boolean | null
+        }
+        Insert: {
+          advice_sources?: string | null
+          already_given?: string | null
+          capacity?: string[]
+          cause_allocation?: Json
+          charities_interested?: string | null
+          created_at?: string
+          dream_setup?: string | null
+          edit_token_hash?: string | null
+          email: string
+          evaluation_approach?: string | null
+          full_name: string
+          funds_vs_direct?: number | null
+          giving_2026?: string | null
+          giving_2027?: string | null
+          hours_per_month?: string | null
+          id?: string
+          is_public?: boolean
+          landscape_problems?: string | null
+          opportunity_frequency?: string | null
+          org?: string | null
+          other_thoughts?: string | null
+          profile_id?: string | null
+          referrals?: string | null
+          share_with_funders?: boolean
+          updated_at?: string
+          wants_call?: boolean
+          wants_events?: boolean
+          wants_opportunities?: boolean | null
+        }
+        Update: {
+          advice_sources?: string | null
+          already_given?: string | null
+          capacity?: string[]
+          cause_allocation?: Json
+          charities_interested?: string | null
+          created_at?: string
+          dream_setup?: string | null
+          edit_token_hash?: string | null
+          email?: string
+          evaluation_approach?: string | null
+          full_name?: string
+          funds_vs_direct?: number | null
+          giving_2026?: string | null
+          giving_2027?: string | null
+          hours_per_month?: string | null
+          id?: string
+          is_public?: boolean
+          landscape_problems?: string | null
+          opportunity_frequency?: string | null
+          org?: string | null
+          other_thoughts?: string | null
+          profile_id?: string | null
+          referrals?: string | null
+          share_with_funders?: boolean
+          updated_at?: string
+          wants_call?: boolean
+          wants_events?: boolean
+          wants_opportunities?: boolean | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'donor_survey_responses_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       grant_agreement_private: {
         Row: {
           created_at: string
