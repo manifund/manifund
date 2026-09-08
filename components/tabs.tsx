@@ -2,7 +2,6 @@
 import React from 'react'
 import clsx from 'clsx'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Select } from './select'
 
 // TODO: Consider rewriting the tab navigation pattern to use Parallel Routes:
@@ -24,15 +23,13 @@ export function Tabs(props: { tabs: Tab[]; currentTabId?: string | null }) {
     currentTabId = tabs[0].id
   }
 
-  const router = useRouter()
-
   if (tabs.length === 0) return null
   return (
     <div>
       <div className="border-b border-gray-200 py-4 sm:hidden">
         <Select
           selected={(tabs.find((tab) => tab.id === currentTabId) ?? tabs[0]).name}
-          onSelect={(event) => router.push(`?tab=${tabs.find((tab) => tab.name === event)?.id}`)}
+          onSelect={(event) => switchTab(tabs.find((tab) => tab.name === event)?.id ?? tabs[0].id)}
           options={tabs.map((tab) => tab.name)}
           label="Tab:"
         />
@@ -51,13 +48,26 @@ export function Tabs(props: { tabs: Tab[]; currentTabId?: string | null }) {
   )
 }
 
+// Every tab panel is already rendered client-side, so navigating through the
+// router just re-renders the whole page on the server to show content the
+// browser already has. pushState updates useSearchParams without that trip.
+function switchTab(id: string) {
+  window.history.pushState(null, '', `?tab=${id}`)
+}
+
 function SingleTab(props: { tab: Tab; isCurrent: boolean }) {
   const { tab, isCurrent } = props
   return (
     <Link
       key={tab.id}
       href={`?tab=${tab.id}`}
+      prefetch={false}
       scroll={false}
+      onClick={(e) => {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+        e.preventDefault()
+        switchTab(tab.id)
+      }}
       className={clsx(
         isCurrent
           ? 'border-orange-500 text-orange-600'
