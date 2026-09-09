@@ -49,7 +49,7 @@ export default async function ResultsPage() {
     return (
       <SurveyShell>
         <section className="flex flex-col gap-5">
-          <h1 className="text-[32px] font-bold leading-[1.15] tracking-[-0.02em]">
+          <h1 className="text-[32px] font-medium leading-[1.15] tracking-[-0.02em]">
             What other donors said
           </h1>
           <p className="text-[15px] leading-relaxed text-gray-500">
@@ -57,7 +57,7 @@ export default async function ResultsPage() {
           </p>
           <Link
             href="/donor-survey"
-            className="flex h-[46px] w-full max-w-[261px] items-center justify-center rounded-[10px] bg-orange-500 text-[15px] font-semibold text-white transition-colors hover:bg-orange-600"
+            className="flex h-[46px] w-full max-w-[261px] items-center justify-center rounded-[10px] bg-orange-500 text-[15px] font-medium text-white transition-colors hover:bg-orange-600"
           >
             Take the survey
           </Link>
@@ -93,7 +93,7 @@ export default async function ResultsPage() {
               />
             </svg>
           </div>
-          <h1 className="text-[32px] font-bold leading-[1.15] tracking-[-0.02em]">
+          <h1 className="text-[32px] font-medium leading-[1.15] tracking-[-0.02em]">
             {firstName ? `Thanks, ${firstName}. ` : ''}Here’s what other donors said.
           </h1>
           <p className="text-[15px] leading-relaxed text-gray-500">
@@ -134,14 +134,14 @@ export default async function ResultsPage() {
 
         {mine && (
           <section className="flex flex-col gap-3 rounded-[14px] border border-gray-100 bg-[#fafafa] p-5">
-            <span className="text-[15px] font-medium">What happens next</span>
+            <span className="text-[15px] font-normal">What happens next</span>
             <ul className="flex list-disc flex-col pl-5 text-sm leading-[1.7] text-gray-600">
               <li>Aggregate results published in a couple of weeks — we’ll email you.</li>
               <li>{shareSummary}</li>
             </ul>
             <Link
               href="/donor-survey"
-              className="mt-1 self-start rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-medium text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600 hover:no-underline"
+              className="mt-1 self-start rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-normal text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600 hover:no-underline"
             >
               Edit my answers
             </Link>
@@ -186,7 +186,7 @@ export default async function ResultsPage() {
         </Figure>
 
         <section className="flex flex-col gap-3.5">
-          <h3 className="text-base font-semibold text-gray-900">
+          <h3 className="text-base font-medium text-gray-900">
             Donors who published their answers
           </h3>
           {published.length === 0 ? (
@@ -203,7 +203,7 @@ export default async function ResultsPage() {
         {admin && (
           <section className="flex flex-col gap-3.5">
             <div className="flex items-baseline gap-3">
-              <h3 className="text-base font-semibold text-gray-900">All responses</h3>
+              <h3 className="text-base font-medium text-gray-900">All responses</h3>
               <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
                 Admins only
               </span>
@@ -264,7 +264,7 @@ function DonorRow(props: { response: ResponseWithProfile; href: string; admin?: 
           noLink
         />
         <span className="flex min-w-0 grow flex-col">
-          <span className="truncate text-[15px] font-medium">
+          <span className="truncate text-[15px] font-normal">
             {profile?.full_name || r.full_name}
           </span>
           <span className="truncate text-[13px] text-gray-500">

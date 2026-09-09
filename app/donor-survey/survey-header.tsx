@@ -13,7 +13,7 @@ export function SurveyHeader() {
           height={28}
           className="h-7 w-7 object-contain"
         />
-        <span className="text-[17px] font-semibold tracking-[-0.01em]">Manifund</span>
+        <span className="text-[17px] font-medium tracking-[-0.01em]">Manifund</span>
       </Link>
     </header>
   )

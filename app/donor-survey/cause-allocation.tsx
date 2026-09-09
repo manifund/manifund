@@ -121,7 +121,7 @@ export function CauseSliders(props: { value: CauseValue[]; onChange: (v: CauseVa
         <button
           type="button"
           onClick={addCustom}
-          className="h-10 rounded-[10px] border border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
+          className="h-10 rounded-[10px] border border-gray-200 bg-white px-4 text-sm font-normal text-gray-700 transition-colors hover:border-orange-300 hover:text-orange-600"
         >
           Add
         </button>

@@ -7,18 +7,27 @@ import { ReactNode, useId } from 'react'
 // one 640px column, section headings with a hairline, pill single-selects,
 // card-style multi-selects, and 44px inputs with an orange focus ring.
 
-export function Section(props: { title: string; badge?: string; children: ReactNode }) {
+export function Section(props: {
+  id?: string
+  title: string
+  badge?: string
+  children: ReactNode
+}) {
   return (
-    <section className="flex flex-col gap-8">
-      <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 pb-3">
-        <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-gray-900">
-          {props.title}
-        </h2>
-        {props.badge && (
-          <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
-            {props.badge}
-          </span>
-        )}
+    <section id={props.id} className="flex scroll-mt-16 flex-col gap-8">
+      <div className="flex flex-col gap-3 border-b border-gray-100 pb-3.5">
+        <span
+          aria-hidden
+          className="h-1 w-8 rounded-full bg-gradient-to-r from-orange-500 to-rose-400"
+        />
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-2xl font-medium tracking-[-0.01em] text-gray-900">{props.title}</h2>
+          {props.badge && (
+            <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
+              {props.badge}
+            </span>
+          )}
+        </div>
       </div>
       {props.children}
     </section>
@@ -37,7 +46,7 @@ export function Q(props: {
   return (
     <Wrapper id={props.id} className={clsx('flex flex-col gap-3', props.className)}>
       <div className="flex flex-col gap-1">
-        <span className="text-[17px] font-medium leading-[1.4] text-gray-900">{props.label}</span>
+        <span className="text-[17px] font-normal leading-[1.4] text-gray-900">{props.label}</span>
         {props.hint && <span className="text-sm text-gray-500">{props.hint}</span>}
       </div>
       {props.children}
@@ -104,7 +113,7 @@ export function Pills<K extends string>(props: {
           <label
             key={o.key}
             className={clsx(
-              'cursor-pointer rounded-full border font-medium transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-orange-100',
+              'cursor-pointer rounded-full border font-normal transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-orange-100',
               size === 'sm' ? 'px-3.5 py-[7px] text-[13px]' : 'py-[9px] text-sm',
               size === 'md' && 'px-4',
               size === 'wide' && 'px-[22px]',
