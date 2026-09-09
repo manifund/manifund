@@ -3,6 +3,7 @@ import clsx from 'clsx'
 import {
   CAPACITIES,
   FREQUENCIES,
+  FUNDS_LABELS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
   causeColor,
@@ -10,10 +11,10 @@ import {
   parseCauseAllocation,
 } from '@/utils/donor-survey'
 import type { PublicDonorSurveyResponse, DonorSurveyResponse } from '@/db/donor-survey'
-import { Donut } from '@/app/donor-survey/cause-allocation'
+import { CauseLegend, ProportionBar } from '@/app/donor-survey/cause-allocation'
 
-// Read-only rendering of one donor's answers, in the same order as the form.
-// `full` adds the fields only the owner and admins may see.
+// Read-only rendering of one donor's answers, in the same order and style as
+// the form. `full` adds the fields only the owner and admins may see.
 
 type AnyResponse = PublicDonorSurveyResponse | DonorSurveyResponse
 
@@ -21,112 +22,105 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
   const { response: r, full } = props
   const priv = full ? (r as DonorSurveyResponse) : null
   const allocation = parseCauseAllocation(r.cause_allocation)
+  const segments = allocation.map((c, i) => ({ ...c, color: causeColor(i) }))
   const capacity = (r.capacity ?? []).map((c) => labelFor(CAPACITIES, c)).filter(Boolean)
+  const link = 'already_given_link' in r ? r.already_given_link : null
 
   return (
-    <div className="flex flex-col gap-16">
-      <Group title="Basic questions">
-        {priv && <Answer label="email">{priv.email}</Answer>}
-        <Answer label="in what capacity are you giving?">
-          {capacity.length ? capacity.join(', ') : null}
-        </Answer>
-        {r.org && <Answer label="for what org?">{r.org}</Answer>}
+    <div className="flex flex-col gap-12">
+      <Group title="About">
+        {priv && <Answer label="Email">{priv.email}</Answer>}
+        <Answer label="Giving capacity">{capacity.length ? capacity.join(', ') : null}</Answer>
+        {r.org && <Answer label="Org">{r.org}</Answer>}
       </Group>
 
-      <Group title="Giving questions">
-        <div className="grid gap-8 sm:grid-cols-2">
-          <Answer label="How much in total are you looking to give, in 2026?">
+      <Group title="Giving">
+        <div className="grid gap-6 sm:grid-cols-2">
+          <Answer label="Planned for 2026">
             <Big>{labelFor(GIVING_BANDS_2027, r.giving_2026)}</Big>
           </Answer>
-          <Answer label="In 2027?">
+          <Answer label="And in 2027">
             <Big>{labelFor(GIVING_BANDS_2027, r.giving_2027)}</Big>
           </Answer>
         </div>
-        <Answer label="What cause areas are you interested in? in what proportion?">
+        <Answer label="Cause areas, by proportion">
           {allocation.length > 0 ? (
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:gap-8">
-              <Donut allocation={allocation} size={160} className="mx-auto sm:mx-0" />
-              <ul className="flex grow flex-col gap-1.5">
-                {allocation
-                  .map((c, i) => ({ ...c, i }))
-                  .filter((c) => c.pct > 0)
-                  .sort((a, b) => b.pct - a.pct)
-                  .map((c) => (
-                    <li key={c.i} className="flex items-center gap-3 text-base">
-                      <span
-                        aria-hidden
-                        className="h-3 w-3 shrink-0 rounded-full"
-                        style={{ backgroundColor: causeColor(c.i) }}
-                      />
-                      <span className="grow text-gray-800">{c.name}</span>
-                      <span className="tabular-nums text-gray-600">{c.pct}%</span>
-                    </li>
-                  ))}
-              </ul>
+            <div className="flex flex-col gap-3">
+              <ProportionBar segments={segments} />
+              <CauseLegend segments={segments.filter((s) => s.pct > 0)} />
             </div>
           ) : null}
         </Answer>
-        <Answer label="Where do you currently go for advice about effective giving?">
-          {r.advice_sources}
-        </Answer>
-        <Answer label="What are your biggest problems with the current giving landscape?">
+        <Answer label="Where they go for advice about effective giving">{r.advice_sources}</Answer>
+        <Answer label="Biggest problems with the current giving landscape">
           {r.landscape_problems}
         </Answer>
       </Group>
 
-      <Group title="More giving questions">
-        <Answer label="how are you thinking about giving to funds (like Longview and CG) vs selecting individual charities yourself?">
-          {r.funds_vs_direct !== null ? <FundsBar value={r.funds_vs_direct} /> : null}
+      <Group title="Going deeper">
+        <Answer label="Funds vs. picking charities themself">
+          {r.funds_vs_direct !== null ? (
+            <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-medium text-orange-700">
+              {FUNDS_LABELS[r.funds_vs_direct] ?? `${r.funds_vs_direct}%`}
+            </span>
+          ) : null}
         </Answer>
-        <Answer label="Where have you already given? (how much?)">{r.already_given}</Answer>
-        <Answer label="How do you evaluate funds? How do you evaluate charities?">
-          {r.evaluation_approach}
+        <Answer label="Where they have already given">
+          {r.already_given || link ? (
+            <div className="flex flex-col gap-1.5">
+              {r.already_given && <Text>{r.already_given}</Text>}
+              {link && (
+                <a
+                  href={link}
+                  target="_blank"
+                  rel="noreferrer nofollow"
+                  className="break-all text-sm text-orange-600 hover:underline"
+                >
+                  {link}
+                </a>
+              )}
+            </div>
+          ) : null}
         </Answer>
-        <Answer label="What are some charities you might like to give to?">
-          {r.charities_interested}
-        </Answer>
-        <Answer label="How many hours per month would you ideally spend on donating your money?">
+        <Answer label="How they evaluate funds and charities">{r.evaluation_approach}</Answer>
+        <Answer label="Charities they might like to give to">{r.charities_interested}</Answer>
+        <Answer label="Hours per month they’d ideally spend on donating">
           {r.hours_per_month ? <Big>{labelFor(HOURS_BANDS, r.hours_per_month)}</Big> : null}
         </Answer>
-        <Answer label="What would your dream setup for donating your money look like?">
-          {r.dream_setup}
-        </Answer>
+        <Answer label="Dream setup for donating">{r.dream_setup}</Answer>
       </Group>
 
       {priv && (
-        <Group title="Comms questions">
-          <Answer label="Would you like me to send you opportunities I think you would like?">
+        <Group title="Staying in touch">
+          <Answer label="Wants opportunities sent to them">
             {priv.wants_opportunities === null
               ? null
               : priv.wants_opportunities
-                ? `yes${priv.opportunity_frequency ? `, ${labelFor(FREQUENCIES, priv.opportunity_frequency)}` : ''}`
-                : 'no'}
+                ? `Yes${priv.opportunity_frequency ? `, ${labelFor(FREQUENCIES, priv.opportunity_frequency)?.toLowerCase()}` : ''}`
+                : 'No'}
           </Answer>
-          <Answer label="Would you like to:">
+          <Answer label="Would like to">
             <Checks
               items={[
-                ['meet for 1:1 call with a member of Manifund team?', priv.wants_call],
-                ['come to events centered on fundraising for top charities?', priv.wants_events],
+                ['Meet for a 1:1 call with a member of the Manifund team', priv.wants_call],
+                ['Come to events centered on fundraising for top charities', priv.wants_events],
               ]}
             />
           </Answer>
-          <Answer label="Would you be willing to share your personal answers:">
+          <Answer label="Willing to share their answers">
             <Checks
               items={[
-                [
-                  'With other major funders (such as CG, Longview, Macroscopic, AISTOF)',
-                  priv.share_with_funders,
-                ],
-                ['On your public Manifund profile?', priv.is_public],
+                ['With other major funders', priv.share_with_funders],
+                ['On their public Manifund profile', priv.is_public],
               ]}
             />
           </Answer>
         </Group>
       )}
 
-      <Group title="Misc">
-        <Answer label="Other thoughts on effective giving?">{r.other_thoughts}</Answer>
-        {priv && <Answer label="Who else should take this survey?">{priv.referrals}</Answer>}
+      <Group title="Last two">
+        <Answer label="Other thoughts on effective giving">{r.other_thoughts}</Answer>
+        {priv && <Answer label="Who else should take this survey">{priv.referrals}</Answer>}
       </Group>
     </div>
   )
@@ -134,8 +128,10 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
 
 function Group(props: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-8">
-      <h2 className="font-josefin text-2xl font-semibold text-gray-900">{props.title}</h2>
+    <section className="flex flex-col gap-6">
+      <h2 className="border-b border-gray-100 pb-3 text-[22px] font-semibold tracking-[-0.01em] text-gray-900">
+        {props.title}
+      </h2>
       {props.children}
     </section>
   )
@@ -144,14 +140,12 @@ function Group(props: { title: string; children: ReactNode }) {
 function Answer(props: { label: string; children: ReactNode }) {
   const empty = props.children === null || props.children === undefined || props.children === ''
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-sm leading-snug text-gray-500">{props.label}</p>
+    <div className="flex flex-col gap-1.5">
+      <span className="text-sm text-gray-500">{props.label}</span>
       {empty ? (
-        <p className="text-base text-gray-300">—</p>
+        <span className="text-[15px] text-gray-300">—</span>
       ) : typeof props.children === 'string' ? (
-        <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-900">
-          {props.children}
-        </p>
+        <Text>{props.children}</Text>
       ) : (
         props.children
       )}
@@ -159,12 +153,16 @@ function Answer(props: { label: string; children: ReactNode }) {
   )
 }
 
-function Big(props: { children: ReactNode }) {
+function Text(props: { children: ReactNode }) {
   return (
-    <p className="font-josefin text-3xl font-semibold tabular-nums text-gray-900">
+    <p className="whitespace-pre-wrap text-[15px] leading-relaxed text-gray-900">
       {props.children}
     </p>
   )
+}
+
+function Big(props: { children: ReactNode }) {
+  return <p className="text-2xl font-semibold tabular-nums text-gray-900">{props.children}</p>
 }
 
 function Checks(props: { items: [string, boolean][] }) {
@@ -174,20 +172,20 @@ function Checks(props: { items: [string, boolean][] }) {
         <li
           key={label}
           className={clsx(
-            'flex items-center gap-2 text-base',
+            'flex items-center gap-2 text-[15px]',
             on ? 'text-gray-900' : 'text-gray-400'
           )}
         >
           <span
             aria-hidden
             className={clsx(
-              'flex h-4 w-4 items-center justify-center rounded border',
+              'grid h-4 w-4 place-items-center rounded border-[1.5px]',
               on ? 'border-orange-500 bg-orange-500' : 'border-gray-300'
             )}
           >
             {on && (
-              <svg viewBox="0 0 20 20" className="h-3 w-3 fill-none stroke-white stroke-[3]">
-                <path d="M4 10.5l4 4 8-9" strokeLinecap="round" strokeLinejoin="round" />
+              <svg viewBox="0 0 12 12" className="h-2.5 w-2.5 fill-none stroke-white stroke-2">
+                <path d="M2.5 6.5l2.5 2.5 4.5-5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             )}
           </span>
@@ -196,26 +194,5 @@ function Checks(props: { items: [string, boolean][] }) {
         </li>
       ))}
     </ul>
-  )
-}
-
-export function FundsBar(props: { value: number }) {
-  const { value } = props
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-gray-100">
-        <div className="h-full bg-orange-500" style={{ width: `${value}%` }} />
-        <div className="h-full w-0.5 bg-white" />
-        <div className="h-full grow bg-gray-300" />
-      </div>
-      <div className="flex justify-between text-sm text-gray-700">
-        <span>
-          <span className="font-medium text-gray-900">{value}%</span> funds
-        </span>
-        <span>
-          <span className="font-medium text-gray-900">{100 - value}%</span> individual charities
-        </span>
-      </div>
-    </div>
   )
 }

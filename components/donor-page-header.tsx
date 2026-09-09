@@ -35,7 +35,7 @@ export function DonorPageHeader(props: {
           />
         )}
         <div className="flex flex-col gap-1">
-          <h1 className="font-josefin text-4xl font-semibold leading-none text-gray-900 sm:text-5xl">
+          <h1 className="text-[32px] font-bold leading-[1.15] tracking-[-0.02em] text-gray-900">
             {name}
           </h1>
           {profile && (

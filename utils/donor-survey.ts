@@ -4,10 +4,10 @@
 
 export const GIVING_BANDS = [
   { key: 'under_50k', label: '<$50k', min: 0, max: 50_000 },
-  { key: '50k_200k', label: '$50k-$200k', min: 50_000, max: 200_000 },
-  { key: '200k_500k', label: '$200k-$500k', min: 200_000, max: 500_000 },
-  { key: '500k_2m', label: '$500k-$2m', min: 500_000, max: 2_000_000 },
-  { key: '2m_5m', label: '$2m-$5m', min: 2_000_000, max: 5_000_000 },
+  { key: '50k_200k', label: '$50k–$200k', min: 50_000, max: 200_000 },
+  { key: '200k_500k', label: '$200k–$500k', min: 200_000, max: 500_000 },
+  { key: '500k_2m', label: '$500k–$2m', min: 500_000, max: 2_000_000 },
+  { key: '2m_5m', label: '$2m–$5m', min: 2_000_000, max: 5_000_000 },
   { key: '5m_plus', label: '$5m+', min: 5_000_000, max: 5_000_000 },
 ] as const
 export type GivingBandKey = (typeof GIVING_BANDS)[number]['key']
@@ -19,62 +19,59 @@ export const GIVING_BANDS_2027 = [
 ] as const
 
 export const CAPACITIES = [
-  { key: 'own_money', label: 'my own money' },
-  { key: 'grantmaker', label: 'i’m a grantmaker' },
-  { key: 'regrantor', label: 'i’m a regrantor or evaluator' },
+  { key: 'own_money', label: 'My own money' },
+  { key: 'grantmaker', label: 'I’m a grantmaker' },
+  { key: 'regrantor', label: 'I’m a regrantor or evaluator' },
 ] as const
 export type CapacityKey = (typeof CAPACITIES)[number]['key']
 
 export const HOURS_BANDS = [
   { key: 'lt_1', label: '<1' },
-  { key: '1_3', label: '1-3' },
-  { key: '3_10', label: '3-10' },
-  { key: '10_30', label: '10-30' },
+  { key: '1_3', label: '1–3' },
+  { key: '3_10', label: '3–10' },
+  { key: '10_30', label: '10–30' },
   { key: '30_plus', label: '30+' },
 ] as const
 
 export const FREQUENCIES = [
-  { key: 'weekly', label: 'weekly' },
-  { key: 'monthly', label: 'monthly' },
-  { key: 'quarterly', label: 'quarterly' },
+  { key: 'weekly', label: 'Weekly' },
+  { key: 'monthly', label: 'Monthly' },
+  { key: 'quarterly', label: 'Quarterly' },
 ] as const
 
+// funds_vs_direct: 0 means everything through funds, 100 means the donor
+// picks every charity themself.
 export const FUNDS_VS_DIRECT_STOPS = [0, 25, 50, 75, 100] as const
+export const FUNDS_LABELS: Record<number, string> = {
+  0: 'Everything through funds',
+  25: 'Mostly funds',
+  50: 'An even split',
+  75: 'Mostly my own picks',
+  100: 'I pick every charity myself',
+}
 
 export type CauseAllocation = { name: string; pct: number }[]
 
 // Starting split shown before the donor touches the sliders. Order here is the
 // order on screen and the order colors are assigned in.
 export const DEFAULT_CAUSE_ALLOCATION: CauseAllocation = [
-  { name: 'AI safety', pct: 40 },
-  { name: 'GHD', pct: 15 },
-  { name: 'Animal welfare', pct: 10 },
+  { name: 'AI safety', pct: 30 },
+  { name: 'Global health & development', pct: 20 },
+  { name: 'Animal welfare', pct: 15 },
   { name: 'Biosecurity', pct: 10 },
   { name: 'EA meta', pct: 5 },
   { name: 'Progress', pct: 5 },
-  { name: 'Digital minds', pct: 5 },
   { name: 'Democracy', pct: 5 },
   { name: 'Political candidates', pct: 5 },
+  { name: 'Digital minds', pct: 5 },
 ]
 
-// Validated for adjacent-pair colorblind separation on a light surface
-// (dataviz skill validator). Colors follow the cause's position, so a custom
-// cause beyond the ninth gets the stone fallback.
-export const CAUSE_COLORS = [
-  '#ea580c',
-  '#2563eb',
-  '#059669',
-  '#c026d3',
-  '#ca8a04',
-  '#0d9488',
-  '#e11d48',
-  '#4f46e5',
-  '#65a30d',
-] as const
-export const CAUSE_COLOR_FALLBACK = '#57534e'
+// One hue per cause position at fixed lightness and chroma, cycling past the
+// defaults for causes the donor adds.
+export const CAUSE_HUES = [45, 75, 110, 150, 190, 230, 265, 300, 340, 20, 130, 60] as const
 
 export function causeColor(index: number) {
-  return CAUSE_COLORS[index] ?? CAUSE_COLOR_FALLBACK
+  return `oklch(68% 0.14 ${CAUSE_HUES[index % CAUSE_HUES.length]})`
 }
 
 export function labelFor<T extends readonly { key: string; label: string }[]>(
@@ -84,39 +81,21 @@ export function labelFor<T extends readonly { key: string; label: string }[]>(
   return options.find((o) => o.key === key)?.label ?? null
 }
 
-// Move one slider and rebalance the rest so the total stays at 100. The others
-// keep their relative proportions; if they are all zero the remainder is split
-// evenly. Integer rounding drift lands on the largest other cause.
-export function rebalanceAllocation(
-  allocation: CauseAllocation,
-  index: number,
-  value: number
-): CauseAllocation {
-  const clamped = Math.max(0, Math.min(100, Math.round(value)))
-  const others = allocation.map((c, i) => (i === index ? 0 : c.pct))
-  const othersTotal = others.reduce((a, b) => a + b, 0)
-  const remainder = 100 - clamped
-  const next = allocation.map((c, i) => {
-    if (i === index) return { ...c, pct: clamped }
-    const share =
-      othersTotal > 0
-        ? (c.pct / othersTotal) * remainder
-        : allocation.length > 1
-          ? remainder / (allocation.length - 1)
-          : 0
-    return { ...c, pct: Math.round(share) }
-  })
-  const drift = 100 - next.reduce((a, c) => a + c.pct, 0)
+// Sliders move independently; each cause's share is its value over the total.
+// Rounding drift lands on the largest cause so the shares always sum to 100.
+export function normalizeAllocation(values: { name: string; value: number }[]): CauseAllocation {
+  const total = values.reduce((s, c) => s + Math.max(0, c.value), 0)
+  if (total <= 0) return values.map((c) => ({ name: c.name, pct: 0 }))
+  const out = values.map((c) => ({
+    name: c.name,
+    pct: Math.round((Math.max(0, c.value) / total) * 100),
+  }))
+  const drift = 100 - out.reduce((s, c) => s + c.pct, 0)
   if (drift !== 0) {
-    let target = -1
-    for (let i = 0; i < next.length; i++) {
-      if (i === index) continue
-      if (target === -1 || next[i].pct > next[target].pct) target = i
-    }
-    if (target === -1) target = index
-    next[target] = { ...next[target], pct: next[target].pct + drift }
+    const largest = out.reduce((a, c, i) => (c.pct > out[a].pct ? i : a), 0)
+    out[largest] = { ...out[largest], pct: out[largest].pct + drift }
   }
-  return next
+  return out
 }
 
 export function parseCauseAllocation(value: unknown): CauseAllocation {
@@ -131,8 +110,6 @@ export function parseCauseAllocation(value: unknown): CauseAllocation {
     )
     .map((c) => ({ name: c.name.slice(0, 80), pct: Math.max(0, Math.min(100, Math.round(c.pct))) }))
 }
-
-export const CUSTOM_CAUSE_PLACEHOLDER = 'insert your own'
 
 // Email-only respondents have no session, so the edit token doubles as their
 // ticket to /donor-survey/results. Scoped to /donor-survey so it is never sent
