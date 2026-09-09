@@ -12,8 +12,12 @@ import { createAdminClient } from '@/db/edge'
 import { getTxnsByProject } from '@/db/txn'
 import { getProfileById } from '@/db/profile'
 import { makeTrade, updateBidFromTrade } from '@/utils/trade'
+import { isAuthorizedWebhook } from '@/utils/webhook-auth'
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!isAuthorizedWebhook(req)) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
   const bid = req.body.record as Bid
   const supabase = createAdminClient()
   const project = await getProjectAndProfileById(supabase, bid.project)

@@ -11,6 +11,7 @@ import { JSONContent } from '@tiptap/core'
 import { TIPTAP_EXTENSIONS } from '@/components/editor'
 import { getProjectFollowerIds } from '@/db/follows'
 import { createAdminClient } from '@/db/edge'
+import { isAuthorizedWebhook } from '@/utils/webhook-auth'
 
 const EXCERPT_WORD_LIMIT = 500
 
@@ -35,6 +36,9 @@ function generateExcerptHtml(content: JSONContent) {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (!isAuthorizedWebhook(req)) {
+    return res.status(401).json({ error: 'Unauthorized' })
+  }
   const comment = req.body.record as Comment
   const supabase = createAdminClient()
   const fullComment = await getCommentById(supabase, comment.id)

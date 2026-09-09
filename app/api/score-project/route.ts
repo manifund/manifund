@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 import { waitUntil } from '@vercel/functions'
 import { updateProjectEmbedding } from '@/app/utils/embeddings'
 import { scoreProject } from '@/app/utils/project-scores'
@@ -20,8 +21,7 @@ import { SPAM_FILTER_ENABLED, SPAM_FILTER_ENFORCE } from '@/utils/constants'
 export const maxDuration = 300
 
 export async function POST(request: NextRequest) {
-  const secret = process.env.CRON_SECRET
-  if (secret && request.headers.get('authorization') !== `Bearer ${secret}`) {
+  if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

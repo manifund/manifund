@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 import { createAdminClient } from '@/db/supabase-admin'
 import { isProd } from '@/db/env'
 import { WithdrawalRequest } from '@/db/withdrawal-request'
@@ -19,8 +20,7 @@ const RENUDGE_AFTER_DAYS = 3
 // collide: this only touches 'awaiting_recipient' rows, that only 'pending_approval'.
 export async function GET(req: NextRequest) {
   if (!isProd()) return NextResponse.json('not prod')
-  const secret = process.env.CRON_SECRET
-  if (secret && req.headers.get('authorization') !== `Bearer ${secret}`) {
+  if (!isAuthorizedCron(req)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

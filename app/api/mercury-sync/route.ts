@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 import { createAdminClient } from '@/db/supabase-admin'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getUser } from '@/db/profile'
@@ -41,8 +42,7 @@ async function handler(req: NextRequest) {
       .throwOnError()
     requests = data ? [data as WithdrawalRequest] : []
   } else {
-    const secret = process.env.CRON_SECRET
-    if (secret && req.headers.get('authorization') !== `Bearer ${secret}`) {
+    if (!isAuthorizedCron(req)) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
     requests = await getOpenWithdrawalRequests(supabaseAdmin)

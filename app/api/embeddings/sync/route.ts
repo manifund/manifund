@@ -5,8 +5,12 @@ import {
   EMBEDDING_MODELS,
   DEFAULT_EMBEDDING_MODEL,
 } from '@/app/utils/embeddings'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorizedCron(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   try {
     const { searchParams } = new URL(request.url)
 
