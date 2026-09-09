@@ -2,7 +2,12 @@ import React from 'react'
 import { Avatar } from '@/components/avatar'
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
-import { ArrowPathIcon, ArrowTrendingUpIcon, EyeIcon } from '@heroicons/react/20/solid'
+import {
+  ArrowPathIcon,
+  ArrowTrendingUpIcon,
+  ArrowUpRightIcon,
+  EyeIcon,
+} from '@heroicons/react/20/solid'
 import { ArrowLongRightIcon, BeakerIcon, BoltIcon, UserGroupIcon } from '@heroicons/react/24/solid'
 import clsx from 'clsx'
 import Link from 'next/link'
@@ -135,6 +140,36 @@ const TEAM_MEMBERS = [
   // },
 ]
 
+const OTHER_PROJECTS = [
+  {
+    name: 'Mox',
+    category: 'A place for meaningful work',
+    description:
+      'A San Francisco workspace and community bringing researchers, founders, and creators together to work on things that matter.',
+    domain: 'moxsf.com',
+    panelClass: 'bg-blue-100 text-blue-950',
+    nameClass: 'font-semibold tracking-tight',
+  },
+  {
+    name: 'Surplus',
+    category: 'Software for public good',
+    description:
+      'An incubator for founders building software for public good in the age of AI, with seed funding, mentorship, and space to focus at Mox.',
+    domain: 'surplus.dev',
+    panelClass: 'bg-lime-100 text-lime-950',
+    nameClass: 'font-josefin font-bold',
+  },
+  {
+    name: 'Frame',
+    category: 'Helping people understand AI',
+    description:
+      'A fellowship in San Francisco supporting video creators who help the public understand AI and its implications for society.',
+    domain: 'framefellowship.com',
+    panelClass: 'bg-violet-100 text-violet-950',
+    nameClass: 'font-medium tracking-tight',
+  },
+]
+
 export default function AboutPage() {
   return (
     <>
@@ -177,6 +212,43 @@ export default function AboutPage() {
           })}
         </div>
       </Col>
+      <section aria-labelledby="other-projects-heading" className="px-5 py-12 sm:px-10">
+        <div className="mx-auto max-w-2xl">
+          <h2 id="other-projects-heading" className="text-center text-3xl font-bold">
+            Our other projects
+          </h2>
+          <p className="mx-auto mt-4 max-w-lg text-center leading-7 text-gray-600">
+            Beyond funding, we build places and programs that help people do good work.
+          </p>
+          <ul className="mt-8 space-y-4">
+            {OTHER_PROJECTS.map((project) => (
+              <li key={project.name}>
+                <a
+                  href={`https://${project.domain}`}
+                  className="group grid overflow-hidden rounded-xl border border-gray-200 bg-white hover:border-gray-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-600 sm:grid-cols-[10rem_1fr]"
+                >
+                  <div
+                    className={clsx(
+                      'flex min-h-24 items-center justify-center p-6 sm:min-h-48',
+                      project.panelClass
+                    )}
+                  >
+                    <h3 className={clsx('text-4xl', project.nameClass)}>{project.name}</h3>
+                  </div>
+                  <div className="p-6">
+                    <p className="font-semibold text-gray-900">{project.category}</p>
+                    <p className="mt-2 text-sm leading-6 text-gray-600">{project.description}</p>
+                    <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-gray-900 group-hover:underline group-hover:underline-offset-4">
+                      {project.domain}
+                      <ArrowUpRightIcon aria-hidden="true" className="h-4 w-4" />
+                    </span>
+                  </div>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
       <Col className="w-full gap-5 p-5 sm:p-10">
         <h1 className="text-center text-3xl font-bold">Our team</h1>
         <div className="grid grid-cols-2 gap-10">
