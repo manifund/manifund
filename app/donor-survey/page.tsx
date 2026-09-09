@@ -35,6 +35,7 @@ export default async function DonorSurveyPage(props: {
       fullName: profile?.full_name || user.email || '',
       email: user.email ?? '',
       username: profile?.username ?? '',
+      avatarUrl: profile?.avatar_url ?? null,
     }
     existing =
       (await getResponseByProfileId(user.id)) ??
@@ -61,10 +62,10 @@ export default async function DonorSurveyPage(props: {
 function Preface() {
   return (
     <section className="flex flex-col gap-5">
-      <h1 className="text-[36px] font-bold leading-[1.15] tracking-[-0.02em] text-gray-900 [text-wrap:pretty]">
+      <h1 className="text-[36px] font-medium leading-[1.15] tracking-[-0.02em] text-gray-900 [text-wrap:pretty]">
         Donor survey
       </h1>
-      <div className="flex flex-col gap-3 text-base leading-relaxed text-gray-700 [text-wrap:pretty]">
+      <div className="flex flex-col gap-3 text-base font-light leading-relaxed text-gray-700 [text-wrap:pretty]">
         <p>
           Hey! Austin here, from Manifund. I want to help you figure out where to donate, but I also
           don’t want to be bugging you too often — I find it awkward to ask for money, and you’re

@@ -1,9 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
+import clsx from 'clsx'
 import { useSupabase } from '@/db/supabase-provider'
+import { Avatar } from '@/components/avatar'
 import {
   CAPACITIES,
   DEFAULT_CAUSE_ALLOCATION,
@@ -18,7 +20,12 @@ import { saveDonorSurvey, type DonorSurveyInput, type SaveResult } from './actio
 import { CauseSliders, type CauseValue } from './cause-allocation'
 import { CheckCard, Pills, Q, Section, TextArea, TextInput } from './fields'
 
-export type SignedInUser = { fullName: string; email: string; username: string }
+export type SignedInUser = {
+  fullName: string
+  email: string
+  username: string
+  avatarUrl: string | null
+}
 
 const YES_NO = [
   { key: 'yes', label: 'Yes' },
@@ -82,16 +89,48 @@ export function DonorSurveyForm(props: {
   }
 
   const idOk = !!user || (form.full_name.trim() !== '' && EMAIL_RE.test(form.email))
-  const required = [
-    idOk,
-    form.capacity.length > 0,
-    !!form.giving_2026,
-    !!form.giving_2027,
-    form.advice_sources.trim() !== '',
-    form.landscape_problems.trim() !== '',
-    form.wants_opportunities !== null,
+  const filled = (v: string) => v.trim() !== ''
+  const sections: SectionProgress[] = [
+    { id: 'about', title: 'About you', done: count(idOk, form.capacity.length > 0), of: 2 },
+    {
+      id: 'giving',
+      title: 'Your giving',
+      done: count(
+        !!form.giving_2026,
+        !!form.giving_2027,
+        filled(form.advice_sources),
+        filled(form.landscape_problems)
+      ),
+      of: 4,
+    },
+    {
+      id: 'deeper',
+      title: 'Going deeper',
+      done: count(
+        fundsTouched,
+        filled(form.already_given) || filled(form.already_given_link),
+        filled(form.evaluation_approach),
+        filled(form.charities_interested),
+        !!form.hours_per_month,
+        filled(form.dream_setup)
+      ),
+      of: 6,
+      optional: true,
+    },
+    {
+      id: 'touch',
+      title: 'Staying in touch',
+      done: count(form.wants_opportunities !== null),
+      of: 1,
+    },
+    {
+      id: 'last',
+      title: 'Last two',
+      done: count(filled(form.other_thoughts), filled(form.referrals)),
+      of: 2,
+      optional: true,
+    },
   ]
-  const progressPct = Math.round((required.filter(Boolean).length / required.length) * 100)
   const missing: string[] = []
   if (!idOk) missing.push('your name and email (or sign in)')
   if (form.capacity.length === 0) missing.push('giving capacity')
@@ -125,7 +164,7 @@ export function DonorSurveyForm(props: {
   if (result?.type === 'existing') {
     return (
       <div className="flex flex-col gap-2 rounded-[12px] border border-orange-200 bg-orange-50 px-4 py-4">
-        <p className="text-[15px] font-medium text-gray-900">
+        <p className="text-[15px] font-normal text-gray-900">
           There are already answers under {result.email}.
         </p>
         <p className="text-sm text-gray-600">
@@ -143,22 +182,21 @@ export function DonorSurveyForm(props: {
         submit()
       }}
     >
-      <div className="fixed inset-x-0 top-0 z-10 h-[3px] bg-gray-100">
-        <div
-          className="h-full bg-orange-500 transition-[width] duration-300 ease-out"
-          style={{ width: `${progressPct}%` }}
-        />
-      </div>
+      <ProgressBar sections={sections} />
 
-      <Section title="About you">
+      <Section id="about" title="About you">
         {user ? (
           <div className="flex items-center justify-between gap-3 rounded-[10px] border border-orange-200 bg-orange-50 px-3.5 py-3">
             <div className="flex items-center gap-2.5">
-              <div className="grid h-7 w-7 place-items-center rounded-full bg-orange-500 text-[13px] font-semibold text-white">
-                {(user.fullName || user.email).slice(0, 1).toUpperCase()}
-              </div>
+              {user.avatarUrl ? (
+                <Avatar username={user.username} avatarUrl={user.avatarUrl} id="" size={7} noLink />
+              ) : (
+                <div className="grid h-7 w-7 place-items-center rounded-full bg-orange-500 text-[13px] font-medium text-white">
+                  {(user.fullName || user.email).slice(0, 1).toUpperCase()}
+                </div>
+              )}
               <div className="flex flex-col">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-normal text-gray-900">
                   Signed in as {user.fullName}
                 </span>
                 <span className="text-xs text-gray-500">{user.email}</span>
@@ -166,7 +204,7 @@ export function DonorSurveyForm(props: {
             </div>
             <button
               type="button"
-              className="px-2 py-1.5 text-[13px] font-medium text-orange-600 hover:text-orange-700"
+              className="px-2 py-1.5 text-[13px] font-normal text-orange-600 hover:text-orange-700"
               onClick={async () => {
                 await supabase.auth.signOut()
                 router.refresh()
@@ -179,7 +217,7 @@ export function DonorSurveyForm(props: {
           <div className="flex flex-col gap-3.5">
             <Link
               href="/login?next=/donor-survey"
-              className="flex h-[46px] w-full max-w-[261px] items-center justify-center rounded-[10px] bg-orange-500 text-[15px] font-semibold text-white transition-colors hover:bg-orange-600"
+              className="flex h-[46px] w-full max-w-[261px] items-center justify-center rounded-[10px] bg-orange-500 text-[15px] font-medium text-white transition-colors hover:bg-orange-600"
             >
               Sign in with Manifund
             </Link>
@@ -190,7 +228,7 @@ export function DonorSurveyForm(props: {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-gray-900">Full name</span>
+                <span className="text-sm font-normal text-gray-900">Full name</span>
                 <TextInput
                   value={form.full_name}
                   onChange={(v) => set('full_name', v)}
@@ -200,7 +238,7 @@ export function DonorSurveyForm(props: {
                 />
               </label>
               <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-gray-900">Email</span>
+                <span className="text-sm font-normal text-gray-900">Email</span>
                 <TextInput
                   value={form.email}
                   onChange={(v) => set('email', v)}
@@ -247,7 +285,7 @@ export function DonorSurveyForm(props: {
         </Q>
       </Section>
 
-      <Section title="Your giving">
+      <Section id="giving" title="Your giving">
         <Q label="How much in total are you looking to give in 2026?">
           <Pills
             options={GIVING_BANDS}
@@ -293,7 +331,7 @@ export function DonorSurveyForm(props: {
         </Q>
       </Section>
 
-      <Section title="Going deeper" badge="Optional">
+      <Section id="deeper" title="Going deeper" badge="Optional">
         {!optionalOpen ? (
           <button
             type="button"
@@ -301,14 +339,14 @@ export function DonorSurveyForm(props: {
             className="flex w-full items-center justify-between gap-3 rounded-[12px] border border-dashed border-gray-300 bg-[#fafafa] px-[18px] py-4 text-left transition-colors hover:border-orange-300 hover:bg-orange-50"
           >
             <span className="flex flex-col gap-0.5">
-              <span className="text-[15px] font-medium text-gray-900">
+              <span className="text-[15px] font-normal text-gray-900">
                 Six more questions on how you like to give
               </span>
               <span className="text-[13px] text-gray-500">
                 Funds vs. charities, evaluation, your dream setup — about 4 minutes
               </span>
             </span>
-            <span className="whitespace-nowrap text-sm font-medium text-orange-600">
+            <span className="whitespace-nowrap text-sm font-normal text-orange-600">
               Show them →
             </span>
           </button>
@@ -340,7 +378,7 @@ export function DonorSurveyForm(props: {
                   <span>All my own picks</span>
                 </div>
               </div>
-              <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-medium text-orange-700">
+              <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-normal text-orange-700">
                 {FUNDS_LABELS[fundsPct]}
               </span>
             </Q>
@@ -402,7 +440,7 @@ export function DonorSurveyForm(props: {
         )}
       </Section>
 
-      <Section title="Staying in touch">
+      <Section id="touch" title="Staying in touch">
         <Q label="Would you like me to send you opportunities I think you’d like?">
           <Pills
             options={YES_NO}
@@ -474,7 +512,7 @@ export function DonorSurveyForm(props: {
         </Q>
       </Section>
 
-      <Section title="Last two">
+      <Section id="last" title="Last two">
         <Q label="Other thoughts on effective giving?" as="label" className="gap-2.5">
           <TextArea
             value={form.other_thoughts}
@@ -512,7 +550,7 @@ export function DonorSurveyForm(props: {
         <button
           type="submit"
           disabled={pending}
-          className="h-[52px] w-full rounded-[12px] bg-orange-500 text-base font-semibold text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+          className="h-[52px] w-full rounded-[12px] bg-orange-500 text-base font-medium text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {isEditing
             ? 'Save and see what other donors said'
@@ -523,5 +561,79 @@ export function DonorSurveyForm(props: {
         </span>
       </section>
     </form>
+  )
+}
+
+type SectionProgress = { id: string; title: string; done: number; of: number; optional?: boolean }
+
+function count(...flags: boolean[]) {
+  return flags.filter(Boolean).length
+}
+
+// One segment per section, filled by how much of that section is answered.
+// The segment for the section currently on screen is highlighted, and its
+// name shows under the bar. Clicking a segment jumps to the section.
+function ProgressBar(props: { sections: SectionProgress[] }) {
+  const { sections } = props
+  const [active, setActive] = useState(sections[0]?.id)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const line = window.scrollY + window.innerHeight * 0.35
+      let current = sections[0]?.id
+      for (const s of sections) {
+        const el = document.getElementById(s.id)
+        if (el && el.offsetTop <= line) current = s.id
+      }
+      setActive(current)
+    }
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [sections])
+
+  const activeSection = sections.find((s) => s.id === active)
+
+  return (
+    <div className="fixed inset-x-0 top-0 z-10">
+      <div className="flex h-1.5 gap-[3px] bg-white">
+        {sections.map((s) => {
+          const pct = s.of ? Math.round((s.done / s.of) * 100) : 0
+          const isActive = s.id === active
+          return (
+            <button
+              key={s.id}
+              type="button"
+              title={`${s.title}: ${s.done} of ${s.of}${s.optional ? ' (optional)' : ''}`}
+              aria-label={`Go to ${s.title}`}
+              onClick={() =>
+                document
+                  .getElementById(s.id)
+                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+              }
+              className={clsx(
+                'relative h-full flex-1 overflow-hidden transition-colors',
+                isActive ? 'bg-orange-200' : 'bg-gray-100 hover:bg-gray-200'
+              )}
+            >
+              <span
+                className={clsx(
+                  'absolute inset-y-0 left-0 transition-[width] duration-300 ease-out',
+                  isActive ? 'bg-orange-500' : 'bg-orange-400'
+                )}
+                style={{ width: `${pct}%` }}
+              />
+            </button>
+          )
+        })}
+      </div>
+      {activeSection && (
+        <div className="pointer-events-none flex justify-end px-4 pt-1.5">
+          <span className="rounded-full bg-white/90 px-2 py-0.5 text-xs text-gray-500 shadow-sm ring-1 ring-gray-100">
+            {activeSection.title}
+          </span>
+        </div>
+      )}
+    </div>
   )
 }

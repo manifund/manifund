@@ -60,7 +60,7 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
       <Group title="Going deeper">
         <Answer label="Funds vs. picking charities themself">
           {r.funds_vs_direct !== null ? (
-            <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-medium text-orange-700">
+            <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-normal text-orange-700">
               {FUNDS_LABELS[r.funds_vs_direct] ?? `${r.funds_vs_direct}%`}
             </span>
           ) : null}
@@ -129,7 +129,7 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
 function Group(props: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-6">
-      <h2 className="border-b border-gray-100 pb-3 text-[22px] font-semibold tracking-[-0.01em] text-gray-900">
+      <h2 className="border-b border-gray-100 pb-3 text-[22px] font-medium tracking-[-0.01em] text-gray-900">
         {props.title}
       </h2>
       {props.children}
@@ -162,7 +162,7 @@ function Text(props: { children: ReactNode }) {
 }
 
 function Big(props: { children: ReactNode }) {
-  return <p className="text-2xl font-semibold tabular-nums text-gray-900">{props.children}</p>
+  return <p className="text-2xl font-medium tabular-nums text-gray-900">{props.children}</p>
 }
 
 function Checks(props: { items: [string, boolean][] }) {

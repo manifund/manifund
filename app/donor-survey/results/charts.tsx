@@ -8,7 +8,7 @@ import type { Bar } from './aggregate'
 export function Figure(props: { title: string; note?: ReactNode; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3.5">
-      <h3 className="text-base font-semibold text-gray-900">{props.title}</h3>
+      <h3 className="text-base font-medium text-gray-900">{props.title}</h3>
       {props.children}
       {props.note && <span className="text-xs text-gray-400">{props.note}</span>}
     </section>
@@ -35,7 +35,7 @@ export function BarList(props: {
             title={`${b.label}: ${b.count} of ${total}`}
           >
             <span
-              className={clsx('truncate', mine ? 'font-semibold text-gray-900' : 'text-gray-500')}
+              className={clsx('truncate', mine ? 'font-medium text-gray-900' : 'text-gray-500')}
             >
               {b.label}
             </span>
