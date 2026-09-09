@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import {
   getURL,
@@ -105,19 +104,6 @@ export async function signInWithGoogle(next?: string): Promise<AuthResult> {
     return { type: 'error', text: error.message }
   }
   return { type: 'success', text: data.url }
-}
-
-export async function signOut(): Promise<AuthResult> {
-  const supabase = await createServerSupabaseClient()
-
-  const { error } = await supabase.auth.signOut()
-
-  if (error) {
-    return { type: 'error', text: error.message }
-  }
-
-  revalidatePath('/', 'layout')
-  redirect('/')
 }
 
 //eslint-disable-next-line
