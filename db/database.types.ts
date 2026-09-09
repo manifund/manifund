@@ -205,6 +205,7 @@ export type Database = {
         Row: {
           advice_sources: string | null
           already_given: string | null
+          already_given_link: string | null
           capacity: string[]
           cause_allocation: Json
           charities_interested: string | null
@@ -235,6 +236,7 @@ export type Database = {
         Insert: {
           advice_sources?: string | null
           already_given?: string | null
+          already_given_link?: string | null
           capacity?: string[]
           cause_allocation?: Json
           charities_interested?: string | null
@@ -265,6 +267,7 @@ export type Database = {
         Update: {
           advice_sources?: string | null
           already_given?: string | null
+          already_given_link?: string | null
           capacity?: string[]
           cause_allocation?: Json
           charities_interested?: string | null

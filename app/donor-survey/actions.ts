@@ -40,6 +40,7 @@ export type DonorSurveyInput = {
   landscape_problems: string
   funds_vs_direct: number | null
   already_given: string
+  already_given_link: string
   evaluation_approach: string
   charities_interested: string
   hours_per_month: string
@@ -104,13 +105,9 @@ function validate(raw: DonorSurveyInput): { ok: true; row: DonorSurveyInsert } |
 
   const wants_opportunities =
     typeof raw.wants_opportunities === 'boolean' ? raw.wants_opportunities : null
-  if (wants_opportunities === null)
-    return { type: 'error', text: 'Pick yes or no.', field: 'wants_opportunities' }
   const opportunity_frequency = wants_opportunities
     ? keyIn(FREQUENCIES, raw.opportunity_frequency)
     : null
-  if (wants_opportunities && !opportunity_frequency)
-    return { type: 'error', text: 'Pick how often.', field: 'opportunity_frequency' }
 
   return {
     ok: true,
@@ -126,6 +123,7 @@ function validate(raw: DonorSurveyInput): { ok: true; row: DonorSurveyInsert } |
       landscape_problems: orNull(text(raw.landscape_problems)),
       funds_vs_direct,
       already_given: orNull(text(raw.already_given)),
+      already_given_link: orNull(text(raw.already_given_link).slice(0, 2000)),
       evaluation_approach: orNull(text(raw.evaluation_approach)),
       charities_interested: orNull(text(raw.charities_interested)),
       hours_per_month: keyIn(HOURS_BANDS, raw.hours_per_month),

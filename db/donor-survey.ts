@@ -11,7 +11,7 @@ export type DonorSurveyInsert = Database['public']['Tables']['donor_survey_respo
 // Email, referrals (often other people's contact details), comms preferences,
 // and the token hash never leave the server for anyone but the owner or admins.
 export const PUBLIC_COLUMNS =
-  'id, profile_id, full_name, capacity, org, giving_2026, giving_2027, cause_allocation, advice_sources, landscape_problems, funds_vs_direct, already_given, evaluation_approach, charities_interested, hours_per_month, dream_setup, other_thoughts, is_public, created_at, updated_at'
+  'id, profile_id, full_name, capacity, org, giving_2026, giving_2027, cause_allocation, advice_sources, landscape_problems, funds_vs_direct, already_given, already_given_link, evaluation_approach, charities_interested, hours_per_month, dream_setup, other_thoughts, is_public, created_at, updated_at'
 
 export type PublicDonorSurveyResponse = Pick<
   DonorSurveyResponse,
@@ -27,6 +27,7 @@ export type PublicDonorSurveyResponse = Pick<
   | 'landscape_problems'
   | 'funds_vs_direct'
   | 'already_given'
+  | 'already_given_link'
   | 'evaluation_approach'
   | 'charities_interested'
   | 'hours_per_month'

@@ -8,7 +8,6 @@ import {
   HOURS_BANDS,
   causeColor,
   parseCauseAllocation,
-  CAUSE_COLOR_FALLBACK,
 } from '@/utils/donor-survey'
 import type { DonorSurveyResponse } from '@/db/donor-survey'
 
@@ -74,14 +73,24 @@ export function aggregate(rows: Row[]) {
       causeTotals.set(name, (causeTotals.get(name) ?? 0) + c.pct)
     }
   }
+  // Default causes keep their form colors; causes people added cycle through
+  // the remaining hues in the order they first appear.
   const defaultIndex = new Map(DEFAULT_CAUSE_ALLOCATION.map((c, i) => [c.name, i]))
+  let customCount = 0
   const causes = [...causeTotals.entries()]
-    .map(([name, total]) => ({
-      name,
-      mean: causeRespondents ? total / causeRespondents : 0,
-      color: defaultIndex.has(name) ? causeColor(defaultIndex.get(name)!) : CAUSE_COLOR_FALLBACK,
-      custom: !defaultIndex.has(name),
-    }))
+    .map(([name, total]) => {
+      const custom = !defaultIndex.has(name)
+      const colorIndex = custom
+        ? DEFAULT_CAUSE_ALLOCATION.length + customCount++
+        : defaultIndex.get(name)!
+      return {
+        name,
+        mean: causeRespondents ? total / causeRespondents : 0,
+        pct: causeRespondents ? Math.round(total / causeRespondents) : 0,
+        color: causeColor(colorIndex),
+        custom,
+      }
+    })
     .sort((a, b) => b.mean - a.mean)
 
   const fundsRows = rows.filter((r) => r.funds_vs_direct !== null)

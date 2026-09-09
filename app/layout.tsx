@@ -11,6 +11,7 @@ import { Toaster } from 'react-hot-toast'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import { Suspense } from 'react'
 import { OAuthCodeHandler } from '@/components/oauth-code-handler'
+import { MainColumn, ShellChrome } from './shell'
 
 const readex = Readex_Pro({ subsets: ['latin'], variable: '--font-readex-pro' })
 const josefin = Josefin_Slab({
@@ -51,18 +52,24 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           className={`mx-auto mb-20 w-full font-sans lg:grid lg:max-w-7xl lg:grid-cols-12 lg:gap-x-2 xl:max-w-7xl xl:gap-x-8`}
         >
           <Toaster />
-          <Suspense fallback={null}>
-            <Sidebar />
-          </Suspense>
-          <main className="flex flex-col lg:col-span-8">
+          <ShellChrome>
             <Suspense fallback={null}>
-              <CompleteProfileBanner />
+              <Sidebar />
             </Suspense>
+          </ShellChrome>
+          <MainColumn>
+            <ShellChrome>
+              <Suspense fallback={null}>
+                <CompleteProfileBanner />
+              </Suspense>
+            </ShellChrome>
             {children}
-          </main>
-          <Suspense fallback={null}>
-            <BottomNavBar />
-          </Suspense>
+          </MainColumn>
+          <ShellChrome>
+            <Suspense fallback={null}>
+              <BottomNavBar />
+            </Suspense>
+          </ShellChrome>
           <Suspense fallback={null}>
             <OAuthCodeHandler />
           </Suspense>

@@ -2,30 +2,30 @@
 
 import { useRouter } from 'next/navigation'
 import { useState, useTransition } from 'react'
-import * as RxSlider from '@radix-ui/react-slider'
-import clsx from 'clsx'
 import Link from 'next/link'
-import { Button, buttonClass } from '@/components/button'
+import { useSupabase } from '@/db/supabase-provider'
 import {
   CAPACITIES,
   DEFAULT_CAUSE_ALLOCATION,
   FREQUENCIES,
-  FUNDS_VS_DIRECT_STOPS,
+  FUNDS_LABELS,
   GIVING_BANDS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
-  type CauseAllocation,
+  normalizeAllocation,
 } from '@/utils/donor-survey'
 import { saveDonorSurvey, type DonorSurveyInput, type SaveResult } from './actions'
-import { CauseAllocationField } from './cause-allocation'
-import { CheckRow, Choices, Question, Section, TextArea, TextField } from './fields'
+import { CauseSliders, type CauseValue } from './cause-allocation'
+import { CheckCard, Pills, Q, Section, TextArea, TextInput } from './fields'
 
 export type SignedInUser = { fullName: string; email: string; username: string }
 
 const YES_NO = [
-  { key: 'yes', label: 'yes' },
-  { key: 'no', label: 'no' },
+  { key: 'yes', label: 'Yes' },
+  { key: 'no', label: 'No' },
 ] as const
+
+const EMAIL_RE = /.+@.+\..+/
 
 export function DonorSurveyForm(props: {
   initial: DonorSurveyInput | null
@@ -34,8 +34,19 @@ export function DonorSurveyForm(props: {
 }) {
   const { user, token } = props
   const router = useRouter()
+  const { supabase } = useSupabase()
   const [pending, startTransition] = useTransition()
   const [result, setResult] = useState<SaveResult | null>(null)
+  const [showErrors, setShowErrors] = useState(false)
+  const isEditing = props.initial !== null
+  const [optionalOpen, setOptionalOpen] = useState(isEditing)
+  const [causes, setCauses] = useState<CauseValue[]>(() =>
+    (props.initial?.cause_allocation.length
+      ? props.initial.cause_allocation
+      : DEFAULT_CAUSE_ALLOCATION
+    ).map((c) => ({ name: c.name, value: c.pct }))
+  )
+  const [fundsTouched, setFundsTouched] = useState(props.initial?.funds_vs_direct != null)
   const [form, setForm] = useState<DonorSurveyInput>(
     () =>
       props.initial ?? {
@@ -50,6 +61,7 @@ export function DonorSurveyForm(props: {
         landscape_problems: '',
         funds_vs_direct: null,
         already_given: '',
+        already_given_link: '',
         evaluation_approach: '',
         charities_interested: '',
         hours_per_month: '',
@@ -64,38 +76,59 @@ export function DonorSurveyForm(props: {
         referrals: '',
       }
   )
-  const set = <K extends keyof DonorSurveyInput>(key: K, value: DonorSurveyInput[K]) =>
+  const set = <K extends keyof DonorSurveyInput>(key: K, value: DonorSurveyInput[K]) => {
     setForm((f) => ({ ...f, [key]: value }))
-  const error = result?.type === 'error' ? result : null
-  const errorFor = (field: keyof DonorSurveyInput) =>
-    error?.field === field ? error.text : undefined
-  const isEditing = props.initial !== null
+    setShowErrors(false)
+  }
+
+  const idOk = !!user || (form.full_name.trim() !== '' && EMAIL_RE.test(form.email))
+  const required = [
+    idOk,
+    form.capacity.length > 0,
+    !!form.giving_2026,
+    !!form.giving_2027,
+    form.advice_sources.trim() !== '',
+    form.landscape_problems.trim() !== '',
+    form.wants_opportunities !== null,
+  ]
+  const progressPct = Math.round((required.filter(Boolean).length / required.length) * 100)
+  const missing: string[] = []
+  if (!idOk) missing.push('your name and email (or sign in)')
+  if (form.capacity.length === 0) missing.push('giving capacity')
+  if (!form.giving_2026) missing.push('2026 amount')
+  if (!form.giving_2027) missing.push('2027 amount')
+
+  const fundsPct = form.funds_vs_direct ?? 50
   const givesForOrg = form.capacity.some((c) => c !== 'own_money')
+  const serverError = result?.type === 'error' ? result.text : null
 
   const submit = () => {
+    if (missing.length > 0) {
+      setShowErrors(true)
+      return
+    }
     setResult(null)
     startTransition(async () => {
-      const res = await saveDonorSurvey(form, token)
+      const res = await saveDonorSurvey(
+        {
+          ...form,
+          cause_allocation: normalizeAllocation(causes),
+          funds_vs_direct: fundsTouched ? fundsPct : null,
+        },
+        token
+      )
       setResult(res)
-      if (res.type === 'saved') {
-        router.push('/donor-survey/results')
-        return
-      }
-      if (res.type === 'error' && res.field) {
-        document
-          .getElementById(`q-${res.field}`)
-          ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
+      if (res.type === 'saved') router.push('/donor-survey/results')
     })
   }
 
   if (result?.type === 'existing') {
     return (
-      <div className="flex flex-col gap-4 rounded-xl border border-orange-200 bg-orange-50 p-6">
-        <p className="text-lg font-medium text-gray-900">
+      <div className="flex flex-col gap-2 rounded-[12px] border border-orange-200 bg-orange-50 px-4 py-4">
+        <p className="text-[15px] font-medium text-gray-900">
           There are already answers under {result.email}.
         </p>
-        <p className="text-gray-700">
+        <p className="text-sm text-gray-600">
           We just emailed a link to that address. Open it to change your answers.
         </p>
       </div>
@@ -104,346 +137,391 @@ export function DonorSurveyForm(props: {
 
   return (
     <form
-      className="flex flex-col gap-20"
+      className="flex flex-col gap-14"
       onSubmit={(e) => {
         e.preventDefault()
         submit()
       }}
     >
-      <Section title="Basic questions">
+      <div className="fixed inset-x-0 top-0 z-10 h-[3px] bg-gray-100">
+        <div
+          className="h-full bg-orange-500 transition-[width] duration-300 ease-out"
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>
+
+      <Section title="About you">
         {user ? (
-          <p className="text-base text-gray-700">
-            Signed in as <span className="font-medium text-gray-900">{user.fullName}</span> (
-            {user.email})
-          </p>
+          <div className="flex items-center justify-between gap-3 rounded-[10px] border border-orange-200 bg-orange-50 px-3.5 py-3">
+            <div className="flex items-center gap-2.5">
+              <div className="grid h-7 w-7 place-items-center rounded-full bg-orange-500 text-[13px] font-semibold text-white">
+                {(user.fullName || user.email).slice(0, 1).toUpperCase()}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-medium text-gray-900">
+                  Signed in as {user.fullName}
+                </span>
+                <span className="text-xs text-gray-500">{user.email}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              className="px-2 py-1.5 text-[13px] font-medium text-orange-600 hover:text-orange-700"
+              onClick={async () => {
+                await supabase.auth.signOut()
+                router.refresh()
+              }}
+            >
+              Sign out
+            </button>
+          </div>
         ) : (
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-3.5">
             <Link
               href="/login?next=/donor-survey"
-              className={clsx(buttonClass('lg', 'orange-outline'), 'self-start')}
+              className="flex h-[46px] w-full max-w-[261px] items-center justify-center rounded-[10px] bg-orange-500 text-[15px] font-semibold text-white transition-colors hover:bg-orange-600"
             >
               Sign in with Manifund
             </Link>
-            <p className="text-sm text-gray-500">OR:</p>
+            <div className="flex items-center gap-3 text-xs text-gray-400">
+              <span className="h-px flex-1 bg-gray-200" />
+              or
+              <span className="h-px flex-1 bg-gray-200" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-gray-900">Full name</span>
+                <TextInput
+                  value={form.full_name}
+                  onChange={(v) => set('full_name', v)}
+                  placeholder="Ada Lovelace"
+                  autoComplete="name"
+                  name="name"
+                />
+              </label>
+              <label className="flex flex-col gap-1.5">
+                <span className="text-sm font-medium text-gray-900">Email</span>
+                <TextInput
+                  value={form.email}
+                  onChange={(v) => set('email', v)}
+                  placeholder="ada@example.com"
+                  type="email"
+                  autoComplete="email"
+                  name="email"
+                />
+                {EMAIL_RE.test(form.email) && (
+                  <span className="text-xs text-gray-500">
+                    If this matches a Manifund account, we’ll link your answers to it.
+                  </span>
+                )}
+              </label>
+            </div>
           </div>
         )}
-        {!user && (
-          <>
-            <Question label="full name" id="q-full_name" error={errorFor('full_name')}>
-              <TextField
-                value={form.full_name}
-                onChange={(v) => set('full_name', v)}
-                autoComplete="name"
-                name="name"
+
+        <Q label="In what capacity are you giving?">
+          <div className="flex flex-col gap-2">
+            {CAPACITIES.map((o) => (
+              <CheckCard
+                key={o.key}
+                label={o.label}
+                checked={form.capacity.includes(o.key)}
+                onChange={(on) =>
+                  set(
+                    'capacity',
+                    on ? [...form.capacity, o.key] : form.capacity.filter((c) => c !== o.key)
+                  )
+                }
               />
-            </Question>
-            <Question label="email" id="q-email" error={errorFor('email')}>
-              <TextField
-                value={form.email}
-                onChange={(v) => set('email', v)}
-                type="email"
-                autoComplete="email"
-                name="email"
-              />
-            </Question>
-          </>
-        )}
-        <Question
-          as="fieldset"
-          label="in what capacity are you giving?"
-          id="q-capacity"
-          error={errorFor('capacity')}
-        >
-          <Choices
-            options={CAPACITIES}
-            multiple
-            value={form.capacity}
-            onChange={(k) =>
-              set(
-                'capacity',
-                form.capacity.includes(k)
-                  ? form.capacity.filter((c) => c !== k)
-                  : [...form.capacity, k]
-              )
-            }
-          />
-        </Question>
-        {givesForOrg && (
-          <Question label="for what org?" id="q-org">
-            <TextField
+            ))}
+          </div>
+          {givesForOrg && (
+            <TextInput
               value={form.org}
               onChange={(v) => set('org', v)}
+              placeholder="For what org?"
               autoComplete="organization"
+              className="mt-1"
             />
-          </Question>
-        )}
+          )}
+        </Q>
       </Section>
 
-      <Section title="Giving questions">
-        <Question
-          as="fieldset"
-          label="How much in total are you looking to give, in 2026?"
-          id="q-giving_2026"
-          error={errorFor('giving_2026')}
-        >
-          <Choices
+      <Section title="Your giving">
+        <Q label="How much in total are you looking to give in 2026?">
+          <Pills
             options={GIVING_BANDS}
-            columns={3}
-            value={form.giving_2026 || null}
+            value={(form.giving_2026 as any) || null}
             onChange={(k) => set('giving_2026', k)}
           />
-        </Question>
-        <Question as="fieldset" label="In 2027?" id="q-giving_2027" error={errorFor('giving_2027')}>
-          <Choices
+        </Q>
+        <Q label="And in 2027?">
+          <Pills
             options={GIVING_BANDS_2027}
-            columns={3}
-            value={form.giving_2027 || null}
+            value={(form.giving_2027 as any) || null}
             onChange={(k) => set('giving_2027', k)}
           />
-        </Question>
-        <Question
-          as="fieldset"
-          label="What cause areas are you interested in? in what proportion?"
-          id="q-cause_allocation"
-          error={errorFor('cause_allocation')}
+        </Q>
+        <Q
+          label="Which cause areas are you interested in, and in what proportion?"
+          className="gap-4"
         >
-          <CauseAllocationField
-            value={form.cause_allocation}
-            onChange={(v: CauseAllocation) => set('cause_allocation', v)}
-          />
-        </Question>
-        <Question
+          <CauseSliders value={causes} onChange={setCauses} />
+        </Q>
+        <Q
           label="Where do you currently go for advice about effective giving?"
-          id="q-advice_sources"
+          as="label"
+          className="gap-2.5"
         >
-          <TextField value={form.advice_sources} onChange={(v) => set('advice_sources', v)} />
-        </Question>
-        <Question
+          <TextInput
+            value={form.advice_sources}
+            onChange={(v) => set('advice_sources', v)}
+            placeholder="People, orgs, newsletters, forums…"
+          />
+        </Q>
+        <Q
           label="What are your biggest problems with the current giving landscape?"
-          id="q-landscape_problems"
+          as="label"
+          className="gap-2.5"
         >
           <TextArea
             value={form.landscape_problems}
             onChange={(v) => set('landscape_problems', v)}
+            placeholder="Be blunt."
+            rows={4}
           />
-        </Question>
+        </Q>
       </Section>
 
-      <Section title="More giving questions" note="(optional)">
-        <Question
-          as="fieldset"
-          label="how are you thinking about giving to funds (like Longview and CG) vs selecting individual charities yourself?"
-          id="q-funds_vs_direct"
-        >
-          <FundsVsDirect value={form.funds_vs_direct} onChange={(v) => set('funds_vs_direct', v)} />
-        </Question>
-        <Question
-          label="Where have you already given? (how much?)"
-          hint="Or, drop in a link"
-          id="q-already_given"
-        >
-          <TextArea value={form.already_given} onChange={(v) => set('already_given', v)} rows={3} />
-        </Question>
-        <Question
-          label="How do you evaluate funds? How do you evaluate charities?"
-          id="q-evaluation_approach"
-        >
-          <TextArea
-            value={form.evaluation_approach}
-            onChange={(v) => set('evaluation_approach', v)}
-            rows={3}
-          />
-        </Question>
-        <Question
-          label="What are some charities you might like to give to?"
-          id="q-charities_interested"
-        >
-          <TextArea
-            value={form.charities_interested}
-            onChange={(v) => set('charities_interested', v)}
-            rows={3}
-          />
-        </Question>
-        <Question
-          as="fieldset"
-          label="How many hours per month would you ideally spend on donating your money?"
-          hint="(looking at opportunities, talking to people, thinking)"
-          id="q-hours_per_month"
-        >
-          <Choices
-            options={HOURS_BANDS}
-            columns={3}
-            value={form.hours_per_month || null}
-            onChange={(k) => set('hours_per_month', form.hours_per_month === k ? '' : k)}
-          />
-        </Question>
-        <Question
-          label="What would your dream setup for donating your money look like?"
-          hint="(Finding opportunities yourself? Having your own foundation with employees? Pooling with other donors? Donating to funds focused on cause areas? etc, etc)"
-          id="q-dream_setup"
-        >
-          <TextArea value={form.dream_setup} onChange={(v) => set('dream_setup', v)} />
-        </Question>
+      <Section title="Going deeper" badge="Optional">
+        {!optionalOpen ? (
+          <button
+            type="button"
+            onClick={() => setOptionalOpen(true)}
+            className="flex w-full items-center justify-between gap-3 rounded-[12px] border border-dashed border-gray-300 bg-[#fafafa] px-[18px] py-4 text-left transition-colors hover:border-orange-300 hover:bg-orange-50"
+          >
+            <span className="flex flex-col gap-0.5">
+              <span className="text-[15px] font-medium text-gray-900">
+                Six more questions on how you like to give
+              </span>
+              <span className="text-[13px] text-gray-500">
+                Funds vs. charities, evaluation, your dream setup — about 4 minutes
+              </span>
+            </span>
+            <span className="whitespace-nowrap text-sm font-medium text-orange-600">
+              Show them →
+            </span>
+          </button>
+        ) : (
+          <div className="flex flex-col gap-9">
+            <Q
+              label="Giving to funds (like Longview or Coefficient Giving) vs. picking charities yourself — where do you land?"
+              className="gap-4"
+            >
+              <div className="flex flex-col gap-2">
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  step={25}
+                  value={fundsPct}
+                  aria-label="Funds vs. picking charities yourself"
+                  onChange={(e) => {
+                    setFundsTouched(true)
+                    set('funds_vs_direct', Number(e.target.value))
+                  }}
+                  className="w-full cursor-pointer accent-orange-500"
+                />
+                <div className="flex justify-between text-xs text-gray-400">
+                  <span>All funds</span>
+                  <span>25%</span>
+                  <span>50/50</span>
+                  <span>75%</span>
+                  <span>All my own picks</span>
+                </div>
+              </div>
+              <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-medium text-orange-700">
+                {FUNDS_LABELS[fundsPct]}
+              </span>
+            </Q>
+            <Q label="Where have you already given, and roughly how much?" className="gap-2.5">
+              <TextArea
+                value={form.already_given}
+                onChange={(v) => set('already_given', v)}
+                placeholder="e.g. GiveWell $50k, LTFF $20k, a few direct grants…"
+                rows={3}
+              />
+              <TextInput
+                value={form.already_given_link}
+                onChange={(v) => set('already_given_link', v)}
+                placeholder="…or drop in a link to your giving history"
+                type="url"
+              />
+            </Q>
+            <Q
+              label="How do you evaluate funds? How do you evaluate charities?"
+              as="label"
+              className="gap-2.5"
+            >
+              <TextArea
+                value={form.evaluation_approach}
+                onChange={(v) => set('evaluation_approach', v)}
+                rows={4}
+              />
+            </Q>
+            <Q
+              label="What are some charities you might like to give to?"
+              as="label"
+              className="gap-2.5"
+            >
+              <TextArea
+                value={form.charities_interested}
+                onChange={(v) => set('charities_interested', v)}
+                rows={3}
+              />
+            </Q>
+            <Q
+              label="How many hours per month would you ideally spend on donating your money?"
+              hint="Looking at opportunities, talking to people, thinking."
+            >
+              <Pills
+                options={HOURS_BANDS}
+                value={(form.hours_per_month as any) || null}
+                onChange={(k) => set('hours_per_month', form.hours_per_month === k ? '' : k)}
+              />
+            </Q>
+            <Q
+              label="What would your dream setup for donating your money look like?"
+              hint="Finding opportunities yourself? Your own foundation with employees? Pooling with other donors? Cause-area funds?"
+              as="label"
+              className="gap-2.5"
+            >
+              <TextArea value={form.dream_setup} onChange={(v) => set('dream_setup', v)} rows={5} />
+            </Q>
+          </div>
+        )}
       </Section>
 
-      <Section title="Comms questions">
-        <Question
-          as="fieldset"
-          label="Would you like me to send you opportunities I think you would like?"
-          id="q-wants_opportunities"
-          error={errorFor('wants_opportunities')}
-        >
-          <Choices
+      <Section title="Staying in touch">
+        <Q label="Would you like me to send you opportunities I think you’d like?">
+          <Pills
             options={YES_NO}
-            columns={2}
+            size="wide"
             value={
               form.wants_opportunities === null ? null : form.wants_opportunities ? 'yes' : 'no'
             }
             onChange={(k) => set('wants_opportunities', k === 'yes')}
           />
-        </Question>
-        {form.wants_opportunities && (
-          <Question
-            as="fieldset"
-            label="How often?"
-            id="q-opportunity_frequency"
-            error={errorFor('opportunity_frequency')}
-          >
-            <Choices
-              options={FREQUENCIES}
-              columns={3}
-              value={form.opportunity_frequency || null}
-              onChange={(k) => set('opportunity_frequency', k)}
+          {form.wants_opportunities && (
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-sm text-gray-500">How often?</span>
+              <Pills
+                options={FREQUENCIES}
+                size="sm"
+                value={(form.opportunity_frequency as any) || null}
+                onChange={(k) => set('opportunity_frequency', k)}
+              />
+            </div>
+          )}
+        </Q>
+        <Q label="Would you like to…">
+          <div className="flex flex-col gap-2">
+            <CheckCard
+              label="Meet for a 1:1 call with a member of the Manifund team"
+              checked={form.wants_call}
+              onChange={(v) => set('wants_call', v)}
             />
-          </Question>
-        )}
-        <Question as="fieldset" label="Would you like to:" id="q-wants_call">
-          <div className="flex flex-col gap-2">
-            <CheckRow checked={form.wants_call} onChange={(v) => set('wants_call', v)}>
-              meet for 1:1 call with a member of Manifund team?
-            </CheckRow>
-            <CheckRow checked={form.wants_events} onChange={(v) => set('wants_events', v)}>
-              come to events centered on fundraising for top charities?
-            </CheckRow>
+            <CheckCard
+              label="Come to events centered on fundraising for top charities"
+              checked={form.wants_events}
+              onChange={(v) => set('wants_events', v)}
+            />
           </div>
-        </Question>
-        <Question
-          as="fieldset"
-          label="Would you be willing to share your personal answers:"
-          id="q-share_with_funders"
-        >
+        </Q>
+        <Q label="Would you be willing to share your personal answers…">
           <div className="flex flex-col gap-2">
-            <CheckRow
+            <CheckCard
+              label="With other major funders"
+              sub="Such as Coefficient Giving, Longview, Macroscopic, AISTOF"
               checked={form.share_with_funders}
               onChange={(v) => set('share_with_funders', v)}
-            >
-              With other major funders (such as CG, Longview, Macroscopic, AISTOF)
-            </CheckRow>
-            <CheckRow checked={form.is_public} onChange={(v) => set('is_public', v)}>
-              On your public Manifund profile? (you can change this later)
-              <span className="mt-1 block text-sm text-gray-500">
-                example:{' '}
-                <a
-                  href="/Austin/donor"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="underline decoration-gray-300 underline-offset-2 hover:text-orange-600"
-                >
-                  manifund.org/Austin/donor
-                </a>
-              </span>
-            </CheckRow>
+            />
+            <CheckCard
+              label="On your public Manifund profile"
+              sub={
+                <>
+                  You can change this later — example:{' '}
+                  <a
+                    href="/Austin/donor"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-orange-600 hover:underline"
+                  >
+                    manifund.org/Austin/donor
+                  </a>
+                </>
+              }
+              checked={form.is_public}
+              onChange={(v) => set('is_public', v)}
+            />
             {form.is_public && !user && (
-              <p className="text-sm text-gray-500">
+              <p className="text-[13px] text-gray-500">
                 Public pages need a Manifund account. Sign in above and your answers will show at
                 manifund.org/&lt;username&gt;/donor.
               </p>
             )}
           </div>
-        </Question>
+        </Q>
       </Section>
 
-      <Section title="Misc">
-        <Question label="Other thoughts on effective giving?" id="q-other_thoughts">
-          <TextArea value={form.other_thoughts} onChange={(v) => set('other_thoughts', v)} />
-        </Question>
-        <Question
+      <Section title="Last two">
+        <Q label="Other thoughts on effective giving?" as="label" className="gap-2.5">
+          <TextArea
+            value={form.other_thoughts}
+            onChange={(v) => set('other_thoughts', v)}
+            rows={4}
+          />
+        </Q>
+        <Q
           label="Who else should take this survey?"
-          hint="(if you provide contact info, we’ll reach out and say that you recommended them)"
-          id="q-referrals"
+          hint="If you include contact info, we’ll reach out and mention you recommended them."
+          as="label"
+          className="gap-2.5"
         >
           <TextArea value={form.referrals} onChange={(v) => set('referrals', v)} rows={3} />
-        </Question>
+        </Q>
       </Section>
 
-      <div className="flex flex-col gap-3">
-        {error && (
-          <p role="alert" className="text-sm text-rose-600">
-            {error.text}
-          </p>
+      <section className="flex flex-col gap-3 pt-2">
+        {showErrors && missing.length > 0 && (
+          <div
+            role="alert"
+            className="rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700"
+          >
+            Still needed: {missing.join(', ')}.
+          </div>
         )}
-        <Button type="submit" size="2xl" color="gradient" loading={pending} className="self-start">
-          {isEditing ? 'Save changes' : 'Submit'}
-        </Button>
-      </div>
+        {serverError && (
+          <div
+            role="alert"
+            className="rounded-[10px] border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700"
+          >
+            {serverError}
+          </div>
+        )}
+        <button
+          type="submit"
+          disabled={pending}
+          className="h-[52px] w-full rounded-[12px] bg-orange-500 text-base font-semibold text-white shadow-sm transition-colors hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {isEditing
+            ? 'Save and see what other donors said'
+            : 'Submit and see what other donors said'}
+        </button>
+        <span className="text-center text-[13px] text-gray-400">
+          Your answers stay private unless you opted to share them above.
+        </span>
+      </section>
     </form>
-  )
-}
-
-function FundsVsDirect(props: { value: number | null; onChange: (v: number | null) => void }) {
-  const { value, onChange } = props
-  const shown = value ?? 50
-  return (
-    <div className="flex flex-col gap-3">
-      <RxSlider.Root
-        className="relative flex h-6 w-full touch-none select-none items-center"
-        value={[shown]}
-        min={0}
-        max={100}
-        step={25}
-        aria-label="funds vs individual charities"
-        onValueChange={([v]) => onChange(v)}
-      >
-        <RxSlider.Track className="relative h-1.5 grow rounded-full bg-gray-200">
-          <RxSlider.Range
-            className={clsx(
-              'absolute h-full rounded-full',
-              value === null ? 'bg-gray-300' : 'bg-orange-500'
-            )}
-          />
-          {FUNDS_VS_DIRECT_STOPS.map((stop) => (
-            <span
-              key={stop}
-              aria-hidden
-              className={clsx(
-                'absolute top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white',
-                value !== null && stop <= value ? 'bg-orange-500' : 'bg-gray-300'
-              )}
-              style={{ left: `${stop}%` }}
-            />
-          ))}
-        </RxSlider.Track>
-        <RxSlider.Thumb
-          className={clsx(
-            'block h-5 w-5 rounded-full border-2 bg-white shadow focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500/40',
-            value === null ? 'border-gray-400' : 'border-orange-500'
-          )}
-        />
-      </RxSlider.Root>
-      <div className="flex justify-between text-sm tabular-nums text-gray-500">
-        {FUNDS_VS_DIRECT_STOPS.map((stop) => (
-          <span key={stop}>{stop}%</span>
-        ))}
-      </div>
-      <p className="text-sm text-gray-700">
-        {value === null ? (
-          <span className="text-gray-400">Drag to answer</span>
-        ) : (
-          <>
-            {value}% to funds, {100 - value}% to individual charities
-          </>
-        )}
-      </p>
-    </div>
   )
 }
