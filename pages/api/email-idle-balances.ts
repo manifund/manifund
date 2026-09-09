@@ -1,5 +1,6 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/db/edge'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 import { isProd } from '@/db/env'
 import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
 import { computeIdleBalances } from '@/utils/idle-balances'
@@ -15,7 +16,10 @@ const MONTHS = 12
 const THRESHOLD = 5_000
 const SUMMARY_EMAILS = ['austin@manifund.org', 'carol@manifund.org']
 
-export default async function handler() {
+export default async function handler(req: NextRequest) {
+  if (!isAuthorizedCron(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   if (!isProd()) {
     return NextResponse.json('not prod')
   }

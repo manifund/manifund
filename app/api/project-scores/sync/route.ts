@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { syncProjectScores, hasScoringKeys } from '@/app/utils/project-scores'
 import { createAdminClient } from '@/db/supabase-admin'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 
 export const maxDuration = 300
 
 export async function GET(request: NextRequest) {
+  if (!isAuthorizedCron(request)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   try {
     if (!hasScoringKeys()) {
       return NextResponse.json(

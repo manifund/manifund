@@ -1,5 +1,6 @@
 import { differenceInMonths } from 'date-fns'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 import { createAdminClient } from '@/db/edge'
 import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
 import { isProd } from '@/db/env'
@@ -10,7 +11,10 @@ export const config = {
   regions: ['sfo1'],
 }
 
-export default async function handler() {
+export default async function handler(req: NextRequest) {
+  if (!isAuthorizedCron(req)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
   if (!isProd()) {
     return NextResponse.json('not prod')
   }

@@ -2,8 +2,12 @@ import { NextRequest } from 'next/server'
 import { createAdminClient } from '@/db/edge'
 import { sendWeeklyDigest } from '@/utils/weekly-digest'
 import { isProd } from '@/db/env'
+import { isAuthorizedCron } from '@/utils/cron-auth'
 
 export default async function handler(req: NextRequest) {
+  if (!isAuthorizedCron(req)) {
+    return new Response('Unauthorized', { status: 401 })
+  }
   console.log('Weekly digest cron job triggered')
 
   // Only run in production
