@@ -19,9 +19,9 @@ export const GIVING_BANDS_2027 = [
 ] as const
 
 export const CAPACITIES = [
-  { key: 'own_money', label: 'My own money' },
-  { key: 'grantmaker', label: 'I’m a grantmaker' },
-  { key: 'regrantor', label: 'I’m a regrantor or evaluator' },
+  { key: 'own_money', label: 'I’m giving my own money' },
+  { key: 'regrantor', label: 'I’m a part-time regrantor or evaluator' },
+  { key: 'grantmaker', label: 'I’m a fulltime grantmaker' },
 ] as const
 export type CapacityKey = (typeof CAPACITIES)[number]['key']
 
