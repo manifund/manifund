@@ -103,7 +103,7 @@ export function WithdrawRequestForm(props: {
           <h1 className="text-xl font-semibold text-gray-900">Withdrawal in progress</h1>
         </Row>
         <p className="mt-2 text-sm text-gray-500">
-          {`We have your bank details and your withdrawal of ${formatMoneyPrecise(pending.amount)} is queued for approval. We'll email you as soon as the money is on its way — usually within a few business days. Nothing more for you to do.`}
+          {`We have your bank details and your withdrawal of ${formatMoneyPrecise(pending.amount)} is queued for approval. We'll email you as soon as the money is on its way.`}
         </p>
       </Shell>
     )

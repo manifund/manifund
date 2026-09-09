@@ -32,8 +32,7 @@ async function sendQueuedEmail(admin: SupabaseClient, request: WithdrawalRequest
       {
         notifText:
           `Your withdrawal of $${Number(request.amount).toLocaleString()} is queued and waiting on ` +
-          `approval from the Manifund team. We'll email you as soon as the money is on its way — ` +
-          `usually within a few business days. Nothing more for you to do.`,
+          `approval from the Manifund team. We'll email you as soon as the money is on its way.`,
         buttonUrl: REQUEST_URL,
         buttonText: 'View status',
         subject: 'Manifund: your withdrawal is queued',
