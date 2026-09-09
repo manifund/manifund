@@ -40,6 +40,16 @@ export default async function handler(req: NextRequest) {
     console.error('no user profile')
     return NextResponse.error()
   }
+  if (
+    !Number.isFinite(numDollarsInTrade) ||
+    numDollarsInTrade <= 0 ||
+    oldBid.status !== 'pending' ||
+    oldBid.bidder === user.id ||
+    oldBid.valuation <= 0
+  ) {
+    console.error('invalid trade parameters')
+    return NextResponse.error()
+  }
   const [partnerTxns, partnerBids] = await Promise.all([
     getTxnAndProjectsByUser(supabase, oldBid.bidder),
     getBidsByUser(supabase, oldBid.bidder),

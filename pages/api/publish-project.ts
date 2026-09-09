@@ -21,6 +21,13 @@ export default async function handler(req: NextRequest) {
   }
   const { supabase, user } = await getUserAndClient(req)
   if (!user) return NextResponse.error()
+  const existingProject = await getProjectById(supabase, projectId)
+  if (existingProject.creator !== user.id) {
+    return NextResponse.json({ error: 'Not your project' }, { status: 403 })
+  }
+  if (existingProject.stage !== 'draft') {
+    return NextResponse.json({ error: 'Only draft projects can be published' }, { status: 400 })
+  }
   const causeSlugs = projectParams.selectedCauses.map((cause) => cause.slug)
   const selectedPrize = projectParams.selectedPrize
   const startingStage =

@@ -1,5 +1,5 @@
 'use client'
-import Link from '@tiptap/extension-link'
+import Link, { isAllowedUri } from '@tiptap/extension-link'
 import { mergeAttributes, useEditor } from '@tiptap/react'
 import clsx from 'clsx'
 import Placeholder from '@tiptap/extension-placeholder'
@@ -75,6 +75,17 @@ export const proseClass = (size: 'sm' | 'md' | 'lg') =>
 export const DisplayLink = Link.extend({
   renderHTML({ HTMLAttributes }) {
     delete HTMLAttributes.class // Only use our classes (don't duplicate on paste)
+    // Upstream Link strips disallowed URI schemes (javascript: etc.) in its
+    // renderHTML; overriding it means we must re-apply that check ourselves.
+    if (
+      !this.options.isAllowedUri(HTMLAttributes.href, {
+        defaultValidate: (url: string) => !!isAllowedUri(url, this.options.protocols),
+        protocols: this.options.protocols,
+        defaultProtocol: this.options.defaultProtocol,
+      })
+    ) {
+      HTMLAttributes.href = ''
+    }
     return [
       'a',
       mergeAttributes(HTMLAttributes, {

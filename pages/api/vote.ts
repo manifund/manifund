@@ -18,6 +18,9 @@ export default async function handler(req: NextRequest) {
   if (!user) {
     return NextResponse.error()
   }
+  if (![-1, 0, 1].includes(newMagnitude)) {
+    return NextResponse.error()
+  }
   const oldVote = await getUserProjectVote(supabase, projectId, user.id)
   if (oldVote) {
     await supabase.from('project_votes').update({ magnitude: newMagnitude }).eq('id', oldVote.id)

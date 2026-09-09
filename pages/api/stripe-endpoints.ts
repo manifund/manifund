@@ -45,6 +45,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   if (event.type === 'checkout.session.completed') {
     const session = event.data.object as Stripe.Checkout.Session
+    // Delayed-notification payment methods fire this event before the money
+    // moves; only credit once Stripe says the session is actually paid.
+    if (session.payment_status !== 'paid') {
+      return res.status(200).send('ignored: not paid')
+    }
     const supabase = createAdminClient()
     const txnId = uuid()
     await issueMoneys(session, txnId, supabase)
@@ -72,7 +77,16 @@ const issueMoneys = async (
 ) => {
   const { id: sessionId } = session
   const { userId, dollarQuantity, passFundsToId } = session.metadata ?? {}
-  const dollarQuantityNum = Number.parseInt(dollarQuantity)
+  // Credit what Stripe actually collected, not what the metadata claims
+  const dollarQuantityNum = (session.amount_total ?? 0) / 100
+  if (dollarQuantityNum <= 0) {
+    throw new Error(`checkout session ${sessionId} completed with amount_total 0`)
+  }
+  if (dollarQuantityNum !== Number.parseFloat(dollarQuantity)) {
+    console.error(
+      `checkout session ${sessionId}: metadata says $${dollarQuantity}, charged $${dollarQuantityNum}`
+    )
+  }
   // TODO: make this an RPC
   await supabase
     .from('txns')
