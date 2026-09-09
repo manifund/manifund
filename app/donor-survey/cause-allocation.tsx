@@ -3,7 +3,7 @@
 import clsx from 'clsx'
 import { useState } from 'react'
 import { causeColor, normalizeAllocation } from '@/utils/donor-survey'
-import { inputClass } from './fields'
+import { RangeInput, inputClass } from './fields'
 
 export type CauseValue = { name: string; value: number }
 
@@ -82,18 +82,10 @@ export function CauseSliders(props: { value: CauseValue[]; onChange: (v: CauseVa
               />
               <span className="truncate text-sm text-gray-900">{c.name}</span>
             </div>
-            <input
-              type="range"
-              min={0}
-              max={100}
+            <RangeInput
               value={c.value}
-              aria-label={c.name}
-              onChange={(e) =>
-                onChange(
-                  value.map((x, j) => (j === i ? { ...x, value: Number(e.target.value) } : x))
-                )
-              }
-              className="w-full cursor-pointer accent-orange-500"
+              ariaLabel={c.name}
+              onChange={(v) => onChange(value.map((x, j) => (j === i ? { ...x, value: v } : x)))}
             />
             <span className="text-right text-[13px] tabular-nums text-gray-500">
               {shares[i]?.pct ?? 0}%

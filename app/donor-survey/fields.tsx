@@ -15,19 +15,15 @@ export function Section(props: {
 }) {
   return (
     <section id={props.id} className="flex scroll-mt-16 flex-col gap-8">
-      <div className="flex flex-col gap-3 border-b border-gray-100 pb-3.5">
-        <span
-          aria-hidden
-          className="h-1 w-8 rounded-full bg-gradient-to-r from-orange-500 to-rose-400"
-        />
-        <div className="flex items-baseline justify-between gap-3">
-          <h2 className="text-2xl font-medium tracking-[-0.01em] text-gray-900">{props.title}</h2>
-          {props.badge && (
-            <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
-              {props.badge}
-            </span>
-          )}
-        </div>
+      <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 pb-3">
+        <h2 className="bg-gradient-to-r from-orange-600 to-rose-500 bg-clip-text font-josefin text-[30px] font-[650] leading-none text-transparent">
+          {props.title}
+        </h2>
+        {props.badge && (
+          <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
+            {props.badge}
+          </span>
+        )}
       </div>
       {props.children}
     </section>
@@ -194,5 +190,31 @@ export function CheckCard(props: {
         <span>{label}</span>
       )}
     </label>
+  )
+}
+
+// Range input with the filled part of the track painted orange.
+export function RangeInput(props: {
+  value: number
+  onChange: (v: number) => void
+  min?: number
+  max?: number
+  step?: number
+  ariaLabel: string
+}) {
+  const { value, onChange, min = 0, max = 100, step = 1, ariaLabel } = props
+  const pct = max > min ? ((value - min) / (max - min)) * 100 : 0
+  return (
+    <input
+      type="range"
+      className="range-orange w-full cursor-pointer"
+      min={min}
+      max={max}
+      step={step}
+      value={value}
+      aria-label={ariaLabel}
+      onChange={(e) => onChange(Number(e.target.value))}
+      style={{ backgroundImage: `linear-gradient(to right, #f97316 ${pct}%, transparent ${pct}%)` }}
+    />
   )
 }

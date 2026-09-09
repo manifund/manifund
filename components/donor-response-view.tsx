@@ -118,7 +118,7 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
         </Group>
       )}
 
-      <Group title="Last two">
+      <Group title="Wrapping up">
         <Answer label="Other thoughts on effective giving">{r.other_thoughts}</Answer>
         {priv && <Answer label="Who else should take this survey">{priv.referrals}</Answer>}
       </Group>

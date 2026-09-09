@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useEffect, useState, useTransition } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import clsx from 'clsx'
 import { useSupabase } from '@/db/supabase-provider'
 import { Avatar } from '@/components/avatar'
@@ -18,7 +19,7 @@ import {
 } from '@/utils/donor-survey'
 import { saveDonorSurvey, type DonorSurveyInput, type SaveResult } from './actions'
 import { CauseSliders, type CauseValue } from './cause-allocation'
-import { CheckCard, Pills, Q, Section, TextArea, TextInput } from './fields'
+import { CheckCard, Pills, Q, RangeInput, Section, TextArea, TextInput } from './fields'
 
 export type SignedInUser = {
   fullName: string
@@ -125,7 +126,7 @@ export function DonorSurveyForm(props: {
     },
     {
       id: 'last',
-      title: 'Last two',
+      title: 'Wrapping up',
       done: count(filled(form.other_thoughts), filled(form.referrals)),
       of: 2,
       optional: true,
@@ -176,7 +177,7 @@ export function DonorSurveyForm(props: {
 
   return (
     <form
-      className="flex flex-col gap-14"
+      className="flex flex-col gap-20"
       onSubmit={(e) => {
         e.preventDefault()
         submit()
@@ -217,8 +218,15 @@ export function DonorSurveyForm(props: {
           <div className="flex flex-col gap-3.5">
             <Link
               href="/login?next=/donor-survey"
-              className="flex h-[46px] w-full max-w-[261px] items-center justify-center rounded-[10px] bg-orange-500 text-[15px] font-medium text-white transition-colors hover:bg-orange-600"
+              className="flex h-[46px] w-full max-w-[280px] items-center justify-center gap-2.5 self-center rounded-[10px] bg-orange-500 text-[15px] font-medium text-white transition-colors hover:bg-orange-600 hover:no-underline"
             >
+              <Image
+                src="/SolidWhiteManifox.png"
+                alt=""
+                width={40}
+                height={40}
+                className="h-6 w-6 object-contain"
+              />
               Sign in with Manifund
             </Link>
             <div className="flex items-center gap-3 text-xs text-gray-400">
@@ -325,7 +333,6 @@ export function DonorSurveyForm(props: {
           <TextArea
             value={form.landscape_problems}
             onChange={(v) => set('landscape_problems', v)}
-            placeholder="Be blunt."
             rows={4}
           />
         </Q>
@@ -357,18 +364,14 @@ export function DonorSurveyForm(props: {
               className="gap-4"
             >
               <div className="flex flex-col gap-2">
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={25}
+                <RangeInput
                   value={fundsPct}
-                  aria-label="Funds vs. picking charities yourself"
-                  onChange={(e) => {
+                  step={25}
+                  ariaLabel="Funds vs. picking charities yourself"
+                  onChange={(v) => {
                     setFundsTouched(true)
-                    set('funds_vs_direct', Number(e.target.value))
+                    set('funds_vs_direct', v)
                   }}
-                  className="w-full cursor-pointer accent-orange-500"
                 />
                 <div className="flex justify-between text-xs text-gray-400">
                   <span>All funds</span>
@@ -512,7 +515,7 @@ export function DonorSurveyForm(props: {
         </Q>
       </Section>
 
-      <Section id="last" title="Last two">
+      <Section id="last" title="Wrapping up">
         <Q label="Other thoughts on effective giving?" as="label" className="gap-2.5">
           <TextArea
             value={form.other_thoughts}
