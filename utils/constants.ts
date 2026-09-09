@@ -20,7 +20,7 @@ export const SPAM_FILTER_ENFORCE = true
 //   the old Airtable form, so this can ship dark and be tested in production.
 // MERCURY_REQUIRE_TAX_DOCUMENT: makes Mercury collect a W-9/W-8BEN during
 //   recipient onboarding. Off until someone owning compliance says otherwise.
-export const MERCURY_ENABLED = false
+export const MERCURY_ENABLED = true
 export const MERCURY_REQUIRE_TAX_DOCUMENT = false
 
 // Floor for Mercury withdrawals only -- the Stripe path keeps its $1 minimum.
