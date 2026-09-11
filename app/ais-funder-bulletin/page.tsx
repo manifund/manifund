@@ -7,7 +7,7 @@ export const metadata = {
   description: 'A digest of funders in the AI safety space.',
 }
 
-const LAST_UPDATED = 'September 1, 2026'
+const LAST_UPDATED = 'September 11, 2026'
 
 const LINK = 'text-orange-600 underline decoration-orange-500 decoration-dotted underline-offset-2'
 
@@ -607,6 +607,12 @@ export default function AisFunderBulletinPage() {
                   Recent updates:
                   <ul>
                     <li>
+                      In September 2026 they launched{' '}
+                      <A href="https://coefficientgiving.org/tailwind/">Project Tailwind</A>, a
+                      call for founders to launch new AI safety organizations — see Get involved
+                      below.
+                    </li>
+                    <li>
                       In July 2026 they made a{' '}
                       <A href="https://www.alignmentforum.org/posts/HDKQNqiR2gtfMiWsn/announcing-our-usd160m-grant-from-coefficient-giving">
                         $160m grant to Resolution
@@ -666,6 +672,19 @@ export default function AisFunderBulletinPage() {
                               decisions within 3 months
                             </li>
                           </ul>
+                        </li>
+                        <li>
+                          <A href="https://coefficientgiving.org/tailwind/">Project Tailwind</A>{' '}
+                          (launched September 2026) is a call for founders to start new AI safety
+                          organizations targeting catastrophic risks, with a{' '}
+                          <A href="https://coefficientgiving.org/tailwind/initiatives/">
+                            list of initiatives
+                          </A>{' '}
+                          they want funded. Funding runs from pre-seed ($200k-$2m) through seed
+                          ($2m-$20m) to scale ($20m-$200m+); express interest{' '}
+                          <A href="https://coefficientgiving.org/tailwind/get-involved/">here</A>.
+                          They automatically filter out submissions unrelated to catastrophic
+                          risks from AI, or that appear AI-generated.
                         </li>
                         <li>
                           Their GCR capacity building team also takes a{' '}
@@ -1520,9 +1539,14 @@ export default function AisFunderBulletinPage() {
                 Foresight AI for Safety and Science
               </A>
               : They award around $3m annually across AI safety &amp; science, typically $10k-$100k
-              per grant. They&apos;ve closed open applications and aren&apos;t accepting submissions
-              until they publish new RFPs. They also strongly prefer applicants who will be
-              in-person members of their SF or Berlin hubs.
+              per grant. Their current{' '}
+              <A href="https://foresight.org/grants/ai-science-safety-nodes-rfp/">
+                AI for Science &amp; Safety Nodes RFP
+              </A>{' '}
+              (deadline October 31, 2026) funds work on local compute, coordination and
+              accountability, and AI-first science, typically at $30k-$100k per grant; all funded
+              work must be open-sourced. They strongly prefer applicants who will be in-person
+              members of their SF or Berlin hubs.
             </li>
             <li>
               <A href="https://astera.org/ai-safety/">Astera</A>: Their webpage mentions that
