@@ -31,10 +31,23 @@ type ProsemirrorDOM =
   | string
   | [tag: string, attrs: Record<string, string | number | undefined>, ...content: ProsemirrorDOM[]]
 
+// attrs come from stored user documents, so anything React treats specially
+// (dangerouslySetInnerHTML, event handlers, style objects) must not pass through.
+const sanitizeAttrs = (attrs: Record<string, unknown>) => {
+  const safe: Record<string, string | number | boolean> = {}
+  for (const [key, value] of Object.entries(attrs)) {
+    if (/^on/i.test(key) || key === 'dangerouslySetInnerHTML' || key === 'style') continue
+    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean')
+      continue
+    safe[key] = value
+  }
+  return safe
+}
+
 const pmdToJSX = (dom: ProsemirrorDOM, children: ReactNode): ReactNode => {
   if (Array.isArray(dom)) {
     const [tag, attrs, ...content] = dom
-    const { class: className, ...rest } = attrs
+    const { class: className, ...rest } = sanitizeAttrs(attrs)
 
     return React.createElement(
       tag,

@@ -4,7 +4,7 @@
 import { NextApiRequest, NextApiResponse } from 'next'
 import { generateHTML } from '@tiptap/html'
 import { getCommentById } from '@/db/comment'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { escapeHtml, sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
 import { parseMentions } from '@/utils/parse'
 import { Comment } from '@/db/comment'
 import { JSONContent } from '@tiptap/core'
@@ -70,7 +70,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           await sendTemplateEmail(
             TEMPLATE_IDS.GENERIC_NOTIF_HTML,
             {
-              htmlContent: `<p>The creator of "${fullComment.projects.title}" has posted a progress update on their project:</p><hr />${generateExcerptHtml(comment.content as JSONContent)}`,
+              htmlContent: `<p>The creator of "${escapeHtml(fullComment.projects.title)}" has posted a progress update on their project:</p><hr />${generateExcerptHtml(comment.content as JSONContent)}`,
               buttonUrl: `https://manifund.org/projects/${fullComment.projects.slug}?tab=comments#${comment.id}`,
               buttonText: 'View update',
               subject: `Manifund: Update posted for "${fullComment.projects.title}"`,
@@ -81,7 +81,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           await sendTemplateEmail(
             TEMPLATE_IDS.GENERIC_NOTIF_HTML,
             {
-              htmlContent: `<p>The creator of "${fullComment.projects.title}" has completed their project and posted a final report:</p><hr />${generateExcerptHtml(comment.content as JSONContent)}`,
+              htmlContent: `<p>The creator of "${escapeHtml(fullComment.projects.title)}" has completed their project and posted a final report:</p><hr />${generateExcerptHtml(comment.content as JSONContent)}`,
               buttonUrl: `https://manifund.org/projects/${fullComment.projects.slug}?tab=comments#${comment.id}`,
               buttonText: 'View update',
               subject: `Manifund: Final report posted for "${fullComment.projects.title}"`,

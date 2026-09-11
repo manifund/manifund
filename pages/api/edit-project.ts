@@ -11,6 +11,18 @@ export const config = {
   regions: ['sfo1'],
 }
 
+const CREATOR_EDITABLE_FIELDS = [
+  'title',
+  'blurb',
+  'description',
+  'min_funding',
+  'funding_goal',
+  'founder_shares',
+  'auction_close',
+  'location_description',
+  'lobbying',
+]
+
 export default async function handler(req: NextRequest) {
   const { projectUpdate, projectId, causeSlugs } = (await req.json()) as {
     projectUpdate: ProjectUpdate
@@ -20,10 +32,16 @@ export default async function handler(req: NextRequest) {
   const { supabase: supabaseEdge, user } = await getUserAndClient(req)
   const supabase = isAdmin(user) ? createAdminClient() : supabaseEdge
   if (!user) return NextResponse.error()
+  const update = isAdmin(user)
+    ? { ...projectUpdate }
+    : // Non-admins may only edit the fields the project forms expose
+      (Object.fromEntries(
+        Object.entries(projectUpdate).filter(([key]) => CREATOR_EDITABLE_FIELDS.includes(key))
+      ) as ProjectUpdate)
   // Score columns are server-managed; never accept them from the client
-  delete projectUpdate.ai_fraction
-  delete projectUpdate.quality_score
-  await updateProject(supabase, projectId, projectUpdate)
+  delete update.ai_fraction
+  delete update.quality_score
+  await updateProject(supabase, projectId, update)
   console.log(causeSlugs)
   await updateProjectCauses(supabase, causeSlugs, projectId)
 

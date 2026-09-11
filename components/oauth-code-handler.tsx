@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useSupabase } from '@/db/supabase-provider'
 import { revalidateAfterAuth } from '@/lib/auth-actions'
+import { safeNext } from '@/utils/safe-next'
 
 // Used to clean up the URL after the OAuth callback is complete.
 export function OAuthCodeHandler() {
@@ -33,7 +34,7 @@ export function OAuthCodeHandler() {
             currentUrl.searchParams.delete('error_description')
 
             // Check if there's a 'next' parameter for redirect
-            const next = searchParams?.get('next') || '/'
+            const next = safeNext(searchParams?.get('next')) || '/'
 
             // Use replaceState to update URL without navigation
             window.history.replaceState({}, '', currentUrl.pathname + currentUrl.search)

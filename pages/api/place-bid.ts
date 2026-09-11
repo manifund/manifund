@@ -26,6 +26,9 @@ export default async function handler(req: NextRequest) {
   if (!user) {
     return new Response('Unauthorized', { status: 401 })
   }
+  if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(valuation) || valuation < 0) {
+    return new Response('Invalid amount', { status: 400 })
+  }
   const [bidder, txns, bids, project] = await Promise.all([
     getProfileAndBidsById(supabase, user.id),
     getTxnAndProjectsByUser(supabase, user.id),

@@ -37,6 +37,13 @@ export default async function handler(req: NextRequest) {
   if (!user) {
     return new Response('Unauthorized', { status: 401 })
   }
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    (valuation !== undefined && (!Number.isFinite(valuation) || valuation <= 0))
+  ) {
+    return new Response('Invalid amount', { status: 400 })
+  }
   const ammTxns = await getTxnsByUser(supabase, projectId)
   const [ammShares, ammUSD] = calculateAMMPorfolio(ammTxns, projectId)
   const numDollars = buying
