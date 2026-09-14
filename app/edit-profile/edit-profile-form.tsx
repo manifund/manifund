@@ -30,6 +30,7 @@ export function EditProfileForm(props: { profile: Profile }) {
   const editor = useTextEditor(profile.long_description ?? '')
   const [avatar, setAvatar] = useState<File | null>(null)
   const [submitting, setSubmitting] = useState<boolean>(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
   const params = useSearchParams()
   const router = useRouter()
   const redirect = params?.get('redirectTo')
@@ -90,22 +91,34 @@ export function EditProfileForm(props: { profile: Profile }) {
 
   const Save = async () => {
     setSubmitting(true)
+    setSaveError(null)
     const formattedUsername = username.replace(/ /g, '-').replace(/[^\w-]+/g, '')
     const longDescription =
       editor?.getJSON() && editor.getHTML() !== '<p></p>' ? editor.getJSON() : null
-    await saveProfile(
-      {
-        ...profile,
-        username: formattedUsername,
-        bio,
-        long_description: longDescription,
-        website,
-        full_name: fullName,
-      },
-      avatar,
-      supabase
-    )
-    setSubmitting(false)
+    try {
+      await saveProfile(
+        {
+          ...profile,
+          username: formattedUsername,
+          bio,
+          long_description: longDescription,
+          website,
+          full_name: fullName,
+        },
+        avatar,
+        supabase
+      )
+    } catch (error) {
+      const { code, message } = (error ?? {}) as { code?: string; message?: string }
+      setSaveError(
+        code === '23505'
+          ? `The username "${formattedUsername}" is already taken. Please pick another.`
+          : message || 'Something went wrong saving your profile. Please try again.'
+      )
+      return
+    } finally {
+      setSubmitting(false)
+    }
     router.push(redirect ? redirect : `/${formattedUsername}`)
     router.refresh()
   }
@@ -209,7 +222,7 @@ export function EditProfileForm(props: { profile: Profile }) {
 
       {isEmailPasswordUser && <UpdatePasswordForm />}
 
-      <p className="text-center text-rose-500">{errorMessage}</p>
+      <p className="text-center text-rose-500">{errorMessage ?? saveError}</p>
       <Button
         type="submit"
         disabled={errorMessage !== null}
