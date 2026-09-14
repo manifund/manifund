@@ -102,7 +102,14 @@ export async function getRecentFullTxns(
 }
 
 // Return all txns to projects related to this cause
-export async function getMatchTxns(supabase: SupabaseClient, causeSlug: string) {
+// Only txns within [start, end) count; filtering in the query keeps the
+// eligible rows from being pushed past the row limit by newer donations.
+export async function getMatchTxns(
+  supabase: SupabaseClient,
+  causeSlug: string,
+  start: string,
+  end: string
+) {
   const { data } = await supabase
     .from('txns')
     .select(
@@ -116,6 +123,8 @@ export async function getMatchTxns(supabase: SupabaseClient, causeSlug: string) 
     )
     .eq('projects.project_causes.cause_slug', causeSlug)
     .eq('token', 'USD')
+    .gte('created_at', start)
+    .lt('created_at', end)
     .order('created_at', { ascending: false })
     .limit(1000)
     .throwOnError()

@@ -19,9 +19,11 @@ type VoteMap = {
 }
 
 // Txns & offers in 08-12 to 09-05 are eligible for EA Community Choice
+export const MATCH_START = '2024-08-12T00:00:00.000Z'
+export const MATCH_END = '2024-09-05T11:59:59.999Z'
 function eligibleTime(createdAt: string) {
   const date = new Date(createdAt)
-  return new Date('2024-08-12') <= date && date < new Date('2024-09-05T11:59:59.999Z')
+  return new Date(MATCH_START) <= date && date < new Date(MATCH_END)
 }
 
 export default function QuadraticMatch(props: {
@@ -113,22 +115,28 @@ export default function QuadraticMatch(props: {
               ([idA, votesA], [idB, votesB]) =>
                 total(votesB) + match(votesB) - (total(votesA) + match(votesA))
             )
-            .map(([projectId, votes]) => (
-              <TableRow key={projectId}>
-                <TableCell>
-                  <Link
-                    href={`/projects/${projectMap[projectId].slug}`}
-                    className="hover:underline"
-                  >
-                    {projectMap[projectId].title.slice(0, 60)}
-                  </Link>
-                </TableCell>
-                <TableCell>{Object.keys(votes).length}</TableCell>
-                <TableCell>{total(votes).toFixed(0)}</TableCell>
-                <TableCell>{match(votes).toFixed(0)}</TableCell>
-                <TableCell>{(total(votes) + match(votes)).toFixed(0)}</TableCell>
-              </TableRow>
-            ))}
+            .map(([projectId, votes]) => {
+              // Projects hidden since the round still received votes but
+              // aren't in the cause's visible project list
+              const project = projectMap[projectId]
+              return (
+                <TableRow key={projectId}>
+                  <TableCell>
+                    {project ? (
+                      <Link href={`/projects/${project.slug}`} className="hover:underline">
+                        {project.title.slice(0, 60)}
+                      </Link>
+                    ) : (
+                      <span className="text-gray-500">Hidden project</span>
+                    )}
+                  </TableCell>
+                  <TableCell>{Object.keys(votes).length}</TableCell>
+                  <TableCell>{total(votes).toFixed(0)}</TableCell>
+                  <TableCell>{match(votes).toFixed(0)}</TableCell>
+                  <TableCell>{(total(votes) + match(votes)).toFixed(0)}</TableCell>
+                </TableRow>
+              )
+            })}
         </TableBody>
       </Table>
     </div>

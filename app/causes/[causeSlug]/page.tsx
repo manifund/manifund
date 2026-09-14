@@ -9,6 +9,7 @@ import { calculateCharityBalance } from '@/utils/math'
 import { getIncomingTxnsByUserWithDonor, getMatchTxns, getTxnAndProjectsByUser } from '@/db/txn'
 import { getMatchBids, getPendingBidsByUser } from '@/db/bid'
 import { getProfileById } from '@/db/profile'
+import { MATCH_END, MATCH_START } from './qf'
 
 export const revalidate = 60
 
@@ -39,8 +40,8 @@ export default async function CausePage(props: { params: Promise<{ causeSlug: st
     causeSlug === 'ea-community-choice'
       ? await Promise.all([
           getProfilesWithRoles(supabase),
-          getMatchTxns(supabase, causeSlug),
-          getMatchBids(supabase, causeSlug),
+          getMatchTxns(supabase, causeSlug, MATCH_START, MATCH_END),
+          getMatchBids(supabase, causeSlug, MATCH_START, MATCH_END),
         ])
       : []
   const charityBalance = userProfile

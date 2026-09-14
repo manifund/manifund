@@ -103,7 +103,12 @@ export async function insertBid(supabase: SupabaseClient, bid: BidInsert) {
 }
 
 // Return all bids on projects with this cause slug
-export async function getMatchBids(supabase: SupabaseClient, causeSlug: string) {
+export async function getMatchBids(
+  supabase: SupabaseClient,
+  causeSlug: string,
+  start: string,
+  end: string
+) {
   const { data } = await supabase
     .from('bids')
     .select(
@@ -116,6 +121,8 @@ export async function getMatchBids(supabase: SupabaseClient, causeSlug: string) 
     `
     )
     .eq('projects.project_causes.cause_slug', causeSlug)
+    .gte('created_at', start)
+    .lt('created_at', end)
     .order('created_at', { ascending: false })
     .limit(1000)
     .throwOnError()
