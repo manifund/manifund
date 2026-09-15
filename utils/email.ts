@@ -72,36 +72,6 @@ export async function sendTemplateEmail(
   console.log('Sent message', json)
 }
 
-export async function sendEmail(
-  toEmail: string,
-  subject: string,
-  htmlBody: string,
-  textBody: string,
-  fromEmail?: string,
-  // 'outbound' for transactional emails, 'broadcast' for marketing emails
-  messageStream?: string
-) {
-  const response = await fetch('https://api.postmarkapp.com/email', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Postmark-Server-Token': process.env.POSTMARK_SERVER_TOKEN ?? '',
-    },
-    body: JSON.stringify({
-      From: fromEmail ?? 'info@manifund.org',
-      To: toEmail,
-      Subject: subject,
-      HtmlBody: htmlBody,
-      TextBody: textBody,
-      MessageStream: messageStream ?? '',
-    }),
-  })
-  const json = await response.json()
-  console.log('Sent email', json)
-  return json
-}
-
 export async function getUserEmail(supabaseAdmin: SupabaseClient, userId: string) {
   const { data, error } = await supabaseAdmin
     .from('users')
