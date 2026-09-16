@@ -12,8 +12,10 @@ import {
   isManualWireCountry,
   listSendMoneyRequests,
   listSentTransactionsSince,
+  MercuryApiError,
   PaymentMethod,
   requestSendMoney,
+  SendMoneyRequest,
 } from '@/utils/mercury'
 
 const REQUEST_URL = 'https://manifund.org/withdraw/request'
@@ -45,12 +47,24 @@ async function sendQueuedEmail(admin: SupabaseClient, request: WithdrawalRequest
   }
 }
 
-async function patch(admin: SupabaseClient, id: string, fields: Record<string, unknown>) {
-  await admin
+// Guarded transition: the withdrawal page fires a sync on mount and on every
+// window focus, so two syncs (or a sync and the webhook) can act on one row at
+// the same time. Only the caller that actually moves the row runs the
+// transition's side effects; a loser sees zero rows updated and stands down.
+async function claim(
+  admin: SupabaseClient,
+  id: string,
+  fromStatus: string,
+  fields: Record<string, unknown>
+) {
+  const { data } = await admin
     .from('withdrawal_requests')
     .update({ ...fields, updated_at: new Date().toISOString() })
     .eq('id', id)
+    .eq('status', fromStatus)
+    .select('id')
     .throwOnError()
+  return (data ?? []).length > 0
 }
 
 // Everyone's bank details are collected by Mercury the same way. The only fork
@@ -67,7 +81,7 @@ export async function routePayment(admin: SupabaseClient, request: WithdrawalReq
     return await submitSendMoney(admin, request)
   }
 
-  await patch(admin, request.id, { status: 'needs_manual' })
+  if (!(await claim(admin, request.id, 'ready_to_pay', { status: 'needs_manual' }))) return null
   await sendDiscordAlert(
     `📝 Manual wire needed: $${request.amount} to ${recipient.name}. ` +
       `India and the Philippines need a purpose code Mercury's API can't send. ` +
@@ -83,19 +97,42 @@ export async function routePayment(admin: SupabaseClient, request: WithdrawalReq
 export async function submitSendMoney(admin: SupabaseClient, request: WithdrawalRequest) {
   const recipientId = request.mercury_recipient_id
   if (!recipientId) throw new Error(`No recipient on withdrawal request ${request.id}`)
-  const sent = await requestSendMoney({
-    recipientId,
-    amount: Number(request.amount),
-    paymentMethod: request.payment_method as PaymentMethod,
-    idempotencyKey: request.idempotency_key,
-    withdrawalRequestId: request.id,
-  })
-  await patch(admin, request.id, {
+  let sent: SendMoneyRequest
+  try {
+    sent = await requestSendMoney({
+      recipientId,
+      amount: Number(request.amount),
+      paymentMethod: request.payment_method as PaymentMethod,
+      idempotencyKey: request.idempotency_key,
+      withdrawalRequestId: request.id,
+    })
+  } catch (e) {
+    // Mercury 400s on idempotency-key reuse instead of replaying the original
+    // response, so reuse means the payment is already queued -- by a concurrent
+    // sync, or a run that died before recording it. Recover the existing
+    // request rather than failing.
+    if (!(e instanceof MercuryApiError && e.status === 400 && e.message.includes('idempotency'))) {
+      throw e
+    }
+    const matches = (await listSendMoneyRequests()).filter(
+      (r) => r.recipientId === recipientId && r.amount === Number(request.amount)
+    )
+    if (matches.length !== 1) {
+      await sendDiscordAlert(
+        `⚠️ Withdrawal ${request.id} was already submitted to Mercury but matches ` +
+          `${matches.length} send-money requests — set mercury_request_id and ` +
+          `status='pending_approval' on it in SQL.`
+      )
+      return null
+    }
+    sent = matches[0]
+  }
+  const claimed = await claim(admin, request.id, 'ready_to_pay', {
     status: 'pending_approval',
     mercury_request_id: sent.requestId,
     submitted_at: new Date().toISOString(),
   })
-  await sendQueuedEmail(admin, request)
+  if (claimed) await sendQueuedEmail(admin, request)
   return sent
 }
 
@@ -111,10 +148,22 @@ export async function reverseWithdrawalRequest(
   status: 'failed' | 'rejected',
   reason: string
 ) {
+  // Claim before deleting the txn: if another caller just marked the row sent
+  // (or reversed it first), un-reserving the balance here would corrupt it.
+  if (!(await claim(admin, request.id, request.status, { status, failure_reason: reason }))) return
   if (request.txn_id) {
-    await admin.from('txns').delete().eq('id', request.txn_id).throwOnError()
+    try {
+      await admin.from('txns').delete().eq('id', request.txn_id).throwOnError()
+    } catch (e) {
+      // The row is already marked reversed, so nothing will retry this delete:
+      // without it the balance stays reserved forever. Flag it for a human.
+      await sendDiscordAlert(
+        `🚨 Withdrawal ${request.id} marked ${status} but deleting reserving txn ` +
+          `${request.txn_id} failed — delete it in SQL or the balance stays wrong.`
+      )
+      throw e
+    }
   }
-  await patch(admin, request.id, { status, failure_reason: reason })
 
   const email = await getUserEmail(admin, request.profile_id)
   if (email) {
@@ -143,11 +192,24 @@ export async function markSent(
   sentAt: string,
   transactionId?: string
 ) {
-  await patch(admin, request.id, {
+  const claimed = await claim(admin, request.id, request.status, {
     status: 'sent',
     sent_at: sentAt,
     ...(transactionId ? { mercury_transaction_id: transactionId } : {}),
   })
+  if (!claimed) {
+    // A concurrent caller beat us to 'sent' and already emailed; just fill in
+    // the transaction details if we have better ones.
+    if (transactionId) {
+      await admin
+        .from('withdrawal_requests')
+        .update({ sent_at: sentAt, mercury_transaction_id: transactionId })
+        .eq('id', request.id)
+        .eq('status', 'sent')
+        .throwOnError()
+    }
+    return
+  }
   const email = await getUserEmail(admin, request.profile_id)
   if (email) {
     await sendTemplateEmail(
@@ -182,11 +244,16 @@ export async function syncWithdrawalRequest(admin: SupabaseClient, request: With
       .update({ mercury_recipient_id: invite.recipientId })
       .eq('id', request.profile_id)
       .throwOnError()
-    await patch(admin, request.id, {
+    const claimed = await claim(admin, request.id, 'awaiting_recipient', {
       status: 'ready_to_pay',
       mercury_recipient_id: invite.recipientId,
     })
-    await routePayment(admin, { ...request, mercury_recipient_id: invite.recipientId })
+    if (!claimed) return
+    await routePayment(admin, {
+      ...request,
+      status: 'ready_to_pay',
+      mercury_recipient_id: invite.recipientId,
+    })
     return
   }
 
