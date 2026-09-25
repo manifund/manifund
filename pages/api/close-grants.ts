@@ -136,7 +136,7 @@ async function closeProject(
       await sendTemplateEmail(TEMPLATE_IDS.VERDICT, creatorPostmarkVars, project.creator)
       const bidders = bids.map((bid) => bid.bidder)
       const uniqueBidders = uniq(bidders)
-      uniqueBidders.forEach(async (bidder) => {
+      for (const bidder of uniqueBidders) {
         const bidderPostmarkVars = {
           projectTitle: project.title,
           result: 'declined',
@@ -145,7 +145,7 @@ async function closeProject(
           bidResolutionText: `Your offer was declined.`,
         }
         await sendTemplateEmail(TEMPLATE_IDS.OFFER_RESOLVED, bidderPostmarkVars, bidder)
-      })
+      }
     }
     // TODO: notify followers when project gets funded through auction
     const unnotifiedFollowers = followerIds.filter(
