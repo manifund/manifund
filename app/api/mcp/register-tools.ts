@@ -4,6 +4,7 @@ import { z } from 'zod'
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/db/supabase-admin'
+import { filterVisibleProjectTxns } from './filter-visible-project-txns'
 import { generateEmbedding, hasEmbeddingKey } from '@/app/utils/embeddings'
 import { toMarkdown } from '@/utils/tiptap-parsing'
 import { calculateUserBalance, getAmountRaised } from '@/utils/math'
@@ -543,7 +544,7 @@ export function registerPublicTools(server: McpServer, options: { admin: boolean
           amount, token, type, created_at,
           from:profiles!txns_from_id_fkey(username, full_name),
           to:profiles!txns_to_id_fkey(username, full_name),
-          project:projects(title, slug)
+          project:projects(title, slug, stage)
         `
         const txnQuery = db
           .from('txns')
@@ -565,7 +566,7 @@ export function registerPublicTools(server: McpServer, options: { admin: boolean
           url: profileUrl(profile.username),
           balance,
           projects: (projects ?? []).map((p) => ({ ...p, url: projectUrl(p.slug) })),
-          recent_txns: txns,
+          recent_txns: filterVisibleProjectTxns(txns, admin),
         })
       })
   )
@@ -605,7 +606,7 @@ export function registerPublicTools(server: McpServer, options: { admin: boolean
             id, amount, token, type, created_at,
             from:profiles!txns_from_id_fkey(username, full_name),
             to:profiles!txns_to_id_fkey(username, full_name),
-            project:projects(title, slug)
+            project:projects(title, slug, stage)
           `
           )
           .order('created_at', { ascending: false })
@@ -630,18 +631,20 @@ export function registerPublicTools(server: McpServer, options: { admin: boolean
         if (project_slug) {
           const { data: project } = await db
             .from('projects')
-            .select('id')
+            .select('id, stage')
             .eq('slug', project_slug)
             .maybeSingle()
             .throwOnError()
-          if (!project) return errorResult(`No project found with slug "${project_slug}"`)
+          if (!project || (!admin && ['hidden', 'draft'].includes(project.stage))) {
+            return errorResult(`No project found with slug "${project_slug}"`)
+          }
           query = query.eq('project', project.id)
         }
         if (after) query = query.gte('created_at', new Date(after).toISOString())
         if (before) query = query.lte('created_at', new Date(before).toISOString())
 
         const { data: txns } = await query.throwOnError()
-        return jsonResult(txns)
+        return jsonResult(filterVisibleProjectTxns(txns, admin))
       })
   )
 
