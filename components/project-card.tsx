@@ -185,7 +185,7 @@ export function CardlessProject(props: {
           />
         )}
         <span className="relative z-10 rounded-full bg-orange-100 px-3 py-1.5 font-medium text-orange-600">
-          {formatMoney(regrantors ? amountRaised : project.funding_goal)}
+          {formatMoney(regrantors?.length ? amountRaised : project.funding_goal)}
         </span>
       </Row>
       <Link href={`/projects/${project.slug}`}>
@@ -197,7 +197,7 @@ export function CardlessProject(props: {
           <CauseTag key={cause.slug} causeTitle={cause.title} causeSlug={cause.slug} />
         ))}
       </Row>
-      {regrantors && (
+      {regrantors?.length ? (
         <Row className="flex-wrap items-center gap-2">
           <span className="text-sm text-gray-600">Regranted by</span>
           {regrantors.map((regrantor) => (
@@ -208,7 +208,7 @@ export function CardlessProject(props: {
             />
           ))}
         </Row>
-      )}
+      ) : null}
     </Col>
   )
 }

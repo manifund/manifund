@@ -32,12 +32,14 @@ export default async function DonatePage() {
   const regrantorIds = (featuredProjects ?? [])
     .flatMap((project) => project.txns?.map((txn) => txn.from_id) ?? [])
     .filter((id): id is string => !!id)
-  const { data: regrantorProfiles } = await supabase
-    .from('profiles')
-    .select('*')
-    .in('id', regrantorIds)
-    .eq('regranter_status', true)
-    .throwOnError()
+  const { data: regrantorProfiles } = regrantorIds.length
+    ? await supabase
+        .from('profiles')
+        .select('*')
+        .in('id', regrantorIds)
+        .eq('regranter_status', true)
+        .throwOnError()
+    : { data: [] }
   const passFundsTo = await getProfileById(supabase, GENERAL_REGRANTING_ID)
   return (
     <div>
