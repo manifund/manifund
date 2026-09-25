@@ -200,6 +200,14 @@ export async function recordSpamVerdict(
 // Acts on a spam verdict: emails the creator (before any deletion), then bans
 // new accounts or hides the project for established ones. Never throws - spam
 // handling must not break the create/score flow.
+//
+// Idempotency: a project that is already stage='hidden' has already been
+// disposed of by a prior run. Re-running this pipeline (e.g. because the owner
+// edited a hidden project and /api/score-project re-entered the gate) would
+// re-send the spam-notice email and re-evaluate the ban decision, which can
+// escalate a hide to a full account ban. The route-level stage filter
+// prevents re-entry; this guard protects any future caller. Pass force: true
+// to override (e.g. an admin re-triggering on a reclassified project).
 export async function handleSpamProject(
   adminSupabase: SupabaseClient,
   project: {
@@ -209,9 +217,12 @@ export async function handleSpamProject(
     creator: string
     description: JSONContent | null
     blurb: string | null
+    stage?: string | null
   },
-  verdict: SpamVerdict
+  verdict: SpamVerdict,
+  options?: { force?: boolean }
 ) {
+  if (project.stage === 'hidden' && !options?.force) return
   try {
     await recordSpamVerdict(adminSupabase, project.id, verdict)
 

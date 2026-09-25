@@ -41,8 +41,15 @@ export async function POST(request: NextRequest) {
   if (SPAM_FILTER_ENABLED && hasSpamScoringKeys()) {
     const { data: project } = await admin
       .from('projects')
-      .select('id, title, blurb, slug, creator, description')
+      .select('id, title, blurb, slug, creator, description, stage')
       .eq('id', projectId)
+      // Skip projects the spam gate has already disposed of: a hidden-but-not-
+      // banned project can re-enter this route when its owner edits it, and
+      // re-running handleSpamProject would re-send the spam-notice email and
+      // re-evaluate the ban decision (escalating a hide to a ban). The
+      // handleSpamProject idempotency guard in spam-scores.ts is a backstop;
+      // this filter mirrors the syncProjectScores hidden-stage filter.
+      .neq('stage', 'hidden')
       .single()
     if (project) {
       const verdict = await classifyProjectSpam(project as any)
