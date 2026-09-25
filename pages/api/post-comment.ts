@@ -19,6 +19,19 @@ export default async function handler(req: NextRequest) {
   const { content, projectId, replyingTo, specialType } = (await req.json()) as CommentProps
   const { supabase, user } = await getUserAndClient(req)
   if (!user) return NextResponse.error()
+  if (replyingTo) {
+    const { data: parent } = await supabase
+      .from('comments')
+      .select('project, replying_to')
+      .eq('id', replyingTo)
+      .single()
+    if (!parent || parent.replying_to !== null || parent.project !== projectId) {
+      return NextResponse.json(
+        { error: 'replyingTo must refer to a root comment in the same project.' },
+        { status: 400 }
+      )
+    }
+  }
   await sendComment(supabase, content, projectId, user.id, replyingTo, specialType)
   const { error } = await supabase.rpc('follow_project', {
     project_id: projectId,

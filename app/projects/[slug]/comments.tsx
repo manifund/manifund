@@ -135,7 +135,8 @@ function genThreads(
     rootComments.map((comment) => [comment.id, { root: comment, replies: [] } as Thread])
   )
   replyComments.forEach((reply) => {
-    threads[reply.replying_to ?? 0].replies.push(reply)
+    const thread = threads[reply.replying_to ?? 0]
+    if (thread) thread.replies.push(reply)
   })
   const threadsArray = Object.values(threads)
   threadsArray.forEach((thread) => {
