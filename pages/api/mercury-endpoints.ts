@@ -3,7 +3,12 @@ import { Readable } from 'node:stream'
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createAdminClient } from '@/db/edge'
 import { WithdrawalRequest } from '@/db/withdrawal-request'
-import { getTransaction, MercuryApiError, MercuryTransaction } from '@/utils/mercury'
+import {
+  getTransaction,
+  MercuryApiError,
+  MercuryTransaction,
+  TransactionStatus,
+} from '@/utils/mercury'
 import { markSent, reverseWithdrawalRequest } from '@/utils/mercury-withdrawals'
 import { sendDiscordAlert } from '@/utils/discord'
 
@@ -23,7 +28,7 @@ async function buffer(readable: Readable) {
 }
 
 const MAX_SIGNATURE_AGE_SECONDS = 300
-const FAILED_TRANSACTION_STATUSES = ['failed', 'returned', 'cancelled']
+const FAILED_TRANSACTION_STATUSES: TransactionStatus[] = ['failed', 'cancelled']
 
 // Header format is `t=<unix seconds>,v1=<hex hmac>`; the signed message is
 // `<timestamp>.<raw body>`.
@@ -50,7 +55,7 @@ function verifySignature(rawBody: Buffer, header: string | undefined, secret: st
 type MercuryEvent = {
   resourceType?: string
   resourceId?: string
-  mergePatch?: { status?: string; postedAt?: string | null }
+  mergePatch?: { status?: TransactionStatus; postedAt?: string | null }
 }
 
 // Enrichment only: mercury-sync decides whether a withdrawal is sent. This
@@ -100,6 +105,72 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
       throw e
     }
+
+    // A bank return is a *separate* credit transaction linked back to the
+    // original outgoing wire via relatedTransactions (relationKind
+    // ReturnToOriginalTransaction), not a status flip on the original wire.
+    // Detect it before matchRequest, whose counterparty+amount fallback can't
+    // distinguish a positive return credit from the original negative debit.
+    const returnOf = txn.relatedTransactions?.find(
+      (r) => r.relationKind === 'ReturnToOriginalTransaction'
+    )
+    if (returnOf && txn.amount > 0) {
+      let request: WithdrawalRequest | null = null
+
+      // The returned wire's id is stored as mercury_transaction_id when it
+      // posted — the most direct link back to the original withdrawal.
+      const { data: byTxnId } = await supabaseAdmin
+        .from('withdrawal_requests')
+        .select('*')
+        .eq('mercury_transaction_id', returnOf.id)
+        .maybeSingle()
+        .throwOnError()
+      request = (byTxnId as WithdrawalRequest) ?? null
+
+      // Fall back to the mfw:<id> note on the return credit.
+      if (!request) {
+        const matched = await matchRequest(supabaseAdmin, txn)
+        request = matched.request
+      }
+
+      // Last resort: counterparty+amount. matchRequest's counterparty fallback
+      // rejects credits (it's for outgoing debits only); retry directly since
+      // we already know this is a return of one of our wires.
+      if (!request && txn.counterpartyId) {
+        const { data } = await supabaseAdmin
+          .from('withdrawal_requests')
+          .select('*')
+          .eq('mercury_recipient_id', txn.counterpartyId)
+          .eq('amount', Math.abs(txn.amount))
+          .in('status', ['pending_approval', 'needs_manual', 'sent'])
+          .order('requested_at', { ascending: false })
+          .limit(2)
+          .throwOnError()
+        const rows = (data ?? []) as WithdrawalRequest[]
+        request = rows.length === 1 ? rows[0] : null
+      }
+
+      if (request) {
+        if (request.status !== 'failed' && request.status !== 'rejected') {
+          await reverseWithdrawalRequest(
+            supabaseAdmin,
+            request,
+            'failed',
+            'the bank returned the payment'
+          )
+          await sendDiscordAlert(
+            `🚨 Mercury payment returned: $${request.amount} for ${request.profile_id} (request ${request.id})`
+          )
+        }
+      } else {
+        await sendDiscordAlert(
+          `🚨 Mercury bank return (transaction ${txn.id}, original ${returnOf.id}) ` +
+            `could not be matched to a withdrawal request — reconcile by hand.`
+        )
+      }
+      return res.status(200).send('success')
+    }
+
     const { request, looksLikeOurs } = await matchRequest(supabaseAdmin, txn)
     if (!request) {
       // Silence for other people's transactions; alert only when it carried one
@@ -162,6 +233,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 // `looksLikeOurs` separates "this is somebody else's transaction, ignore it"
 // from "this carried a Manifund marker but didn't resolve" -- only the second
 // is worth waking anyone up for.
+//
+// Outgoing withdrawals are debits (amount < 0). The counterparty fallback
+// rejects credits (amount > 0) — bank returns are caught by the
+// relatedTransactions check in the handler before this fallback runs, so a
+// credit reaching here is not one of our outgoing wires.
 async function matchRequest(
   supabaseAdmin: any,
   txn: { id: string; note?: string | null; amount: number; counterpartyId?: string | null }
@@ -177,7 +253,7 @@ async function matchRequest(
     // The marker is ours whether or not the id resolves.
     return { request: (data as WithdrawalRequest) ?? null, looksLikeOurs: true }
   }
-  if (!txn.counterpartyId) return { request: null, looksLikeOurs: false }
+  if (!txn.counterpartyId || txn.amount > 0) return { request: null, looksLikeOurs: false }
 
   // No note, so this is only ours if it went to a recipient we onboarded.
   const { data: known } = await supabaseAdmin

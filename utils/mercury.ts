@@ -27,9 +27,52 @@ export type SendMoneyRequest = {
   recipientId: string
 }
 
+export type TransactionStatus = 'pending' | 'sent' | 'cancelled' | 'failed' | 'reversed' | 'blocked'
+
+export type TransactionKind =
+  | 'externalTransfer'
+  | 'internalTransfer'
+  | 'outgoingPayment'
+  | 'creditCardCredit'
+  | 'creditCardTransaction'
+  | 'debitCardCredit'
+  | 'debitCardTransaction'
+  | 'cardInternationalTransactionFee'
+  | 'cardInternationalTransactionFeeRebate'
+  | 'cardInternationalTransactionFeeReversal'
+  | 'cardInternationalTransactionFeeRebateReversal'
+  | 'incomingDomesticWire'
+  | 'checkDeposit'
+  | 'incomingInternationalWire'
+  | 'treasuryTransfer'
+  | 'currencyCloudReturn'
+  | 'wireFee'
+  | 'personalBankingSubscriptionFee'
+  | 'billingEngineSubscriptionFee'
+  | 'expenseReimbursement'
+  | 'exogenousWireDrawdown'
+  | 'interestPayment'
+  | 'other'
+
+export type TransactionRelationKind =
+  | 'PaymentRefundToFailedPayment'
+  | 'FailedPaymentToPaymentRefund'
+  | 'ReturnToOriginalTransaction'
+  | 'OriginalTransactionToReturn'
+  | 'ProvisionalCreditToReversal'
+  | 'ReversalToProvisionalCredit'
+
+export type RelatedTransaction = {
+  id: string
+  accountId: string
+  relationKind: TransactionRelationKind
+  amount: number
+}
+
 export type MercuryTransaction = {
   id: string
-  status: string
+  status: TransactionStatus
+  kind: TransactionKind
   amount: number
   createdAt?: string | null
   postedAt?: string | null
@@ -37,6 +80,9 @@ export type MercuryTransaction = {
   externalMemo?: string | null
   counterpartyId?: string | null
   counterpartyName?: string | null
+  relatedTransactions?: RelatedTransaction[]
+  failedAt?: string | null
+  reasonForFailure?: string | null
 }
 
 export class MercuryApiError extends Error {
