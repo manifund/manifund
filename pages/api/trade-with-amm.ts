@@ -107,14 +107,15 @@ export default async function handler(req: NextRequest) {
   } else {
     let amountRemaining = amount
     while (amountRemaining > 0) {
-      const { data: mostEligibleBid } = await supabase
+      const { data: mostEligibleBids } = await supabase
         .from('bids')
         .select('*, profiles(username)')
         .eq('project', projectId)
         .eq('status', 'pending')
         .eq('type', buying ? 'sell' : 'buy')
         .order('valuation', { ascending: buying })
-        .single()
+        .limit(1)
+      const mostEligibleBid = mostEligibleBids?.[0]
       const ammTxns = await getTxnsByUser(supabase, projectId)
       const [ammShares, ammUSD] = calculateAMMPorfolio(ammTxns, projectId)
       const valuationAfterTrade = calculateValuationAfterTrade(amount, ammShares, ammUSD, buying)
@@ -172,7 +173,11 @@ export default async function handler(req: NextRequest) {
         )
         amountRemaining -= buying ? usdInUserTrade : sharesInUserTrade
       } else {
-        await makeTrade(numShares, numDollars, projectId, projectId, user.id, buying, supabase)
+        const sh = buying ? calculateBuyShares(amountRemaining, ammShares, ammUSD) : amountRemaining
+        const usd = buying
+          ? amountRemaining
+          : calculateSellPayout(amountRemaining, ammShares, ammUSD)
+        await makeTrade(sh, usd, projectId, projectId, user.id, buying, supabase)
         amountRemaining = 0
       }
     }
