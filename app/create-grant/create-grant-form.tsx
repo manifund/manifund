@@ -124,7 +124,7 @@ export function CreateGrantForm(props: {
     errorMessage = 'Please enter the name of the recipient.'
   } else if (!recipientOnManifund && !recipientEmail) {
     errorMessage = 'Please enter the email address of the recipient.'
-  } else if (!isEmailValid(recipientEmail)) {
+  } else if (!recipientOnManifund && !isEmailValid(recipientEmail)) {
     errorMessage = 'Invalid recipient email address.'
   } else if (recipientOnManifund && recipient === null) {
     errorMessage = 'Please select the recipient.'
