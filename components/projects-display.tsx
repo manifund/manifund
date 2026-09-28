@@ -20,13 +20,8 @@ import { isSlopProject } from '@/utils/slop'
 
 type SortOption =
   | 'votes'
-  | 'goal'
   | 'funding'
-  | 'valuation'
-  | 'price'
-  | 'comments'
   | 'newest'
-  | 'oldest'
   | 'hot'
   | 'closing soon'
 
@@ -51,7 +46,7 @@ export function ProjectsDisplay(props: {
     ? projects.filter((project) => !isSlopProject(project))
     : projects
   const filteredProjects = filterProjects(visibleProjects, includedCauses)
-  const sortedProjects = sortProjects(noFilter ? visibleProjects : filteredProjects, prices, sortBy)
+  const sortedProjects = sortProjects(noFilter ? visibleProjects : filteredProjects, sortBy)
   const CLIENT_PAGE_SIZE = 20
   const [numToShow, setNumToShow] = useState<number>(CLIENT_PAGE_SIZE)
   const selectedProjects = sortedProjects
@@ -148,29 +143,15 @@ export function ProjectsDisplay(props: {
     </Col>
   )
 }
-function sortProjects(
-  projects: FullProject[],
-  prices: { [k: string]: number },
-  sortType: SortOption
-) {
+function sortProjects(projects: FullProject[], sortType: SortOption) {
   projects.forEach((project) => {
     project.bids = project.bids.filter((bid) => bid.status == 'pending')
   })
   if (sortType === 'votes') {
     return sortBy(projects, [countVotes]).reverse()
   }
-  if (sortType === 'oldest') {
-    return sortBy(projects, [(project) => new Date(project.created_at)])
-  }
   if (sortType === 'newest') {
     return sortBy(projects, [(project) => -new Date(project.created_at)])
-  }
-  if (sortType === 'comments') {
-    return sortBy(projects, [(project) => -project.comments.length])
-  }
-  if (sortType === 'price' || sortType === 'goal' || sortType === 'valuation') {
-    // TODO: Prices and goal seems kinda broken atm
-    return sortBy(projects, [(project) => -prices[project.id]])
   }
   if (sortType === 'funding') {
     return sortBy(projects, [(project) => -getAmountRaised(project, project.bids, project.txns)])
