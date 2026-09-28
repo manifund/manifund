@@ -1,41 +1,10 @@
 import { ScaleContinuousNumeric, ScaleTime } from 'd3-scale'
 import { Dispatch, SetStateAction } from 'react'
-import { last, meanBy } from 'es-toolkit'
-import { mapValues } from 'es-toolkit'
-
-const removeUndefinedProps = <T extends object>(obj: T): T => {
-  const newObj: any = {}
-
-  for (const key of Object.keys(obj)) {
-    if ((obj as any)[key] !== undefined) newObj[key] = (obj as any)[key]
-  }
-
-  return newObj
-}
 
 export type Point<X, Y, T = unknown> = { x: X; y: Y; obj?: T }
 export type HistoryPoint<T = unknown> = Point<number, number, T>
 export type DistributionPoint<T = unknown> = Point<number, number, T>
 export type ValueKind = 'Ṁ' | 'percent' | 'amount'
-
-/** [x, [y0, y1, ...]] */
-export type MultiSerializedPoints = { [answerId: string]: [number, number][] }
-/** [x, y, obj] */
-export type SerializedPoint<T = unknown> =
-  | Readonly<[number, number]>
-  | Readonly<[number, number, T | undefined]>
-
-export const unserializePoints = <T>(points: SerializedPoint<T>[]) => {
-  return points.map(([x, y, obj]) => removeUndefinedProps({ x, y, obj }))
-}
-
-export const unserializeMultiPoints = (data: MultiSerializedPoints) => {
-  return mapValues(data, (points) => points.map(([x, y]) => ({ x, y })))
-}
-
-export const serializeMultiPoints = (data: { [answerId: string]: HistoryPoint[] }) => {
-  return mapValues(data, (points) => points.map(({ x, y }) => [x, y] as [number, number]))
-}
 
 export type viewScale = {
   viewXScale: ScaleTime<number, number, never> | undefined
@@ -96,30 +65,4 @@ export const compressPoints = <P extends HistoryPoint>(points: P[], min: number,
   }
 
   return { points: maxMinBin(toCompress, 500), isCompressed: true }
-}
-
-export function binAvg<P extends HistoryPoint>(sorted: P[], limit = 100) {
-  const length = sorted.length
-  if (length <= limit) {
-    return sorted
-  }
-
-  const min = sorted[0].x
-  const max = last(sorted)?.x ?? 0
-  const binWidth = Math.ceil((max - min) / limit)
-
-  const newPoints = []
-  let lastAvgY = sorted[0].y
-
-  for (let i = 0; i < limit; i++) {
-    const binStart = min + i * binWidth
-    const binEnd = binStart + binWidth
-    const binPoints = sorted.filter((p) => p.x >= binStart && p.x < binEnd)
-    if (binPoints.length > 0) {
-      lastAvgY = meanBy(binPoints, (p) => p.y)
-    }
-    newPoints.push({ x: binEnd, y: lastAvgY })
-  }
-
-  return newPoints
 }
