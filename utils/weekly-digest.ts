@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { FullProject } from '@/db/project'
-import { sendEmail, sendBatchEmail } from './email'
+import { sendBatchEmail } from './email'
 import { pointScore, countVotes } from './sort'
 import { getAmountRaised } from './math'
 import { getUserEmail } from './email'
