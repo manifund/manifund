@@ -52,37 +52,3 @@ export function ProfileCard(props: {
     </Card>
   )
 }
-
-export function CardlessProfile(props: { profile: Profile }) {
-  const { profile } = props
-  return (
-    <Col className="h-full cursor-pointer items-center gap-3 rounded p-3 hover:bg-gray-100">
-      <Row className="justify-center">
-        <Avatar
-          avatarUrl={profile.avatar_url}
-          username={profile.username}
-          id={profile.id}
-          size={24}
-          className="hidden shadow-md sm:block"
-        />
-        <Avatar
-          avatarUrl={profile.avatar_url}
-          username={profile.username}
-          id={profile.id}
-          size={16}
-          className="shadow-md sm:hidden"
-        />
-      </Row>
-      <Link href={`/${profile.username}`} className="flex h-full flex-col justify-between gap-2">
-        <h1 className="text-center font-semibold text-gray-900 group-hover:underline">
-          {profile.full_name}
-        </h1>
-        <Col className="h-full justify-center">
-          <span className="line-clamp-3 text-center text-sm font-normal leading-6 text-gray-600">
-            {profile.bio}
-          </span>
-        </Col>
-      </Link>
-    </Col>
-  )
-}
