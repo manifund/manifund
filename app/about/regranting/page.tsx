@@ -140,17 +140,6 @@ export default async function RegrantingPage() {
           fulfilling withdrawal requests. We generally do not permit regrantors to pay for their own
           salaries.
         </p>
-        {/* <strong>How do I become a regrantor?</strong>
-        <p>
-          Apply{' '}
-          <a
-            className="font-bold hover:underline"
-            href="https://airtable.com/appOfJtzt8yUTBFcD/shrZW7S069EmghCSV"
-          >
-            here
-          </a>
-          !
-        </p> */}
         <strong>Can I contribute funds to the regrantor budgets?</strong>
         <p>
           Yes! We&apos;re looking for contributions to our AI Safety regrantor budgets. If
