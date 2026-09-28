@@ -221,7 +221,7 @@ export function DonorSurveyForm(props: {
                 <TextInput
                   value={form.full_name}
                   onChange={(v) => set('full_name', v)}
-                  placeholder="Ada Lovelace"
+                  placeholder="Ada When"
                   autoComplete="name"
                   name="name"
                 />
@@ -231,7 +231,7 @@ export function DonorSurveyForm(props: {
                 <TextInput
                   value={form.email}
                   onChange={(v) => set('email', v)}
-                  placeholder="ada@example.com"
+                  placeholder="ada@manifund.org"
                   type="email"
                   autoComplete="email"
                   name="email"
