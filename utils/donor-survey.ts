@@ -10,7 +10,6 @@ export const GIVING_BANDS = [
   { key: '2m_5m', label: '$2m–$5m', min: 2_000_000, max: 5_000_000 },
   { key: '5m_plus', label: '$5m+', min: 5_000_000, max: 5_000_000 },
 ] as const
-export type GivingBandKey = (typeof GIVING_BANDS)[number]['key']
 
 export const NOT_SURE_KEY = 'not_sure'
 export const GIVING_BANDS_2027 = [
@@ -23,7 +22,6 @@ export const CAPACITIES = [
   { key: 'regrantor', label: 'I’m a part-time regrantor or evaluator' },
   { key: 'grantmaker', label: 'I’m a fulltime grantmaker' },
 ] as const
-export type CapacityKey = (typeof CAPACITIES)[number]['key']
 
 export const HOURS_BANDS = [
   { key: 'lt_1', label: '<1' },
@@ -73,6 +71,36 @@ export const CAUSE_HUES = [45, 75, 110, 150, 190, 230, 265, 300, 340, 20, 130, 6
 export function causeColor(index: number) {
   return `oklch(68% 0.14 ${CAUSE_HUES[index % CAUSE_HUES.length]})`
 }
+
+// A blank response, as the form holds it: text fields as '', unanswered
+// choices as null. Its keys are the survey's fields.
+export const EMPTY_SURVEY = {
+  full_name: '',
+  email: '',
+  capacity: [] as string[],
+  org: '',
+  giving_2026: '',
+  giving_2027: '',
+  cause_allocation: DEFAULT_CAUSE_ALLOCATION,
+  advice_sources: '',
+  landscape_problems: '',
+  funds_vs_direct: null as number | null,
+  already_given: '',
+  already_given_link: '',
+  evaluation_approach: '',
+  charities_interested: '',
+  hours_per_month: '',
+  dream_setup: '',
+  wants_opportunities: null as boolean | null,
+  opportunity_frequency: '',
+  wants_call: false,
+  wants_events: false,
+  share_with_funders: false,
+  is_public: false,
+  other_thoughts: '',
+  referrals: '',
+}
+export type DonorSurveyInput = typeof EMPTY_SURVEY
 
 export function labelFor<T extends readonly { key: string; label: string }[]>(
   options: T,

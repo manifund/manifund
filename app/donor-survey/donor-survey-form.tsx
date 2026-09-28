@@ -10,14 +10,16 @@ import { Avatar } from '@/components/avatar'
 import {
   CAPACITIES,
   DEFAULT_CAUSE_ALLOCATION,
+  EMPTY_SURVEY,
   FREQUENCIES,
   FUNDS_LABELS,
   GIVING_BANDS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
   normalizeAllocation,
+  type DonorSurveyInput,
 } from '@/utils/donor-survey'
-import { saveDonorSurvey, type DonorSurveyInput, type SaveResult } from './actions'
+import { saveDonorSurvey, type SaveResult } from './actions'
 import { CauseSliders, type CauseValue } from './cause-allocation'
 import { CheckCard, Pills, Q, RangeInput, Section, TextArea, TextInput } from './fields'
 
@@ -58,30 +60,9 @@ export function DonorSurveyForm(props: {
   const [form, setForm] = useState<DonorSurveyInput>(
     () =>
       props.initial ?? {
+        ...EMPTY_SURVEY,
         full_name: user?.fullName ?? '',
         email: user?.email ?? '',
-        capacity: [],
-        org: '',
-        giving_2026: '',
-        giving_2027: '',
-        cause_allocation: DEFAULT_CAUSE_ALLOCATION,
-        advice_sources: '',
-        landscape_problems: '',
-        funds_vs_direct: null,
-        already_given: '',
-        already_given_link: '',
-        evaluation_approach: '',
-        charities_interested: '',
-        hours_per_month: '',
-        dream_setup: '',
-        wants_opportunities: null,
-        opportunity_frequency: '',
-        wants_call: false,
-        wants_events: false,
-        share_with_funders: false,
-        is_public: false,
-        other_thoughts: '',
-        referrals: '',
       }
   )
   const set = <K extends keyof DonorSurveyInput>(key: K, value: DonorSurveyInput[K]) => {

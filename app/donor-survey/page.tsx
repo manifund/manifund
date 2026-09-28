@@ -1,18 +1,11 @@
 import 'server-only'
 
-import { cookies } from 'next/headers'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getProfileById, getUser } from '@/db/profile'
-import {
-  DonorSurveyResponse,
-  getResponseByEmail,
-  getResponseByProfileId,
-  getResponseByToken,
-} from '@/db/donor-survey'
-import { EDIT_COOKIE, parseCauseAllocation } from '@/utils/donor-survey'
+import { DonorSurveyResponse, getMyResponse } from '@/db/donor-survey'
+import { DonorSurveyInput, EMPTY_SURVEY, parseCauseAllocation } from '@/utils/donor-survey'
 import { DonorSurveyForm, SignedInUser } from './donor-survey-form'
 import { SurveyShell } from './survey-header'
-import type { DonorSurveyInput } from './actions'
 
 export const metadata = {
   title: 'Donor survey',
@@ -25,27 +18,19 @@ export default async function DonorSurveyPage(props: {
   const supabase = await createServerSupabaseClient()
   const user = await getUser(supabase)
 
-  let signedIn: SignedInUser | null = null
-  let existing: DonorSurveyResponse | null = null
-  let token: string | null = null
-
-  if (user) {
-    const profile = await getProfileById(supabase, user.id)
-    signedIn = {
-      fullName: profile?.full_name || user.email || '',
-      email: user.email ?? '',
-      username: profile?.username ?? '',
-      avatarUrl: profile?.avatar_url ?? null,
-    }
-    existing =
-      (await getResponseByProfileId(user.id)) ??
-      (user.email ? await getResponseByEmail(user.email) : null)
-  } else {
-    const cookieStore = await cookies()
-    token = tokenFromUrl || cookieStore.get(EDIT_COOKIE)?.value || null
-    existing = await getResponseByToken(token)
-    if (!existing) token = tokenFromUrl ?? null
-  }
+  const profile = user ? await getProfileById(supabase, user.id) : null
+  const signedIn: SignedInUser | null = user
+    ? {
+        fullName: profile?.full_name || user.email || '',
+        email: user.email ?? '',
+        username: profile?.username ?? '',
+        avatarUrl: profile?.avatar_url ?? null,
+      }
+    : null
+  const existing = await getMyResponse(user, tokenFromUrl)
+  // Saving falls back to the cookie on its own, so only a token from the
+  // emailed link needs passing through.
+  const token = user ? null : (tokenFromUrl ?? null)
 
   return (
     <SurveyShell>
@@ -95,30 +80,12 @@ function Preface() {
 }
 
 function toInput(r: DonorSurveyResponse): DonorSurveyInput {
+  const input: Record<string, unknown> = { ...EMPTY_SURVEY }
+  for (const key of Object.keys(EMPTY_SURVEY) as (keyof DonorSurveyInput)[]) {
+    if (r[key] !== null) input[key] = r[key]
+  }
   return {
-    full_name: r.full_name,
-    email: r.email,
-    capacity: r.capacity ?? [],
-    org: r.org ?? '',
-    giving_2026: r.giving_2026 ?? '',
-    giving_2027: r.giving_2027 ?? '',
+    ...(input as DonorSurveyInput),
     cause_allocation: parseCauseAllocation(r.cause_allocation),
-    advice_sources: r.advice_sources ?? '',
-    landscape_problems: r.landscape_problems ?? '',
-    funds_vs_direct: r.funds_vs_direct,
-    already_given: r.already_given ?? '',
-    already_given_link: r.already_given_link ?? '',
-    evaluation_approach: r.evaluation_approach ?? '',
-    charities_interested: r.charities_interested ?? '',
-    hours_per_month: r.hours_per_month ?? '',
-    dream_setup: r.dream_setup ?? '',
-    wants_opportunities: r.wants_opportunities,
-    opportunity_frequency: r.opportunity_frequency ?? '',
-    wants_call: r.wants_call,
-    wants_events: r.wants_events,
-    share_with_funders: r.share_with_funders,
-    is_public: r.is_public,
-    other_thoughts: r.other_thoughts ?? '',
-    referrals: r.referrals ?? '',
   }
 }

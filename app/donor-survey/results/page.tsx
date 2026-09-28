@@ -1,19 +1,11 @@
 import 'server-only'
 
 import Link from 'next/link'
-import { cookies } from 'next/headers'
 import clsx from 'clsx'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getUser, isAdmin } from '@/db/profile'
-import {
-  DonorSurveyResponse,
-  getAllResponses,
-  getResponseByEmail,
-  getResponseByProfileId,
-  getResponseByToken,
-  ResponseWithProfile,
-} from '@/db/donor-survey'
-import { CAPACITIES, EDIT_COOKIE, GIVING_BANDS_2027, labelFor } from '@/utils/donor-survey'
+import { getAllResponses, getMyResponse, ResponseWithProfile } from '@/db/donor-survey'
+import { CAPACITIES, GIVING_BANDS_2027, labelFor } from '@/utils/donor-survey'
 import { Avatar } from '@/components/avatar'
 import { CauseLegend, ProportionBar } from '../cause-allocation'
 import { SurveyShell } from '../survey-header'
@@ -35,15 +27,7 @@ export default async function ResultsPage() {
   const user = await getUser(supabase)
   const admin = isAdmin(user)
 
-  let mine: DonorSurveyResponse | null = null
-  if (user) {
-    mine =
-      (await getResponseByProfileId(user.id)) ??
-      (user.email ? await getResponseByEmail(user.email) : null)
-  } else {
-    const cookieStore = await cookies()
-    mine = await getResponseByToken(cookieStore.get(EDIT_COOKIE)?.value)
-  }
+  const mine = await getMyResponse(user)
 
   if (!RESULTS_ARE_PUBLIC && !admin && !mine) {
     return (

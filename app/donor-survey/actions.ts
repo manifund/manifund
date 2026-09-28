@@ -23,42 +23,15 @@ import {
   HOURS_BANDS,
   parseCauseAllocation,
   EDIT_COOKIE,
-  type CauseAllocation,
+  type DonorSurveyInput,
 } from '@/utils/donor-survey'
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 
-export type DonorSurveyInput = {
-  full_name: string
-  email: string
-  capacity: string[]
-  org: string
-  giving_2026: string
-  giving_2027: string
-  cause_allocation: CauseAllocation
-  advice_sources: string
-  landscape_problems: string
-  funds_vs_direct: number | null
-  already_given: string
-  already_given_link: string
-  evaluation_approach: string
-  charities_interested: string
-  hours_per_month: string
-  dream_setup: string
-  wants_opportunities: boolean | null
-  opportunity_frequency: string
-  wants_call: boolean
-  wants_events: boolean
-  share_with_funders: boolean
-  is_public: boolean
-  other_thoughts: string
-  referrals: string
-}
-
 export type SaveResult =
   | { type: 'saved' }
   | { type: 'existing'; email: string }
-  | { type: 'error'; text: string; field?: keyof DonorSurveyInput }
+  | { type: 'error'; text: string }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MAX_TEXT = 10_000
@@ -76,26 +49,25 @@ function keyIn(options: readonly { key: string }[], value: unknown) {
 function validate(raw: DonorSurveyInput): { ok: true; row: DonorSurveyInsert } | SaveResult {
   const full_name = text(raw.full_name).slice(0, 200)
   const email = text(raw.email).toLowerCase().slice(0, 320)
-  if (!full_name) return { type: 'error', text: 'Enter your name.', field: 'full_name' }
-  if (!EMAIL_RE.test(email)) return { type: 'error', text: 'Enter a valid email.', field: 'email' }
+  if (!full_name) return { type: 'error', text: 'Enter your name.' }
+  if (!EMAIL_RE.test(email)) return { type: 'error', text: 'Enter a valid email.' }
 
   const capacity = Array.isArray(raw.capacity)
     ? raw.capacity.filter((c): c is string => CAPACITIES.some((o) => o.key === c))
     : []
-  if (capacity.length === 0)
-    return { type: 'error', text: 'Pick at least one option.', field: 'capacity' }
+  if (capacity.length === 0) return { type: 'error', text: 'Pick at least one option.' }
 
   const giving_2026 = keyIn(GIVING_BANDS, raw.giving_2026)
-  if (!giving_2026) return { type: 'error', text: 'Pick a range.', field: 'giving_2026' }
+  if (!giving_2026) return { type: 'error', text: 'Pick a range.' }
   const giving_2027 = keyIn(GIVING_BANDS_2027, raw.giving_2027)
-  if (!giving_2027) return { type: 'error', text: 'Pick a range.', field: 'giving_2027' }
+  if (!giving_2027) return { type: 'error', text: 'Pick a range.' }
 
   const cause_allocation = parseCauseAllocation(raw.cause_allocation).filter(
     (c) => c.name.trim() !== ''
   )
   const total = cause_allocation.reduce((a, c) => a + c.pct, 0)
   if (cause_allocation.length === 0 || total !== 100)
-    return { type: 'error', text: 'Proportions need to add up to 100%.', field: 'cause_allocation' }
+    return { type: 'error', text: 'Proportions need to add up to 100%.' }
 
   const funds_vs_direct =
     typeof raw.funds_vs_direct === 'number' &&
@@ -211,7 +183,7 @@ export async function saveDonorSurvey(
   if (byToken && token) {
     const clash = await getResponseByEmail(row.email)
     if (clash && clash.id !== byToken.id) {
-      return { type: 'error', text: 'Another response already uses this email.', field: 'email' }
+      return { type: 'error', text: 'Another response already uses this email.' }
     }
     await admin.from('donor_survey_responses').update(row).eq('id', byToken.id).throwOnError()
     await setEditCookie(token)

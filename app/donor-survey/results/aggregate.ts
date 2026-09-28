@@ -2,7 +2,6 @@ import {
   CAPACITIES,
   DEFAULT_CAUSE_ALLOCATION,
   FREQUENCIES,
-  FUNDS_VS_DIRECT_STOPS,
   GIVING_BANDS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
@@ -47,19 +46,6 @@ export function aggregate(rows: Row[]) {
   const giving2026 = countBy(rows, GIVING_BANDS, (r) => r.giving_2026)
   const giving2027 = countBy(rows, GIVING_BANDS_2027, (r) => r.giving_2027)
 
-  // Combined 2026 giving, from band bounds. The top band has no ceiling, so
-  // the upper figure is open-ended whenever anyone picked it.
-  let low = 0
-  let high = 0
-  let openEnded = false
-  for (const r of rows) {
-    const band = GIVING_BANDS.find((b) => b.key === r.giving_2026)
-    if (!band) continue
-    low += band.min
-    high += band.max
-    if (band.key === '5m_plus') openEnded = true
-  }
-
   // Mean share per cause across everyone who answered. A cause someone did not
   // list counts as 0% for them, so the means still sum to 100.
   const causeTotals = new Map<string, number>()
@@ -79,26 +65,19 @@ export function aggregate(rows: Row[]) {
   let customCount = 0
   const causes = [...causeTotals.entries()]
     .map(([name, total]) => {
-      const custom = !defaultIndex.has(name)
-      const colorIndex = custom
-        ? DEFAULT_CAUSE_ALLOCATION.length + customCount++
-        : defaultIndex.get(name)!
+      const colorIndex = defaultIndex.has(name)
+        ? defaultIndex.get(name)!
+        : DEFAULT_CAUSE_ALLOCATION.length + customCount++
       return {
         name,
         mean: causeRespondents ? total / causeRespondents : 0,
         pct: causeRespondents ? Math.round(total / causeRespondents) : 0,
         color: causeColor(colorIndex),
-        custom,
       }
     })
     .sort((a, b) => b.mean - a.mean)
 
   const fundsRows = rows.filter((r) => r.funds_vs_direct !== null)
-  const fundsVsDirect: Bar[] = FUNDS_VS_DIRECT_STOPS.map((stop) => ({
-    key: String(stop),
-    label: `${stop}%`,
-    count: fundsRows.filter((r) => r.funds_vs_direct === stop).length,
-  }))
   const fundsMean = fundsRows.length
     ? fundsRows.reduce((a, r) => a + (r.funds_vs_direct ?? 0), 0) / fundsRows.length
     : null
@@ -127,11 +106,7 @@ export function aggregate(rows: Row[]) {
     n,
     giving2026,
     giving2027,
-    combined2026: { low, high, openEnded },
     causes,
-    causeRespondents,
-    fundsVsDirect,
-    fundsAnswered: fundsRows.length,
     fundsMean,
     hours,
     hoursAnswered,
@@ -143,15 +118,4 @@ export function aggregate(rows: Row[]) {
     shareWithFunders,
     isPublic,
   }
-}
-
-export type Aggregate = ReturnType<typeof aggregate>
-
-export function formatCompactDollars(n: number) {
-  if (n >= 1_000_000) {
-    const m = n / 1_000_000
-    return `$${m >= 10 ? Math.round(m) : Math.round(m * 10) / 10}m`
-  }
-  if (n >= 1_000) return `$${Math.round(n / 1_000)}k`
-  return `$${n}`
 }
