@@ -4,45 +4,12 @@
 
 'use client'
 import clsx from 'clsx'
-import { ReactNode, useEffect } from 'react'
+import { useEffect } from 'react'
 import { range } from 'es-toolkit'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Row } from './layout/row'
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/solid'
 export const PAGE_ELLIPSES = '...'
-
-export function PaginationNextPrev(props: {
-  className?: string
-  prev?: ReactNode
-  next?: ReactNode
-  onClickPrev: () => void
-  onClickNext: () => void
-  scrollToTop?: boolean
-}) {
-  const { className, prev, next, onClickPrev, onClickNext, scrollToTop } = props
-  return (
-    <Row className={clsx(className, 'flex-1 justify-between sm:justify-end')}>
-      {prev != null && (
-        <a
-          href={scrollToTop ? '#' : undefined}
-          className="hover:bg-canvas-50 bg-canvas-0 relative inline-flex cursor-pointer select-none items-center rounded-md border border-ink-300 px-4 py-2 text-sm font-medium text-ink-700"
-          onClick={onClickPrev}
-        >
-          {prev ?? 'Previous'}
-        </a>
-      )}
-      {next != null && (
-        <a
-          href={scrollToTop ? '#' : undefined}
-          className="hover:bg-canvas-50 bg-canvas-0 relative ml-3 inline-flex cursor-pointer select-none items-center rounded-md border border-ink-300 px-4 py-2 text-sm font-medium text-ink-700"
-          onClick={onClickNext}
-        >
-          {next ?? 'Next'}
-        </a>
-      )}
-    </Row>
-  )
-}
 
 export function Pagination(props: {
   page: number
