@@ -64,50 +64,6 @@ export function toSentenceCase(string: string) {
   return string.charAt(0).toUpperCase() + string.slice(1)
 }
 
-export function formatDate(date: string) {
-  const sections = date.split('-')
-  let month = ''
-  switch (sections[1]) {
-    case '01':
-      month = 'January'
-      break
-    case '02':
-      month = 'February'
-      break
-    case '03':
-      month = 'March'
-      break
-    case '04':
-      month = 'April'
-      break
-    case '05':
-      month = 'May'
-      break
-    case '06':
-      month = 'June'
-      break
-    case '07':
-      month = 'July'
-      break
-    case '08':
-      month = 'August'
-      break
-    case '09':
-      month = 'September'
-      break
-    case '10':
-      month = 'October'
-      break
-    case '11':
-      month = 'November'
-      break
-    case '12':
-      month = 'December'
-      break
-  }
-  return `${month} ${sections[2]}, ${sections[0]}`
-}
-
 export function addHttpToUrl(url: string) {
   const formattedUrl = url?.startsWith('http') ? url : `https://${url}`
   return formattedUrl
