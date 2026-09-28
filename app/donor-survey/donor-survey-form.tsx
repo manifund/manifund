@@ -9,18 +9,17 @@ import { useSupabase } from '@/db/supabase-provider'
 import { Avatar } from '@/components/avatar'
 import {
   CAPACITIES,
-  DEFAULT_CAUSE_ALLOCATION,
   EMPTY_SURVEY,
   FREQUENCIES,
-  FUNDS_LABELS,
+  FUNDS_STEP,
   GIVING_BANDS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
-  normalizeAllocation,
+  fundsLabel,
   type DonorSurveyInput,
 } from '@/utils/donor-survey'
 import { saveDonorSurvey, type SaveResult } from './actions'
-import { CauseSliders, type CauseValue } from './cause-allocation'
+import { CauseRatingsInput } from './cause-ratings'
 import { CheckCard, Pills, Q, RangeInput, Section, TextArea, TextInput } from './fields'
 
 export type SignedInUser = {
@@ -50,12 +49,6 @@ export function DonorSurveyForm(props: {
   const [showErrors, setShowErrors] = useState(false)
   const isEditing = props.initial !== null
   const [optionalOpen, setOptionalOpen] = useState(isEditing)
-  const [causes, setCauses] = useState<CauseValue[]>(() =>
-    (props.initial?.cause_allocation.length
-      ? props.initial.cause_allocation
-      : DEFAULT_CAUSE_ALLOCATION
-    ).map((c) => ({ name: c.name, value: c.pct }))
-  )
   const [fundsTouched, setFundsTouched] = useState(props.initial?.funds_vs_direct != null)
   const [form, setForm] = useState<DonorSurveyInput>(
     () =>
@@ -80,10 +73,11 @@ export function DonorSurveyForm(props: {
       done: count(
         !!form.giving_2026,
         !!form.giving_2027,
+        form.cause_ratings.length > 0,
         filled(form.advice_sources),
         filled(form.landscape_problems)
       ),
-      of: 4,
+      of: 5,
     },
     {
       id: 'deeper',
@@ -133,7 +127,6 @@ export function DonorSurveyForm(props: {
       const res = await saveDonorSurvey(
         {
           ...form,
-          cause_allocation: normalizeAllocation(causes),
           funds_vs_direct: fundsTouched ? fundsPct : null,
         },
         token
@@ -158,7 +151,7 @@ export function DonorSurveyForm(props: {
 
   return (
     <form
-      className="flex flex-col gap-20"
+      className="flex flex-col gap-14 sm:gap-20"
       onSubmit={(e) => {
         e.preventDefault()
         submit()
@@ -169,7 +162,7 @@ export function DonorSurveyForm(props: {
       <Section id="about" title="About you">
         {user ? (
           <div className="flex items-center justify-between gap-3 rounded-[10px] border border-orange-200 bg-orange-50 px-3.5 py-3">
-            <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 items-center gap-2.5">
               {user.avatarUrl ? (
                 <Avatar username={user.username} avatarUrl={user.avatarUrl} id="" size={7} noLink />
               ) : (
@@ -177,16 +170,16 @@ export function DonorSurveyForm(props: {
                   {(user.fullName || user.email).slice(0, 1).toUpperCase()}
                 </div>
               )}
-              <div className="flex flex-col">
-                <span className="text-sm font-normal text-gray-900">
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-sm font-normal text-gray-900">
                   Signed in as {user.fullName}
                 </span>
-                <span className="text-xs text-gray-500">{user.email}</span>
+                <span className="truncate text-xs text-gray-500">{user.email}</span>
               </div>
             </div>
             <button
               type="button"
-              className="px-2 py-1.5 text-[13px] font-normal text-orange-600 hover:text-orange-700"
+              className="flex-none px-2 py-1.5 text-[13px] font-normal text-orange-600 hover:text-orange-700"
               onClick={async () => {
                 await supabase.auth.signOut()
                 router.refresh()
@@ -290,10 +283,10 @@ export function DonorSurveyForm(props: {
           />
         </Q>
         <Q
-          label="Which cause areas are you interested in, and in what proportion?"
-          className="gap-4"
+          label="How interested are you in each cause area?"
+          hint="1 star = not interested, 5 stars = very interested."
         >
-          <CauseSliders value={causes} onChange={setCauses} />
+          <CauseRatingsInput value={form.cause_ratings} onChange={(v) => set('cause_ratings', v)} />
         </Q>
         <Q
           label="Where do you currently go for advice about effective giving?"
@@ -324,7 +317,7 @@ export function DonorSurveyForm(props: {
           <button
             type="button"
             onClick={() => setOptionalOpen(true)}
-            className="flex w-full items-center justify-between gap-3 rounded-[12px] border border-dashed border-gray-300 bg-[#fafafa] px-[18px] py-4 text-left transition-colors hover:border-orange-300 hover:bg-orange-50"
+            className="flex w-full flex-col items-start gap-2 rounded-[12px] sm:flex-row sm:items-center sm:justify-between sm:gap-3 border border-dashed border-gray-300 bg-[#fafafa] px-[18px] py-4 text-left transition-colors hover:border-orange-300 hover:bg-orange-50"
           >
             <span className="flex flex-col gap-0.5">
               <span className="text-[15px] font-normal text-gray-900">
@@ -347,23 +340,25 @@ export function DonorSurveyForm(props: {
               <div className="flex flex-col gap-2">
                 <RangeInput
                   value={fundsPct}
-                  step={25}
+                  step={FUNDS_STEP}
                   ariaLabel="Funds vs. picking charities yourself"
                   onChange={(v) => {
                     setFundsTouched(true)
                     set('funds_vs_direct', v)
                   }}
                 />
-                <div className="flex justify-between text-xs text-gray-400">
-                  <span>All funds</span>
-                  <span>25%</span>
-                  <span>50/50</span>
-                  <span>75%</span>
-                  <span>All my own picks</span>
-                </div>
+                <RangeTicks
+                  ticks={[
+                    [0, 'All funds'],
+                    [25, '25%', 'desktop'],
+                    [50, '50/50'],
+                    [75, '75%', 'desktop'],
+                    [100, 'All my own picks'],
+                  ]}
+                />
               </div>
               <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-normal text-orange-700">
-                {FUNDS_LABELS[fundsPct]}
+                {fundsLabel(fundsPct)}
               </span>
             </Q>
             <Q label="Where have you already given, and roughly how much?" className="gap-2.5">
@@ -545,6 +540,36 @@ export function DonorSurveyForm(props: {
         </span>
       </section>
     </form>
+  )
+}
+
+// Labels under a range input, each centered on where the thumb sits at that
+// value. The thumb is 18px wide (see .range-orange), so its center travels
+// from 9px to 100% - 9px. The end labels hug the edges instead of centering,
+// and ticks marked 'desktop' hide on narrow screens where they'd collide.
+function RangeTicks(props: { ticks: [number, string, 'desktop'?][] }) {
+  return (
+    <div className="relative h-4 text-xs text-gray-400">
+      {props.ticks.map(([value, label, only], i) => {
+        const first = i === 0
+        const last = i === props.ticks.length - 1
+        return (
+          <span
+            key={value}
+            className={clsx(
+              'absolute top-0 whitespace-nowrap',
+              first ? 'left-0' : last ? 'right-0' : '-translate-x-1/2',
+              only === 'desktop' && 'hidden sm:block'
+            )}
+            style={
+              first || last ? undefined : { left: `calc(9px + (100% - 18px) * ${value / 100})` }
+            }
+          >
+            {label}
+          </span>
+        )
+      })}
+    </div>
   )
 }
 

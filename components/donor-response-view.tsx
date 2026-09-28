@@ -3,15 +3,14 @@ import clsx from 'clsx'
 import {
   CAPACITIES,
   FREQUENCIES,
-  FUNDS_LABELS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
-  causeColor,
+  fundsLabel,
   labelFor,
-  parseCauseAllocation,
+  parseCauseRatings,
 } from '@/utils/donor-survey'
 import type { PublicDonorSurveyResponse, DonorSurveyResponse } from '@/db/donor-survey'
-import { CauseLegend, ProportionBar } from '@/app/donor-survey/cause-allocation'
+import { Stars } from '@/app/donor-survey/cause-ratings'
 
 // Read-only rendering of one donor's answers, in the same order and style as
 // the form. `full` adds the fields only the owner and admins may see.
@@ -21,8 +20,7 @@ type AnyResponse = PublicDonorSurveyResponse | DonorSurveyResponse
 export function DonorResponseView(props: { response: AnyResponse; full?: boolean }) {
   const { response: r, full } = props
   const priv = full ? (r as DonorSurveyResponse) : null
-  const allocation = parseCauseAllocation(r.cause_allocation)
-  const segments = allocation.map((c, i) => ({ ...c, color: causeColor(i) }))
+  const causes = parseCauseRatings(r.cause_ratings).sort((a, b) => b.rating - a.rating)
   const capacity = (r.capacity ?? []).map((c) => labelFor(CAPACITIES, c)).filter(Boolean)
   const link = 'already_given_link' in r ? r.already_given_link : null
 
@@ -43,12 +41,18 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
             <Big>{labelFor(GIVING_BANDS_2027, r.giving_2027)}</Big>
           </Answer>
         </div>
-        <Answer label="Cause areas, by proportion">
-          {allocation.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              <ProportionBar segments={segments} />
-              <CauseLegend segments={segments.filter((s) => s.pct > 0)} />
-            </div>
+        <Answer label="Interest in each cause area">
+          {causes.length > 0 ? (
+            <ul className="flex flex-col gap-2">
+              {causes.map((c) => (
+                <li key={c.name} className="flex items-center justify-between gap-3">
+                  <span className="min-w-0 text-[15px] text-gray-900 [overflow-wrap:anywhere]">
+                    {c.name}
+                  </span>
+                  <Stars rating={c.rating} />
+                </li>
+              ))}
+            </ul>
           ) : null}
         </Answer>
         <Answer label="Where they go for advice about effective giving">{r.advice_sources}</Answer>
@@ -61,7 +65,7 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
         <Answer label="Funds vs. picking charities themself">
           {r.funds_vs_direct !== null ? (
             <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-normal text-orange-700">
-              {FUNDS_LABELS[r.funds_vs_direct] ?? `${r.funds_vs_direct}%`}
+              {fundsLabel(r.funds_vs_direct)}
             </span>
           ) : null}
         </Answer>

@@ -7,10 +7,9 @@ import { getUser, isAdmin } from '@/db/profile'
 import { getAllResponses, getMyResponse, ResponseWithProfile } from '@/db/donor-survey'
 import { CAPACITIES, GIVING_BANDS_2027, labelFor } from '@/utils/donor-survey'
 import { Avatar } from '@/components/avatar'
-import { CauseLegend, ProportionBar } from '../cause-allocation'
 import { SurveyShell } from '../survey-header'
 import { aggregate } from './aggregate'
-import { BarList, Figure, FundsScale } from './charts'
+import { BarList, CauseRatingList, Figure, FundsScale } from './charts'
 
 export const dynamic = 'force-dynamic'
 
@@ -93,13 +92,8 @@ export default async function ResultsPage() {
           <BarList bars={agg.giving2026} total={agg.n} highlight={mine?.giving_2026 ?? null} />
         </Figure>
 
-        <Figure title="Average cause-area allocation">
-          <ProportionBar
-            segments={agg.causes.map((c) => ({ name: c.name, pct: c.pct, color: c.color }))}
-          />
-          <CauseLegend
-            segments={agg.causes.map((c) => ({ name: c.name, pct: c.pct, color: c.color }))}
-          />
+        <Figure title="Interest in each cause area" note="Average rating, out of 5 stars.">
+          <CauseRatingList causes={agg.causes} />
         </Figure>
 
         <Figure
@@ -148,7 +142,7 @@ export default async function ResultsPage() {
         </Figure>
 
         <Figure title="In what capacity people are giving" note="People could pick more than one.">
-          <BarList bars={agg.capacity} total={agg.n} labelWidth="215px" />
+          <BarList bars={agg.capacity} total={agg.n} labelWidth="215px" stack />
         </Figure>
 
         <Figure title="Staying in touch">
@@ -260,7 +254,7 @@ function DonorRow(props: { response: ResponseWithProfile; href: string; admin?: 
           {labelFor(GIVING_BANDS_2027, r.giving_2026)}
         </span>
         {admin && (
-          <span className="flex shrink-0 gap-1.5 text-xs">
+          <span className="hidden shrink-0 gap-1.5 text-xs sm:flex">
             {r.is_public && <Tag>public</Tag>}
             {r.share_with_funders && <Tag>funders</Tag>}
             {!r.profile_id && <Tag muted>no account</Tag>}

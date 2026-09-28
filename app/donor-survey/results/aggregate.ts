@@ -1,23 +1,21 @@
 import {
   CAPACITIES,
-  DEFAULT_CAUSE_ALLOCATION,
   FREQUENCIES,
   GIVING_BANDS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
-  causeColor,
-  parseCauseAllocation,
+  parseCauseRatings,
 } from '@/utils/donor-survey'
 import type { DonorSurveyResponse } from '@/db/donor-survey'
 
-export type Bar = { key: string; label: string; count: number; color?: string }
+export type Bar = { key: string; label: string; count: number }
 
 type Row = Pick<
   DonorSurveyResponse,
   | 'capacity'
   | 'giving_2026'
   | 'giving_2027'
-  | 'cause_allocation'
+  | 'cause_ratings'
   | 'funds_vs_direct'
   | 'hours_per_month'
   | 'wants_opportunities'
@@ -46,36 +44,20 @@ export function aggregate(rows: Row[]) {
   const giving2026 = countBy(rows, GIVING_BANDS, (r) => r.giving_2026)
   const giving2027 = countBy(rows, GIVING_BANDS_2027, (r) => r.giving_2027)
 
-  // Mean share per cause across everyone who answered. A cause someone did not
-  // list counts as 0% for them, so the means still sum to 100.
-  const causeTotals = new Map<string, number>()
-  let causeRespondents = 0
+  // Average rating per cause among the people who rated it, best first.
+  const ratings = new Map<string, number[]>()
   for (const r of rows) {
-    const alloc = parseCauseAllocation(r.cause_allocation)
-    if (alloc.length === 0) continue
-    causeRespondents++
-    for (const c of alloc) {
-      const name = c.name.trim()
-      causeTotals.set(name, (causeTotals.get(name) ?? 0) + c.pct)
+    for (const c of parseCauseRatings(r.cause_ratings)) {
+      ratings.set(c.name, [...(ratings.get(c.name) ?? []), c.rating])
     }
   }
-  // Default causes keep their form colors; causes people added cycle through
-  // the remaining hues in the order they first appear.
-  const defaultIndex = new Map(DEFAULT_CAUSE_ALLOCATION.map((c, i) => [c.name, i]))
-  let customCount = 0
-  const causes = [...causeTotals.entries()]
-    .map(([name, total]) => {
-      const colorIndex = defaultIndex.has(name)
-        ? defaultIndex.get(name)!
-        : DEFAULT_CAUSE_ALLOCATION.length + customCount++
-      return {
-        name,
-        mean: causeRespondents ? total / causeRespondents : 0,
-        pct: causeRespondents ? Math.round(total / causeRespondents) : 0,
-        color: causeColor(colorIndex),
-      }
-    })
-    .sort((a, b) => b.mean - a.mean)
+  const causes = [...ratings.entries()]
+    .map(([name, rs]) => ({
+      name,
+      mean: rs.reduce((a, b) => a + b, 0) / rs.length,
+      count: rs.length,
+    }))
+    .sort((a, b) => b.mean - a.mean || b.count - a.count)
 
   const fundsRows = rows.filter((r) => r.funds_vs_direct !== null)
   const fundsMean = fundsRows.length

@@ -22,7 +22,7 @@ export type PublicDonorSurveyResponse = Pick<
   | 'org'
   | 'giving_2026'
   | 'giving_2027'
-  | 'cause_allocation'
+  | 'cause_ratings'
   | 'advice_sources'
   | 'landscape_problems'
   | 'funds_vs_direct'

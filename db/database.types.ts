@@ -207,7 +207,7 @@ export type Database = {
           already_given: string | null
           already_given_link: string | null
           capacity: string[]
-          cause_allocation: Json
+          cause_ratings: Json
           charities_interested: string | null
           created_at: string
           dream_setup: string | null
@@ -238,7 +238,7 @@ export type Database = {
           already_given?: string | null
           already_given_link?: string | null
           capacity?: string[]
-          cause_allocation?: Json
+          cause_ratings?: Json
           charities_interested?: string | null
           created_at?: string
           dream_setup?: string | null
@@ -269,7 +269,7 @@ export type Database = {
           already_given?: string | null
           already_given_link?: string | null
           capacity?: string[]
-          cause_allocation?: Json
+          cause_ratings?: Json
           charities_interested?: string | null
           created_at?: string
           dream_setup?: string | null

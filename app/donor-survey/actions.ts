@@ -17,11 +17,11 @@ import { getURL } from '@/utils/constants'
 import {
   CAPACITIES,
   FREQUENCIES,
-  FUNDS_VS_DIRECT_STOPS,
+  FUNDS_STEP,
   GIVING_BANDS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
-  parseCauseAllocation,
+  parseCauseRatings,
   EDIT_COOKIE,
   type DonorSurveyInput,
 } from '@/utils/donor-survey'
@@ -62,17 +62,12 @@ function validate(raw: DonorSurveyInput): { ok: true; row: DonorSurveyInsert } |
   const giving_2027 = keyIn(GIVING_BANDS_2027, raw.giving_2027)
   if (!giving_2027) return { type: 'error', text: 'Pick a range.' }
 
-  const cause_allocation = parseCauseAllocation(raw.cause_allocation).filter(
-    (c) => c.name.trim() !== ''
-  )
-  const total = cause_allocation.reduce((a, c) => a + c.pct, 0)
-  if (cause_allocation.length === 0 || total !== 100)
-    return { type: 'error', text: 'Proportions need to add up to 100%.' }
+  const cause_ratings = parseCauseRatings(raw.cause_ratings).slice(0, 50)
 
+  const funds = raw.funds_vs_direct
   const funds_vs_direct =
-    typeof raw.funds_vs_direct === 'number' &&
-    (FUNDS_VS_DIRECT_STOPS as readonly number[]).includes(raw.funds_vs_direct)
-      ? raw.funds_vs_direct
+    Number.isInteger(funds) && funds! >= 0 && funds! <= 100 && funds! % FUNDS_STEP === 0
+      ? funds
       : null
 
   const wants_opportunities =
@@ -90,7 +85,7 @@ function validate(raw: DonorSurveyInput): { ok: true; row: DonorSurveyInsert } |
       org: capacity.some((c) => c !== 'own_money') ? orNull(text(raw.org).slice(0, 300)) : null,
       giving_2026,
       giving_2027,
-      cause_allocation,
+      cause_ratings,
       advice_sources: orNull(text(raw.advice_sources)),
       landscape_problems: orNull(text(raw.landscape_problems)),
       funds_vs_direct,

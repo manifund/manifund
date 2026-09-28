@@ -38,8 +38,8 @@ export const FREQUENCIES = [
 ] as const
 
 // funds_vs_direct: 0 means everything through funds, 100 means the donor
-// picks every charity themself.
-export const FUNDS_VS_DIRECT_STOPS = [0, 25, 50, 75, 100] as const
+// picks every charity themself. The slider moves in 5% steps.
+export const FUNDS_STEP = 5
 export const FUNDS_LABELS: Record<number, string> = {
   0: 'Everything through funds',
   25: 'Mostly funds',
@@ -48,29 +48,27 @@ export const FUNDS_LABELS: Record<number, string> = {
   100: 'I pick every charity myself',
 }
 
-export type CauseAllocation = { name: string; pct: number }[]
-
-// Starting split shown before the donor touches the sliders. Order here is the
-// order on screen and the order colors are assigned in.
-export const DEFAULT_CAUSE_ALLOCATION: CauseAllocation = [
-  { name: 'AI safety', pct: 30 },
-  { name: 'Global health & development', pct: 20 },
-  { name: 'Animal welfare', pct: 15 },
-  { name: 'Biosecurity', pct: 10 },
-  { name: 'EA meta', pct: 5 },
-  { name: 'Progress', pct: 5 },
-  { name: 'Democracy', pct: 5 },
-  { name: 'Political candidates', pct: 5 },
-  { name: 'Digital minds', pct: 5 },
-]
-
-// One hue per cause position at fixed lightness and chroma, cycling past the
-// defaults for causes the donor adds.
-export const CAUSE_HUES = [45, 75, 110, 150, 190, 230, 265, 300, 340, 20, 130, 60] as const
-
-export function causeColor(index: number) {
-  return `oklch(68% 0.14 ${CAUSE_HUES[index % CAUSE_HUES.length]})`
+export function fundsLabel(value: number) {
+  return FUNDS_LABELS[value] ?? `${100 - value}% funds, ${value}% my own picks`
 }
+
+// Cause areas, rated 1-5 stars. The first TOP_CAUSE_COUNT show by default;
+// the rest, and any the donor adds, sit behind an expander.
+export const CAUSES = [
+  'AI safety',
+  'Global health & development',
+  'Animal welfare',
+  'Biosecurity',
+  'EA meta',
+  'Progress',
+  'Democracy',
+  'Political candidates',
+  'Digital minds',
+]
+export const TOP_CAUSE_COUNT = 5
+export const MAX_RATING = 5
+
+export type CauseRatings = { name: string; rating: number }[]
 
 // A blank response, as the form holds it: text fields as '', unanswered
 // choices as null. Its keys are the survey's fields.
@@ -81,7 +79,7 @@ export const EMPTY_SURVEY = {
   org: '',
   giving_2026: '',
   giving_2027: '',
-  cause_allocation: DEFAULT_CAUSE_ALLOCATION,
+  cause_ratings: [] as CauseRatings,
   advice_sources: '',
   landscape_problems: '',
   funds_vs_direct: null as number | null,
@@ -109,34 +107,21 @@ export function labelFor<T extends readonly { key: string; label: string }[]>(
   return options.find((o) => o.key === key)?.label ?? null
 }
 
-// Sliders move independently; each cause's share is its value over the total.
-// Rounding drift lands on the largest cause so the shares always sum to 100.
-export function normalizeAllocation(values: { name: string; value: number }[]): CauseAllocation {
-  const total = values.reduce((s, c) => s + Math.max(0, c.value), 0)
-  if (total <= 0) return values.map((c) => ({ name: c.name, pct: 0 }))
-  const out = values.map((c) => ({
-    name: c.name,
-    pct: Math.round((Math.max(0, c.value) / total) * 100),
-  }))
-  const drift = 100 - out.reduce((s, c) => s + c.pct, 0)
-  if (drift !== 0) {
-    const largest = out.reduce((a, c, i) => (c.pct > out[a].pct ? i : a), 0)
-    out[largest] = { ...out[largest], pct: out[largest].pct + drift }
+// Keeps well-formed entries only: a name and a whole-number rating from 1 to
+// MAX_RATING, one entry per name.
+export function parseCauseRatings(value: unknown): CauseRatings {
+  if (!Array.isArray(value)) return []
+  const seen = new Set<string>()
+  const out: CauseRatings = []
+  for (const c of value) {
+    const name = typeof c?.name === 'string' ? c.name.trim().slice(0, 80) : ''
+    const rating = c?.rating
+    if (!name || seen.has(name.toLowerCase())) continue
+    if (!Number.isInteger(rating) || rating < 1 || rating > MAX_RATING) continue
+    seen.add(name.toLowerCase())
+    out.push({ name, rating })
   }
   return out
-}
-
-export function parseCauseAllocation(value: unknown): CauseAllocation {
-  if (!Array.isArray(value)) return []
-  return value
-    .filter(
-      (c): c is { name: string; pct: number } =>
-        !!c &&
-        typeof c === 'object' &&
-        typeof (c as any).name === 'string' &&
-        typeof (c as any).pct === 'number'
-    )
-    .map((c) => ({ name: c.name.slice(0, 80), pct: Math.max(0, Math.min(100, Math.round(c.pct))) }))
 }
 
 // Email-only respondents have no session, so the edit token doubles as their

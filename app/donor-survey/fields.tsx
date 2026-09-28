@@ -6,6 +6,7 @@ import { ReactNode, useId } from 'react'
 // Form primitives for the donor survey, following the Claude Design mockup:
 // one 640px column, section headings with a hairline, pill single-selects,
 // card-style multi-selects, and 44px inputs with an orange focus ring.
+// Inputs use 16px text below the sm breakpoint so iOS doesn't zoom on focus.
 
 export function Section(props: {
   id?: string
@@ -51,7 +52,7 @@ export function Q(props: {
 }
 
 export const inputClass =
-  'w-full rounded-[10px] border border-gray-200 bg-white text-[15px] text-gray-900 outline-none placeholder:text-gray-400 focus:border-orange-500 focus:ring-[3px] focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-500'
+  'w-full rounded-[10px] border border-gray-200 bg-white text-base text-gray-900 sm:text-[15px] outline-none placeholder:text-gray-400 focus:border-orange-500 focus:ring-[3px] focus:ring-orange-100 disabled:bg-gray-50 disabled:text-gray-500'
 
 export function TextInput(props: {
   value: string

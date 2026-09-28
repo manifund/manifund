@@ -3,7 +3,7 @@ import 'server-only'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getProfileById, getUser } from '@/db/profile'
 import { DonorSurveyResponse, getMyResponse } from '@/db/donor-survey'
-import { DonorSurveyInput, EMPTY_SURVEY, parseCauseAllocation } from '@/utils/donor-survey'
+import { DonorSurveyInput, EMPTY_SURVEY, parseCauseRatings } from '@/utils/donor-survey'
 import { DonorSurveyForm, SignedInUser } from './donor-survey-form'
 import { SurveyShell } from './survey-header'
 
@@ -86,6 +86,6 @@ function toInput(r: DonorSurveyResponse): DonorSurveyInput {
   }
   return {
     ...(input as DonorSurveyInput),
-    cause_allocation: parseCauseAllocation(r.cause_allocation),
+    cause_ratings: parseCauseRatings(r.cause_ratings),
   }
 }
