@@ -107,6 +107,13 @@ export default async function handler(req: NextRequest) {
       min_funding: 5_000,
       funding_goal: fundingGoal ?? 5_000,
     }
+  } else if (selectedPrize?.slug === 'falcon-fund') {
+    // Falcon Fund applications are regular proposal-stage grants. This cause has
+    // no rounds row (and no cert_params), so bucket it under 'Independent'.
+    project = {
+      ...defaultProject,
+      round: 'Independent',
+    }
   } else if (selectedPrize) {
     const seedingAmm =
       selectedPrize?.cert_params?.ammShares &&
