@@ -1,6 +1,8 @@
 'use client'
+import clsx from 'clsx'
 import Link from 'next/link'
 import { ArrowLongRightIcon } from '@heroicons/react/24/solid'
+import { buttonClass } from '@/components/button'
 import { RichContent } from '@/components/editor'
 import { EmptyContent } from '@/components/empty-content'
 import { ProjectsDisplay } from '@/components/projects-display'
@@ -98,6 +100,14 @@ export function CauseTabs(props: {
       count: 0,
       display: (
         <>
+          {cause.slug === 'falcon-fund' && (
+            <Link
+              href="/create?prize=falcon-fund"
+              className={clsx(buttonClass('lg', 'orange'), 'mb-6')}
+            >
+              Apply for funding
+            </Link>
+          )}
           <RichContent content={cause.description} />
           <EditCause cause={cause} />
         </>
