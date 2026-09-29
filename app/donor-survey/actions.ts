@@ -164,7 +164,9 @@ export async function saveDonorSurvey(
     const email = user.email?.toLowerCase() ?? row.email
     const existing = (await getResponseByProfileId(user.id)) ?? (await getResponseByEmail(email))
     const profile = await getProfileById(supabase, user.id)
-    const values = { ...row, email, profile_id: user.id }
+    // The form hides the name field when signed in, so use the profile's.
+    const full_name = profile?.full_name?.trim() || row.full_name
+    const values = { ...row, full_name, email, profile_id: user.id }
     if (existing) {
       await admin.from('donor_survey_responses').update(values).eq('id', existing.id).throwOnError()
     } else {
