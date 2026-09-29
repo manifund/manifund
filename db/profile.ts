@@ -18,8 +18,12 @@ export type ProfileWithRoles = Profile & {
 
 const ADMINS = ['akrolsmir@gmail.com', 'hannah@manifund.org', 'carol@manifund.org']
 
+// POC comments (local only): the fictional persona rita@local.test acts as an admin in
+// development, so the report queue can be demoed. Never true in production builds.
+const LOCAL_ADMINS = process.env.NODE_ENV === 'development' ? ['rita@local.test'] : []
+
 export function isAdmin(user: User | null) {
-  return ADMINS.includes(user?.email ?? '')
+  return ADMINS.includes(user?.email ?? '') || LOCAL_ADMINS.includes(user?.email ?? '')
 }
 
 export async function getProfileById(supabase: SupabaseClient, id: string = '') {

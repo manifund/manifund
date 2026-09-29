@@ -83,6 +83,7 @@ export async function getCommentsByUser(supabase: SupabaseClient, commenterId: s
       '*, projects(id, title, slug, stage), comment_rxns(reactor_id, reaction, profiles!comment_rxns_reactor_id_fkey(id, username, avatar_url, full_name))'
     )
     .eq('commenter', commenterId)
+    .is('deleted_at', null)
   if (error) {
     throw error
   }
@@ -100,6 +101,7 @@ export async function getRecentFullComments(
       '*, profiles!comments_commenter_fkey(*), projects!inner(*), comment_rxns(reactor_id, reaction, profiles!comment_rxns_reactor_id_fkey(id, username, avatar_url, full_name))'
     )
     .neq('projects.stage', 'hidden')
+    .is('deleted_at', null)
     .order('created_at', { ascending: false })
     .range(start, start + size)
     .throwOnError()
