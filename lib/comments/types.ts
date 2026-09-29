@@ -5,8 +5,8 @@ import type { Profile } from '@/db/profile'
 export type CommentRow = Database['public']['Tables']['comments']['Row']
 
 // A target is the column that stores it, with its value: spread it into an insert, pass it to
-// .match() to read. One variant per commentable thing (profile_id and cause_slug come later).
-export type Target = { project: string }
+// .match() to read. One variant per commentable thing.
+export type Target = { project: string } | { profile_id: string } | { cause_slug: string }
 
 // `special_type` in the database; null = a plain comment.
 export type Kind = Database['public']['Enums']['comment_type'] | null
@@ -51,7 +51,11 @@ export type TargetRules<C> = {
   // The thing being commented on, with what the rules need (owner ids, title, url); null if gone.
   load(target: Target): Promise<C | null>
   // May this person post this kind here, as a new thread or as a reply to `parent`?
-  canPost(ctx: C, author: Profile, input: { kind: Kind; parent?: CommentRow }): Result
+  canPost(
+    ctx: C,
+    author: Profile,
+    input: { kind: Kind; parent?: CommentRow }
+  ): Result | Promise<Result>
   // Who hears about a new comment (used from step 2 on; today the webhook still emails).
   recipients(
     ctx: C,

@@ -29,7 +29,7 @@ export function Comment(props: {
   userCharityBalance?: number
   writtenByCreator?: boolean
   contributionText?: string
-  projectTitle?: string
+  targetLabel?: string // where it was posted, shown as a tag in feeds and lists
   children?: React.ReactNode
   userProfile?: Profile
 }) {
@@ -42,7 +42,7 @@ export function Comment(props: {
     commentHref,
     writtenByCreator,
     contributionText,
-    projectTitle,
+    targetLabel,
     children,
     userProfile,
   } = props
@@ -86,12 +86,12 @@ export function Comment(props: {
   return (
     <Col ref={commentElement} id={comment.id}>
       <div className="ml-10">
-        {projectTitle && (
+        {targetLabel && (
           <Link href={`${commentHref}`}>
-            <Tag text={projectTitle} className="hover:bg-orange-200" />
+            <Tag text={targetLabel} className="hover:bg-orange-200" />
           </Link>
         )}
-        {contributionText && !projectTitle && <Tag text={contributionText} />}
+        {contributionText && !targetLabel && <Tag text={contributionText} />}
       </div>
       <Row className="w-full gap-2">
         <Link href={`/${commenter.username}`}>

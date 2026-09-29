@@ -1,4 +1,5 @@
 import { FullComment, getRecentFullComments } from '@/db/comment'
+import { commentHref } from '@/lib/comments/links'
 import { listProjects } from '@/db/project'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getRecentFullTxns } from '@/db/txn'
@@ -89,7 +90,7 @@ export default async function Minifund() {
         {recentComments.map((comment) => {
           return (
             <li key={comment.id} className="mb-0.5">
-              <a href={`/projects/${comment.projects.slug}`}>
+              <a href={commentHref(comment)}>
                 {comment.profiles.full_name}:{' '}
                 <span className="font-extralight text-gray-600">{commentPreview(comment)}</span>
               </a>

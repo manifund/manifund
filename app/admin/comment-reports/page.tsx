@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { createAdminClient } from '@/db/supabase-admin'
 import { RichContent } from '@/components/editor'
 import { RelativeTime } from '@/components/relative-time'
-import { commentHref, targetTitle } from '@/lib/comments/links'
+import { commentHref, targetTitle, TARGET_EMBEDS } from '@/lib/comments/links'
 import { ResolveReport } from './resolve-report'
 
 export const dynamic = 'force-dynamic'
@@ -12,7 +12,7 @@ export default async function CommentReportsPage() {
   const { data } = await createAdminClient()
     .from('comment_reports')
     .select(
-      'id, is_spam, note, created_at, reporter:profiles!comment_reports_reporter_id_fkey(username), comment:comments(id, content, created_at, deleted_at, author:profiles!comments_commenter_fkey(username, full_name), projects(title, slug))'
+      `id, is_spam, note, created_at, reporter:profiles!comment_reports_reporter_id_fkey(username), comment:comments(id, content, created_at, deleted_at, author:profiles!comments_commenter_fkey(username, full_name), ${TARGET_EMBEDS})`
     )
     .is('resolved_at', null)
     .order('created_at', { ascending: true })

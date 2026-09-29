@@ -14,6 +14,7 @@ const CREATOR_KINDS = ['progress update', 'final report']
 
 export const projectRules: TargetRules<ProjectContext> = {
   async load(target: Target) {
+    if (!('project' in target)) return null
     const { data } = await createAdminClient()
       .from('projects')
       .select('id, title, slug, creator, stage')

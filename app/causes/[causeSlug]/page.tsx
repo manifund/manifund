@@ -23,6 +23,8 @@ export async function generateMetadata(props: { params: Promise<{ causeSlug: str
   }
 }
 
+import { getCommentsByTarget } from '@/db/comment'
+
 export default async function CausePage(props: { params: Promise<{ causeSlug: string }> }) {
   // TODO: Maybe batch with Promise.all for fewer roundtrips
   const { causeSlug } = await props.params
@@ -39,6 +41,7 @@ export default async function CausePage(props: { params: Promise<{ causeSlug: st
   const userTxns = user ? await getTxnAndProjectsByUser(supabase, user.id) : []
   const userBids = user ? await getPendingBidsByUser(supabase, user.id) : []
   const userProfile = user ? await getProfileById(supabase, user.id) : null
+  const causeComments = await getCommentsByTarget(supabase, { cause_slug: cause.slug })
 
   const [profiles, matchTxns, matchBids] =
     causeSlug === 'ea-community-choice'
@@ -76,6 +79,8 @@ export default async function CausePage(props: { params: Promise<{ causeSlug: st
         profiles={profiles}
         matchTxns={matchTxns}
         matchBids={matchBids}
+        comments={causeComments}
+        userProfile={userProfile ?? undefined}
       />
     </div>
   )
