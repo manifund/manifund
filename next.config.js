@@ -1,4 +1,11 @@
 /** @type {import('next').NextConfig} */
+const { withPostHogConfig } = require('@posthog/nextjs-config')
+
+const posthogHost = process.env.NEXT_PUBLIC_POSTHOG_HOST
+const posthogAssetsHost = posthogHost?.replace('.i.posthog.com', '-assets.i.posthog.com')
+const posthogApiKey = process.env.POSTHOG_API_KEY
+const posthogProjectId = process.env.POSTHOG_PROJECT_ID
+
 const nextConfig = {
   reactStrictMode: false,
   // PostHog API paths end in '/'; the trailing-slash redirect is re-implemented in proxy.ts
@@ -33,18 +40,20 @@ const nextConfig = {
   },
   // Reverse proxy for PostHog so adblockers don't block it
   async rewrites() {
+    if (!posthogHost || !posthogAssetsHost) return []
+
     return [
       {
         source: '/flux/static/:path*',
-        destination: 'https://us-assets.i.posthog.com/static/:path*',
+        destination: `${posthogAssetsHost}/static/:path*`,
       },
       {
         source: '/flux/array/:path*',
-        destination: 'https://us-assets.i.posthog.com/array/:path*',
+        destination: `${posthogAssetsHost}/array/:path*`,
       },
       {
         source: '/flux/:path*',
-        destination: 'https://us.i.posthog.com/:path*',
+        destination: `${posthogHost}/:path*`,
       },
     ]
   },
@@ -75,4 +84,12 @@ const nextConfig = {
   },
 }
 
-module.exports = nextConfig
+module.exports = withPostHogConfig(nextConfig, {
+  personalApiKey: posthogApiKey,
+  projectId: posthogProjectId,
+  host: process.env.POSTHOG_HOST,
+  sourcemaps: {
+    enabled: Boolean(posthogApiKey && posthogProjectId),
+    deleteAfterUpload: true,
+  },
+})

@@ -1,8 +1,14 @@
 'use client'
 
 import { SiteLink } from '@/components/site-link'
+import posthog from 'posthog-js'
+import { useEffect } from 'react'
 
 export default function Error(props: { error: Error; reset: () => void }) {
+  useEffect(() => {
+    posthog.captureException(props.error)
+  }, [props.error])
+
   return (
     <div>
       <p>Error thrown:</p>
