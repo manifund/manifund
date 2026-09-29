@@ -1390,7 +1390,7 @@ export type Database = {
     Enums: {
       bid_status: 'deleted' | 'pending' | 'accepted' | 'declined'
       bid_type: 'buy' | 'sell' | 'donate' | 'assurance buy' | 'assurance sell'
-      comment_type: 'progress update' | 'final report'
+      comment_type: 'progress update' | 'final report' | 'grant rationale' | 'admin note'
       profile_type: 'individual' | 'org' | 'fund' | 'amm'
       project_stage: 'active' | 'proposal' | 'not funded' | 'complete' | 'hidden' | 'draft'
       project_type: 'grant' | 'cert' | 'dummy'
@@ -1571,7 +1571,7 @@ export const Constants = {
     Enums: {
       bid_status: ['deleted', 'pending', 'accepted', 'declined'],
       bid_type: ['buy', 'sell', 'donate', 'assurance buy', 'assurance sell'],
-      comment_type: ['progress update', 'final report'],
+      comment_type: ['progress update', 'final report', 'grant rationale', 'admin note'],
       profile_type: ['individual', 'org', 'fund', 'amm'],
       project_stage: ['active', 'proposal', 'not funded', 'complete', 'hidden', 'draft'],
       project_type: ['grant', 'cert', 'dummy'],
