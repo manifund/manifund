@@ -46,7 +46,7 @@ export default async function DonorPage(props: { params: Promise<{ usernameSlug:
         </p>
       )}
       <div className="mt-16">
-        <DonorResponseView response={response} full={canSeePrivate} />
+        <DonorResponseView response={response} full={canSeePrivate} admin={isAdmin(user)} />
       </div>
     </div>
   )

@@ -31,7 +31,7 @@ export default async function ResponsePage(props: { params: Promise<{ id: string
     <div className="mx-auto w-full max-w-2xl px-4 py-12 sm:py-20">
       <DonorPageHeader profile={profile ?? null} response={response} />
       <div className="mt-16">
-        <DonorResponseView response={response} full />
+        <DonorResponseView response={response} full admin={isAdmin(user)} />
       </div>
     </div>
   )

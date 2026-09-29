@@ -152,14 +152,8 @@ export default async function ResultsPage() {
             {agg.frequency.map((f) => (
               <Row key={f.key} label={f.label} n={f.count} total={agg.wantsOpportunities} indent />
             ))}
-            <Term>Want a 1:1 call with the Manifund team</Term>
-            <Count n={agg.wantsCall} total={agg.n} />
             <Term>Want to come to fundraising events</Term>
             <Count n={agg.wantsEvents} total={agg.n} />
-            <Term>Will share answers with other major funders</Term>
-            <Count n={agg.shareWithFunders} total={agg.n} />
-            <Term>Published their answers</Term>
-            <Count n={agg.isPublic} total={agg.n} />
           </dl>
         </Figure>
 

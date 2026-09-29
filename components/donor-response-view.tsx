@@ -13,12 +13,17 @@ import type { PublicDonorSurveyResponse, DonorSurveyResponse } from '@/db/donor-
 import { RatingDots } from '@/app/donor-survey/cause-ratings'
 
 // Read-only rendering of one donor's answers, in the same order and style as
-// the form. `full` adds the fields only the owner and admins may see.
+// the form. `full` adds the fields only the owner and admins may see; `admin`
+// adds the contact choices only admins act on (1:1 call, sharing).
 
 type AnyResponse = PublicDonorSurveyResponse | DonorSurveyResponse
 
-export function DonorResponseView(props: { response: AnyResponse; full?: boolean }) {
-  const { response: r, full } = props
+export function DonorResponseView(props: {
+  response: AnyResponse
+  full?: boolean
+  admin?: boolean
+}) {
+  const { response: r, full, admin } = props
   const priv = full ? (r as DonorSurveyResponse) : null
   const causes = parseCauseRatings(r.cause_ratings).sort((a, b) => b.rating - a.rating)
   const capacity = (r.capacity ?? []).map((c) => labelFor(CAPACITIES, c)).filter(Boolean)
@@ -106,19 +111,28 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
           <Answer label="Would like to">
             <Checks
               items={[
-                ['Meet for a 1:1 call with a member of the Manifund team', priv.wants_call],
+                ...(admin
+                  ? [
+                      [
+                        'Meet for a 1:1 call with a member of the Manifund team',
+                        priv.wants_call,
+                      ] as [string, boolean],
+                    ]
+                  : []),
                 ['Come to events centered on fundraising for top charities', priv.wants_events],
               ]}
             />
           </Answer>
-          <Answer label="Willing to share their answers">
-            <Checks
-              items={[
-                ['With other major funders', priv.share_with_funders],
-                ['On their public Manifund profile', priv.is_public],
-              ]}
-            />
-          </Answer>
+          {admin && (
+            <Answer label="Willing to share their answers">
+              <Checks
+                items={[
+                  ['With other major funders', priv.share_with_funders],
+                  ['On their public Manifund profile', priv.is_public],
+                ]}
+              />
+            </Answer>
+          )}
         </Group>
       )}
 

@@ -20,10 +20,7 @@ type Row = Pick<
   | 'hours_per_month'
   | 'wants_opportunities'
   | 'opportunity_frequency'
-  | 'wants_call'
   | 'wants_events'
-  | 'share_with_funders'
-  | 'is_public'
 >
 
 function countBy(
@@ -79,10 +76,7 @@ export function aggregate(rows: Row[]) {
     FREQUENCIES,
     (r) => r.opportunity_frequency
   )
-  const wantsCall = rows.filter((r) => r.wants_call).length
   const wantsEvents = rows.filter((r) => r.wants_events).length
-  const shareWithFunders = rows.filter((r) => r.share_with_funders).length
-  const isPublic = rows.filter((r) => r.is_public).length
 
   return {
     n,
@@ -95,9 +89,6 @@ export function aggregate(rows: Row[]) {
     capacity,
     wantsOpportunities,
     frequency,
-    wantsCall,
     wantsEvents,
-    shareWithFunders,
-    isPublic,
   }
 }
