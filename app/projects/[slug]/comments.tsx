@@ -17,6 +17,7 @@ import { JSONContent } from '@tiptap/react'
 import clsx from 'clsx'
 import { clearLocalStorageItem } from '@/hooks/use-local-storage'
 import { Comment } from '@/components/comment'
+import toast from 'react-hot-toast'
 
 export function Comments(props: {
   project: Project
@@ -199,17 +200,23 @@ export function WriteComment(props: {
       if (!content || content.length === 0 || !editor || !htmlContent) {
         return
       }
-      await fetch('/api/post-comment', {
+      const res = await fetch('/api/comments', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          target: { project: project.id },
           content: content,
-          projectId: project.id,
-          replyingTo: replyingTo?.replying_to ? (replyingTo.replying_to as string) : replyingTo?.id,
+          replyingTo: replyingTo?.id, // the server moves a reply to a reply under its thread
         }),
       })
+      if (!res.ok) {
+        const { error } = await res.json().catch(() => ({ error: 'Could not post the comment' }))
+        toast.error(error ?? 'Could not post the comment')
+        setIsSubmitting(false)
+        return
+      }
       if (setReplyingTo) {
         setReplyingTo(null)
       }

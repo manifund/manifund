@@ -101,15 +101,15 @@ function ProgressUpdate(props: { project: Project }) {
             onClick={async () => {
               setIsSubmitting(true)
               const content = editor?.getJSON()
-              await fetch('/api/post-comment', {
+              await fetch('/api/comments', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                  target: { project: project.id },
                   content: content,
-                  projectId: project.id,
-                  specialType: 'progress update',
+                  kind: 'progress update',
                 }),
               })
               setModalOpen(false)

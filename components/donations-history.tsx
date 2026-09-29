@@ -20,7 +20,7 @@ import { clearLocalStorageItem } from '@/hooks/use-local-storage'
 
 // `replyContext` adds a "Reply" button to each donation (for any logged-in
 // user) that posts a public comment mentioning the donor. Just an ordinary
-// top-level comment via /api/post-comment — no special DB machinery.
+// top-level comment via /api/comments — no special DB machinery.
 type ReplyContext = {
   projectId: string
   projectSlug: string
@@ -157,12 +157,10 @@ function DonationReplyBox(props: {
     const content = editor?.getJSON() as JSONContent | undefined
     if (!editor || !editor.getText()?.trim() || !content) return
     setIsSubmitting(true)
-    // Fire-and-forget, matching the normal comment box (comments.tsx): the
-    // comment always posts, so we don't surface the response.
-    await fetch('/api/post-comment', {
+    await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content, projectId: replyContext.projectId }),
+      body: JSON.stringify({ target: { project: replyContext.projectId }, content }),
     })
     editor.commands.clearContent()
     clearLocalStorageItem(storageKey)
