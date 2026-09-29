@@ -1,8 +1,11 @@
 import 'server-only'
+import { after } from 'next/server'
 import { createAdminClient } from '@/db/supabase-admin'
 import type { Profile } from '@/db/profile'
 import { log } from '@/lib/log'
-import { checkContent } from './content'
+import { checkContent, mentionIds } from './content'
+import { recordCommentNotifications } from '@/lib/notifications/record'
+import { sendPendingEmails } from '@/lib/notifications/send'
 import { rulesFor } from './targets'
 import { denied, USER_KINDS, type CommentRow, type PostInput, type Result } from './types'
 
@@ -65,7 +68,36 @@ export async function post(
   } catch (e) {
     log.warn('comment.after_post_failed', { comment_id: comment.id, error: e })
   }
+  await notify(rules, ctx, comment, parent)
   return { ok: true, comment }
+}
+
+// Record who hears about the comment, then email them after the response is sent (the backup
+// sweep sends whatever this misses). Failures are logged, never returned: the comment stands.
+async function notify(
+  rules: ReturnType<typeof rulesFor>,
+  ctx: unknown,
+  comment: CommentRow,
+  parent?: CommentRow
+) {
+  try {
+    const recipients = await rules.recipients(
+      ctx,
+      comment,
+      mentionIds(comment.content as any),
+      parent
+    )
+    await recordCommentNotifications(comment, recipients)
+  } catch (e) {
+    log.error('comment.notify_failed', { comment_id: comment.id, error: e })
+    return
+  }
+  try {
+    after(() => sendPendingEmails({ commentId: comment.id }))
+  } catch (e) {
+    // Outside a request (a script): the sweep sends them.
+    log.warn('comment.send_deferred', { comment_id: comment.id, error: e })
+  }
 }
 
 async function getComment(id: string) {

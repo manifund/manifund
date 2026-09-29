@@ -24,6 +24,12 @@ export default async function Sidebar() {
   const user = await getUser(supabase)
   const profile = user ? await getProfileById(supabase, user.id) : null
   const isRegranter = profile?.regranter_status
+  const { count: unreadNotifications } = user
+    ? await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .is('read_at', null)
+    : { count: 0 }
   return (
     <>
       <div className="lg:col-span-3" />
@@ -73,6 +79,16 @@ export default async function Sidebar() {
               ],
             }}
           />
+          {user && (
+            <SidebarItem
+              item={{
+                name: unreadNotifications
+                  ? `Notifications (${unreadNotifications})`
+                  : 'Notifications',
+                href: '/notifications',
+              }}
+            />
+          )}
           <SidebarItem item={{ name: 'People', href: '/people' }} />
           <SidebarItem item={{ name: 'Categories', href: '/causes' }} />
           <SidebarItem item={{ name: 'Newsletter', href: 'https://manifund.substack.com' }} />
