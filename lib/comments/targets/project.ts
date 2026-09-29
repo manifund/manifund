@@ -35,7 +35,12 @@ export const projectRules: TargetRules<ProjectContext> = {
   },
 
   async recipients(ctx, comment, mentions, parent) {
-    const out: Recipient[] = [{ id: ctx.creator, reason: 'comment_on_your_project' }]
+    // A grant rationale or an admin note arrives with its own email (grant, verdict).
+    const coveredByOtherEmail =
+      comment.special_type === 'grant rationale' || comment.special_type === 'admin note'
+    const out: Recipient[] = [
+      { id: ctx.creator, reason: 'comment_on_your_project', email: !coveredByOtherEmail },
+    ]
     if (parent) out.push({ id: parent.commenter, reason: 'reply_to_you' })
     for (const id of mentions) out.push({ id, reason: 'mention' })
     if (!comment.replying_to) {

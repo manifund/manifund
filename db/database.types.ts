@@ -8,6 +8,73 @@ export type Database = {
   }
   public: {
     Tables: {
+      notifications: {
+        Row: {
+          actor_id: string | null
+          comment_id: string | null
+          created_at: string
+          email_attempts: number
+          email_claimed_at: string | null
+          email_status: string
+          emailed_at: string | null
+          id: string
+          last_error: string | null
+          read_at: string | null
+          reason: string
+          recipient_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          email_attempts?: number
+          email_claimed_at?: string | null
+          email_status?: string
+          emailed_at?: string | null
+          id?: string
+          last_error?: string | null
+          read_at?: string | null
+          reason: string
+          recipient_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          email_attempts?: number
+          email_claimed_at?: string | null
+          email_status?: string
+          emailed_at?: string | null
+          id?: string
+          last_error?: string | null
+          read_at?: string | null
+          reason?: string
+          recipient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_actor_id_fkey'
+            columns: ['actor_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_comment_id_fkey'
+            columns: ['comment_id']
+            isOneToOne: false
+            referencedRelation: 'comments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_recipient_id_fkey'
+            columns: ['recipient_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       bids: {
         Row: {
           amount: number
@@ -1227,6 +1294,10 @@ export type Database = {
       }
     }
     Functions: {
+      claim_notification_emails: {
+        Args: { p_comment_id?: string | null; p_min_age?: unknown; p_limit?: number }
+        Returns: Database['public']['Tables']['notifications']['Row'][]
+      }
       _transfer_project:
         | {
             Args: {

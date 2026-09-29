@@ -7,6 +7,12 @@ export function rulesFor(target: Target): TargetRules<any> {
   throw new Error(`comments: unknown target ${JSON.stringify(target)}`)
 }
 
+// The target a stored comment belongs to (the one non-null target column).
+export function targetOf(comment: { project: string | null }): Target {
+  if (comment.project) return { project: comment.project }
+  throw new Error('comments: comment without a target')
+}
+
 // Parse a target from untrusted input: exactly one known key with a string value.
 export function parseTarget(input: unknown): Target | null {
   if (!input || typeof input !== 'object') return null

@@ -31,6 +31,10 @@
     {
       "path": "/api/mercury-nudge",
       "schedule": "0 16 * * *"
+    },
+    {
+      "path": "/api/notifications/sweep",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

@@ -14,6 +14,7 @@ import {
   ChevronRightIcon,
   ChevronDownIcon,
   NewspaperIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline'
 import { SiteLink } from '@/components/site-link'
 
@@ -74,6 +75,7 @@ function findIcon(name: string, isCurrentPage: boolean) {
     isCurrentPage ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500',
     '-ml-1 mr-3 h-6 w-6 flex-shrink-0' + 'h-6 w-6'
   )
+  if (name.startsWith('Notifications')) return <BellIcon className={styling} />
   switch (name) {
     case 'Home':
       return <HomeIcon className={styling} />

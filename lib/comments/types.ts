@@ -43,7 +43,9 @@ export const REASONS = [
   'followed_project_comment',
 ] as const
 export type Reason = (typeof REASONS)[number]
-export type Recipient = { id: string; reason: Reason }
+// email: false when another email already covers it (e.g. the grant email for a grant rationale);
+// the in-app notification is still recorded.
+export type Recipient = { id: string; reason: Reason; email?: boolean }
 
 export type TargetRules<C> = {
   // The thing being commented on, with what the rules need (owner ids, title, url); null if gone.
