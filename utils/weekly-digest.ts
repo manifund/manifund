@@ -244,6 +244,7 @@ export async function getNotableCommentsLastWeek(
     `
       )
       .gte('created_at', oneWeekAgo.toISOString())
+      .not('project', 'is', null) // the digest is about project comments
       .neq('projects.stage', 'hidden')
       .order('created_at', { ascending: false })
       .throwOnError(),
@@ -298,6 +299,7 @@ export async function getNotableGrantsLastWeek(
       )
       .neq('status', 'deleted')
       .gte('created_at', oneWeekAgo.toISOString())
+      .not('project', 'is', null) // the digest is about project comments
       .neq('projects.stage', 'hidden')
       .order('created_at', { ascending: false })
       .throwOnError(),
@@ -316,6 +318,7 @@ export async function getNotableGrantsLastWeek(
       .not('project', 'is', null)
       .not('from_id', 'is', null)
       .gte('created_at', oneWeekAgo.toISOString())
+      .not('project', 'is', null) // the digest is about project comments
       .neq('projects.stage', 'hidden')
       .order('created_at', { ascending: false })
       .throwOnError(),

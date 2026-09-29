@@ -308,6 +308,8 @@ export type Database = {
       }
       comments: {
         Row: {
+          cause_slug: string | null
+          profile_id: string | null
           deleted_at: string | null
           deleted_by: string | null
           edited_at: string | null
@@ -316,11 +318,13 @@ export type Database = {
           content: Json | null
           created_at: string
           id: string
-          project: string
+          project: string | null
           replying_to: string | null
           special_type: Database['public']['Enums']['comment_type'] | null
         }
         Insert: {
+          cause_slug?: string | null
+          profile_id?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           edited_at?: string | null
@@ -329,11 +333,13 @@ export type Database = {
           content?: Json | null
           created_at?: string
           id?: string
-          project: string
+          project?: string | null
           replying_to?: string | null
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Update: {
+          cause_slug?: string | null
+          profile_id?: string | null
           deleted_at?: string | null
           deleted_by?: string | null
           edited_at?: string | null
@@ -342,11 +348,25 @@ export type Database = {
           content?: Json | null
           created_at?: string
           id?: string
-          project?: string
+          project?: string | null
           replying_to?: string | null
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Relationships: [
+          {
+            foreignKeyName: 'comments_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comments_cause_slug_fkey'
+            columns: ['cause_slug']
+            isOneToOne: false
+            referencedRelation: 'causes'
+            referencedColumns: ['slug']
+          },
           {
             foreignKeyName: 'comments_commenter_fkey'
             columns: ['commenter']

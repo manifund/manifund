@@ -43,7 +43,7 @@ export async function post(
     if (parent.deleted_at) return denied(409, 'this thread was deleted')
   }
 
-  const verdict = rules.canPost(ctx, author, { kind, parent })
+  const verdict = await rules.canPost(ctx, author, { kind, parent })
   if (!verdict.ok) return verdict
 
   const { data: comment, error } = await createAdminClient()

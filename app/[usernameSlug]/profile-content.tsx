@@ -14,6 +14,8 @@ import { DonateBox } from '@/components/donate-box'
 import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
 import { ProfileComments } from './profile-comments'
+import { CommentsSection } from '@/components/comments/comments-section'
+import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
 import { useState } from 'react'
@@ -35,13 +37,24 @@ export function ProfileContent(props: {
   profile: Profile
   projects: FullProject[]
   comments: CommentAndProjectAndRxns[]
+  profileComments: CommentAndProfileAndRxns[]
   bids: BidAndProject[]
   txns: FullTxn[]
   userProfile?: Profile
   userTxns?: TxnAndProject[]
   userBids?: BidAndProject[]
 }) {
-  const { profile, projects, comments, bids, txns, userProfile, userTxns, userBids } = props
+  const {
+    profile,
+    projects,
+    comments,
+    profileComments,
+    bids,
+    txns,
+    userProfile,
+    userTxns,
+    userBids,
+  } = props
   const isOwnProfile = userProfile?.id === profile.id
   const proposalBids = bids.filter(
     (bid) => bid.projects.stage === 'proposal' && bid.status === 'pending' && bid.type !== 'donate'
@@ -99,6 +112,21 @@ export function ProfileContent(props: {
       />
       {profile.long_description && <AboutMeSection content={profile.long_description} />}
       {(relevantProjects.length > 0 || isOwnProfile) && <Projects projects={relevantProjects} />}
+      <section id="comments-on-profile">
+        <h1 className="mb-2 text-xl font-medium sm:text-2xl">
+          Comments on {profile.full_name || profile.username}&apos;s profile
+        </h1>
+        <CommentsSection
+          target={{ profile_id: profile.id }}
+          basePath={`/${profile.username}`}
+          comments={profileComments}
+          userProfile={userProfile}
+          userCharityBalance={userCharityBalance}
+          canStartThread={!isOwnProfile}
+          cannotStartThreadNote="People can comment on your profile and you can reply to them. Anything abusive can be reported to the admins."
+          emptyText="No comments yet."
+        />
+      </section>
       {(donations.length > 0 || pendingDonateBids.length > 0) && (
         <OutgoingDonationsHistory donations={donations} pendingDonateBids={pendingDonateBids} />
       )}

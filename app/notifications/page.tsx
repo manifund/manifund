@@ -6,7 +6,7 @@ import { getUser } from '@/db/profile'
 import { Avatar } from '@/components/avatar'
 import { RelativeTime } from '@/components/relative-time'
 import { toPlaintext } from '@/utils/tiptap-parsing'
-import { commentHref, targetTitle } from '@/lib/comments/links'
+import { commentHref, targetTitle, TARGET_EMBEDS } from '@/lib/comments/links'
 import { MarkRead } from './mark-read'
 
 const WHAT: Record<string, string> = {
@@ -26,7 +26,7 @@ export default async function NotificationsPage() {
   const { data } = await supabase
     .from('notifications')
     .select(
-      'id, reason, created_at, read_at, actor:profiles!notifications_actor_id_fkey(id, username, full_name, avatar_url), comment:comments(id, content, projects(title, slug))'
+      `id, reason, created_at, read_at, actor:profiles!notifications_actor_id_fkey(id, username, full_name, avatar_url), comment:comments(id, content, ${TARGET_EMBEDS})`
     )
     .eq('recipient_id', user.id)
     .order('created_at', { ascending: false })

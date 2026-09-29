@@ -1,5 +1,6 @@
 'use client'
 import { Comment } from '@/components/comment'
+import { commentHref, targetTitle } from '@/lib/comments/links'
 import { Col } from '@/components/layout/col'
 import { Tabs } from '@/components/tabs'
 import { FullTxn } from '@/db/txn'
@@ -57,8 +58,8 @@ export function FeedTabs(props: {
               commenter={comment.profiles}
               userId={userId}
               rxns={comment.comment_rxns}
-              commentHref={`/projects/${comment.projects.slug}?tab=comments#${comment.id}`}
-              projectTitle={comment.projects.title}
+              commentHref={commentHref(comment)}
+              targetLabel={targetTitle(comment)}
             />
           )
         })}
@@ -138,10 +139,7 @@ function DonationItem(props: { type: 'donation' | 'bid'; item: FullTxn | FullBid
         </div>
       </Row>
       <Row className="items-center justify-end gap-2">
-        <RelativeTime
-          date={item.created_at}
-          className="hidden text-right text-gray-500 sm:block"
-        />
+        <RelativeTime date={item.created_at} className="hidden text-right text-gray-500 sm:block" />
       </Row>
     </div>
   )

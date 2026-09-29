@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { commentHref } from '@/lib/comments/links'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { getPendingBidsByUser } from '@/db/bid'
@@ -61,7 +62,7 @@ export default async function handler(req: NextRequest) {
         {
           subject: `You received a $${reactionPrice} tip for your comment on Manifund`,
           notifText: `${userProfile.full_name} tipped you $${reactionPrice} for a comment you made on Manifund, which you can now pass on to the charity or project of your choice. Thanks for your contribution to the discussion!`,
-          buttonUrl: `https://manifund.org/projects/${comment.projects.slug}?tab=comments#${commentId}`,
+          buttonUrl: `https://manifund.org${commentHref(comment)}`,
           buttonText: 'View comment',
         },
         comment.commenter

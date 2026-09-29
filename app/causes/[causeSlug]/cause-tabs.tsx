@@ -20,6 +20,8 @@ import { DividerWithHeader } from '@/components/divider-with-header'
 import { Donors } from './donors'
 import QuadraticMatch from './qf'
 import { BidAndProfile } from '@/db/bid'
+import { CommentAndProfileAndRxns } from '@/db/comment'
+import { CommentsSection } from '@/components/comments/comments-section'
 
 export function CauseTabs(props: {
   cause: Cause
@@ -32,6 +34,8 @@ export function CauseTabs(props: {
   profiles?: ProfileWithRoles[]
   matchTxns?: TxnAndProfiles[]
   matchBids?: BidAndProfile[]
+  comments?: CommentAndProfileAndRxns[]
+  userProfile?: Profile
 }) {
   const {
     cause,
@@ -44,6 +48,8 @@ export function CauseTabs(props: {
     profiles,
     matchTxns,
     matchBids,
+    comments = [],
+    userProfile,
   } = props
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab')
@@ -93,27 +99,34 @@ export function CauseTabs(props: {
     })
   }
 
-  if (cause.description) {
-    tabs.push({
-      name: 'About',
-      id: 'about',
-      count: 0,
-      display: (
-        <>
-          {cause.slug === 'falcon-fund' && (
-            <Link
-              href="/create?prize=falcon-fund"
-              className={clsx(buttonClass('lg', 'orange'), 'mb-6')}
-            >
-              Apply for funding
-            </Link>
-          )}
-          <RichContent content={cause.description} />
-          <EditCause cause={cause} />
-        </>
-      ),
-    })
-  }
+  // About: the cause's description, then comments on the cause (asked for 2026-09-28).
+  tabs.push({
+    name: 'About',
+    id: 'about',
+    count: comments.filter((c) => !c.deleted_at).length,
+    display: (
+      <>
+        {cause.slug === 'falcon-fund' && (
+          <Link
+            href="/create?prize=falcon-fund"
+            className={clsx(buttonClass('lg', 'orange'), 'mb-6')}
+          >
+            Apply for funding
+          </Link>
+        )}
+        {cause.description && <RichContent content={cause.description} />}
+        <EditCause cause={cause} />
+        <h2 className="mb-3 mt-8 text-lg font-medium">Comments on {cause.title}</h2>
+        <CommentsSection
+          target={{ cause_slug: cause.slug }}
+          basePath={`/causes/${cause.slug}?tab=about`}
+          comments={comments}
+          userProfile={userProfile}
+          userCharityBalance={charityBalance}
+        />
+      </>
+    ),
+  })
   if (cause.slug === 'ea-community-choice') {
     if (profiles) {
       tabs.push({
