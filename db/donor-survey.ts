@@ -42,10 +42,12 @@ async function findResponse(
   column: 'id' | 'profile_id' | 'email' | 'edit_token_hash',
   value: string
 ) {
-  const query = createAdminClient().from('donor_survey_responses').select('*')
-  const { data } = await (
-    column === 'email' ? query.ilike('email', value.trim()) : query.eq(column, value)
-  )
+  // Emails are stored lowercased, so match them exactly. Not ilike: its
+  // pattern characters (% and _) would let a typed email match other people's.
+  const { data } = await createAdminClient()
+    .from('donor_survey_responses')
+    .select('*')
+    .eq(column, column === 'email' ? value.trim().toLowerCase() : value)
     .maybeSingle()
     .throwOnError()
   return data

@@ -132,7 +132,11 @@ async function sendEditLink(email: string, fullName: string, token: string) {
 
 async function findProfileIdByEmail(email: string) {
   const supabase = createAdminClient()
-  const { data } = await supabase.from('users').select('id').ilike('email', email).maybeSingle()
+  const { data } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', email.toLowerCase())
+    .maybeSingle()
   return data?.id ?? null
 }
 
@@ -200,7 +204,7 @@ export async function saveDonorSurvey(
       .eq('id', existing.id)
       .throwOnError()
     await sendEditLink(existing.email, existing.full_name, fresh)
-    return { type: 'existing', email: existing.email }
+    return { type: 'existing', email: row.email }
   }
 
   const fresh = generateSigningToken()
