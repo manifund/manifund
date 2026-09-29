@@ -4,6 +4,7 @@ import { Project } from './project'
 import { Profile } from './profile'
 import { TARGET_EMBEDS, type TargetEmbeds, isListed } from '@/lib/comments/links'
 import type { Target } from '@/lib/comments/types'
+import { withCurrentMentionLabels } from '@/lib/comments/mentions'
 
 export type Comment = Database['public']['Tables']['comments']['Row']
 export type CommentRxn = Database['public']['Tables']['comment_rxns']['Row']
@@ -35,7 +36,7 @@ export async function getCommentsByTarget(supabase: SupabaseClient, target: Targ
   if (error) {
     throw error
   }
-  return data as CommentAndProfileAndRxns[]
+  return withCurrentMentionLabels(supabase, data as CommentAndProfileAndRxns[])
 }
 
 export async function getCommentsByProject(supabase: SupabaseClient, project: string) {
@@ -72,7 +73,7 @@ export async function getCommentsByUser(supabase: SupabaseClient, commenterId: s
   if (error) {
     throw error
   }
-  return data as CommentAndProjectAndRxns[]
+  return withCurrentMentionLabels(supabase, data as CommentAndProjectAndRxns[])
 }
 
 export async function getRecentFullComments(
@@ -90,7 +91,7 @@ export async function getRecentFullComments(
     .range(start, start + size)
     .throwOnError()
   // Comments on every target; hidden projects' comments stay out.
-  return (data as FullComment[]).filter(isListed)
+  return withCurrentMentionLabels(supabase, (data as FullComment[]).filter(isListed))
 }
 
 export async function getMinimalCommentFromId(supabase: SupabaseClient, commentId: string) {
