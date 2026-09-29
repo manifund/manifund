@@ -36,7 +36,7 @@ export default async function ResultsPage() {
             What other donors said
           </h1>
           <p className="text-[15px] leading-relaxed text-gray-500">
-            Lorem ipsum: the results are only visible to people who have filled out the survey.
+            Sorry, the results are only visible to people who have filled out the survey.
           </p>
           <Link
             href="/donor-survey"
