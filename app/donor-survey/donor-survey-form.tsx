@@ -284,7 +284,7 @@ export function DonorSurveyForm(props: {
         </Q>
         <Q
           label="How interested are you in each cause area?"
-          hint="1 star = not interested, 5 stars = very interested."
+          hint="1 = not interested, 5 = very interested."
         >
           <CauseRatingsInput value={form.cause_ratings} onChange={(v) => set('cause_ratings', v)} />
         </Q>

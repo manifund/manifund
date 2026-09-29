@@ -63,7 +63,7 @@ export function CauseRatingList(props: {
           fill={(c.mean / MAX_RATING) * 100}
           value={c.mean.toFixed(1)}
           stack
-          title={`${c.name}: ${c.mean.toFixed(1)} of ${MAX_RATING} stars, from ${c.count} ${c.count === 1 ? 'rating' : 'ratings'}`}
+          title={`${c.name}: ${c.mean.toFixed(1)} of ${MAX_RATING}, from ${c.count} ${c.count === 1 ? 'rating' : 'ratings'}`}
         />
       ))}
     </div>

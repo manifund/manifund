@@ -92,7 +92,7 @@ export default async function ResultsPage() {
           <BarList bars={agg.giving2026} total={agg.n} highlight={mine?.giving_2026 ?? null} />
         </Figure>
 
-        <Figure title="Interest in each cause area" note="Average rating, out of 5 stars.">
+        <Figure title="Interest in each cause area" note="Average rating, out of 5.">
           <CauseRatingList causes={agg.causes} />
         </Figure>
 

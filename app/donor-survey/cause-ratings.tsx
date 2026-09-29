@@ -5,42 +5,7 @@ import { useState } from 'react'
 import { CAUSES, MAX_RATING, TOP_CAUSE_COUNT, type CauseRatings } from '@/utils/donor-survey'
 import { inputClass } from './fields'
 
-const STAR_PATH =
-  'M10 1.8l2.45 5.18 5.65.7-4.16 3.9 1.07 5.6L10 14.43l-5.01 2.75 1.07-5.6L1.9 7.68l5.65-.7z'
-
-function Star(props: { on: boolean; className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 20 20"
-      aria-hidden
-      className={clsx(
-        props.on ? 'fill-orange-400 stroke-orange-400' : 'fill-none stroke-gray-300',
-        props.className
-      )}
-      strokeWidth="1.4"
-      strokeLinejoin="round"
-    >
-      <path d={STAR_PATH} />
-    </svg>
-  )
-}
-
-// Read-only stars, for the donor page and the results page.
-export function Stars(props: { rating: number; className?: string }) {
-  return (
-    <span
-      role="img"
-      aria-label={`${props.rating} of ${MAX_RATING} stars`}
-      className="inline-flex gap-0.5"
-    >
-      {Array.from({ length: MAX_RATING }, (_, i) => (
-        <Star key={i} on={i < Math.round(props.rating)} className={props.className ?? 'h-4 w-4'} />
-      ))}
-    </span>
-  )
-}
-
-// A rating dot for the survey input: filled up to the chosen rating.
+// A rating dot: filled up to the chosen rating.
 function Dot(props: { on: boolean; className?: string }) {
   return (
     <svg
@@ -54,6 +19,21 @@ function Dot(props: { on: boolean; className?: string }) {
     >
       <circle cx="10" cy="10" r="7" />
     </svg>
+  )
+}
+
+// Read-only dots, for the donor page.
+export function RatingDots(props: { rating: number; className?: string }) {
+  return (
+    <span
+      role="img"
+      aria-label={`${props.rating} of ${MAX_RATING}`}
+      className="inline-flex gap-0.5"
+    >
+      {Array.from({ length: MAX_RATING }, (_, i) => (
+        <Dot key={i} on={i < Math.round(props.rating)} className={props.className ?? 'h-4 w-4'} />
+      ))}
+    </span>
   )
 }
 

@@ -10,7 +10,7 @@ import {
   parseCauseRatings,
 } from '@/utils/donor-survey'
 import type { PublicDonorSurveyResponse, DonorSurveyResponse } from '@/db/donor-survey'
-import { Stars } from '@/app/donor-survey/cause-ratings'
+import { RatingDots } from '@/app/donor-survey/cause-ratings'
 
 // Read-only rendering of one donor's answers, in the same order and style as
 // the form. `full` adds the fields only the owner and admins may see.
@@ -49,7 +49,7 @@ export function DonorResponseView(props: { response: AnyResponse; full?: boolean
                   <span className="min-w-0 text-[15px] text-gray-900 [overflow-wrap:anywhere]">
                     {c.name}
                   </span>
-                  <Stars rating={c.rating} />
+                  <RatingDots rating={c.rating} />
                 </li>
               ))}
             </ul>
