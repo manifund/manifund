@@ -40,7 +40,24 @@ export function Stars(props: { rating: number; className?: string }) {
   )
 }
 
-// One row per cause: its name and five tappable stars. Tapping the current
+// A rating dot for the survey input: filled up to the chosen rating.
+function Dot(props: { on: boolean; className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      aria-hidden
+      className={clsx(
+        props.on ? 'fill-orange-400 stroke-orange-400' : 'fill-none stroke-gray-300',
+        props.className
+      )}
+      strokeWidth="1.6"
+    >
+      <circle cx="10" cy="10" r="7" />
+    </svg>
+  )
+}
+
+// One row per cause: its name and five tappable dots. Tapping the current
 // rating again clears it.
 function RatingRow(props: { name: string; rating: number; onChange: (rating: number) => void }) {
   const { name, rating, onChange } = props
@@ -59,7 +76,7 @@ function RatingRow(props: { name: string; rating: number; onChange: (rating: num
               onClick={() => onChange(rating === value ? 0 : value)}
               className="group grid h-9 w-8 place-items-center rounded-md focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-orange-100"
             >
-              <Star
+              <Dot
                 on={value <= rating}
                 className={clsx(
                   'h-6 w-6 transition-colors',
