@@ -40,6 +40,7 @@ export async function post(
     parent = (await getComment(input.replyingTo)) ?? undefined
     if (parent?.replying_to) parent = (await getComment(parent.replying_to)) ?? undefined
     if (!parent) return denied(404, 'the comment you are replying to is gone')
+    if (parent.deleted_at) return denied(409, 'this thread was deleted')
   }
 
   const verdict = rules.canPost(ctx, author, { kind, parent })
@@ -108,4 +109,119 @@ async function getComment(id: string) {
     .maybeSingle()
     .throwOnError()
   return data
+}
+
+// Edit: only the author, only a visible comment. The database keeps the old version.
+export async function edit(
+  author: Profile,
+  commentId: string,
+  content: unknown
+): Promise<Result<{ comment: CommentRow }>> {
+  const checked = checkContent(content)
+  if (!checked.ok) return denied(400, checked.message)
+  const existing = await getComment(commentId)
+  if (!existing) return denied(404, 'comment not found')
+  if (existing.commenter !== author.id) return denied(403, 'only the author can edit a comment')
+  if (existing.deleted_at) return denied(409, 'this comment was deleted')
+  const { data: comment, error } = await createAdminClient()
+    .from('comments')
+    .update({ content: checked.content })
+    .eq('id', commentId)
+    .select()
+    .single()
+  if (error || !comment) {
+    log.error('comment.edit_failed', { comment_id: commentId, error })
+    return denied(500, 'could not save the edit')
+  }
+  log.info('comment.edited', { comment_id: commentId })
+  return { ok: true, comment }
+}
+
+// Remove: the author ("deleted by the author") or an admin ("removed by an admin: <reason>").
+// Every removal leaves a placeholder; the text stays only in revisions, which the public can't
+// read for removed comments. Replies stay.
+export async function remove(
+  actor: { profile: Profile; admin: boolean },
+  commentId: string,
+  reason?: string | null
+): Promise<Result> {
+  const existing = await getComment(commentId)
+  if (!existing) return denied(404, 'comment not found')
+  if (existing.deleted_at) return { ok: true } // already removed: idempotent
+  const byAuthor = existing.commenter === actor.profile.id
+  if (!byAuthor && !actor.admin)
+    return denied(403, 'only the author or an admin can remove a comment')
+  if (!byAuthor && !reason?.trim()) return denied(400, 'an admin removal needs a reason')
+  const { error } = await createAdminClient()
+    .from('comments')
+    .update({
+      content: null,
+      deleted_at: new Date().toISOString(),
+      deleted_by: actor.profile.id,
+      removed_reason: byAuthor ? null : reason!.trim(),
+    })
+    .eq('id', commentId)
+  if (error) {
+    log.error('comment.remove_failed', { comment_id: commentId, error })
+    return denied(500, 'could not remove the comment')
+  }
+  // Nobody needs an email about a comment that is gone.
+  await createAdminClient()
+    .from('notifications')
+    .update({ email_status: 'skipped', last_error: 'comment removed' })
+    .eq('comment_id', commentId)
+    .in('email_status', ['pending'])
+  log.info('comment.removed', { comment_id: commentId, by_author: byAuthor })
+  return { ok: true }
+}
+
+// Report to the admins: once per person per comment, not your own, optional note, spam toggle.
+export async function report(
+  reporter: Profile,
+  commentId: string,
+  input: { isSpam?: boolean; note?: string | null }
+): Promise<Result> {
+  const existing = await getComment(commentId)
+  if (!existing || existing.deleted_at) return denied(404, 'comment not found')
+  if (existing.commenter === reporter.id) return denied(400, "you can't report your own comment")
+  const note = input.note?.trim().slice(0, 2000) || null
+  const { error } = await createAdminClient().from('comment_reports').insert({
+    comment_id: commentId,
+    reporter_id: reporter.id,
+    is_spam: !!input.isSpam,
+    note,
+  })
+  if (error?.code === '23505') return denied(409, 'you already reported this comment')
+  if (error) {
+    log.error('comment.report_failed', { comment_id: commentId, error })
+    return denied(500, 'could not send the report')
+  }
+  log.warn('comment.reported', { comment_id: commentId, is_spam: !!input.isSpam })
+  return { ok: true }
+}
+
+// An admin closes every open report on a comment: dismiss, or remove the comment with a reason.
+export async function resolveReports(
+  admin: { profile: Profile; admin: boolean },
+  commentId: string,
+  resolution: 'dismissed' | 'removed',
+  reason?: string | null
+): Promise<Result> {
+  if (!admin.admin) return denied(403, 'admins only')
+  if (resolution === 'removed') {
+    const removed = await remove(admin, commentId, reason)
+    if (!removed.ok) return removed
+  }
+  const { error } = await createAdminClient()
+    .from('comment_reports')
+    .update({
+      resolved_at: new Date().toISOString(),
+      resolved_by: admin.profile.id,
+      resolution,
+    })
+    .eq('comment_id', commentId)
+    .is('resolved_at', null)
+  if (error) return denied(500, 'could not close the reports')
+  log.info('comment.reports_resolved', { comment_id: commentId, resolution })
+  return { ok: true }
 }

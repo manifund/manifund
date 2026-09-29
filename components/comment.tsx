@@ -16,6 +16,9 @@ import { Tooltip } from './tooltip'
 import { useSafeLayoutEffect } from '@/hooks/use-safe-layout-effect'
 import { toSentenceCase } from '@/utils/formatting'
 import { CommentRxnsPanel } from './comment-rxn'
+import { HistoryPopup } from './comments/history-popup'
+import { CommentActions } from './comments/comment-actions'
+import { CommentEdit } from './comments/comment-edit'
 
 export function Comment(props: {
   comment: Comment
@@ -44,6 +47,7 @@ export function Comment(props: {
     userProfile,
   } = props
   const [expanded, setExpanded] = useState(false)
+  const [editing, setEditing] = useState(false)
   const [showExpandButton, setShowExpandButton] = useState(false)
   const contentElement = useRef<any>(null)
   useSafeLayoutEffect(() => {
@@ -61,6 +65,24 @@ export function Comment(props: {
       setHighlighted(false)
     }
   }, [])
+  if (comment.deleted_at) {
+    // Every removal leaves a trace (transparency); the replies stay.
+    return (
+      <Col ref={commentElement} id={comment.id}>
+        <Row className="w-full gap-2">
+          <div className="ml-10 w-full rounded-xl rounded-tl-sm border border-dashed border-gray-300 px-4 py-2 text-sm italic text-gray-500">
+            {comment.removed_reason
+              ? `Removed by an admin: ${comment.removed_reason}`
+              : 'Deleted by the author'}
+            <RelativeTime
+              date={comment.deleted_at}
+              className="ml-2 text-xs not-italic text-gray-400"
+            />
+          </div>
+        </Row>
+      </Col>
+    )
+  }
   return (
     <Col ref={commentElement} id={comment.id}>
       <div className="ml-10">
@@ -96,10 +118,8 @@ export function Comment(props: {
                 creatorBadge={writtenByCreator}
                 className="text-sm font-semibold"
               />
-              <RelativeTime
-                date={comment.created_at}
-                className="min-w-fit text-xs text-gray-500"
-              />
+              <RelativeTime date={comment.created_at} className="min-w-fit text-xs text-gray-500" />
+              {comment.edited_at && <HistoryPopup comment={comment} />}
               <Tooltip text="Copy link to comment" className="cursor-pointer">
                 <LinkIcon
                   className="h-3 w-3 stroke-2 text-gray-500 hover:text-gray-700"
@@ -119,7 +139,11 @@ export function Comment(props: {
               ref={contentElement}
               className={clsx(expanded || !showExpandButton ? 'max-h-fit' : 'line-clamp-[12]')}
             >
-              <RichContent content={comment.content} className="text-sm" />
+              {editing ? (
+                <CommentEdit comment={comment} onDone={() => setEditing(false)} />
+              ) : (
+                <RichContent content={comment.content} className="text-sm" />
+              )}
             </div>
             {showExpandButton && (
               <div
@@ -151,7 +175,10 @@ export function Comment(props: {
               orangeBg={highlighted}
               userProfile={userProfile}
             />
-            <div className="mt-1.5">{children}</div>
+            <Row className="mt-1.5 items-center gap-3">
+              <CommentActions comment={comment} viewerId={userId} onEdit={() => setEditing(true)} />
+              {children}
+            </Row>
           </Row>
         </Card>
       </Row>

@@ -98,6 +98,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </Suspense>
       ),
     },
+    { name: 'Reported comments', path: '/admin/comment-reports' },
     { name: 'Tools', path: '/admin/tools' },
   ]
 

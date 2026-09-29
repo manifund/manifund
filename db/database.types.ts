@@ -8,6 +8,96 @@ export type Database = {
   }
   public: {
     Tables: {
+      comment_reports: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          is_spam: boolean
+          note: string | null
+          reporter_id: string
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          is_spam?: boolean
+          note?: string | null
+          reporter_id: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          is_spam?: boolean
+          note?: string | null
+          reporter_id?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'comment_reports_comment_id_fkey'
+            columns: ['comment_id']
+            isOneToOne: false
+            referencedRelation: 'comments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comment_reports_reporter_id_fkey'
+            columns: ['reporter_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comment_reports_resolved_by_fkey'
+            columns: ['resolved_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      comment_revisions: {
+        Row: {
+          comment_id: string
+          content: Json | null
+          id: string
+          replaced_at: string
+          written_at: string
+        }
+        Insert: {
+          comment_id: string
+          content?: Json | null
+          id?: string
+          replaced_at?: string
+          written_at: string
+        }
+        Update: {
+          comment_id?: string
+          content?: Json | null
+          id?: string
+          replaced_at?: string
+          written_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'comment_revisions_comment_id_fkey'
+            columns: ['comment_id']
+            isOneToOne: false
+            referencedRelation: 'comments'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
@@ -218,6 +308,10 @@ export type Database = {
       }
       comments: {
         Row: {
+          deleted_at: string | null
+          deleted_by: string | null
+          edited_at: string | null
+          removed_reason: string | null
           commenter: string
           content: Json | null
           created_at: string
@@ -227,6 +321,10 @@ export type Database = {
           special_type: Database['public']['Enums']['comment_type'] | null
         }
         Insert: {
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          removed_reason?: string | null
           commenter: string
           content?: Json | null
           created_at?: string
@@ -236,6 +334,10 @@ export type Database = {
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Update: {
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edited_at?: string | null
+          removed_reason?: string | null
           commenter?: string
           content?: Json | null
           created_at?: string
