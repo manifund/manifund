@@ -1396,6 +1396,25 @@ export type Database = {
       }
     }
     Functions: {
+      create_transfer_grant_v2: {
+        Args: {
+          project: Database['public']['CompositeTypes']['project_row']
+          project_transfer: Database['public']['CompositeTypes']['transfer_row']
+          grant_amount: number
+        }
+        Returns: undefined
+      }
+      execute_grant_verdict_v2: {
+        Args: { approved: boolean; project_id: string; admin_id: string; public_benefit?: string }
+        Returns: undefined
+      }
+      give_grant_v2: {
+        Args: {
+          project: Database['public']['CompositeTypes']['project_row']
+          donation: Database['public']['CompositeTypes']['bid_row']
+        }
+        Returns: undefined
+      }
       claim_notification_emails: {
         Args: { p_comment_id?: string | null; p_min_age?: unknown; p_limit?: number }
         Returns: Database['public']['Tables']['notifications']['Row'][]
