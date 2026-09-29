@@ -174,7 +174,13 @@ export async function saveDonorSurvey(
     return { type: 'saved' }
   }
 
-  // Not signed in. A valid edit token (from the emailed link, or the cookie set
+  // Not signed in. The typed email is unverified, so these answers can't be
+  // published: that needs a signed-in save (the form says so too). Otherwise
+  // anyone could put answers on the donor page of the account that owns
+  // the email they typed.
+  row.is_public = false
+
+  // A valid edit token (from the emailed link, or the cookie set
   // on a previous save) lets the respondent update their own row.
   const cookieStore = await cookies()
   const token = tokenFromUrl || cookieStore.get(EDIT_COOKIE)?.value
