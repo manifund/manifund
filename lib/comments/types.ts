@@ -41,6 +41,7 @@ export const REASONS = [
   'progress_update',
   'final_report',
   'followed_project_comment',
+  'moderated_your_comment',
 ] as const
 export type Reason = (typeof REASONS)[number]
 // email: false when another email already covers it (e.g. the grant email for a grant rationale);

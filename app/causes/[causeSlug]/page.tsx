@@ -1,7 +1,7 @@
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getFullProjectsByCause } from '@/db/project'
 import Image from 'next/image'
-import { getCause, listSimpleCauses } from '@/db/cause'
+import { isProgram, getCause, listSimpleCauses } from '@/db/cause'
 import { CauseTabs } from './cause-tabs'
 import { CauseData } from './cause-data'
 import { getUser, getProfilesWithRoles } from '@/db/profile'
@@ -41,7 +41,9 @@ export default async function CausePage(props: { params: Promise<{ causeSlug: st
   const userTxns = user ? await getTxnAndProjectsByUser(supabase, user.id) : []
   const userBids = user ? await getPendingBidsByUser(supabase, user.id) : []
   const userProfile = user ? await getProfileById(supabase, user.id) : null
-  const causeComments = await getCommentsByTarget(supabase, { cause_slug: cause.slug })
+  const causeComments = isProgram(cause)
+    ? await getCommentsByTarget(supabase, { cause_slug: cause.slug })
+    : []
 
   const [profiles, matchTxns, matchBids] =
     causeSlug === 'ea-community-choice'

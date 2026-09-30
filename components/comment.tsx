@@ -47,7 +47,7 @@ export function Comment(props: {
     userProfile,
   } = props
   const [expanded, setExpanded] = useState(false)
-  const [editing, setEditing] = useState(false)
+  const [editing, setEditing] = useState<false | 'author' | 'moderator'>(false)
   const [showExpandButton, setShowExpandButton] = useState(false)
   const contentElement = useRef<any>(null)
   useSafeLayoutEffect(() => {
@@ -72,7 +72,7 @@ export function Comment(props: {
         <Row className="w-full gap-2">
           <div className="ml-10 w-full rounded-xl rounded-tl-sm border border-dashed border-gray-300 px-4 py-2 text-sm italic text-gray-500">
             {comment.removed_reason
-              ? `Removed by an admin: ${comment.removed_reason}`
+              ? `Removed by a moderator: ${comment.removed_reason}`
               : 'Deleted by the author'}
             <RelativeTime
               date={comment.deleted_at}
@@ -140,7 +140,11 @@ export function Comment(props: {
               className={clsx(expanded || !showExpandButton ? 'max-h-fit' : 'line-clamp-[12]')}
             >
               {editing ? (
-                <CommentEdit comment={comment} onDone={() => setEditing(false)} />
+                <CommentEdit
+                  comment={comment}
+                  asModerator={editing === 'moderator'}
+                  onDone={() => setEditing(false)}
+                />
               ) : (
                 <RichContent content={comment.content} className="text-sm" />
               )}
@@ -176,7 +180,11 @@ export function Comment(props: {
               userProfile={userProfile}
             />
             <Row className="mt-1.5 items-center gap-3">
-              <CommentActions comment={comment} viewerId={userId} onEdit={() => setEditing(true)} />
+              <CommentActions
+                comment={comment}
+                viewerId={userId}
+                onEdit={(asModerator) => setEditing(asModerator ? 'moderator' : 'author')}
+              />
               {children}
             </Row>
           </Row>

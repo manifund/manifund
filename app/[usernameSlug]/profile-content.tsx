@@ -15,6 +15,7 @@ import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
 import { ProfileComments } from './profile-comments'
 import { CommentsSection } from '@/components/comments/comments-section'
+import { ProfileCommentGuidelines } from '@/components/comments/guidelines'
 import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
@@ -113,9 +114,12 @@ export function ProfileContent(props: {
       {profile.long_description && <AboutMeSection content={profile.long_description} />}
       {(relevantProjects.length > 0 || isOwnProfile) && <Projects projects={relevantProjects} />}
       <section id="comments-on-profile">
-        <h1 className="mb-2 text-xl font-medium sm:text-2xl">
-          Comments on {profile.full_name || profile.username}&apos;s profile
-        </h1>
+        <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="text-xl font-medium sm:text-2xl">
+            Comments on {profile.full_name || profile.username}&apos;s profile
+          </h1>
+          <ProfileCommentGuidelines />
+        </div>
         <CommentsSection
           target={{ profile_id: profile.id }}
           basePath={`/${profile.username}`}
