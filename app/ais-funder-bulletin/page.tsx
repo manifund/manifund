@@ -7,7 +7,7 @@ export const metadata = {
   description: 'A digest of funders in the AI safety space.',
 }
 
-const LAST_UPDATED = 'September 15, 2026'
+const LAST_UPDATED = 'September 30, 2026'
 
 const LINK = 'text-orange-600 underline decoration-orange-500 decoration-dotted underline-offset-2'
 
@@ -75,7 +75,7 @@ const AT_A_GLANCE: Row[] = [
     expected2026: { v: '$100M', n: 8 },
     fte: '11',
     generalApps: false,
-    openRfps: false,
+    openRfps: true,
     donations: false,
   },
   {
@@ -990,10 +990,33 @@ export default function AisFunderBulletinPage() {
                   </ul>
                 </li>
                 <li>
+                  Recent updates:
+                  <ul>
+                    <li>
+                      On September 23, 2026 they and Astralis Foundation launched a joint{' '}
+                      <A href="https://middlepowers.ai/">Middle Powers and Transformative AI RFP</A>
+                      , run by Astralis. It will allocate around $10m, mostly in grants of $100k to
+                      $2m over 6 to 24 months, for work that helps middle powers (UK, EU members,
+                      Canada, Australia, Japan, South Korea, Singapore, etc.) gain and use leverage
+                      over frontier AI development so that it is safer and more broadly beneficial:
+                      research and strategy, policy engagement, institution-building, talent
+                      programs, and convenings. Explicitly out of scope: AI safety research or
+                      great-power domestic policy without a middle-power angle, career transition
+                      funding, and student groups. Deadline October 23, 2026, reviewed on a rolling
+                      basis with final decisions within 8 weeks of applying.
+                    </li>
+                  </ul>
+                </li>
+                <li>
                   Get involved:
                   <ul>
                     <li>
-                      Apply for funding: you can email{' '}
+                      Apply for funding: the{' '}
+                      <A href="https://middlepowers.ai/">Middle Powers RFP</A> is open to
+                      individuals, informal teams, universities, and nonprofits (for-profits case by
+                      case) until October 23, 2026 &mdash;{' '}
+                      <A href="https://web.miniextensions.com/4szKcfLG3idx3isNzGbr">apply here</A>.
+                      Otherwise you can email{' '}
                       <A href="mailto:info@macroscopic.org">info@macroscopic.org</A>, though most
                       grants are sourced through proactive research and they don&apos;t respond to
                       most proposals
@@ -1611,7 +1634,10 @@ export default function AisFunderBulletinPage() {
               from late 2025 (now removed from the live job board), they have a fund focused on
               international AI governance, the Shared Horizons fund, aiming to deploy $15m in 2026;
               the same posting says Astralis has raised over $20m for AI safety from 15 donors and
-              deployed it to 14 organizations.
+              deployed it to 14 organizations. On September 23, 2026 they launched the{' '}
+              <A href="https://middlepowers.ai/">Middle Powers and Transformative AI RFP</A>, run
+              jointly with Macroscopic, allocating around $10m in grants of $100k to $2m with a
+              deadline of October 23, 2026 (details under Macroscopic above).
             </li>
             <li>
               <A href="https://www.navigation.org/">Navigation Fund</A>: Jed McCaleb&apos;s
