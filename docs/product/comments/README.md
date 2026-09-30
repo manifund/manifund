@@ -50,7 +50,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 ### Posting
 
 - **C3** Only signed-in people post. Everything goes through `lib/comments`.
-- **C4** A comment is what the editor produces, with some text (or a mention or an image), up to 2,000 words (5,000
+- **C4** A comment is what the editor produces, with some text (or a mention or an image), up to 3,000 words (5,000
   for progress updates and final reports). A longer one is refused with a message saying so, and the attempt is
   logged for review.
 - **C5** A comment can be a plain comment, or have a type: a progress update (by the project's creator), a final
@@ -170,7 +170,8 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-28 | Val | Avoid type-specific data on comments (evaluation scores, if they come, get their own table) | Most comments share one structure |
 | 2026-09-28 | Val | One comments table with one column per target | Clear what each row is about; real foreign keys; simple to query |
 | 2026-09-28 | Val, with Austin | Comments everywhere (profiles, programs), starting with profiles | Reputation is built from what others say about people and programs |
-| 2026-09-30 | Proposed by Claude | The numbers: 2,000 / 5,000 words (C4); the project and report limits (C9); the order of notification reasons (C21) | Not yet reviewed by the team |
+| 2026-09-30 | Val | Word limits set above the longest existing comments: 3,000 words, 5,000 for progress updates and final reports (C4) | The longest plain comments (~2,200 words) are thoughtful funding reasoning; don't be judgy |
+| 2026-09-30 | Proposed by Claude | The numbers: the project and report limits (C9); the order of notification reasons (C21) | Not yet reviewed by the team |
 
 ## Later
 

@@ -34,14 +34,14 @@ describe('C4 what a comment can contain', () => {
   test('refuses documents over 100 KB', () => {
     expect(checkContent(doc('x'.repeat(110_000))).ok).toBe(false)
   })
-  test('refuses more than 2,000 words, saying how many', () => {
-    expect(checkContent(doc(words(2000))).ok).toBe(true)
-    const r = checkContent(doc(words(2001)))
+  test('refuses more than 3,000 words, saying how many', () => {
+    expect(checkContent(doc(words(3000))).ok).toBe(true)
+    const r = checkContent(doc(words(3001)))
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.message).toContain('2,001')
+    if (!r.ok) expect(r.message).toContain('3,001')
   })
   test('progress updates and final reports may have 5,000 words', () => {
-    expect(wordLimitFor(null)).toBe(2000)
+    expect(wordLimitFor(null)).toBe(3000)
     expect(wordLimitFor('progress update')).toBe(5000)
     expect(wordLimitFor('final report')).toBe(5000)
     expect(checkContent(doc(words(4000)), wordLimitFor('progress update')).ok).toBe(true)
