@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { beforeAll, describe, expect } from 'bun:test'
 import { as, anonymous, type Client } from '../helpers/http'
 import { getWorld, type World } from '../helpers/fixtures'
 import { doc, RUN } from '../helpers/content'
@@ -34,9 +34,4 @@ describe('C8 comments on profiles', () => {
   })
 })
 
-describe('C9 rate limits', () => {
-  test.todo('a 6th profile comment within 5 minutes is refused, saying when to try again')
-  test.todo('an 11th project comment within 5 minutes is refused')
-  test.todo('a 6th report within 5 minutes is refused')
-  test.todo('passing the daily threshold warns the admins (log line and Discord)')
-})
+// C9 (rate limits on profiles and elsewhere): tests/routes/limits.test.ts

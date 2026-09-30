@@ -1,5 +1,5 @@
 // Posting through the app, as the test people. Needs the dev server (local-dev/poc.sh up comments).
-import { beforeAll, describe, expect, test } from 'bun:test'
+import { beforeAll, describe, expect } from 'bun:test'
 import { anonymous, as, type Client } from '../helpers/http'
 import { getWorld, type World } from '../helpers/fixtures'
 import { sql } from '../helpers/db'
@@ -35,7 +35,6 @@ describe('C4 content is checked by the server too', () => {
     const bad = await post(bob, { target: { project: w.project.id }, content: { type: 'doc', content: [{ type: 'script' }] } })
     expect(bad.status).toBe(400)
   })
-  test.todo('over 2,000 words is refused with a message, and the attempt logged')
 })
 
 describe('C5 types', () => {

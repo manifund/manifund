@@ -1,0 +1,6 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "types": ["bun"], "noEmit": true },
+  "include": ["**/*.ts", "../next-env.d.ts"],
+  "exclude": []
+}

@@ -81,3 +81,15 @@ test('C25 notifications list new comments', async ({ page, context }) => {
   await page.goto('/notifications')
   await expect(page.getByText('commented on your project').first()).toBeVisible()
 })
+
+test('C29 the project creator\'s comments carry the creator badge', async ({ page }) => {
+  const w = await world()
+  const mine = await api('alice', '/api/comments', 'POST', { target: { project: w.project.id }, content: doc(`Creator here ${RUN}`) })
+  const theirs = await api('bob', '/api/comments', 'POST', { target: { project: w.project.id }, content: doc(`Visitor here ${RUN}`) })
+  await page.goto(`/projects/${w.project.slug}?tab=comments`)
+  const badge = 'svg.text-blue-500' // the wrench icon; its tooltip says "Project creator"
+  await expect(page.locator(`[id="${mine.body.comment.id}"] ${badge}`)).toHaveCount(1)
+  await expect(page.locator(`[id="${theirs.body.comment.id}"] ${badge}`)).toHaveCount(0)
+  await page.locator(`[id="${mine.body.comment.id}"] ${badge}`).hover()
+  await expect(page.getByText('Project creator')).toBeVisible()
+})
