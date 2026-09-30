@@ -9,7 +9,7 @@ export function TimeLeftDisplay(props: { closeDate: string }) {
   const hoursLeft = daysLeft < 1 ? differenceInHours(closeDate, now) : 0
   return (
     <Row className="items-center gap-1 text-sm text-gray-900">
-      <span className="font-semibold">{`${Math.max(
+      <span suppressHydrationWarning className="font-semibold">{`${Math.max(
         hoursLeft ? hoursLeft : daysLeft,
         0
       )} ${hoursLeft ? 'hours' : 'days'}`}</span>

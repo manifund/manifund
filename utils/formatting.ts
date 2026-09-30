@@ -108,6 +108,11 @@ export function formatDate(date: string) {
   return `${month} ${sections[2]}, ${sections[0]}`
 }
 
+// Pinned to UTC so server render and client hydration agree (React #418)
+export function formatDateUtc(date: string | Date, options: Intl.DateTimeFormatOptions) {
+  return new Date(date).toLocaleDateString('en-US', { timeZone: 'UTC', ...options })
+}
+
 export function addHttpToUrl(url: string) {
   const formattedUrl = url?.startsWith('http') ? url : `https://${url}`
   return formattedUrl

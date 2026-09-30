@@ -7,7 +7,7 @@ import { ProfileContent } from './profile-content'
 import { getBidsByUser } from '@/db/bid'
 import { getCommentsByUser } from '@/db/comment'
 import FundPage from '../funds/[fundSlug]/page'
-import NotFound from '../not-found'
+import { notFound } from 'next/navigation'
 
 export const revalidate = 60
 
@@ -18,7 +18,7 @@ export default async function UserProfilePage(props: {
   const supabase = await createServerSupabaseClient()
   const profile = await getProfileByUsername(supabase, usernameSlug)
   if (!profile) {
-    return <NotFound />
+    notFound()
   } else if (profile.type === 'fund') {
     return <FundPage params={Promise.resolve({ fundSlug: usernameSlug })} />
   } else if (profile.type !== 'individual') {

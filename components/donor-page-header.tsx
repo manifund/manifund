@@ -19,6 +19,7 @@ export function DonorPageHeader(props: {
     .filter(Boolean)
     .join(', ')
   const updated = new Date(response.updated_at).toLocaleDateString('en-US', {
+    timeZone: 'UTC',
     month: 'long',
     day: 'numeric',
     year: 'numeric',

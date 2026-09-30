@@ -3,7 +3,6 @@ import { Profile } from '@/db/profile'
 import { TxnAndProfiles } from '@/db/txn'
 import { formatMoney } from '@/utils/formatting'
 import clsx from 'clsx'
-import { format } from 'date-fns'
 import { orderBy, uniq } from 'es-toolkit'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -108,9 +107,7 @@ export function Donation(props: { txn: TxnAndProfiles; replyContext?: ReplyConte
               Reply
             </button>
           )}
-          <span className="text-sm text-gray-500">
-            {format(new Date(txn.created_at), 'yyyy-MM-dd')}
-          </span>
+          <span className="text-sm text-gray-500">{txn.created_at.slice(0, 10)}</span>
         </Row>
       </Row>
       {replying && canReply && replyContext && (

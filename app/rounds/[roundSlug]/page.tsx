@@ -6,6 +6,7 @@ import { RoundData } from '@/components/round-data'
 import Image from 'next/image'
 import { getRegranters } from '@/db/profile'
 import { listSimpleCauses } from '@/db/cause'
+import { notFound } from 'next/navigation'
 
 export const revalidate = 60
 
@@ -14,7 +15,7 @@ export async function generateMetadata(props: { params: Promise<{ roundSlug: str
   const supabase = await createServerSupabaseClient()
   const round = await getRoundBySlug(supabase, roundSlug)
   return {
-    title: round.title,
+    title: round?.title ?? 'Round not found',
   }
 }
 
@@ -22,6 +23,9 @@ export default async function RoundPage(props: { params: Promise<{ roundSlug: st
   const { roundSlug } = await props.params
   const supabase = await createServerSupabaseClient()
   const round = await getRoundBySlug(supabase, roundSlug)
+  if (!round) {
+    notFound()
+  }
   const [projects, regranters, causesList] = await Promise.all([
     getFullProjectsByRound(supabase, round.title),
     round.title === 'Regrants' ? getRegranters(supabase) : [],

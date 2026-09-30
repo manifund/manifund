@@ -10,6 +10,7 @@ import { getIncomingTxnsByUserWithDonor, getMatchTxns, getTxnAndProjectsByUser }
 import { getMatchBids, getPendingBidsByUser } from '@/db/bid'
 import { getProfileById } from '@/db/profile'
 import { MATCH_END, MATCH_START } from './qf'
+import { notFound } from 'next/navigation'
 
 export const revalidate = 60
 
@@ -18,7 +19,7 @@ export async function generateMetadata(props: { params: Promise<{ causeSlug: str
   const supabase = await createServerSupabaseClient()
   const cause = await getCause(supabase, causeSlug)
   return {
-    title: cause.title,
+    title: cause?.title ?? 'Cause not found',
   }
 }
 
@@ -27,6 +28,9 @@ export default async function CausePage(props: { params: Promise<{ causeSlug: st
   const { causeSlug } = await props.params
   const supabase = await createServerSupabaseClient()
   const cause = await getCause(supabase, causeSlug)
+  if (!cause) {
+    notFound()
+  }
   const causesList = await listSimpleCauses(supabase)
   const projects = await getFullProjectsByCause(supabase, cause.slug)
   const user = await getUser(supabase)
