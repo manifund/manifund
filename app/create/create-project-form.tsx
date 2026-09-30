@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { AmountInput, Input } from '@/components/input'
 import { Button } from '@/components/button'
 import { useRouter } from 'next/navigation'
+import { captureHandledError } from '@/utils/capture-error'
 import { TOTAL_SHARES } from '@/db/project'
 import { ResetEditor, TextEditor } from '@/components/editor'
 import { useTextEditor } from '@/hooks/use-text-editor'
@@ -120,12 +121,18 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
         }),
       })
 
-      const data = await response.json()
+      // Error responses may have an empty or non-JSON body
+      const data = await response.json().catch(() => null)
 
       if (!response.ok) {
         const message =
           data?.error ||
           `Something went wrong. Your project may have been created — please check your profile before trying again.`
+        captureHandledError(new Error(`create-project failed: ${message}`), {
+          source: 'create-project',
+          status: response.status,
+          prize: projectParams.selectedPrize?.slug,
+        })
         setErrorModalMessage(message)
         setErrorModalOpen(true)
         return
@@ -135,6 +142,10 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
       clearLocalStorageItem(DESCRIPTION_KEY)
     } catch (error) {
       console.error('Failed to create project:', error)
+      captureHandledError(error, {
+        source: 'create-project',
+        prize: projectParams.selectedPrize?.slug,
+      })
       setErrorModalMessage(
         `Something went wrong. Your project may have been created — please check your profile before trying again.`
       )
