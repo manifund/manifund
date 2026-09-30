@@ -65,12 +65,12 @@ describe('C9 rate limits', () => {
 })
 
 describe('C4 word limits', () => {
-  standard('over 2,000 words is refused with a message; a progress update may be longer', async () => {
+  standard('over 3,000 words is refused with a message; a progress update may be longer', async () => {
     const alice = await as('alice')
-    const long = doc(`${words(2100)} ${RUN}`)
+    const long = doc(`${words(3100)} ${RUN}`)
     const r = await bob.post('/api/comments', { target: { project: w.project.id }, content: long })
     expect(r.status).toBe(400)
-    expect(r.body.error).toContain('2,000 words')
+    expect(r.body.error).toContain('3,000 words')
     const update = await alice.post('/api/comments', { target: { project: w.project.id }, content: long, type: 'progress update' })
     expect(update.status).toBe(201)
   })

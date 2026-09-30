@@ -24,7 +24,7 @@ const MAX_DEPTH = 20
 
 // Word limits (C4; numbers proposed by Claude 2026-09-30, not yet reviewed by the team): long-form
 // types (progress updates, final reports) get more room.
-const WORD_LIMIT = 2000
+const WORD_LIMIT = 3000 // above the longest existing comments (~2,200 words, thoughtful funding reasoning)
 const LONG_FORM_WORD_LIMIT = 5000
 export const wordLimitFor = (type: string | null | undefined) =>
   type === 'progress update' || type === 'final report' ? LONG_FORM_WORD_LIMIT : WORD_LIMIT
