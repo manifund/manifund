@@ -70,6 +70,10 @@ Areas so far: `comments/` (full), `projects/` and `people/` (stubs).
   keeps its id, marked removed, in `history.md`.
 - **Decisions are dated and say who**: the team, a dev, or an agent's proposal someone approved. Short "why" next to
   each; the long discussion stays in the PR.
+- **Rules describe what people can actually do.** A rule against something no flow allows is noise; cut it. (A
+  check on something the public API allows, even if the UI never does it, is still a rule.)
+- **Limits follow real use.** Set them above what people already do well (e.g. the longest good comments), not
+  from a guess.
 - **Say what's not decided** in an "Open questions" section rather than leaving gaps.
 - **Keep the main doc current, move the past to `history.md`**: when a rule changes, the area doc shows the new rule;
   the old one and why it changed go to history.
