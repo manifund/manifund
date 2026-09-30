@@ -60,7 +60,7 @@ Per root `seed.sql:529-547`, `grant_agreements` is:
 
 > **Step 0, before anything else:** root `seed.sql` is not actually loaded
 > (`supabase/config.toml` points at `supabase/seed.sql`, which doesn't exist —
-> see `docs/cleanup-plan-2026-07.md`), and **zero** `CREATE POLICY` statements
+> see `docs/plans/cleanup-plan-2026-07.md`), and **zero** `CREATE POLICY` statements
 > exist anywhere in `supabase/migrations/`. So the live policies exist only in
 > the production project and `seed.sql` is an undated description of them.
 > Query `pg_policies` on prod and confirm the above before designing around it.
