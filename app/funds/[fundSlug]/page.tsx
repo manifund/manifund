@@ -11,6 +11,7 @@ import { buttonClass } from '@/components/button'
 import clsx from 'clsx'
 import { Row } from '@/components/layout/row'
 import { ExpandableDonationsHistory } from '@/components/donations-history'
+import { notFound } from 'next/navigation'
 
 export default async function FundPage(props: { params: Promise<{ fundSlug: string }> }) {
   const { fundSlug } = await props.params
@@ -18,7 +19,7 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
   const user = await getUser(supabase)
   const fund = await getFundByUsername(supabase, fundSlug)
   if (!fund) {
-    return <div>Fund not found</div>
+    notFound()
   }
   const fundTxns = await getIncomingTxnsByUserWithDonor(supabase, fund.id)
   const userTxns = user ? await getTxnAndProjectsByUser(supabase, user.id) : []

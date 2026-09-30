@@ -9,8 +9,8 @@ import { createAdminClient } from '@/db/edge'
 import { ProjectDisplay } from './project-display'
 import { getPrizeCause, listSimpleCauses } from '@/db/cause'
 import { getBidsByUser } from '@/db/bid'
-import NotFound from '@/app/not-found'
 import NoAccess from '@/app/no-access'
+import { notFound } from 'next/navigation'
 
 export const revalidate = 0
 
@@ -18,6 +18,9 @@ export async function generateMetadata(props: { params: Promise<{ slug: string }
   const { slug } = await props.params
   const supabase = await createServerSupabaseClient()
   const project = await getProjectBySlug(supabase, slug)
+  if (!project) {
+    return { title: 'Project not found' }
+  }
   const description = project.blurb?.trim() || 'A project on Manifund'
   return {
     title: project.title,
@@ -43,7 +46,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     getUser(supabase),
   ])
   if (!project) {
-    return <NotFound />
+    notFound()
   }
   const [
     userProfile,

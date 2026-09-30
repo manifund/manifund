@@ -36,7 +36,7 @@ import { Tooltip } from '@/components/tooltip'
 import { EnvelopeIcon } from '@heroicons/react/20/solid'
 import { ViewerActionPanel } from './viewer-action-panel'
 import { ProjectScoreFlags } from '@/components/slop-flag'
-import { toSentenceCase } from '@/utils/formatting'
+import { formatDateUtc, toSentenceCase } from '@/utils/formatting'
 import Link from 'next/link'
 import { ArrowTrendingUpIcon, CircleStackIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
@@ -168,7 +168,12 @@ export function ProjectDisplay(props: {
               &middot;
             </span>
             <time dateTime={project.created_at} className="text-gray-500 font-light">
-              created {format(new Date(project.created_at), 'MMM d, yyyy')}
+              created{' '}
+              {formatDateUtc(project.created_at, {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+              })}
             </time>
             {pendingProjectTransfers.length > 0 && (
               <span className="text-gray-500">
@@ -314,8 +319,9 @@ export function ProjectTypeDisplay(props: {
   closeDate?: string
 }) {
   const { type, stage, closeDate } = props
+  // Local noon (no Z) so every timezone renders the same calendar date
   const formattedCloseDate = closeDate
-    ? format(new Date(`${closeDate}T12:00:00Z`), 'MMMM do, yyyy')
+    ? format(new Date(`${closeDate}T12:00:00`), 'MMMM do, yyyy')
     : ''
   return (
     <Row className="justify-between">

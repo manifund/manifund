@@ -48,9 +48,11 @@ function tickFormatter(key: string, period: Period) {
   if (period === 'monthly') {
     return key.endsWith('-01') ? key.slice(0, 4) : ''
   }
-  const date = new Date(key)
-  // First week of the year: Monday within the first 7 days of January
-  return date.getMonth() === 0 && date.getDate() <= 7 ? key.slice(0, 4) : ''
+  // First week of the year: Monday within the first 7 days of January.
+  // Parse the key's parts directly — new Date('yyyy-MM-dd') is UTC midnight,
+  // so local getters shift by timezone and break hydration.
+  const [, month, day] = key.split('-')
+  return month === '01' && parseInt(day) <= 7 ? key.slice(0, 4) : ''
 }
 
 function labelFormatter(key: string, period: Period) {

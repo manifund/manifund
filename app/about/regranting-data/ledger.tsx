@@ -85,7 +85,7 @@ function formatDollarsFull(n: number): string {
 
 function shortDate(iso: string) {
   const d = new Date(iso)
-  return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+  return d.toLocaleDateString('en-US', { timeZone: 'UTC', month: 'short', year: 'numeric' })
 }
 
 function budgetForYear(r: RegrantorRow, year: YearSelection): number {
