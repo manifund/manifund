@@ -50,9 +50,9 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 ### Posting
 
 - **C3** Only signed-in people post. Everything goes through `lib/comments`.
-- **C4** A comment is what the editor produces, with some text (or a mention or an image), up to 3,000 words (5,000
-  for progress updates and final reports). A longer one is refused with a message saying so, and the attempt is
-  logged for review.
+- **C4** A comment is what the editor produces, with some text (or a mention or an image), up to 10,000 words (far
+  above anything written so far, so it never gets in the way of real comments). A longer one is refused with a
+  message saying so, and the attempt is logged for review.
 - **C5** A comment can be a plain comment, or have a type: a progress update (by the project's creator), a final
   report, a grant rationale or an admin note. Only progress updates are posted from the comment box; the others come
   from their own flows (closing a project, giving a grant, an admin's verdict). Only top-level comments have a type.
@@ -61,14 +61,18 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C8** On a profile, the person can reply to comments but not start a thread (their own words go in their About
   section). Profile comments show "Commenting guidelines" on hover: "Comments on People's pages should be
   informative. Both vouches and negative appraisals should be phrased professionally and factually where possible."
-- **C9** Rate limits. Refusals say which limit and when to try again (the text stays in its editor). Server flows
-  (grant rationale, admin note, final report) aren't limited.
+- **C9** Rate limits, set so that normal use never meets them: they're there to stop floods. Refusals say which
+  limit and when to try again (the text stays in its editor). Server flows (grant rationale, admin note, final
+  report) aren't limited.
 
   | What | Limit | Admins get a warning when someone passes, in a day |
   |---|---|---|
-  | Comments on profiles | 5 per 5 minutes | 10 |
-  | Comments on projects and programs | 10 per 5 minutes | 30 |
-  | Reports | 5 per 5 minutes | 10 |
+  | Comments on projects and programs | 30 per 5 minutes | 60 |
+  | Comments on profiles | 10 per 5 minutes | 30 |
+  | Reports | 10 per 5 minutes | 20 |
+
+  For scale (up to September 2026): the busiest people wrote 7 comments in 5 minutes and 23 in a day; a fund's
+  account posting a batch, 22 and 39.
 
   (Later, agents that watch for unusual behaviour can take over from the warnings.)
 - **C10** Nobody loses what they wrote: when a comment, an edit, a report, a progress update or a final report is
@@ -156,6 +160,8 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-09-30 | Val | Word limit of 10,000 words for every comment (C4) | Never triggers normally: the longest comments so far are ~3,800 words (a progress update) and ~2,200 (thoughtful funding reasoning) |
+| 2026-09-30 | Val | Rate limits never meet normal use (C9); the numbers are Claude's proposal from real use | Stop floods only |
 | 2026-09-30 | Val | Rate limits per 5 minutes, with a daily threshold that warns admins (C9); refusals explain themselves and never lose the text (C9, C10) | Stop floods without blocking normal use; watch for odd behaviour |
 | 2026-09-30 | Val | A word limit, with refused attempts logged for review (C4) | Very long comments are rare and worth a look |
 | 2026-09-30 | Val | Acting on a reported comment has an "also close the reports" toggle (C20) | Sometimes a report needs a follow-up after acting |
@@ -177,8 +183,12 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-28 | Val | Avoid type-specific data on comments (evaluation scores, if they come, get their own table) | Most comments share one structure |
 | 2026-09-28 | Val | One comments table with one column per target | Clear what each row is about; real foreign keys; simple to query |
 | 2026-09-28 | Val, with Austin | Comments everywhere (profiles, programs), starting with profiles | Reputation is built from what others say about people and programs |
-| 2026-09-30 | Val | Word limits set above the longest existing comments: 3,000 words, 5,000 for progress updates and final reports (C4) | The longest plain comments (~2,200 words) are thoughtful funding reasoning; don't be judgy |
-| 2026-09-30 | Proposed by Claude | The numbers: the project and report limits (C9); the order of notification reasons (C21) | Not yet reviewed by the team |
+
+## Open questions
+
+- **Numbers proposed by Claude, not yet reviewed by the team**: the rate limits (C9) and the order of notification
+  reasons (C21).
+- **Profile comments (C8)** need more work (Val, 2026-09-30; not specified yet).
 
 ## Later
 
