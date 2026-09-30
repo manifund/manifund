@@ -82,17 +82,21 @@ export async function listCauses(supabase: SupabaseClient) {
   return data as Cause[]
 }
 
+// A project can sit in several prize rounds (e.g. EA Community Choice and LTFF, once LTFF is
+// flagged as a past round). Pick one instead of failing: the round with cert parameters (they drive
+// auctions, reactivation and publishing), then an open one, then the first by slug.
 export async function getPrizeCause(causeSlugs: string[], supabase: SupabaseClient) {
   const { data, error } = await supabase
     .from('causes')
     .select('*')
     .in('slug', causeSlugs)
     .eq('prize', true)
-    .maybeSingle()
+    .order('slug')
   if (error) {
     throw error
   }
-  return data ? (data as Cause) : undefined
+  const causes = (data ?? []) as Cause[]
+  return causes.find((c) => c.cert_params) ?? causes.find((c) => c.open) ?? causes[0]
 }
 
 export async function updateProjectCauses(
