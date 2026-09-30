@@ -17,12 +17,13 @@ export type EmailInput = {
   content: JSONContent
   commenter: { username: string; avatar_url: string | null }
   target: { title: string; url: string } // url: absolute, to the comment
+  moderation?: { action: 'edited' | 'removed'; note: string }
 }
 export type Email = { templateId: number; model: Record<string, unknown> }
 
 // Reason → Postmark template and variables. Reuses today's templates (NEW_COMMENT,
 // COMMENT_WITH_MENTION, GENERIC_NOTIF_HTML) so the emails look the same as before.
-export function emailFor({ reason, content, commenter, target }: EmailInput): Email {
+export function emailFor({ reason, content, commenter, target, moderation }: EmailInput): Email {
   const title = escapeHtml(target.title)
   const commentVars = {
     projectTitle: target.title,
@@ -55,6 +56,21 @@ export function emailFor({ reason, content, commenter, target }: EmailInput): Em
         'View report',
         `Manifund: Final report posted for "${target.title}"`
       )
+    case 'moderated_your_comment':
+      return {
+        templateId: TEMPLATE_IDS.GENERIC_NOTIF_HTML,
+        model: {
+          htmlContent:
+            `<p>A moderator ${moderation?.action ?? 'edited'} your comment on "${title}".</p>` +
+            `<p>Their note: ${escapeHtml(moderation?.note ?? '')}</p>` +
+            (moderation?.action === 'removed'
+              ? ''
+              : `<p>Every version stays visible in the comment's history.</p><hr />${excerptHtml(content)}`),
+          buttonUrl: target.url,
+          buttonText: 'View comment',
+          subject: `Manifund: a moderator ${moderation?.action ?? 'edited'} your comment`,
+        },
+      }
     case 'comment_on_your_profile':
       return generic(
         `${escapeHtml(commenter.username)} commented on your profile:`,

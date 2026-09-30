@@ -68,6 +68,8 @@ export type Database = {
       }
       comment_revisions: {
         Row: {
+          note: string | null
+          written_by: string | null
           comment_id: string
           content: Json | null
           id: string
@@ -75,6 +77,8 @@ export type Database = {
           written_at: string
         }
         Insert: {
+          note?: string | null
+          written_by?: string | null
           comment_id: string
           content?: Json | null
           id?: string
@@ -82,6 +86,8 @@ export type Database = {
           written_at: string
         }
         Update: {
+          note?: string | null
+          written_by?: string | null
           comment_id?: string
           content?: Json | null
           id?: string
@@ -308,6 +314,8 @@ export type Database = {
       }
       comments: {
         Row: {
+          edit_note: string | null
+          edited_by: string | null
           cause_slug: string | null
           profile_id: string | null
           deleted_at: string | null
@@ -323,6 +331,8 @@ export type Database = {
           special_type: Database['public']['Enums']['comment_type'] | null
         }
         Insert: {
+          edit_note?: string | null
+          edited_by?: string | null
           cause_slug?: string | null
           profile_id?: string | null
           deleted_at?: string | null
@@ -338,6 +348,8 @@ export type Database = {
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Update: {
+          edit_note?: string | null
+          edited_by?: string | null
           cause_slug?: string | null
           profile_id?: string | null
           deleted_at?: string | null

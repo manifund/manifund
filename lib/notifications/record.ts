@@ -6,10 +6,15 @@ import { REASONS, type CommentRow, type Recipient } from '@/lib/comments/types'
 // One notification per person per comment: when several reasons apply, the earliest in REASONS
 // wins. The author never notifies themselves. Never throws: a comment without its notifications is
 // logged, not failed (decided 2026-09-28).
-export async function recordCommentNotifications(comment: CommentRow, recipients: Recipient[]) {
+// actorId: who acted (the author for a new comment, a moderator for a moderation).
+export async function recordCommentNotifications(
+  comment: CommentRow,
+  recipients: Recipient[],
+  actorId: string = comment.commenter
+) {
   const best = new Map<string, Recipient>()
   for (const r of recipients) {
-    if (!r.id || r.id === comment.commenter) continue
+    if (!r.id || r.id === actorId) continue
     const current = best.get(r.id)
     if (!current || REASONS.indexOf(r.reason) < REASONS.indexOf(current.reason)) {
       // An email covered elsewhere stays covered even if a stronger reason wins.
@@ -20,7 +25,7 @@ export async function recordCommentNotifications(comment: CommentRow, recipients
     recipient_id: r.id,
     reason: r.reason,
     comment_id: comment.id,
-    actor_id: comment.commenter,
+    actor_id: actorId,
     email_status: r.email === false ? 'skipped' : 'pending',
     last_error: r.email === false ? 'covered by another email' : null,
   }))

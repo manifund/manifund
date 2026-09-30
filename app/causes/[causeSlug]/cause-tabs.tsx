@@ -8,7 +8,7 @@ import { EmptyContent } from '@/components/empty-content'
 import { ProjectsDisplay } from '@/components/projects-display'
 import { Tabs } from '@/components/tabs'
 import { FullProject } from '@/db/project'
-import { Cause, SimpleCause } from '@/db/cause'
+import { Cause, SimpleCause, isProgram } from '@/db/cause'
 import { WrenchIcon } from '@heroicons/react/20/solid'
 import { useSearchParams } from 'next/navigation'
 import { EditCause } from './edit-cause'
@@ -99,34 +99,42 @@ export function CauseTabs(props: {
     })
   }
 
-  // About: the cause's description, then comments on the cause (asked for 2026-09-28).
-  tabs.push({
-    name: 'About',
-    id: 'about',
-    count: comments.filter((c) => !c.deleted_at).length,
-    display: (
-      <>
-        {cause.slug === 'falcon-fund' && (
-          <Link
-            href="/create?prize=falcon-fund"
-            className={clsx(buttonClass('lg', 'orange'), 'mb-6')}
-          >
-            Apply for funding
-          </Link>
-        )}
-        {cause.description && <RichContent content={cause.description} />}
-        <EditCause cause={cause} />
-        <h2 className="mb-3 mt-8 text-lg font-medium">Comments on {cause.title}</h2>
-        <CommentsSection
-          target={{ cause_slug: cause.slug }}
-          basePath={`/causes/${cause.slug}?tab=about`}
-          comments={comments}
-          userProfile={userProfile}
-          userCharityBalance={charityBalance}
-        />
-      </>
-    ),
-  })
+  // About: the description; for programs and funds (not topic categories), comments too
+  // (the user, 2026-09-28 and 2026-09-30).
+  const commentable = isProgram(cause)
+  if (cause.description || commentable) {
+    tabs.push({
+      name: 'About',
+      id: 'about',
+      count: commentable ? comments.filter((c) => !c.deleted_at).length : 0,
+      display: (
+        <>
+          {cause.slug === 'falcon-fund' && (
+            <Link
+              href="/create?prize=falcon-fund"
+              className={clsx(buttonClass('lg', 'orange'), 'mb-6')}
+            >
+              Apply for funding
+            </Link>
+          )}
+          {cause.description && <RichContent content={cause.description} />}
+          <EditCause cause={cause} />
+          {commentable && (
+            <>
+              <h2 className="mb-3 mt-8 text-lg font-medium">Comments on {cause.title}</h2>
+              <CommentsSection
+                target={{ cause_slug: cause.slug }}
+                basePath={`/causes/${cause.slug}?tab=about`}
+                comments={comments}
+                userProfile={userProfile}
+                userCharityBalance={charityBalance}
+              />
+            </>
+          )}
+        </>
+      ),
+    })
+  }
   if (cause.slug === 'ea-community-choice') {
     if (profiles) {
       tabs.push({

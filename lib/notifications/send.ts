@@ -93,14 +93,19 @@ async function loadComment(id: string) {
     .eq('id', id)
     .maybeSingle()
     .throwOnError()
-  if (!data || !data.content) return undefined
+  if (!data) return undefined
   const target = targetOf(data)
   const rules = rulesFor(target)
   const ctx = await rules.load(target)
   if (!ctx) return undefined
   const label = rules.label(ctx)
   return {
-    content: data.content as JSONContent,
+    content: (data.content ?? { type: 'doc', content: [] }) as JSONContent,
+    moderation: data.deleted_at
+      ? { action: 'removed' as const, note: data.removed_reason ?? '' }
+      : data.edit_note
+        ? { action: 'edited' as const, note: data.edit_note }
+        : undefined,
     commenter: data.profiles as { username: string; avatar_url: string | null },
     target: { title: label.title, url: `${getURL()}${label.href.replace(/^\//, '')}#${id}` },
   }

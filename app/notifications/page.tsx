@@ -17,6 +17,7 @@ const WHAT: Record<string, string> = {
   progress_update: 'posted a progress update on',
   final_report: 'posted a final report on',
   followed_project_comment: 'commented on',
+  moderated_your_comment: 'moderated your comment on',
 }
 
 export default async function NotificationsPage() {

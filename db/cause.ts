@@ -6,6 +6,13 @@ import { sortBy, uniq } from 'es-toolkit'
 // shown by default on /create, and not addable through the edit-project UI.
 export const LINK_ONLY_PRIZE_CAUSE_SLUGS = ['leo-microgrants', 'grantmaking-ai']
 
+// A program (Falcon Fund, prize rounds, ACX Grants) rather than a topic category (Science &
+// technology, AI governance): today a cause flagged `prize` (what /causes lists as programs and
+// prize rounds) or tied to a fund's profile. Programs take comments; topics don't (the user,
+// 2026-09-30). TENTATIVE rule: LTFF and EAIF have neither flag, so they count as topics.
+export const isProgram = (cause: { prize: boolean; fund_id: string | null }) =>
+  cause.prize || !!cause.fund_id
+
 export type Cause = Omit<Database['public']['Tables']['causes']['Row'], 'cert_params'> & {
   cert_params: CertParams | null
 }

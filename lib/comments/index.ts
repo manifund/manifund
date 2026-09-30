@@ -111,21 +111,33 @@ async function getComment(id: string) {
   return data
 }
 
-// Edit: only the author, only a visible comment. The database keeps the old version.
+type Actor = { profile: Profile; admin: boolean }
+
+// Edit: the author (their own words; strikethrough etc. for retractions), or a moderator with a
+// note (decided with the team 2026-09-30). Every version stays public in the history, with who
+// wrote it and the moderator's note. The author is told about a moderator's edit.
 export async function edit(
-  author: Profile,
+  actor: Actor,
   commentId: string,
-  content: unknown
+  content: unknown,
+  note?: string | null
 ): Promise<Result<{ comment: CommentRow }>> {
   const checked = checkContent(content)
   if (!checked.ok) return denied(400, checked.message)
   const existing = await getComment(commentId)
   if (!existing) return denied(404, 'comment not found')
-  if (existing.commenter !== author.id) return denied(403, 'only the author can edit a comment')
-  if (existing.deleted_at) return denied(409, 'this comment was deleted')
+  if (existing.deleted_at) return denied(409, 'this comment was removed')
+  const byAuthor = existing.commenter === actor.profile.id
+  if (!byAuthor && !actor.admin) return denied(403, 'only the author or a moderator can edit')
+  const modNote = note?.trim().slice(0, 500) || null
+  if (!byAuthor && !modNote) return denied(400, "a moderator's edit needs a note")
   const { data: comment, error } = await createAdminClient()
     .from('comments')
-    .update({ content: checked.content })
+    .update({
+      content: checked.content,
+      edited_by: actor.profile.id,
+      edit_note: byAuthor ? null : modNote,
+    })
     .eq('id', commentId)
     .select()
     .single()
@@ -133,46 +145,63 @@ export async function edit(
     log.error('comment.edit_failed', { comment_id: commentId, error })
     return denied(500, 'could not save the edit')
   }
-  log.info('comment.edited', { comment_id: commentId })
+  log.info('comment.edited', { comment_id: commentId, by_moderator: !byAuthor })
+  if (!byAuthor) await tellAuthor(comment, actor.profile.id)
   return { ok: true, comment }
 }
 
-// Remove: the author ("deleted by the author") or an admin ("removed by an admin: <reason>").
-// Every removal leaves a placeholder; the text stays only in revisions, which the public can't
-// read for removed comments. Replies stay.
+// Remove: moderators only, with a public reason (mostly private information). A placeholder with
+// the reason stays; the text leaves public view (its history is admin-only); replies stay.
+// Authors can't delete (decided with the team 2026-09-30): they edit instead.
 export async function remove(
-  actor: { profile: Profile; admin: boolean },
+  actor: Actor,
   commentId: string,
   reason?: string | null
 ): Promise<Result> {
+  if (!actor.admin)
+    return denied(403, 'only moderators can remove a comment; you can edit it instead')
+  const modNote = reason?.trim().slice(0, 500)
+  if (!modNote) return denied(400, 'a removal needs a reason, shown in place of the comment')
   const existing = await getComment(commentId)
   if (!existing) return denied(404, 'comment not found')
   if (existing.deleted_at) return { ok: true } // already removed: idempotent
-  const byAuthor = existing.commenter === actor.profile.id
-  if (!byAuthor && !actor.admin)
-    return denied(403, 'only the author or an admin can remove a comment')
-  if (!byAuthor && !reason?.trim()) return denied(400, 'an admin removal needs a reason')
-  const { error } = await createAdminClient()
+  const { data: comment, error } = await createAdminClient()
     .from('comments')
     .update({
       content: null,
       deleted_at: new Date().toISOString(),
       deleted_by: actor.profile.id,
-      removed_reason: byAuthor ? null : reason!.trim(),
+      removed_reason: modNote,
     })
     .eq('id', commentId)
-  if (error) {
+    .select()
+    .single()
+  if (error || !comment) {
     log.error('comment.remove_failed', { comment_id: commentId, error })
     return denied(500, 'could not remove the comment')
   }
-  // Nobody needs an email about a comment that is gone.
+  // Nobody needs an email about a comment that is gone, except its author.
   await createAdminClient()
     .from('notifications')
     .update({ email_status: 'skipped', last_error: 'comment removed' })
     .eq('comment_id', commentId)
     .in('email_status', ['pending'])
-  log.info('comment.removed', { comment_id: commentId, by_author: byAuthor })
+  log.info('comment.removed', { comment_id: commentId })
+  await tellAuthor(comment, actor.profile.id)
   return { ok: true }
+}
+
+async function tellAuthor(comment: CommentRow, moderatorId: string) {
+  await recordCommentNotifications(
+    comment,
+    [{ id: comment.commenter, reason: 'moderated_your_comment' }],
+    moderatorId
+  )
+  try {
+    after(() => sendPendingEmails({ commentId: comment.id }))
+  } catch (e) {
+    log.warn('comment.send_deferred', { comment_id: comment.id, error: e })
+  }
 }
 
 // Report to the admins: once per person per comment, not your own, optional note, spam toggle.
@@ -202,7 +231,7 @@ export async function report(
 
 // An admin closes every open report on a comment: dismiss, or remove the comment with a reason.
 export async function resolveReports(
-  admin: { profile: Profile; admin: boolean },
+  admin: Actor,
   commentId: string,
   resolution: 'dismissed' | 'removed',
   reason?: string | null
