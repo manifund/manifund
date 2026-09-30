@@ -61,7 +61,7 @@ export async function POST(req: Request) {
   if (adminComment) {
     const note = await post(
       adminProfile,
-      { target: { project: projectId }, content: adminComment, kind: 'admin note' },
+      { target: { project: projectId }, content: adminComment, type: 'admin note' },
       'server'
     )
     if (!note.ok && note.status !== 400) {

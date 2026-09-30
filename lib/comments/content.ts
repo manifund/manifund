@@ -22,9 +22,18 @@ const MARK_TYPES = new Set(['bold', 'italic', 'strike', 'code', 'link'])
 const MAX_BYTES = 100_000
 const MAX_DEPTH = 20
 
-export type ContentCheck = { ok: true; content: JSONContent } | { ok: false; message: string }
+// Word limits (C4; numbers proposed by Claude 2026-09-30, not yet reviewed by the team): long-form
+// types (progress updates, final reports) get more room.
+const WORD_LIMIT = 2000
+const LONG_FORM_WORD_LIMIT = 5000
+export const wordLimitFor = (type: string | null | undefined) =>
+  type === 'progress update' || type === 'final report' ? LONG_FORM_WORD_LIMIT : WORD_LIMIT
 
-export function checkContent(content: unknown): ContentCheck {
+export type ContentCheck =
+  | { ok: true; content: JSONContent; words: number }
+  | { ok: false; message: string; tooLong?: { words: number; limit: number } }
+
+export function checkContent(content: unknown, maxWords = WORD_LIMIT): ContentCheck {
   if (!content || typeof content !== 'object' || (content as JSONContent).type !== 'doc') {
     return { ok: false, message: 'content must be an editor document' }
   }
@@ -34,7 +43,15 @@ export function checkContent(content: unknown): ContentCheck {
   const problem = findProblem(content as JSONContent, 0)
   if (problem) return { ok: false, message: problem }
   if (!hasText(content as JSONContent)) return { ok: false, message: 'comment is empty' }
-  return { ok: true, content: content as JSONContent }
+  const words = countWords(content as JSONContent)
+  if (words > maxWords) {
+    return {
+      ok: false,
+      message: `Comments are limited to ${maxWords.toLocaleString('en-US')} words; this one has ${words.toLocaleString('en-US')}. Shorten it, or link to a longer document.`,
+      tooLong: { words, limit: maxWords },
+    }
+  }
+  return { ok: true, content: content as JSONContent, words }
 }
 
 function findProblem(node: JSONContent, depth: number): string | null {
@@ -57,3 +74,10 @@ function hasText(node: JSONContent): boolean {
 }
 
 export const mentionIds = (content: JSONContent) => parseMentions(content)
+
+// Words in the text (a mention counts as one).
+export function countWords(node: JSONContent): number {
+  const own =
+    node.type === 'mention' ? 1 : node.text ? node.text.split(/\s+/).filter(Boolean).length : 0
+  return own + (node.content ?? []).reduce((sum, child) => sum + countWords(child), 0)
+}

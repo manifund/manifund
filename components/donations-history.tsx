@@ -1,4 +1,5 @@
 'use client'
+import toast from 'react-hot-toast'
 import { Profile } from '@/db/profile'
 import { TxnAndProfiles } from '@/db/txn'
 import { formatMoney } from '@/utils/formatting'
@@ -157,11 +158,18 @@ function DonationReplyBox(props: {
     const content = editor?.getJSON() as JSONContent | undefined
     if (!editor || !editor.getText()?.trim() || !content) return
     setIsSubmitting(true)
-    await fetch('/api/comments', {
+    const res = await fetch('/api/comments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ target: { project: replyContext.projectId }, content }),
     })
+    if (!res.ok) {
+      // Keep the text (C10).
+      const body = await res.json().catch(() => null)
+      toast.error(body?.error ?? 'Could not post the reply')
+      setIsSubmitting(false)
+      return
+    }
     editor.commands.clearContent()
     clearLocalStorageItem(storageKey)
     setIsSubmitting(false)

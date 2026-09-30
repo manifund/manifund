@@ -9,8 +9,8 @@ export type ProjectContext = {
   stage: string
 }
 
-// Kinds only the project's creator may post, and only as a new thread.
-const CREATOR_KINDS = ['progress update', 'final report']
+// Types only the project's creator may post, and only as a new thread.
+const CREATOR_TYPES = ['progress update', 'final report']
 
 export const projectRules: TargetRules<ProjectContext> = {
   async load(target: Target) {
@@ -24,14 +24,14 @@ export const projectRules: TargetRules<ProjectContext> = {
     return data
   },
 
-  canPost(ctx, author, { kind, parent }) {
+  canPost(ctx, author, { type, parent }) {
     if (ctx.stage === 'hidden' || ctx.stage === 'draft') {
       return denied(403, 'this project is not open for comments')
     }
-    if (kind && CREATOR_KINDS.includes(kind) && author.id !== ctx.creator) {
-      return denied(403, `only the project's creator can post a ${kind}`)
+    if (type && CREATOR_TYPES.includes(type) && author.id !== ctx.creator) {
+      return denied(403, `only the project's creator can post a ${type}`)
     }
-    if (kind && parent) return denied(400, 'replies are plain comments')
+    if (type && parent) return denied(400, 'replies are plain comments')
     return { ok: true }
   },
 

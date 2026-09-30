@@ -9,16 +9,16 @@ export type CommentRow = Database['public']['Tables']['comments']['Row']
 export type Target = { project: string } | { profile_id: string } | { cause_slug: string }
 
 // `special_type` in the database; null = a plain comment.
-export type Kind = Database['public']['Enums']['comment_type'] | null
+export type CommentType = Database['public']['Enums']['comment_type'] | null
 
-// Kinds a person may post through the public route. The others (final report, grant rationale,
+// Types a person may post through the public route. The others (final report, grant rationale,
 // admin note) are posted by server code paths only, with source 'server'.
-export const USER_KINDS: Kind[] = [null, 'progress update']
+export const USER_TYPES: CommentType[] = [null, 'progress update']
 
 export type PostInput = {
   target: Target
   content: JSONContent
-  kind?: Kind
+  type?: CommentType
   replyingTo?: string | null
 }
 
@@ -55,7 +55,7 @@ export type TargetRules<C> = {
   canPost(
     ctx: C,
     author: Profile,
-    input: { kind: Kind; parent?: CommentRow }
+    input: { type: CommentType; parent?: CommentRow }
   ): Result | Promise<Result>
   // Who hears about a new comment (used from step 2 on; today the webhook still emails).
   recipients(

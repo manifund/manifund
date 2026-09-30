@@ -5,7 +5,7 @@ import { getSignedInProfile } from '@/lib/comments/auth'
 
 export const runtime = 'nodejs'
 
-// POST /api/comments  { target: { project: id }, content, kind?, replyingTo? }
+// POST /api/comments  { target: { project | profile_id | cause_slug }, content, type?, replyingTo? }
 export async function POST(request: Request) {
   const author = await getSignedInProfile()
   if (!author) return NextResponse.json({ error: 'sign in to comment' }, { status: 401 })
@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const result = await post(author, {
     target,
     content: body.content,
-    kind: body.kind ?? null,
+    type: body.type ?? null,
     replyingTo: body.replyingTo ?? null,
   })
   if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status })

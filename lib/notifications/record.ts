@@ -1,27 +1,18 @@
 import 'server-only'
 import { createAdminClient } from '@/db/supabase-admin'
 import { log } from '@/lib/log'
-import { REASONS, type CommentRow, type Recipient } from '@/lib/comments/types'
+import type { CommentRow, Recipient } from '@/lib/comments/types'
+import { pickRecipients } from './pick'
 
-// One notification per person per comment: when several reasons apply, the earliest in REASONS
-// wins. The author never notifies themselves. Never throws: a comment without its notifications is
-// logged, not failed (decided 2026-09-28).
-// actorId: who acted (the author for a new comment, a moderator for a moderation).
+// Records the notifications for a comment. Never throws: a comment without its notifications is
+// logged, not failed (decided 2026-09-28). actorId: who acted (the author for a new comment, a
+// moderator for a moderation).
 export async function recordCommentNotifications(
   comment: CommentRow,
   recipients: Recipient[],
   actorId: string = comment.commenter
 ) {
-  const best = new Map<string, Recipient>()
-  for (const r of recipients) {
-    if (!r.id || r.id === actorId) continue
-    const current = best.get(r.id)
-    if (!current || REASONS.indexOf(r.reason) < REASONS.indexOf(current.reason)) {
-      // An email covered elsewhere stays covered even if a stronger reason wins.
-      best.set(r.id, { ...r, email: (r.email ?? true) && (current?.email ?? true) })
-    }
-  }
-  const rows = [...best.values()].map((r) => ({
+  const rows = pickRecipients(recipients, actorId).map((r) => ({
     recipient_id: r.id,
     reason: r.reason,
     comment_id: comment.id,
