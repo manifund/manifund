@@ -1,9 +1,10 @@
 import { createAdminClient } from '@/db/edge'
 import { CreateTxn } from '../create-txn'
 import { Table } from '@/components/table-catalyst'
+import { requireAdmin } from '@/lib/require-admin'
 
-export const revalidate = 300
 export default async function TransactionsPage() {
+  await requireAdmin() // before any admin-client read: the layout's check alone doesn't stop the page
   const supabaseAdmin = createAdminClient()
   const { data: txns } = await supabaseAdmin
     .from('txns')
