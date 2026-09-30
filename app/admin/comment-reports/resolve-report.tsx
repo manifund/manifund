@@ -6,6 +6,7 @@ import { Button } from '@/components/button'
 
 export function ResolveReport(props: { commentId: string }) {
   const [reason, setReason] = useState('')
+  const [closeReports, setCloseReports] = useState(true)
   const [busy, setBusy] = useState(false)
   const router = useRouter()
   const resolve = async (resolution: 'dismissed' | 'removed') => {
@@ -13,7 +14,7 @@ export function ResolveReport(props: { commentId: string }) {
     const res = await fetch(`/api/comments/${props.commentId}/resolve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resolution, reason }),
+      body: JSON.stringify({ resolution, reason, closeReports }),
     })
     setBusy(false)
     if (!res.ok) toast.error((await res.json().catch(() => ({}))).error ?? 'Failed')
@@ -30,6 +31,15 @@ export function ResolveReport(props: { commentId: string }) {
       <Button size="xs" color="gray" loading={busy} onClick={() => resolve('dismissed')}>
         Dismiss
       </Button>
+      <label className="flex items-center gap-1 text-xs text-gray-600">
+        <input
+          type="checkbox"
+          checked={closeReports}
+          onChange={(e) => setCloseReports(e.target.checked)}
+          className="rounded text-orange-500"
+        />
+        Also close the reports
+      </label>
       <Button
         size="xs"
         color="rose"

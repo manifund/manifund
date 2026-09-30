@@ -27,7 +27,7 @@ export async function POST(req: Request) {
   if (!author) return NextResponse.json({ error: 'profile not found' }, { status: 404 })
   const report = await post(
     author,
-    { target: { project: projectId }, content: reportContent, kind: 'final report' },
+    { target: { project: projectId }, content: reportContent, type: 'final report' },
     'server'
   )
   if (!report.ok) return NextResponse.json({ error: report.message }, { status: report.status })

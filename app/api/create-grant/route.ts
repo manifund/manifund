@@ -149,7 +149,7 @@ export async function POST(req: Request) {
   let rationaleError: string | undefined
   const rationale = await post(
     regranterProfile,
-    { target: { project: project.id }, content: donorNotes, kind: 'grant rationale' },
+    { target: { project: project.id }, content: donorNotes, type: 'grant rationale' },
     'server'
   )
   if (!rationale.ok) {

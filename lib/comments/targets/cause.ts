@@ -19,10 +19,10 @@ export const causeRules: TargetRules<CauseContext> = {
     return data
   },
 
-  canPost(ctx, _author, { kind }) {
+  canPost(ctx, _author, { type }) {
     if (!isProgram(ctx))
       return denied(403, 'comments are open on programs and funds, not on topics')
-    if (kind) return denied(400, 'only plain comments on programs')
+    if (type) return denied(400, 'only plain comments on programs (no type)')
     return { ok: true }
   },
 

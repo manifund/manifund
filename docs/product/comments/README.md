@@ -52,7 +52,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C3** Only signed-in people post. Everything goes through `lib/comments`.
 - **C4** A comment is what the editor produces, with some text (or a mention or an image), up to 2,000 words (5,000
   for progress updates and final reports). A longer one is refused with a message saying so, and the attempt is
-  logged for review. *(Word limits not built yet.)*
+  logged for review.
 - **C5** A comment can be a plain comment, or have a type: a progress update (by the project's creator), a final
   report, a grant rationale or an admin note. Only progress updates are posted from the comment box; the others come
   from their own flows (closing a project, giving a grant, an admin's verdict). Only top-level comments have a type.
@@ -61,7 +61,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C8** On a profile, the person can reply to comments but not start a thread (their own words go in their About
   section). Profile comments show "Commenting guidelines" on hover: "Comments on People's pages should be
   informative. Both vouches and negative appraisals should be phrased professionally and factually where possible."
-- **C9** Rate limits. Refusals say which limit and when to try again. *(Not built yet.)*
+- **C9** Rate limits. Refusals say which limit and when to try again (the text stays in its editor). Server flows
+  (grant rationale, admin note, final report) aren't limited.
 
   | What | Limit | Admins get a warning when someone passes, in a day |
   |---|---|---|
@@ -100,8 +101,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C19** Anyone signed in can report someone else's comment, once, with an optional note and a "this is spam"
   toggle. Reporters see only their own reports.
 - **C20** Admins see open reports per comment (the comment, its author, a link, the notes). They dismiss them, or act
-  on the comment with an "also close the reports" toggle (off leaves them open, e.g. to follow up). *(The toggle is
-  not built yet: acting closes them today.)*
+  on the comment with an "also close the reports" toggle (off leaves them open, e.g. to follow up).
 
 ### Notifications
 

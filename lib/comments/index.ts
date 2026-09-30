@@ -3,18 +3,19 @@ import { after } from 'next/server'
 import { createAdminClient } from '@/db/supabase-admin'
 import type { Profile } from '@/db/profile'
 import { log } from '@/lib/log'
-import { checkContent, mentionIds } from './content'
+import { checkContent, mentionIds, wordLimitFor } from './content'
+import { bucketFor, checkRate } from './limits'
 import { recordCommentNotifications } from '@/lib/notifications/record'
 import { sendPendingEmails } from '@/lib/notifications/send'
 import { rulesFor } from './targets'
-import { denied, USER_KINDS, type CommentRow, type PostInput, type Result } from './types'
+import { denied, USER_TYPES, type CommentRow, type PostInput, type Result } from './types'
 
 export * from './types'
 
 // The only code that writes comments. Routes and server code paths call these; the database
 // refuses direct writes from browsers (in production; locally the old open policy remains).
 //
-// source 'user': a person through the public route; only USER_KINDS are allowed.
+// source 'user': a person through the public route; only USER_TYPES are allowed.
 // source 'server': a server flow (final report, grant rationale, admin note) that has already
 // checked who the caller is.
 export async function post(
@@ -22,12 +23,22 @@ export async function post(
   input: PostInput,
   source: 'user' | 'server' = 'user'
 ): Promise<Result<{ comment: CommentRow }>> {
-  const kind = input.kind ?? null
-  if (source === 'user' && !USER_KINDS.includes(kind)) {
-    return denied(400, `comments of kind "${kind}" can't be posted directly`)
+  const type = input.type ?? null
+  if (source === 'user' && !USER_TYPES.includes(type)) {
+    return denied(400, `comments of type "${type}" can't be posted directly`)
   }
-  const checked = checkContent(input.content)
-  if (!checked.ok) return denied(400, checked.message)
+  const checked = checkContent(input.content, wordLimitFor(type))
+  if (!checked.ok) {
+    if (checked.tooLong) {
+      log.warn('comment.too_long', {
+        author: author.id,
+        target: input.target,
+        type,
+        ...checked.tooLong,
+      })
+    }
+    return denied(400, checked.message)
+  }
 
   const rules = rulesFor(input.target)
   const ctx = await rules.load(input.target)
@@ -43,8 +54,13 @@ export async function post(
     if (parent.deleted_at) return denied(409, 'this thread was deleted')
   }
 
-  const verdict = await rules.canPost(ctx, author, { kind, parent })
+  const verdict = await rules.canPost(ctx, author, { type, parent })
   if (!verdict.ok) return verdict
+  // Server flows (grant rationale, admin note, final report) aren't rate limited.
+  if (source === 'user') {
+    const limited = await checkRate(author.id, bucketFor(input.target))
+    if (limited) return limited
+  }
 
   const { data: comment, error } = await createAdminClient()
     .from('comments')
@@ -52,7 +68,7 @@ export async function post(
       ...input.target,
       commenter: author.id,
       content: checked.content,
-      special_type: kind,
+      special_type: type,
       replying_to: parent?.id ?? null,
     })
     .select()
@@ -62,7 +78,7 @@ export async function post(
     log.error('comment.insert_failed', { target: input.target, author: author.id, error })
     return denied(400, error?.message ?? 'could not save the comment')
   }
-  log.info('comment.posted', { comment_id: comment.id, target: input.target, kind, source })
+  log.info('comment.posted', { comment_id: comment.id, target: input.target, type, source })
 
   try {
     await rules.afterPost?.(ctx, comment)
@@ -122,11 +138,20 @@ export async function edit(
   content: unknown,
   note?: string | null
 ): Promise<Result<{ comment: CommentRow }>> {
-  const checked = checkContent(content)
-  if (!checked.ok) return denied(400, checked.message)
   const existing = await getComment(commentId)
   if (!existing) return denied(404, 'comment not found')
   if (existing.deleted_at) return denied(409, 'this comment was removed')
+  const checked = checkContent(content, wordLimitFor(existing.special_type))
+  if (!checked.ok) {
+    if (checked.tooLong) {
+      log.warn('comment.too_long', {
+        author: actor.profile.id,
+        comment_id: commentId,
+        ...checked.tooLong,
+      })
+    }
+    return denied(400, checked.message)
+  }
   const byAuthor = existing.commenter === actor.profile.id
   if (!byAuthor && !actor.admin) return denied(403, 'only the author or a moderator can edit')
   const modNote = note?.trim().slice(0, 500) || null
@@ -213,6 +238,8 @@ export async function report(
   const existing = await getComment(commentId)
   if (!existing || existing.deleted_at) return denied(404, 'comment not found')
   if (existing.commenter === reporter.id) return denied(400, "you can't report your own comment")
+  const limited = await checkRate(reporter.id, 'report')
+  if (limited) return limited
   const note = input.note?.trim().slice(0, 2000) || null
   const { error } = await createAdminClient().from('comment_reports').insert({
     comment_id: commentId,
@@ -229,17 +256,20 @@ export async function report(
   return { ok: true }
 }
 
-// An admin closes every open report on a comment: dismiss, or remove the comment with a reason.
+// From the reports queue (C20): dismiss (closes every open report on the comment), or remove the
+// comment with a reason, closing the reports only if asked (left open e.g. to follow up).
 export async function resolveReports(
   admin: Actor,
   commentId: string,
   resolution: 'dismissed' | 'removed',
-  reason?: string | null
+  reason?: string | null,
+  closeReports = true
 ): Promise<Result> {
   if (!admin.admin) return denied(403, 'admins only')
   if (resolution === 'removed') {
     const removed = await remove(admin, commentId, reason)
     if (!removed.ok) return removed
+    if (!closeReports) return { ok: true }
   }
   const { error } = await createAdminClient()
     .from('comment_reports')
