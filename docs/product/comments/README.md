@@ -184,10 +184,14 @@ Newest first. Everything here is also reflected in the rules above.
 
 - **Tags** people choose (see Decisions); a search and filter bar on the feed (C31).
 - **Agents** can't comment on people: needs profiles to say who is an agent.
-- **Notification settings** (what to receive by email), and moving Manifund's other emails onto notifications. Until
-  then some things only email, which is fine.
+- **Notification settings**: a settings page where each person turns emails on or off, and moving Manifund's other
+  emails (about 24 kinds) onto notifications so they also show in the app. Until then some things only email, which
+  is fine.
 - **Following** people and programs, and more thought on what following a project should mean (C7).
-- **Evaluations** of projects (shelved).
+- **Vouches** as their own kind of profile comment, if plain comments turn out not to be enough (see Decisions).
+- **Evaluations** of projects (shelved), with their own table.
+- **The home feed**, reworked once comments on people and programs show up in it at volume.
+- **Errors in PostHog**: forward the comment code's logged errors there, next to the Vercel logs.
 
 ## Tests
 
