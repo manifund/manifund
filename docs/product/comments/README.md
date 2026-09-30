@@ -103,6 +103,13 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C20** Admins see open reports per comment (the comment, its author, a link, the notes). They dismiss them, or act
   on the comment with an "also close the reports" toggle (off leaves them open, e.g. to follow up).
 
+### Reactions
+
+- **C35** People react to comments with emoji, once per emoji (reacting again takes it back). Three reactions are
+  tips (🧡 $1, 🏅 $10, 🏆 $100 of charity money, to the commenter). A tip moves the money exactly once, together
+  with its reaction: a repeated request (a double click, a direct API call) doesn't charge again.
+  *(The tip part is not built yet: today a repeated request can charge twice.)*
+
 ### Notifications
 
 - **C21** Each new comment notifies each person at most once, for the strongest reason: a reply to you, a mention of
