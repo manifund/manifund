@@ -6,6 +6,15 @@ export async function proxy(request: NextRequest) {
   // Trailing-slash redirect, disabled globally in next.config.js so /flux/* keeps its slashes.
   // Plain URL, not nextUrl.clone(): NextURL re-normalizes the pathname back to a trailing slash.
   const { pathname, search } = request.nextUrl
+
+  // Vercel's router 500s on prerendered paths with a backslash appended (e.g.
+  // /about/donate%5C serves the static 500 page), and scanners probe these
+  // constantly. Strip backslashes here, before Vercel's filesystem lookup.
+  const deslashed = pathname.replace(/\\|%5c/gi, '')
+  if (deslashed !== pathname) {
+    return NextResponse.redirect(new URL((deslashed || '/') + search, request.url), 308)
+  }
+
   if (pathname !== '/' && pathname.endsWith('/')) {
     return NextResponse.redirect(new URL(pathname.slice(0, -1) + search, request.url), 308)
   }
