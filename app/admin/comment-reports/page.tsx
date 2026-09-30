@@ -4,11 +4,14 @@ import { RichContent } from '@/components/editor'
 import { RelativeTime } from '@/components/relative-time'
 import { commentHref, targetTitle, TARGET_EMBEDS } from '@/lib/comments/links'
 import { ResolveReport } from './resolve-report'
+import { requireAdmin } from '@/lib/require-admin'
 
 export const dynamic = 'force-dynamic'
 
-// Open reports, one card per reported comment (the admin layout checks access).
+// Open reports, one card per reported comment. Admins only: checked here, before the query (the
+// layout's check doesn't stop the page from rendering).
 export default async function CommentReportsPage() {
+  await requireAdmin()
   const { data } = await createAdminClient()
     .from('comment_reports')
     .select(
