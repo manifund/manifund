@@ -37,34 +37,46 @@ changed: `history.md`.
 
 ## Rules
 
-Ids are stable: tests name them, and a removed rule keeps its id in `history.md`.
+Ids are stable once merged: tests name them, and a removed rule keeps its id in `history.md`. Rules marked
+*(not built yet)* are decided but not yet in the code.
 
 ### Targets
 
-- **C1** A comment is about exactly one thing: a project, a person's profile, or a program.
+- **C1** A comment is about exactly one thing: a project, a person's or an organization's profile, or a program.
+  (A fund's account shows its program page, so funds take comments as programs.)
 - **C2** Programs take comments (funds and rounds, e.g. Falcon Fund, ACX Grants); topic causes (e.g. Science &
   technology) don't. A cause is a program when it's a prize round or has a fund.
-- **C3** People's and organizations' profiles take comments; system accounts (funds, market makers) don't.
 
 ### Posting
 
-- **C4** Only signed-in people post. Everything goes through `lib/comments`.
-- **C5** A comment must have text (or a mention or image), at most 100 KB, using only what the editor produces.
-- **C6** Kinds: anyone posts plain comments; a project's creator also posts progress updates. Final reports, grant
-  rationales and admin notes come only from their own flows (closing a project, giving a grant, an admin verdict).
-  Only top-level comments have a kind.
-- **C7** Hidden and draft projects take no comments.
-- **C8** Commenting on a project follows it.
-- **C9** On a profile, the person can reply to comments but not start a thread (their own words go in their About
-  section). At most 10 profile comments per person per day. Profile comments show "Commenting guidelines" on hover:
-  "Comments on People's pages should be informative. Both vouches and negative appraisals should be phrased
-  professionally and factually where possible."
+- **C3** Only signed-in people post. Everything goes through `lib/comments`.
+- **C4** A comment is what the editor produces, with some text (or a mention or an image), up to 2,000 words (5,000
+  for progress updates and final reports). A longer one is refused with a message saying so, and the attempt is
+  logged for review. *(Word limits not built yet.)*
+- **C5** A comment can be a plain comment, or have a type: a progress update (by the project's creator), a final
+  report, a grant rationale or an admin note. Only progress updates are posted from the comment box; the others come
+  from their own flows (closing a project, giving a grant, an admin's verdict). Only top-level comments have a type.
+- **C6** Hidden and draft projects take no comments (a draft's creator can't comment on it before publishing).
+- **C7** Commenting on a project follows it.
+- **C8** On a profile, the person can reply to comments but not start a thread (their own words go in their About
+  section). Profile comments show "Commenting guidelines" on hover: "Comments on People's pages should be
+  informative. Both vouches and negative appraisals should be phrased professionally and factually where possible."
+- **C9** Rate limits. Refusals say which limit and when to try again. *(Not built yet.)*
+
+  | What | Limit | Admins get a warning when someone passes, in a day |
+  |---|---|---|
+  | Comments on profiles | 5 per 5 minutes | 10 |
+  | Comments on projects and programs | 10 per 5 minutes | 30 |
+  | Reports | 5 per 5 minutes | 10 |
+
+  (Later, agents that watch for unusual behaviour can take over from the warnings.)
+- **C10** Nobody loses what they wrote: when a comment, an edit, a report, a progress update or a final report is
+  refused or fails, the text stays in its editor (drafts are also kept in the browser).
 
 ### Threads
 
-- **C10** One level of replies. Replying to a reply posts under the top-level comment, starting with an @mention of
+- **C11** One level of replies. Replying to a reply posts under the top-level comment, starting with an @mention of
   the person answered.
-- **C11** No new replies under a removed comment; existing replies stay.
 
 ### Editing and history
 
@@ -78,7 +90,8 @@ Ids are stable: tests name them, and a removed rule keeps its id in `history.md`
 - **C15** Moderators (admins) can edit any comment, with a public note; it then shows as "edited by a moderator" and
   the history marks that version with the note.
 - **C16** Moderators can remove a comment, with a public reason (meant mostly for private information). It shows as
-  "Removed by a moderator: <reason>"; replies stay; the removed text is readable only by admins.
+  "Removed by a moderator: <reason>"; its replies stay, and the thread takes no new replies. The removed text is
+  readable only by admins.
 - **C17** The author is told (in the app and by email) when a moderator edits or removes their comment.
 - **C18** Spam accounts can still be wiped entirely by an admin (their comments deleted).
 
@@ -86,8 +99,9 @@ Ids are stable: tests name them, and a removed rule keeps its id in `history.md`
 
 - **C19** Anyone signed in can report someone else's comment, once, with an optional note and a "this is spam"
   toggle. Reporters see only their own reports.
-- **C20** Admins see open reports per comment (the comment, its author, a link, the notes) and dismiss them or act
-  on the comment; acting closes all open reports on it.
+- **C20** Admins see open reports per comment (the comment, its author, a link, the notes). They dismiss them, or act
+  on the comment with an "also close the reports" toggle (off leaves them open, e.g. to follow up). *(The toggle is
+  not built yet: acting closes them today.)*
 
 ### Notifications
 
@@ -97,9 +111,11 @@ Ids are stable: tests name them, and a removed rule keeps its id in `history.md`
 - **C22** Who hears about what:
   - project: its creator; followers (top-level comments); the person replied to; mentioned people;
   - profile: the person; the person replied to; mentioned people;
-  - program: the person replied to; mentioned people (programs have no owner yet).
-- **C23** A grant rationale or an admin note reaches the project's creator in the app only: the grant or verdict
-  email already tells them.
+  - program: the person replied to; mentioned people (programs have no owners).
+- **C23** No double emails for one event. When a regrantor gives a grant, the recipient already gets a "you received
+  a grant" email, and when an admin approves or rejects a proposal, its creator gets a verdict email. The rationale
+  and the admin's note posted with them are comments too, so they would also trigger a "new comment on your project"
+  email; instead, the creator gets only the in-app notification for them.
 - **C24** Emails go out right after the comment is saved; failures are retried, and a check every 10 minutes sends
   what was missed and raises an alert when something has waited over 30 minutes. If notifications fail, the comment
   still stands (and the failure is logged).
@@ -111,8 +127,8 @@ Ids are stable: tests name them, and a removed rule keeps its id in `history.md`
 - **C26** Giving a grant: the money and the project are saved together; the rationale is then posted as a "grant
   rationale" comment. If that fails, the grant stands and the regrantor is asked to post the rationale again.
 - **C27** An admin's verdict on a proposal, with a note: the note becomes an "admin note" comment.
-- **C28** Closing a project: the final report is posted first (an empty report doesn't close the project), then the
-  project completes. Only its creator can close it.
+- **C28** Closing a project: the final report is saved before the project completes, so a report that fails leaves
+  the project open. Only its creator can close it.
 
 ### Display and data
 
@@ -120,11 +136,12 @@ Ids are stable: tests name them, and a removed rule keeps its id in `history.md`
   invites people to say why.
 - **C30** A profile shows "Comments on X's profile" and "Comments X wrote" (on every target).
 - **C31** The home feed includes comments on every target, tagged with where they were posted; comments on hidden
-  projects and removed comments stay out. The weekly digest covers project comments.
+  projects and removed comments stay out. The weekly digest covers project comments. *(Planned: a search and filter
+  bar, e.g. by where, type and tag.)*
 - **C32** Mentions show the person's current username and link to their profile even after a rename.
-- **C33** The public API returns each comment's target (`project`, `profile_id` or `cause_slug`), kind, and edit and
+- **C33** The public API returns each comment's target (`project`, `profile_id` or `cause_slug`), type, and edit and
   removal fields; a removed comment has no content.
-- **C34** Posting, editing, moderation, reports and notifications write structured log lines.
+- **C34** Posting, editing, moderation, reports, refusals for limits and notifications write structured log lines.
 
 ## Decisions
 
@@ -132,44 +149,50 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-09-30 | Val | Rate limits per 5 minutes, with a daily threshold that warns admins (C9); refusals explain themselves and never lose the text (C9, C10) | Stop floods without blocking normal use; watch for odd behaviour |
+| 2026-09-30 | Val | A word limit, with refused attempts logged for review (C4) | Very long comments are rare and worth a look |
+| 2026-09-30 | Val | Acting on a reported comment has an "also close the reports" toggle (C20) | Sometimes a report needs a follow-up after acting |
+| 2026-09-30 | Val | Profile comments stay plain for now: no separate vouch type | Simple by default; revisit once people use them |
+| 2026-09-30 | Val | Tags people choose (recommendation, question, concern, evaluation), for search and filters: planned | Let readers find the kind of comment they want |
+| 2026-09-30 | Val | Evaluations of projects shelved: comments only for now | Scope |
 | 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2) | Topics are categories; programs have people and decisions to discuss |
 | 2026-09-30 | Team | No deletion by authors; moderators edit with a note or remove with a reason (C13, C15-C17) | Transparency: what was said stays on record; removal is for private information |
-| 2026-09-30 | Team | Guidelines hover on profile comments (C9) | Comments about people should be informative and professional |
+| 2026-09-30 | Team | Guidelines hover on profile comments (C8) | Comments about people should be informative and professional |
 | 2026-09-28 | Val | Reports: optional note and a spam toggle, no reason list (C19) | Simple by default |
-| 2026-09-28 | Val | Profile owner replies but doesn't start threads; profile comments in the home feed; owner notified (C9, C22, C31) | Their own words go in their profile; comments about them are public discussion |
-| 2026-09-28 | Val | Agents may not comment on people | Comments about people need a person behind them (not built yet: see open questions) |
+| 2026-09-28 | Val | Profile owner replies but doesn't start threads; profile comments in the home feed; owner notified (C8, C22, C31) | Their own words go in their profile; comments about them are public discussion |
+| 2026-09-28 | Val | Agents may not comment on people | Comments about people need a person behind them (not built yet: see below) |
 | 2026-09-28 | Val | Notifications as a table; sent after the response with a cron backup; a failure doesn't fail the comment (C21-C25) | One path for every comment; in-app list and email settings on the same rows |
-| 2026-09-28 | Val | Server-only writes through `lib/comments`; grant functions stop inserting comments (C4, C26-C28) | One place for the rules; money stays atomic, comments don't need to be |
+| 2026-09-28 | Val | Server-only writes through `lib/comments`; grant functions stop inserting comments (C3, C26-C28) | One place for the rules; money stays atomic, comments don't need to be |
 | 2026-09-28 | Val | Mentions by user id (C32) | Renamed users' mentions broke |
-| 2026-09-28 | Val | One level of threads (C10) | Enough in practice; simpler to read |
+| 2026-09-28 | Val | One level of threads (C11) | Enough in practice; simpler to read |
 | 2026-09-28 | Val | Edit history as whole past versions, no diff (C12) | Simple by default |
 | 2026-09-28 | Val | Comments have their own history, not a shared "text with history" unit | Less interconnection; project descriptions will want a different, structured history |
-| 2026-09-28 | Val | Avoid kind-specific data on comments (a vouch is just text; evaluation scores get their own table) | Most comments share one structure |
+| 2026-09-28 | Val | Avoid type-specific data on comments (evaluation scores, if they come, get their own table) | Most comments share one structure |
 | 2026-09-28 | Val | One comments table with one column per target | Clear what each row is about; real foreign keys; simple to query |
 | 2026-09-28 | Val, with Austin | Comments everywhere (profiles, programs), starting with profiles | Reputation is built from what others say about people and programs |
-| 2026-09-28 | Proposed by Claude | Profile comments capped at 10 per person per day; notification reasons ordered as in C21 | Not yet reviewed by the team |
+| 2026-09-30 | Proposed by Claude | The numbers: 2,000 / 5,000 words (C4); the project and report limits (C9); the order of notification reasons (C21) | Not yet reviewed by the team |
 
-## Open questions
+## Later
 
-- **Vouches**: plain profile comments, or a kind shown in their own section?
-- **Tags** people choose (recommendation, question, concern, review)?
-- **Evaluations** of projects (before funding, after the final report): their own table, linked to a comment.
+- **Tags** people choose (see Decisions); a search and filter bar on the feed (C31).
 - **Agents** can't comment on people: needs profiles to say who is an agent.
-- **Notification settings** (what to receive by email), and moving Manifund's other emails onto notifications.
-- **Following** people and programs, not just projects.
-- **Reports queue**: keep "act on the comment" in the queue, or just a link to the comment plus dismiss?
-- **Programs**: some funds and rounds (e.g. LTFF, EAIF, ACX Grants 2025) aren't flagged as programs yet; or causes
-  get an explicit kind.
-- **Rate limits** for project comments and reports.
+- **Notification settings** (what to receive by email), and moving Manifund's other emails onto notifications. Until
+  then some things only email, which is fine.
+- **Following** people and programs, and more thought on what following a project should mean (C7).
+- **Evaluations** of projects (shelved).
 
 ## Tests
 
-Planned, run locally against the local stack; each test names the rules it checks.
+Run locally (not in CI yet): see `tests/README.md`. Each test names the rules it checks.
 
-- **Database**: C1, C10 (threading), C14 (versions kept, with who wrote them), C16 (removed text hidden), C19 and
-  C25 (people see only their own reports and notifications), C24 (two senders never email the same notification).
-- **Logic**: C5 (content checks), C21 (one notification per person, strongest reason), links and labels (C32).
-- **Routes**: C2-C4, C6-C9, C11, C13, C15-C17, C19, C26-C28.
-- **Unchanged behaviour**: posting and replying, creator badges and "gave $X" tags, reactions and tips, progress
-  updates and the six-month reminder, closing with a final report, grants with rationales, admin verdicts, the
-  donation "Reply", follows, account wipes, the regranting data page, ranking and digest counts, API pagination.
+- **Logic**: C4 (content checks), C21 (one notification per person, strongest reason), links and labels (C32).
+- **Database**: C1, C11 (threading), C14 (versions kept, with who wrote them), C16 (removed text hidden), C19 and
+  C25 (people see only their own reports and notifications), C24 (two senders never email the same notification),
+  C3 (no direct writes from browsers, with the production-only rules applied).
+- **Routes**: C2, C3, C5, C6, C8, C9, C12, C13, C15-C17, C19, C20, C26-C28, and the pages and API shape (C30, C31,
+  C33).
+- **Browser**: posting and replying, editing and the history, a moderator removal, a profile comment, notifications,
+  and that a refused comment keeps its text (C10).
+- **Unchanged behaviour**: creator badges and "gave $X" tags, reactions and tips, progress updates and the six-month
+  reminder, grants with rationales, admin verdicts, the donation "Reply", follows, account wipes, the regranting data
+  page, ranking and digest counts, API pagination.

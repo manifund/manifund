@@ -20,7 +20,7 @@ How comments used to work and how they changed. The current rules are in `README
 ## Before the rework
 
 - **Only projects** took comments; the `comments` table required a project.
-- **Posting** went through `/api/post-comment`, which trusted the kind and the reply target sent by the browser.
+- **Posting** went through `/api/post-comment`, which trusted the type and the reply target sent by the browser.
 - **Threads**: one level by convention only; a reply to a reply in the data would break the page.
 - **Posting followed the project**, with an error if you already followed it.
 - **Other flows inserted comments themselves**: the grant functions (the rationale, inside the grant's database
