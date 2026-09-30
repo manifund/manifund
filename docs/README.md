@@ -90,6 +90,34 @@ Areas so far: `comments/` (full), `projects/` and `people/` (stubs).
    what the docs say, do the tests check it. Merged, the docs are true.
 7. **Ship safely.** Additive database changes first, then the code, then removal of old things (see "How we work").
 
+### One setup in practice (Val's, for the curious)
+
+Most work happens locally, with Claude Code. The shape of it (the tooling lives outside this repo):
+
+- **A workspace around the repo**: the clone of this repo, one git worktree per feature or experiment (each on its
+  own branch and dev server port), the local-stack scripts, and private working notes.
+- **A local stack close to production**: Supabase in Docker with production's real schema (a scrubbed dump plus this
+  repo's migrations), and either a copy of production's data or demo data with made-up people. Payment, email and
+  analytics keys are blank locally, and a **network guard** stops the dev servers from reaching anything but
+  localhost (emails get a fake "sent", production images a placeholder), so nothing local can touch production.
+  Every worktree shares the one local database, so experimental migrations there only add things.
+- **A coordinator session plus one session per thread.** The coordinator launches threads (a feature, a design
+  question), relays the dev's answers, and presents one thread at a time; threads can also run as sessions the dev
+  talks to directly. Each thread keeps a **brief**: what was asked (the dev's words, dated), decisions, questions,
+  shortcuts taken, a progress log. The brief is the handoff: any new session picks the thread up from it.
+- **Checkpoints**: a thread first reports its understanding, options and questions (no big build), then builds and
+  reports when there's something to try (a local URL, test logins, a short demo script), or when it hits a product
+  decision. Agents start at low effort to clarify and ramp up once the task is clear.
+- **Principles, rules, guidelines.** A few hard rules (never push or open PRs, never write to live systems, never
+  commit credentials, without the dev's go on that action); guidelines are defaults an agent may depart from when
+  it clearly serves the principles (reduce what the dev has to read, keep a good model of what they need, let them
+  work in parallel).
+- **Live systems**: reads are fine; before any write to production, Vercel or GitHub, the agent lists the planned
+  commands (what each changes, how to undo it) and waits for an OK. A hook prompts on remote writes as a backstop,
+  and each such command must say why it's needed and what it changes.
+- **Docs as you go**: threads write the product docs in this folder during the work, and the dev reads them along
+  the way, so there's no separate documentation pass at the end. Static HTML mockups illustrate design stages.
+
 ## What stays out of this repo
 
 - Security findings and anything that would help misuse the site before it's fixed.
