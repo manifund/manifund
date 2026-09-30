@@ -158,9 +158,7 @@ function DonationReplyBox(props: {
     if (!editor || !editor.getText()?.trim() || !content) return
     setIsSubmitting(true)
     // Fire-and-forget, matching the normal comment box (comments.tsx): the
-    // comment always posts, so we don't surface the response. (/api/post-comment
-    // 500s on a redundant follow_project for already-following users, but the
-    // insert has already succeeded — no reason to alarm the user or lose their text.)
+    // comment always posts, so we don't surface the response.
     await fetch('/api/post-comment', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

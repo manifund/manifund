@@ -24,7 +24,8 @@ export default async function handler(req: NextRequest) {
     project_id: projectId,
     follower_id: user.id,
   })
-  if (error) {
+  // 23505 = already following; the comment itself succeeded, so don't 500
+  if (error && error.code !== '23505') {
     console.error(error)
     return NextResponse.error()
   }
