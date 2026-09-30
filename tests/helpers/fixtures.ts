@@ -30,10 +30,17 @@ export async function makeProject(db: Tx | typeof sql, creator: string, stage = 
 }
 
 // A cause: a program (prize round) or a plain topic.
+// A header image the app accepts (next/image only loads configured hosts): borrow an existing
+// cause's. Locally the network guard answers it with a placeholder.
+async function headerImage(db: Tx | typeof sql) {
+  const [row] = await db`select header_image_url from causes where header_image_url like 'https://%' limit 1`
+  return (row?.header_image_url as string) ?? ''
+}
+
 export async function makeCause(db: Tx | typeof sql, program: boolean, slug = `${RUN}-${program ? 'program' : 'topic'}`) {
   const [row] = await db`
     insert into causes (title, slug, header_image_url, prize, open)
-    values (${'Test ' + slug}, ${slug}, 'https://example.invalid/x.png', ${program}, true)
+    values (${'Test ' + slug}, ${slug}, ${await headerImage(db)}, ${program}, true)
     returning slug`
   return row as { slug: string }
 }

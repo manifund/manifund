@@ -97,3 +97,20 @@ describe('C14 every change to the words keeps the previous version', () => {
       expect(await tx`select 1 from comment_revisions where comment_id = ${id}`).toHaveLength(0)
     }))
 })
+
+describe('C18 wiping a spam account removes its comments, replies and history', () => {
+  test("deleting a comment deletes its replies, versions, reports and notifications", () =>
+    inRollback(async (tx) => {
+      const project = await makeProject(tx, p.alice.id)
+      const root = await insertComment(tx, { by: p.bob.id, project: project.id, text: 'spam v1' })
+      const reply = await insertComment(tx, { by: p.alice.id, project: project.id, replyingTo: root })
+      await tx`update comments set content = ${{ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'spam v2' }] }] }} where id = ${root}`
+      await tx`insert into comment_reports (comment_id, reporter_id) values (${root}, ${p.alice.id})`
+      await tx`insert into notifications (recipient_id, reason, comment_id, actor_id) values (${p.alice.id}, 'comment_on_your_project', ${root}, ${p.bob.id})`
+      await tx`delete from comments where commenter = ${p.bob.id} and id = ${root}`
+      expect(await tx`select 1 from comments where id in (${root}, ${reply})`).toHaveLength(0)
+      expect(await tx`select 1 from comment_revisions where comment_id = ${root}`).toHaveLength(0)
+      expect(await tx`select 1 from comment_reports where comment_id = ${root}`).toHaveLength(0)
+      expect(await tx`select 1 from notifications where comment_id = ${root}`).toHaveLength(0)
+    }))
+})

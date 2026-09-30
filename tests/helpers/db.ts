@@ -8,7 +8,7 @@ if (!/127\.0\.0\.1|localhost/.test(env.dbUrl)) {
 }
 
 export const sql = new SQL(env.dbUrl)
-export type Tx = Parameters<Parameters<typeof sql.begin>[0]>[0]
+export type Tx = SQL
 
 class Rollback extends Error {}
 
@@ -16,7 +16,7 @@ class Rollback extends Error {}
 export async function inRollback<T>(fn: (tx: Tx) => Promise<T>): Promise<T> {
   let result: T
   try {
-    await sql.begin(async (tx) => {
+    await sql.begin(async (tx: Tx) => {
       result = await fn(tx)
       throw new Rollback()
     })

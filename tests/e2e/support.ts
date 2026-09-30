@@ -96,10 +96,12 @@ export async function world() {
     )[0]
   const programSlug = `${RUN}-program`
   if (!(await rest(`causes?slug=eq.${programSlug}&select=slug`)).length) {
+    // next/image only loads configured hosts: borrow an existing cause's header image.
+    const [img] = await rest('causes?header_image_url=like.https*&select=header_image_url&limit=1')
     await rest('causes', 'POST', {
       title: `E2E program ${RUN}`,
       slug: programSlug,
-      header_image_url: 'https://example.invalid/x.png',
+      header_image_url: img?.header_image_url ?? '',
       prize: true,
       open: true,
     })

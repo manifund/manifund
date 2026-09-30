@@ -3,6 +3,8 @@ import { beforeAll, describe, expect } from 'bun:test'
 import { anonymous, as, type Client } from '../helpers/http'
 import { getWorld, type World } from '../helpers/fixtures'
 import { doc, RUN } from '../helpers/content'
+import { env } from '../helpers/env'
+import { existsSync, readFileSync } from 'node:fs'
 import { smoke, standard } from '../helpers/levels'
 
 let w: World
@@ -40,6 +42,28 @@ describe('pages render', () => {
     const feed = await anonymous().get('/?tab=comments')
     expect(feed.text).toContain('Seen on the feed')
     expect(feed.text).toContain("profile")
+  })
+})
+
+describe('C32 mentions link by id', () => {
+  standard('/people/id/<id> leads to the current profile', async () => {
+    const r = await anonymous().get(`/people/id/${bob.id}`)
+    expect([301, 302, 307, 308]).toContain(r.status)
+    const res = await fetch(`${env.baseUrl}/people/id/${bob.id}`, { redirect: 'manual' })
+    expect(res.headers.get('location')).toMatch(/\/bob$/)
+  })
+})
+
+describe('C34 structured logs', () => {
+  standard('posting writes a comment.posted line with the comment id', async () => {
+    if (!existsSync(env.serverLog)) return // the log is written by local-dev; skip elsewhere
+    const before = readFileSync(env.serverLog, 'utf8').length
+    const c = await bob.post('/api/comments', { target: { project: w.project.id }, content: doc(`Logged ${RUN}`) })
+    await Bun.sleep(300)
+    const added = readFileSync(env.serverLog, 'utf8').slice(before)
+    const line = added.split('\n').find((l) => l.includes('"event":"comment.posted"') && l.includes(c.body.comment.id))
+    expect(line).toBeDefined()
+    expect(line).not.toContain('Logged') // ids, never the comment's text
   })
 })
 
