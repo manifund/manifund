@@ -40,8 +40,14 @@ lib/              # Server actions (auth-actions.ts)
 utils/            # Shared utilities (formatting, math, AMM calculations)
 hooks/            # React hooks
 supabase/         # Supabase config and SQL migrations
+docs/             # Product docs (start at docs/README.md): intent, one folder per area with its rules; plans
 proxy.ts          # Next.js 16 middleware (session refresh, JWT validation)
 ```
+
+## Product docs
+
+Before changing how an area behaves, read its doc in `docs/product/<area>/README.md` (rules have ids like `C12`;
+tests name them) and update it in the same branch. How we work and write docs: `docs/README.md`.
 
 ## Code Style
 
