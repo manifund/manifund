@@ -1963,11 +1963,9 @@ export default function AisFunderBulletinPage() {
           &nbsp;and subscribe to their newsletter at{' '}
           <A href="https://aisafetyfunding.substack.com/">https://aisafetyfunding.substack.com/</A>.
           Manifund also launched <A href="https://trace.manifund.org">Trace</A> in August 2026, a
-          database tracking $3.49b of AI safety funding across 4,837 grants, 802 funders and 1,984
-          recipients as of October 1, 2026, with dated grants going back to 2007. It is available as
-          a website, an API, an MCP endpoint, and a bulk download. Note that the figures above come
-          from its API and CSV export; the stat tiles rendered on its homepage currently show a
-          smaller set, and we have not established why the two differ.
+          database tracking $3.5b of AI safety funding across 4,800+ grants and 800+ funders as of
+          October 1, 2026, with dated grants going back to 2007. It is available as a website, an
+          API, an MCP endpoint, and a bulk download.
         </p>
       </div>
     </div>
