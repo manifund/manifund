@@ -263,7 +263,12 @@ export function WriteComment(props: {
       <div
         className={clsx(
           'relative w-full overflow-hidden rounded-xl rounded-tl-sm bg-white p-0 shadow',
-          specialPrompt && 'shadow-[0_0px_10px_5px_rgb(249,115,22,0.5)]'
+          specialPrompt && 'shadow-[0_0px_10px_5px_rgb(249,115,22,0.5)]',
+          // Only boxes given a placeholder show it: the editor's own placeholder styles were never
+          // generated on main (they live in hooks/, which Tailwind doesn't scan), so other editors
+          // stay as they are.
+          placeholder &&
+            '[&_[data-placeholder]]:before:pointer-events-none [&_[data-placeholder]]:before:float-left [&_[data-placeholder]]:before:h-0 [&_[data-placeholder]]:before:text-gray-400 [&_[data-placeholder]]:before:content-[attr(data-placeholder)]'
         )}
       >
         {specialPrompt && (

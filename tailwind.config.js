@@ -9,7 +9,6 @@ module.exports = {
     './pages/**/*.{js,ts,jsx,tsx}',
     './utils/**/*.{js,ts,jsx,tsx}',
     './components/**/*.{js,ts,jsx,tsx}',
-    './hooks/**/*.{js,ts,jsx,tsx}', // the editor's placeholder classes live in hooks/use-text-editor.ts
 
     // Or if using `src` directory:
     './src/**/*.{js,ts,jsx,tsx}',
