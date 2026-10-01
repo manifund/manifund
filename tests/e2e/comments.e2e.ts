@@ -67,10 +67,10 @@ test('C10 a refused comment keeps its text', async ({ page, context }) => {
   await signIn(context, 'bob')
   await page.goto(`/projects/${w.project.slug}?tab=comments`)
   const box = page.locator('#main-write-comment')
-  const long = Array.from({ length: 3100 }, (_, i) => `w${i}`).join(' ')
+  const long = Array.from({ length: 10_100 }, (_, i) => `w${i}`).join(' ')
   await editor(box).fill(`${long} ${RUN}`)
   await box.locator('button').last().click()
-  await expect(page.getByText(/limited to 3,000 words/)).toBeVisible()
+  await expect(page.getByText(/limited to 10,000 words/)).toBeVisible()
   await expect(editor(box)).toContainText(RUN)
 })
 

@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test'
-import { checkContent, countWords, mentionIds, wordLimitFor } from '@/lib/comments/content'
+import { checkContent, countWords, mentionIds } from '@/lib/comments/content'
 import { doc, docWithMention, words } from '../helpers/content'
 
 describe('C4 what a comment can contain', () => {
@@ -31,20 +31,14 @@ describe('C4 what a comment can contain', () => {
     for (let i = 0; i < 25; i++) node = { type: 'blockquote', content: [node] }
     expect(checkContent({ type: 'doc', content: [node] }).ok).toBe(false)
   })
-  test('refuses documents over 100 KB', () => {
-    expect(checkContent(doc('x'.repeat(110_000))).ok).toBe(false)
+  test('refuses documents over 300 KB', () => {
+    expect(checkContent(doc('x'.repeat(310_000))).ok).toBe(false)
   })
-  test('refuses more than 3,000 words, saying how many', () => {
-    expect(checkContent(doc(words(3000))).ok).toBe(true)
-    const r = checkContent(doc(words(3001)))
+  test('refuses more than 10,000 words, saying how many', () => {
+    expect(checkContent(doc(words(10_000))).ok).toBe(true) // the size cap doesn't bite first
+    const r = checkContent(doc(words(10_001)))
     expect(r.ok).toBe(false)
-    if (!r.ok) expect(r.message).toContain('3,001')
-  })
-  test('progress updates and final reports may have 5,000 words', () => {
-    expect(wordLimitFor(null)).toBe(3000)
-    expect(wordLimitFor('progress update')).toBe(5000)
-    expect(wordLimitFor('final report')).toBe(5000)
-    expect(checkContent(doc(words(4000)), wordLimitFor('progress update')).ok).toBe(true)
+    if (!r.ok) expect(r.message).toContain('10,001')
   })
   test('a mention counts as one word', () => {
     expect(countWords(docWithMention('u1', 'maya', 'thanks for this'))).toBe(4)
