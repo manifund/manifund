@@ -2,10 +2,10 @@ import { createAdminClient } from '@/db/edge'
 import { DownloadTextButton } from '../download-text-button'
 import { userBalances } from '../utils'
 import { UserTable } from './user-table'
-
-export const revalidate = 300
+import { requireAdmin } from '@/lib/require-admin'
 
 export default async function UsersPage() {
+  await requireAdmin() // before any admin-client read: the layout's check alone doesn't stop the page
   const supabaseAdmin = createAdminClient()
   const [{ data: users }, { data: profiles }, { data: txns }] = await Promise.all([
     supabaseAdmin.from('users').select('*'),

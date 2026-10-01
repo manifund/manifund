@@ -4,10 +4,10 @@ import { PauseAlertsButton } from '../pause-alerts-button'
 import Link from 'next/link'
 import clsx from 'clsx'
 import { Table } from '@/components/table-catalyst'
-
-export const revalidate = 300
+import { requireAdmin } from '@/lib/require-admin'
 
 export default async function ApprovalsPage() {
+  await requireAdmin() // before any admin-client read: the layout's check alone doesn't stop the page
   const supabaseAdmin = createAdminClient()
   // Instead of using listProjects, only fetch the fields out of the projects that we need
   const { data: projects } = await supabaseAdmin
