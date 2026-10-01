@@ -22,13 +22,22 @@ import clsx from 'clsx'
 
 export function FeedTabs(props: {
   recentComments: FullComment[]
+  commentsTotal: number // for the comments tab's pager (capped at 7 pages, as before)
   recentDonations: FullTxn[]
   recentBids: FullBid[]
   projects: FullProject[]
   causesList: SimpleCause[]
   userId?: string
 }) {
-  const { recentComments, recentDonations, recentBids, projects, causesList, userId } = props
+  const {
+    recentComments,
+    commentsTotal,
+    recentDonations,
+    recentBids,
+    projects,
+    causesList,
+    userId,
+  } = props
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab') ?? 'projects'
   const [page, setPage] = useState(1)
@@ -41,7 +50,7 @@ export function FeedTabs(props: {
     <Pagination
       page={page}
       itemsPerPage={20}
-      totalItems={140}
+      totalItems={currentTabId === 'comments' ? Math.min(commentsTotal, 140) : 140}
       setPage={setPage}
       savePageToQuery={true}
     />
