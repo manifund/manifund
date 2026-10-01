@@ -57,6 +57,23 @@ describe('C26 C27 C23 a grant with its rationale, then a verdict with a note', (
   })
 })
 
+describe('C27 a verdict whose note is refused', () => {
+  standard('the verdict stands; the note is logged and the admin is told', async () => {
+    const project = await makeProject(sql, bob.id, 'proposal', `${RUN}-verdict-note`)
+    const r = await rita.post('/api/issue-grant-verdict', {
+      approved: false,
+      projectId: project.id,
+      adminComment: { type: 'doc', content: [{ type: 'script' }] }, // refused by the content check
+      publicBenefit: '',
+    })
+    expect(r.status).toBe(200)
+    expect(r.body.noteError).toContain("wasn't posted")
+    expect(await sql`select 1 from comments where project = ${project.id}`).toHaveLength(0)
+    const [row] = await sql`select stage from projects where id = ${project.id}`
+    expect(row.stage).toBe('not funded')
+  })
+})
+
 describe('C28 closing a project with its final report', () => {
   standard('only the creator; the report is saved, then the project completes', async () => {
     const project = await makeProject(sql, alice.id, 'active', `${RUN}-closing`)
