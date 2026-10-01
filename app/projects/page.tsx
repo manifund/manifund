@@ -63,6 +63,8 @@ async function AsyncFeedTabs({
   const PAGE_SIZE = 20
   const page = parseInt(searchParams?.p as string) || 1
   const tab = searchParams?.tab as string
+  const show = searchParams?.show as string
+  const filter = (['updates', 'grants', 'discussion'] as const).find((f) => f === show)
   // Hack for faster loading: don't load projects on other tabs
   // Ideally, we'd structure NextJS routing to only load the needed data
   const shouldLoadProjects = !tab || tab === 'projects'
@@ -79,7 +81,7 @@ async function AsyncFeedTabs({
 
   const [projects, recentComments, recentDonations, recentBids, causesList] = await Promise.all([
     loadProjects(),
-    getRecentFullComments(supabase, PAGE_SIZE, start),
+    getRecentFullComments(supabase, PAGE_SIZE, start, filter),
     getRecentFullTxns(supabase, PAGE_SIZE, start),
     getRecentFullBids(supabase, PAGE_SIZE, start),
     listSimpleCauses(supabase),

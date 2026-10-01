@@ -147,9 +147,10 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   invites people to say why.
 - **C30** A profile shows the comments on it and, in a second tab, the comments the person wrote elsewhere (on every
   other target). Their replies on their own profile stay with their threads in the first tab.
-- **C31** The home feed includes comments on every target, tagged with where they were posted; comments on hidden
-  projects and removed comments stay out. The weekly digest covers project comments. *(Planned: a search and filter
-  bar, e.g. by where, type and tag.)*
+- **C31** The home feed includes comments on every target, tagged with where they were posted (and, for a reply,
+  whom it answers); comments on hidden projects and removed comments stay out. Filters show only updates (progress
+  updates and final reports), grant reasoning, or discussion (plain comments). The weekly digest covers project
+  comments. *(Planned: search, and filters by where and tag.)*
 - **C32** Mentions show the person's current username and link to their profile even after a rename.
 - **C33** The public API returns each comment's target (`project`, `profile_id` or `cause_slug`), type, and edit and
   removal fields; a removed comment has no content.
