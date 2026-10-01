@@ -144,7 +144,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
 - **C29** Project comments keep the creator badge and "gave $X" tags; after donating or voting, the comment box
   invites people to say why.
-- **C30** A profile shows "Comments on X's profile" and "Comments X wrote" (on every target).
+- **C30** A profile shows the comments on it and, in a second tab, the comments the person wrote (on every target).
 - **C31** The home feed includes comments on every target, tagged with where they were posted; comments on hidden
   projects and removed comments stay out. The weekly digest covers project comments. *(Planned: a search and filter
   bar, e.g. by where, type and tag.)*

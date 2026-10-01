@@ -32,6 +32,7 @@ export function CommentsSection(props: {
   userCharityBalance?: number
   specialPrompt?: string
   canStartThread?: boolean
+  placeholder?: string // what the comment box invites, e.g. on a profile
   emptyText?: string
 }) {
   const {
@@ -44,11 +45,14 @@ export function CommentsSection(props: {
     userCharityBalance,
     specialPrompt,
     canStartThread = true,
+    placeholder,
     emptyText = 'No comments yet.',
   } = props
   const [replyingTo, setReplyingTo] = useState<CommentAndProfile | null>(null)
   const rootComments = comments.filter((comment) => comment.replying_to === null)
   const replyComments = comments.filter((comment) => comment.replying_to !== null)
+  if (comments.length === 0 && userProfile && !canStartThread)
+    return <p className="text-center text-sm text-gray-500">{emptyText}</p>
   if (comments.length === 0 && !userProfile)
     return (
       <p className="text-center italic text-gray-500">
@@ -70,7 +74,7 @@ export function CommentsSection(props: {
       </Tooltip>
     )
     return (
-      <div key={thread.root.id} className="mt-6">
+      <div key={thread.root.id}>
         <Row className="w-full">
           <div className="w-full">
             <Comment
@@ -127,10 +131,15 @@ export function CommentsSection(props: {
     <div>
       {userProfile && canStartThread && (
         <div className="mb-5" id="main-write-comment">
-          <WriteComment target={target} commenter={userProfile} specialPrompt={specialPrompt} />
+          <WriteComment
+            target={target}
+            commenter={userProfile}
+            specialPrompt={specialPrompt}
+            placeholder={placeholder}
+          />
         </div>
       )}
-      {commentsDisplay}
+      <div className="flex flex-col gap-5">{commentsDisplay}</div>
     </div>
   )
 }
@@ -163,8 +172,10 @@ export function WriteComment(props: {
   setReplyingTo?: (id: CommentAndProfile | null) => void
   onSubmit?: () => void
   specialPrompt?: string
+  placeholder?: string
 }) {
-  const { target, commenter, replyingTo, setReplyingTo, onSubmit, specialPrompt } = props
+  const { target, commenter, replyingTo, setReplyingTo, onSubmit, specialPrompt, placeholder } =
+    props
   const showCancelButton = !!setReplyingTo
   const startingText: JSONContent | string = !!replyingTo
     ? {
@@ -193,7 +204,7 @@ export function WriteComment(props: {
   const editor = useTextEditor(
     startingText,
     storageKey,
-    replyingTo ? 'Write your reply...' : 'Write a comment...',
+    replyingTo ? 'Write your reply...' : (placeholder ?? 'Write a comment...'),
     'border-0 focus:!outline-none focus:ring-0 text-sm sm:text-md'
   )
   useEffect(() => {

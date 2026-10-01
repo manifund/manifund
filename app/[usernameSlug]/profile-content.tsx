@@ -13,8 +13,7 @@ import { calculateCashBalance } from '@/utils/math'
 import { DonateBox } from '@/components/donate-box'
 import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
-import { ProfileComments } from './profile-comments'
-import { CommentsSection } from '@/components/comments/comments-section'
+import { ProfileCommentTabs } from './profile-comment-tabs'
 import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
@@ -112,20 +111,13 @@ export function ProfileContent(props: {
       />
       {profile.long_description && <AboutMeSection content={profile.long_description} />}
       {(relevantProjects.length > 0 || isOwnProfile) && <Projects projects={relevantProjects} />}
-      <section id="comments-on-profile">
-        <h1 className="mb-2 text-xl font-medium sm:text-2xl">
-          Comments on {profile.full_name || profile.username}&apos;s profile
-        </h1>
-        <CommentsSection
-          target={{ profile_id: profile.id }}
-          basePath={`/${profile.username}`}
-          comments={profileComments}
-          userProfile={userProfile}
-          userCharityBalance={userCharityBalance}
-          canStartThread={!isOwnProfile}
-          emptyText="No comments yet."
-        />
-      </section>
+      <ProfileCommentTabs
+        profile={profile}
+        profileComments={profileComments}
+        comments={comments}
+        userProfile={userProfile}
+        userCharityBalance={userCharityBalance}
+      />
       {(donations.length > 0 || pendingDonateBids.length > 0) && (
         <OutgoingDonationsHistory donations={donations} pendingDonateBids={pendingDonateBids} />
       )}
@@ -134,15 +126,6 @@ export function ProfileContent(props: {
       )}
       {activeBids.length > 0 && <ActiveBids bids={activeBids} isOwnProfile={isOwnProfile} />}
       {proposalBids.length > 0 && <ProposalBids bids={proposalBids} isOwnProfile={isOwnProfile} />}
-      {comments.length > 0 && (
-        <ProfileComments
-          comments={comments}
-          profile={profile}
-          userCharityBalance={userCharityBalance}
-          userId={userProfile?.id}
-          userProfile={userProfile}
-        />
-      )}
       <Col className="gap-4">
         <UserTxns txns={sortedTxns.filter((t) => t.token === 'USD')} profile={profile} />
       </Col>

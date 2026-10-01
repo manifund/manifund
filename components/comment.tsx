@@ -29,7 +29,7 @@ export function Comment(props: {
   userCharityBalance?: number
   writtenByCreator?: boolean
   contributionText?: string
-  targetLabel?: string // where it was posted, shown as a tag in feeds and lists
+  targetLabel?: string // where it was posted, shown in the header line in feeds and lists
   children?: React.ReactNode
   userProfile?: Profile
 }) {
@@ -85,14 +85,11 @@ export function Comment(props: {
   }
   return (
     <Col ref={commentElement} id={comment.id}>
-      <div className="ml-10">
-        {targetLabel && (
-          <Link href={`${commentHref}`}>
-            <Tag text={targetLabel} className="hover:bg-orange-200" />
-          </Link>
-        )}
-        {contributionText && !targetLabel && <Tag text={contributionText} />}
-      </div>
+      {contributionText && !targetLabel && (
+        <div className="ml-10">
+          <Tag text={contributionText} />
+        </div>
+      )}
       <Row className="w-full gap-2">
         <Link href={`/${commenter.username}`}>
           <Avatar
@@ -111,7 +108,7 @@ export function Comment(props: {
           )}
         >
           <Row className="mb-2 w-full items-center justify-between gap-2">
-            <Row className="min-w-fit items-center gap-1">
+            <Row className="min-w-0 items-center gap-1">
               <UserLink
                 name={commenter.full_name}
                 username={commenter.username}
@@ -119,6 +116,14 @@ export function Comment(props: {
                 className="text-sm font-semibold"
               />
               <RelativeTime date={comment.created_at} className="min-w-fit text-xs text-gray-500" />
+              {targetLabel && (
+                <Link
+                  href={commentHref}
+                  className="truncate text-xs text-gray-500 hover:text-gray-700 hover:underline"
+                >
+                  on {targetLabel}
+                </Link>
+              )}
               {comment.edited_at && <HistoryPopup comment={comment} />}
               <Tooltip text="Copy link to comment" className="cursor-pointer">
                 <LinkIcon

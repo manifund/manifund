@@ -17,10 +17,7 @@ export function ProfileComments(props: {
   const sortedComments = orderBy(filteredComments, ['created_at'], ['desc'])
   return (
     <div>
-      <h1 className="mb-2 text-xl font-medium sm:text-2xl">
-        Comments {profile.full_name || profile.username} wrote
-      </h1>
-      <Col className="gap-8">
+      <Col className="gap-6">
         {sortedComments.map((comment) => {
           return (
             <Comment
