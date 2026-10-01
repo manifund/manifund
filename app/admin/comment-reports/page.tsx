@@ -27,11 +27,8 @@ export default async function CommentReportsPage() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <h2 className="mb-1 text-xl font-medium">Reported comments</h2>
-      <p className="mb-4 text-sm text-gray-500">
-        {byComment.size} comment(s) with open reports. Removing leaves a public placeholder with
-        your reason; the text stays in the admin-only history.
-      </p>
+      <h2 className="mb-4 text-xl font-medium">Reported comments</h2>
+      {byComment.size === 0 && <p className="text-sm text-gray-500">No open reports.</p>}
       <div className="flex flex-col gap-4">
         {[...byComment.values()].map((reports) => {
           const c = reports[0].comment
@@ -45,9 +42,11 @@ export default async function CommentReportsPage() {
                   {targetTitle(c)}
                 </Link>
                 <RelativeTime date={c.created_at} className="text-xs text-gray-400" />
-                <span className="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-700">
-                  {reports.length} report(s){spam ? `, ${spam} spam` : ''}
-                </span>
+                {spam > 0 && (
+                  <span className="ml-auto rounded-full bg-rose-100 px-2 py-0.5 text-xs text-rose-700">
+                    {spam === reports.length ? 'spam' : `${spam} of ${reports.length} say spam`}
+                  </span>
+                )}
               </div>
               <div className="rounded border border-gray-100 bg-gray-50 p-2">
                 {c.deleted_at ? (
@@ -56,16 +55,20 @@ export default async function CommentReportsPage() {
                   <RichContent content={c.content} className="text-sm" />
                 )}
               </div>
-              <ul className="mt-2 text-xs text-gray-600">
+              <ul className="mt-2 flex flex-col gap-1 text-sm text-gray-700">
                 {reports.map((r) => (
                   <li key={r.id}>
-                    @{r.reporter?.username}
-                    {r.is_spam ? ' (spam)' : ''}
-                    {r.note ? `: ${r.note}` : ''} · <RelativeTime date={r.created_at} />
+                    <span className="font-medium">@{r.reporter?.username}</span>
+                    {r.note ? `: ${r.note}` : r.is_spam ? ': spam' : ''}{' '}
+                    <RelativeTime date={r.created_at} className="text-xs text-gray-400" />
                   </li>
                 ))}
               </ul>
-              <ResolveReport commentId={c.id} />
+              <ResolveReport
+                commentId={c.id}
+                reportCount={reports.length}
+                alreadyRemoved={!!c.deleted_at}
+              />
             </div>
           )
         })}

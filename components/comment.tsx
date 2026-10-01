@@ -104,7 +104,8 @@ export function Comment(props: {
         <Card
           className={clsx(
             'relative w-full overflow-visible rounded-xl rounded-tl-sm px-4 py-2',
-            highlighted ? '!bg-orange-100 ring-2 !ring-orange-600' : ''
+            highlighted ? '!bg-orange-100 ring-2 !ring-orange-600' : '',
+            editing && 'ring-1 ring-orange-300'
           )}
         >
           <Row className="mb-2 w-full items-center justify-between gap-2">
@@ -117,12 +118,12 @@ export function Comment(props: {
               />
               <RelativeTime date={comment.created_at} className="min-w-fit text-xs text-gray-500" />
               {targetLabel && (
-                <Link
-                  href={commentHref}
-                  className="truncate text-xs text-gray-500 hover:text-gray-700 hover:underline"
-                >
-                  on {targetLabel}
-                </Link>
+                <span className="truncate text-xs text-gray-500">
+                  on{' '}
+                  <Link href={commentHref} className="hover:text-gray-700 hover:underline">
+                    {targetLabel}
+                  </Link>
+                </span>
               )}
               {comment.edited_at && <HistoryPopup comment={comment} />}
               <Tooltip text="Copy link to comment" className="cursor-pointer">
@@ -180,7 +181,8 @@ export function Comment(props: {
               <CommentRxnsPanel
                 commentId={comment.id}
                 userId={userId}
-                userCharityBalance={userCharityBalance}
+                // No tips on your own comment (C35): the tipped reactions aren't offered there.
+                userCharityBalance={userId === comment.commenter ? undefined : userCharityBalance}
                 rxns={rxns}
                 orangeBg={highlighted}
                 userProfile={userProfile}

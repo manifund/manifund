@@ -34,10 +34,8 @@ export function ReportDialog(props: {
 
   return (
     <Modal open={open} setOpen={setOpen}>
-      <h2 className="mb-1 text-lg font-medium">Report this comment</h2>
-      <p className="mb-3 text-sm text-gray-500">
-        Admins review reports. The author isn&apos;t told who reported them.
-      </p>
+      <h2 className="mb-3 text-lg font-medium">Report this comment</h2>
+
       <label className="mb-3 flex items-center gap-2 text-sm">
         <input
           type="checkbox"
@@ -50,7 +48,7 @@ export function ReportDialog(props: {
       <textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        placeholder="What's the problem? (optional)"
+        placeholder="What's the problem?"
         maxLength={2000}
         rows={3}
         className="w-full rounded-md border-gray-300 text-sm focus:border-orange-500 focus:ring-orange-500"

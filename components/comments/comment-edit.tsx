@@ -8,15 +8,15 @@ import { Row } from '@/components/layout/row'
 import { Button } from '@/components/button'
 import type { Comment } from '@/db/comment'
 
-// Inline editor for the author, or a moderator (who adds a public note). Laid out like the comment
-// box: the text, then a bar with Cancel on the left and Save on the right.
+// Inline editor for the author, or a moderator (who adds a public note). The text stays where it was
+// (same size, no extra box); the card's bottom row becomes Cancel and Save.
 export function CommentEdit(props: { comment: Comment; asModerator: boolean; onDone: () => void }) {
   const { comment, asModerator, onDone } = props
   const editor = useTextEditor(
     comment.content ?? '',
     undefined,
     undefined,
-    'border-0 focus:!outline-none focus:ring-0 text-sm'
+    '!p-0 !min-h-0 !border-0 !bg-transparent focus:!outline-none focus:ring-0 text-sm'
   )
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
@@ -38,19 +38,21 @@ export function CommentEdit(props: { comment: Comment; asModerator: boolean; onD
     router.refresh()
   }
   return (
-    <div className="-mx-2 overflow-hidden rounded-lg ring-1 ring-gray-200 focus-within:ring-orange-400">
-      <TextEditor editor={editor} />
-      {asModerator && (
-        <input
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Moderator's note (public)"
-          maxLength={500}
-          className="w-full border-0 border-t border-gray-100 px-3 py-1.5 text-sm placeholder:text-gray-400 focus:ring-0"
-        />
-      )}
-      <Row className="items-center justify-between border-t border-gray-100 bg-gray-50 px-3 py-1">
-        <button onClick={onDone} className="text-sm text-gray-500 hover:text-gray-700">
+    <div>
+      <div className="[&>div]:!min-h-0 [&>div]:!shadow-none">
+        <TextEditor editor={editor} />
+      </div>
+      <Row className="mt-2 items-center justify-end gap-3">
+        {asModerator && (
+          <input
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Moderator's note (public)"
+            maxLength={500}
+            className="min-w-0 flex-1 rounded-md border-gray-200 px-2 py-1 text-xs focus:border-orange-400 focus:ring-0"
+          />
+        )}
+        <button onClick={onDone} className="text-xs text-gray-500 hover:text-gray-700">
           Cancel
         </button>
         <Button size="xs" loading={saving} disabled={asModerator && !note.trim()} onClick={save}>

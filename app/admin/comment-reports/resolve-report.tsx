@@ -3,52 +3,91 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { Button } from '@/components/button'
+import { Row } from '@/components/layout/row'
 
-export function ResolveReport(props: { commentId: string }) {
+// The two outcomes of a report (C20). Dismissing closes the reports and leaves the comment as it is.
+// Removing asks for the public reason first; the reports close too, unless the admin keeps them open
+// to follow up.
+export function ResolveReport(props: {
+  commentId: string
+  reportCount: number
+  alreadyRemoved: boolean
+}) {
+  const { commentId, reportCount, alreadyRemoved } = props
+  const [removing, setRemoving] = useState(false)
   const [reason, setReason] = useState('')
-  const [closeReports, setCloseReports] = useState(true)
+  const [keepOpen, setKeepOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const router = useRouter()
   const resolve = async (resolution: 'dismissed' | 'removed') => {
     setBusy(true)
-    const res = await fetch(`/api/comments/${props.commentId}/resolve`, {
+    const res = await fetch(`/api/comments/${commentId}/resolve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resolution, reason, closeReports }),
+      body: JSON.stringify({ resolution, reason, closeReports: !keepOpen }),
     })
     setBusy(false)
-    if (!res.ok) toast.error((await res.json().catch(() => ({}))).error ?? 'Failed')
+    if (!res.ok) {
+      toast.error((await res.json().catch(() => ({}))).error ?? 'Failed')
+      return
+    }
     router.refresh()
   }
-  return (
-    <div className="mt-3 flex flex-wrap items-center gap-2">
-      <input
-        value={reason}
-        onChange={(e) => setReason(e.target.value)}
-        placeholder="Public reason, shown in place of the comment"
-        className="min-w-[16rem] flex-1 rounded-md border-gray-300 text-sm"
-      />
-      <Button size="xs" color="gray" loading={busy} onClick={() => resolve('dismissed')}>
-        Dismiss
-      </Button>
-      <label className="flex items-center gap-1 text-xs text-gray-600">
+  const reports = reportCount === 1 ? 'report' : `${reportCount} reports`
+  const dismissLabel = alreadyRemoved ? `Close ${reports}` : `Dismiss ${reports}`
+
+  if (removing) {
+    return (
+      <div className="mt-3 flex flex-col gap-2">
         <input
-          type="checkbox"
-          checked={closeReports}
-          onChange={(e) => setCloseReports(e.target.checked)}
-          className="rounded text-orange-500"
+          autoFocus
+          value={reason}
+          onChange={(e) => setReason(e.target.value)}
+          placeholder="Reason (public, shown in place of the comment)"
+          maxLength={500}
+          className="w-full rounded-md border-gray-300 text-sm focus:border-rose-400 focus:ring-0"
         />
-        Also close the reports
-      </label>
-      <Button
-        size="xs"
-        color="rose"
-        loading={busy}
-        disabled={!reason.trim()}
-        onClick={() => resolve('removed')}
-      >
-        Remove
+        <Row className="items-center justify-between gap-3">
+          <label className="flex items-center gap-1.5 text-xs text-gray-500">
+            <input
+              type="checkbox"
+              checked={keepOpen}
+              onChange={(e) => setKeepOpen(e.target.checked)}
+              className="rounded text-orange-500"
+            />
+            Keep the {reportCount === 1 ? 'report' : 'reports'} open
+          </label>
+          <Row className="items-center gap-3">
+            <button
+              onClick={() => setRemoving(false)}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
+              Cancel
+            </button>
+            <Button
+              size="xs"
+              color="rose"
+              loading={busy}
+              disabled={!reason.trim()}
+              onClick={() => resolve('removed')}
+            >
+              Remove comment
+            </Button>
+          </Row>
+        </Row>
+      </div>
+    )
+  }
+  return (
+    <Row className="mt-3 items-center justify-between gap-3">
+      <Button size="xs" color="gray" loading={busy} onClick={() => resolve('dismissed')}>
+        {dismissLabel}
       </Button>
-    </div>
+      {!alreadyRemoved && (
+        <Button size="xs" color="rose" onClick={() => setRemoving(true)}>
+          Remove comment
+        </Button>
+      )}
+    </Row>
   )
 }

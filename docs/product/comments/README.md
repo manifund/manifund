@@ -111,7 +111,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C35** People react to comments with emoji, once per emoji (reacting again takes it back). Three reactions are
   tips (🧡 $1, 🏅 $10, 🏆 $100 of charity money, to the commenter). A tip moves the money exactly once, together
   with its reaction: a repeated request (a double click, a direct API call) doesn't charge again. A tip can't be
-  taken back.
+  taken back. You can't tip your own comment (it isn't offered, and the server refuses it).
 
 ### Notifications
 
@@ -144,7 +144,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
 - **C29** Project comments keep the creator badge and "gave $X" tags; after donating or voting, the comment box
   invites people to say why.
-- **C30** A profile shows the comments on it and, in a second tab, the comments the person wrote (on every target).
+- **C30** A profile shows the comments on it and, in a second tab, the comments the person wrote elsewhere (on every
+  other target). Their replies on their own profile stay with their threads in the first tab.
 - **C31** The home feed includes comments on every target, tagged with where they were posted; comments on hidden
   projects and removed comments stay out. The weekly digest covers project comments. *(Planned: a search and filter
   bar, e.g. by where, type and tag.)*
@@ -169,6 +170,7 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-30 | Val | Evaluations of projects shelved: comments only for now | Scope |
 | 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2) | Topics are categories; programs have people and decisions to discuss |
 | 2026-09-30 | Team | No deletion by authors; moderators edit with a note or remove with a reason (C13, C15-C17) | Transparency: what was said stays on record; removal is for private information |
+| 2026-09-30 | Val | No tipping your own comment (C35) | Sending yourself money is confusing; none in production so far |
 | 2026-09-30 | Val | No commenting guidelines on profiles for now (C8) | Don't solve a problem before it appears; fewer words |
 | 2026-09-28 | Val | Reports: optional note and a spam toggle, no reason list (C19) | Simple by default |
 | 2026-09-28 | Val | Profile owner replies but doesn't start threads; profile comments in the home feed; owner notified (C8, C22, C31) | Their own words go in their profile; comments about them are public discussion |
