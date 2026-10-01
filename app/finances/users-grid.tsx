@@ -80,12 +80,10 @@ export function BalanceSheet() {
     stripe: 83_656,
     // Mercury Manifund Grants account
     mercury: 3_237_447,
-    // USDC yield was roughly $196/day in September 2026
     coinbase: 2_078_097,
     // Current users
     users: -4_408_262,
     // Regranting pot owed + amount assigned to regrantors
-    // (Sept 2026: +$50k each to Gavin Leech and Ryan Kidd)
     regranting: -2_250_000 + 2_175_000,
     // not credited: -pending grants on Airtable
     // Oct 2026: $900k received for AISTOF, not yet credited (account not created yet); $20k held for Julia Bossmann;
