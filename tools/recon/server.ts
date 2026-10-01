@@ -273,8 +273,10 @@ const server = Bun.serve({
           note?: string
           force?: boolean
           remainderToRevenue?: boolean
+          uncredited?: number
         }
         let revenueRemainder: number | undefined
+        let uncreditedRemainder: number | undefined
         const bankRows = body.bankTxnIds.map((id) => bankTxns.find((t) => t.id === id))
         if (bankRows.some((t) => !t || t.matchId))
           return json({ error: 'bank txn missing or already matched' }, 400)
@@ -314,7 +316,18 @@ const server = Bun.serve({
               const p = platformTxns.find((t) => t.id === id)
               return s + (p ? (p.type === 'deposit' ? p.amount : -p.amount) : 0)
             }, 0)
-            const delta = bankNet - platNet
+            let delta = bankNet - platNet
+            if (body.uncredited) {
+              if (body.uncredited <= 0 || body.uncredited > delta + MATCH_TOLERANCE)
+                return json(
+                  {
+                    error: `uncredited amount must be between 0 and the leftover ${delta.toFixed(2)}`,
+                  },
+                  400
+                )
+              uncreditedRemainder = body.uncredited
+              delta -= body.uncredited
+            }
             if (Math.abs(delta) > MATCH_TOLERANCE) {
               if (body.remainderToRevenue && delta > 0) revenueRemainder = delta
               else if (!body.force)
@@ -328,12 +341,20 @@ const server = Bun.serve({
           } else {
             // bank-only group (e.g. donation in -> forwarded out): signed amounts should cancel
             const signedSum = bankRows.reduce((s, t) => s + t!.amount, 0)
-            if (bankRows.length < 2)
+            if (body.uncredited && bankRows.length === 1 && signedSum > 0) {
+              // a lone inflow held for a platform account that does not exist yet
+              if (Math.abs(signedSum - body.uncredited) > MATCH_TOLERANCE)
+                return json(
+                  { error: `uncredited amount must equal the inflow ${signedSum.toFixed(2)}` },
+                  400
+                )
+              uncreditedRemainder = body.uncredited
+            } else if (bankRows.length < 2)
               return json(
                 { error: 'bank-only match needs at least 2 rows (or use No platform counterpart)' },
                 400
               )
-            if (Math.abs(signedSum) > MATCH_TOLERANCE && !body.force)
+            if (!uncreditedRemainder && Math.abs(signedSum) > MATCH_TOLERANCE && !body.force)
               return json(
                 {
                   error: `bank rows do not cancel out: net ${signedSum.toFixed(2)} — use force to override`,
@@ -350,6 +371,7 @@ const server = Bun.serve({
           bankTxnIds: body.bankTxnIds,
           platformTxnIds: body.platformTxnIds,
           revenueRemainder,
+          uncreditedRemainder,
           createdAt: new Date().toISOString(),
         }
         matches.push(m)

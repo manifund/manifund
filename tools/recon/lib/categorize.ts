@@ -1,6 +1,8 @@
 import { BankTxn } from './types'
 
-type Rule = { pattern: RegExp; category: string }
+// inflowTo: only apply to inflows into that account, and ahead of the generic rules
+// (e.g. a fellowship org paying Mox from its own Mercury account looks like an internal transfer)
+type Rule = { pattern: RegExp; category: string; inflowTo?: string }
 
 // Generic structural rules only — payee-specific rules live in the local
 // gitignored config (data/config.json) and are injected via setPayeeRules.
@@ -26,7 +28,11 @@ export function autoCategory(
   txn: Pick<BankTxn, 'description' | 'counterparty' | 'source' | 'amount'>
 ): string | undefined {
   const text = `${txn.description} ${txn.counterparty ?? ''}`
-  for (const rule of [...GENERIC_RULES, ...payeeRules]) {
+  for (const rule of payeeRules) {
+    if (rule.inflowTo && rule.inflowTo === txn.source && txn.amount > 0 && rule.pattern.test(text))
+      return rule.category
+  }
+  for (const rule of [...GENERIC_RULES, ...payeeRules.filter((r) => !r.inflowTo)]) {
     if (rule.pattern.test(txn.description) || rule.pattern.test(text)) return rule.category
   }
   // Mox inflows that aren't transfers/payouts are membership & event revenue

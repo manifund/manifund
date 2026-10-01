@@ -35,11 +35,29 @@ payee-specific categorization rules:
 ```json
 {
   "mercuryAccounts": { "1234": "mercury_grants", "5678": "mercury_mox" },
-  "payeeRules": [{ "pattern": "GUSTO", "category": "payroll" }]
+  "payeeRules": [
+    { "pattern": "GUSTO", "category": "payroll" },
+    { "pattern": "^Frame\\b", "category": "revenue_fellowships", "inflowTo": "mercury_mox" }
+  ]
 }
 ```
 
-Without it, Mercury rows import as off-sheet.
+Without it, Mercury rows import as off-sheet. A rule with `inflowTo` applies only
+to inflows into that account and runs ahead of the generic rules, for payers whose
+description would otherwise look like an internal transfer.
+
+## NAV-neutral tags
+
+Some money movements change a balance-sheet line without changing NAV. Each has
+a tag so it stays out of revenue, donations, and the unexplained diff:
+
+- `loan_repayment` (bank category) — a loan receivable turning back into cash.
+- `regrantor_pot` (off-platform match category on a platform deposit) — a
+  balance credited out of the regrantor pot liability.
+- **Uncredited** (the "uncredited $" box on a match) — part of a bank inflow
+  received for a platform account that does not exist yet; a pending liability.
+  When the account is created and credited, unmatch and rematch with the new
+  platform deposit.
 
 ## Gotchas
 

@@ -1,11 +1,4 @@
-import {
-  BankTxn,
-  COUNTED_SOURCES,
-  isRevenue,
-  Match,
-  PlatformTxn,
-  Snapshot,
-} from './types'
+import { BankTxn, COUNTED_SOURCES, isRevenue, Match, PlatformTxn, Snapshot } from './types'
 
 export type NavReport = {
   window: [string, string]
@@ -14,6 +7,7 @@ export type NavReport = {
   expectedNavChange: number
   breakdown: {
     donationsCredited: number
+    uncreditedDeposits: number // received for accounts not yet created; a pending liability, NAV-neutral
     donationsPassThrough: number
     revenue: number // Mox memberships, desk fees, sponsorships
     revenueByKind: Record<string, number> // revenue_* buckets; fiscal sponsorship comes from match remainders
@@ -58,6 +52,7 @@ export function computeNav(
   let netExternalFlows = 0
   let transferResidual = 0
   let donationsCredited = 0
+  let uncreditedDeposits = 0
   let donationsPassThrough = 0
   let withdrawalsPaid = 0
   let directGrants = 0
@@ -84,6 +79,7 @@ export function computeNav(
     const m = matchByBankId.get(t.id)
     const cat = t.category ?? m?.category
     if (cat === 'stripe_payout') continue // counterpart is the (counted) Stripe balance; charges already counted
+    if (cat === 'loan_repayment') continue // asset swap: a loan receivable on the sheet turned back into cash
     if (cat === 'internal_transfer') {
       if (netsOut(t)) {
         transferResidual += t.amount // paired counted<->counted legs must sum to ~0
@@ -110,14 +106,19 @@ export function computeNav(
 
   // match-level revenue remainders (bank inflow exceeding the platform credit, kept by Manifund)
   for (const m of matches) {
-    if (!m.revenueRemainder) continue
+    if (!m.revenueRemainder && !m.uncreditedRemainder) continue
     const inScope = m.bankTxnIds.some((id) => {
       const t = bankById.get(id)
       return t && counted.has(t.source) && inWindow(t.date)
     })
-    if (inScope) {
+    if (!inScope) continue
+    if (m.revenueRemainder) {
       addRevenue('revenue_fiscal_sponsorship', m.revenueRemainder)
       donationsCredited -= m.revenueRemainder
+    }
+    if (m.uncreditedRemainder) {
+      uncreditedDeposits += m.uncreditedRemainder
+      donationsCredited -= m.uncreditedRemainder
     }
   }
 
@@ -125,6 +126,8 @@ export function computeNav(
   let liabilityDelta = 0
   for (const p of platformTxns) {
     if (!inWindow(p.created_at.slice(0, 10))) continue
+    // credited from the regrantor pot: one liability becomes another, no NAV change
+    if (matchByPlatformId.get(p.id)?.category === 'regrantor_pot') continue
     liabilityDelta += p.type === 'deposit' ? p.amount : -p.amount
   }
 
@@ -163,9 +166,10 @@ export function computeNav(
     window,
     netExternalFlows,
     liabilityDelta,
-    expectedNavChange: netExternalFlows - liabilityDelta,
+    expectedNavChange: netExternalFlows - liabilityDelta - uncreditedDeposits,
     breakdown: {
       donationsCredited,
+      uncreditedDeposits,
       donationsPassThrough,
       revenue,
       revenueByKind,
