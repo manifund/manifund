@@ -50,7 +50,7 @@ export function ResolveReport(props: {
             onKeyDown={(e) => {
               if (e.key === 'Enter' && reason.trim()) void resolve('removed')
             }}
-            placeholder="Reason for removing (public)"
+            placeholder="Reason for removing"
             maxLength={500}
             className="min-w-0 flex-1 rounded-md border-gray-300 py-1.5 text-sm focus:border-rose-400 focus:ring-0"
           />
