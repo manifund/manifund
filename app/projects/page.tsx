@@ -3,7 +3,7 @@ import { createPublicSupabaseClient, createServerSupabaseClient } from '@/db/sup
 import { getUser } from '@/db/profile'
 import { Col } from '@/components/layout/col'
 import { FeedTabs } from './feed-tabs'
-import { getRecentFullComments } from '@/db/comment'
+import { countFeedComments, getRecentFullComments } from '@/db/comment'
 import { getRecentFullTxns } from '@/db/txn'
 import { getRecentFullBids } from '@/db/bid'
 import { listSimpleCauses } from '@/db/cause'
@@ -79,17 +79,20 @@ async function AsyncFeedTabs({
     return await listProjects(supabase)
   }
 
-  const [projects, recentComments, recentDonations, recentBids, causesList] = await Promise.all([
-    loadProjects(),
-    getRecentFullComments(supabase, PAGE_SIZE, start, filter),
-    getRecentFullTxns(supabase, PAGE_SIZE, start),
-    getRecentFullBids(supabase, PAGE_SIZE, start),
-    listSimpleCauses(supabase),
-  ])
+  const [projects, recentComments, commentsTotal, recentDonations, recentBids, causesList] =
+    await Promise.all([
+      loadProjects(),
+      getRecentFullComments(supabase, PAGE_SIZE, start, filter),
+      tab === 'comments' ? countFeedComments(supabase, filter) : Promise.resolve(0),
+      getRecentFullTxns(supabase, PAGE_SIZE, start),
+      getRecentFullBids(supabase, PAGE_SIZE, start),
+      listSimpleCauses(supabase),
+    ])
 
   return (
     <FeedTabs
       recentComments={recentComments}
+      commentsTotal={commentsTotal}
       recentDonations={recentDonations}
       recentBids={recentBids}
       projects={projects}

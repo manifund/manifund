@@ -16,6 +16,9 @@ Two steps around the deploy, so the site keeps working throughout.
      need the `_v2` functions;
    - the insert and delete policies on `comment_rxns` (reactions go through `POST /api/comments/:id/react`, with
      the service role; tips through `tip_comment`, which charges once).
+   It also labels past grant rationales as `grant rationale` (a data fix: main saved them as plain comments; they're
+   recognised by sharing their project's creation timestamp, which only the grant functions produce). They then
+   show the "Grant rationale" badge and appear under the feed's "Grant reasoning" filter.
 
 Rolling back the code after step 3 breaks posting comments, reacting and giving grants: restore those objects
 first (their definitions are in production's schema before step 3).

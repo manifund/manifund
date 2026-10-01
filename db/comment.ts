@@ -85,6 +85,19 @@ export async function getCommentsByUser(supabase: SupabaseClient, commenterId: s
   return withCurrentMentionLabels(supabase, data as CommentAndProjectAndRxns[])
 }
 
+// How many comments the feed (with a filter) has, for its pager. Counts before the hidden-project filter, so it
+// can be slightly high.
+export async function countFeedComments(supabase: SupabaseClient, filter?: FeedFilter) {
+  let query = supabase
+    .from('comments')
+    .select('id', { count: 'exact', head: true })
+    .is('deleted_at', null)
+  if (filter === 'discussion') query = query.is('special_type', null)
+  else if (filter) query = query.in('special_type', [...FEED_FILTERS[filter]])
+  const { count } = await query
+  return count ?? 0
+}
+
 export async function getRecentFullComments(
   supabase: SupabaseClient,
   size: number = 10,

@@ -173,6 +173,7 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-30 | Val | Evaluations of projects shelved: comments only for now | Scope |
 | 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2) | Topics are categories; programs have people and decisions to discuss |
 | 2026-09-30 | Team | No deletion by authors; moderators edit with a note or remove with a reason (C13, C15-C17) | Transparency: what was said stays on record; removal is for private information |
+| 2026-10-01 | Val | Past grant rationales get their label at deploy; the comments feed's pager counts what it shows, up to 7 pages as before (C31) | The "Grant reasoning" filter should find the history too |
 | 2026-09-30 | Val | No tipping your own comment (C35) | Sending yourself money is confusing; none in production so far |
 | 2026-09-30 | Val | No commenting guidelines on profiles for now (C8) | Don't solve a problem before it appears; fewer words |
 | 2026-09-28 | Val | Reports: optional note and a spam toggle, no reason list (C19) | Simple by default |
