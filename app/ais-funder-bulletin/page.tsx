@@ -1550,10 +1550,7 @@ export default function AisFunderBulletinPage() {
                         <li>~153 projects funded</li>
                       </ul>
                     </li>
-                    <li>
-                      grant sizes between $0-$525k; the largest single donation in 2025-26 was about
-                      $440k
-                    </li>
+                    <li>grant sizes between $0-$500k</li>
                     <li>
                       staff: ~2 FTE. Caroline Ellison joined full-time in August 2026 as Senior
                       Researcher &amp; Ops, and they are advertising three more roles.
