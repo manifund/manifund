@@ -4,14 +4,16 @@ import { sendDiscordAlert } from '@/utils/discord'
 import { log } from '@/lib/log'
 import { denied, type Denied, type Target } from './types'
 
-// Rate limits (C9, the user 2026-09-30; project/program and report numbers proposed by Claude):
-// a short window that refuses, and a daily count past which admins get a warning (not a refusal).
-// Refusals say which limit and when to try again.
+// Rate limits (C9): they should never trigger for normal users (the user, 2026-09-30). Numbers proposed
+// by Claude from real use (production copy, before 2026-09-27: people post at most 7 comments in any
+// 5 minutes and 23 in a day; one fund account posted a batch of 22 in 5 minutes): a short window that
+// refuses, and a daily count past which admins get a warning (not a refusal). Refusals say which
+// limit and when to try again.
 const WINDOW_MINUTES = 5
 const LIMITS = {
-  profile: { perWindow: 5, warnPerDay: 10, what: 'comments on profiles' },
-  project: { perWindow: 10, warnPerDay: 30, what: 'comments on projects and programs' },
-  report: { perWindow: 5, warnPerDay: 10, what: 'reports' },
+  profile: { perWindow: 10, warnPerDay: 30, what: 'comments on profiles' },
+  project: { perWindow: 30, warnPerDay: 60, what: 'comments on projects and programs' },
+  report: { perWindow: 10, warnPerDay: 20, what: 'reports' },
 } as const
 type Bucket = keyof typeof LIMITS
 
