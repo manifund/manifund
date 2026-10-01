@@ -50,3 +50,5 @@ What changed and why, in short. The decisions with dates are in `README.md`.
 - 2026-09-28: every deletion (by the author or a moderator) would leave a placeholder. Replaced on 2026-09-30 by the
   team's decision that authors don't delete at all (C13) and moderators remove with a public reason (C16).
 - 2026-09-28: comments on any cause. Narrowed on 2026-09-30 to programs only (C2).
+- 2026-09-30: a "Commenting guidelines" hover on profile comments (the team), removed the same day (C8): don't solve a
+  problem before it appears.
