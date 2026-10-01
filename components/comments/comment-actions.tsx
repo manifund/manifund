@@ -2,6 +2,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
+import clsx from 'clsx'
+import { Menu } from '@headlessui/react'
+import { EllipsisHorizontalIcon } from '@heroicons/react/24/outline'
 import type { Comment } from '@/db/comment'
 import { Modal } from '@/components/modal'
 import { Button } from '@/components/button'
@@ -21,36 +24,57 @@ export function CommentActions(props: {
   const [reporting, setReporting] = useState(false)
   const [removing, setRemoving] = useState(false)
   if (!viewerId || comment.deleted_at) return null
-  const link = 'text-xs text-gray-400 hover:text-gray-700 hover:underline'
   const isAuthor = comment.commenter === viewerId
-
+  if (isAuthor) {
+    return (
+      <button
+        className="text-xs text-gray-400 hover:text-gray-700 hover:underline"
+        onClick={() => onEdit(false)}
+      >
+        Edit
+      </button>
+    )
+  }
+  // Everyone else: the rarer actions sit in a menu, so the card stays quiet.
+  const items = isModerator
+    ? [
+        { label: 'Edit', onClick: () => onEdit(true) },
+        { label: 'Remove', onClick: () => setRemoving(true) },
+      ]
+    : [{ label: 'Report', onClick: () => setReporting(true) }]
   return (
-    <span className="flex gap-2">
-      {isAuthor && (
-        <button className={link} onClick={() => onEdit(false)}>
-          Edit
-        </button>
+    <>
+      <Menu as="div" className="relative">
+        <Menu.Button
+          aria-label="More"
+          className="flex rounded text-gray-400 hover:text-gray-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
+        >
+          <EllipsisHorizontalIcon className="h-5 w-5" />
+        </Menu.Button>
+        <Menu.Items className="absolute right-0 z-20 mt-1 min-w-[7rem] rounded-md bg-white py-1 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none">
+          {items.map((item) => (
+            <Menu.Item key={item.label}>
+              {({ active }) => (
+                <button
+                  onClick={item.onClick}
+                  className={clsx(
+                    'block w-full px-3 py-1.5 text-left text-gray-700',
+                    active && 'bg-gray-100'
+                  )}
+                >
+                  {item.label}
+                </button>
+              )}
+            </Menu.Item>
+          ))}
+        </Menu.Items>
+      </Menu>
+      {isModerator ? (
+        <RemoveDialog commentId={comment.id} open={removing} setOpen={setRemoving} />
+      ) : (
+        <ReportDialog commentId={comment.id} open={reporting} setOpen={setReporting} />
       )}
-      {!isAuthor && isModerator && (
-        <>
-          <button className={link} onClick={() => onEdit(true)}>
-            Edit
-          </button>
-          <button className={link} onClick={() => setRemoving(true)}>
-            Remove
-          </button>
-          <RemoveDialog commentId={comment.id} open={removing} setOpen={setRemoving} />
-        </>
-      )}
-      {!isAuthor && !isModerator && (
-        <>
-          <button className={link} onClick={() => setReporting(true)}>
-            Report
-          </button>
-          <ReportDialog commentId={comment.id} open={reporting} setOpen={setReporting} />
-        </>
-      )}
-    </span>
+    </>
   )
 }
 
@@ -77,7 +101,9 @@ function RemoveDialog(props: { commentId: string; open: boolean; setOpen: (o: bo
   return (
     <Modal open={open} setOpen={setOpen}>
       <h2 className="mb-1 text-lg font-medium">Remove this comment</h2>
-      <p className="mb-3 text-sm text-gray-500">The reason replaces the comment. The author is told.</p>
+      <p className="mb-3 text-sm text-gray-500">
+        The reason will be shown in place of the comment. The author will be notified.
+      </p>
       <input
         value={reason}
         onChange={(e) => setReason(e.target.value)}

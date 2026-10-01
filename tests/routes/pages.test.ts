@@ -23,12 +23,11 @@ describe('pages render', () => {
       expect((await anonymous().get(path)).status).toBe(200)
     })
   }
-  standard("C30 a profile shows comments on it and comments the person wrote", async () => {
+  standard("C30 a profile shows comments on it (first tab) and comments the person wrote (Activity)", async () => {
     const alicePage = await anonymous().get('/alice')
-    expect(alicePage.text).toMatch(/Comments on .*profile/)
-    const bobPage = await anonymous().get('/bob')
-    expect(bobPage.text).toMatch(/Comments .*wrote/)
-    expect(bobPage.text).toContain('Seen on the feed')
+    expect(alicePage.text).toContain('id="comments-on-profile"')
+    const bobActivity = await anonymous().get('/bob?tab=activity')
+    expect(bobActivity.text).toContain('Seen on the feed')
   })
   // The cause tabs render in the browser, so this checks the data the page ships; what is shown is
   // checked by the browser tests.
