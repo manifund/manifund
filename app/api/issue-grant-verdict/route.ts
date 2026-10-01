@@ -58,14 +58,22 @@ export async function POST(req: Request) {
     )
   }
 
+  // The verdict is saved by now. A note that can't be posted is logged and reported to the admin
+  // (money review 2026-09-30, the user's answer), who can post it as a comment instead.
+  let noteError: string | undefined
   if (adminComment) {
     const note = await post(
       adminProfile,
       { target: { project: projectId }, content: adminComment, type: 'admin note' },
       'server'
     )
-    if (!note.ok && note.status !== 400) {
-      log.error('grant.admin_note_failed', { project_id: projectId, error: note.message })
+    if (!note.ok) {
+      log.error('grant.admin_note_failed', {
+        project_id: projectId,
+        status: note.status,
+        error: note.message,
+      })
+      noteError = `The verdict was saved, but the note wasn't posted (${note.message}). Please post it as a comment on the project.`
     }
   }
 
@@ -87,5 +95,5 @@ export async function POST(req: Request) {
     creator.id
   )
   await maybeActivateProject(supabase, projectId)
-  return NextResponse.json('success')
+  return NextResponse.json({ ok: true, noteError })
 }

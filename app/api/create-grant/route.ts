@@ -112,16 +112,18 @@ export async function POST(req: Request) {
         grant_amount: donorContribution,
       })
       .throwOnError()
-    await sendTemplateEmail(
-      TEMPLATE_IDS.NEW_USER_GRANT,
-      {
-        amount: donorContribution,
-        regranterName: regranterProfile.full_name,
-        projectTitle: title,
-        loginUrl: `${getURL()}login?email=${recipientEmail}`,
-      },
-      undefined,
-      recipientEmail
+    await sendRecipientEmail(project.id, () =>
+      sendTemplateEmail(
+        TEMPLATE_IDS.NEW_USER_GRANT,
+        {
+          amount: donorContribution,
+          regranterName: regranterProfile.full_name,
+          projectTitle: title,
+          loginUrl: `${getURL()}login?email=${recipientEmail}`,
+        },
+        undefined,
+        recipientEmail
+      )
     )
   } else if (recipientProfile) {
     await supabase
@@ -130,15 +132,17 @@ export async function POST(req: Request) {
         donation: { project: project.id, amount: donorContribution, bidder: regranter.id },
       })
       .throwOnError()
-    await sendTemplateEmail(
-      TEMPLATE_IDS.EXISTING_USER_GRANT,
-      {
-        amount: donorContribution,
-        regranterName: regranterProfile.full_name,
-        projectTitle: title,
-        projectUrl: `${getURL()}projects/${slug}`,
-      },
-      recipientProfile.id
+    await sendRecipientEmail(project.id, () =>
+      sendTemplateEmail(
+        TEMPLATE_IDS.EXISTING_USER_GRANT,
+        {
+          amount: donorContribution,
+          regranterName: regranterProfile.full_name,
+          projectTitle: title,
+          projectUrl: `${getURL()}projects/${slug}`,
+        },
+        recipientProfile.id
+      )
     )
   } else {
     return fail('invalid inputs')
@@ -161,4 +165,14 @@ export async function POST(req: Request) {
   invalidateProjectsCache()
   await triggerProjectScoring(project.id)
   return NextResponse.json({ ...project, rationaleError })
+}
+
+// The grant is saved by now: a failed recipient email is logged and doesn't stop the rationale from
+// being posted (money review 2026-09-30, the user's answer).
+async function sendRecipientEmail(projectId: string, send: () => Promise<unknown>) {
+  try {
+    await send()
+  } catch (error) {
+    log.error('grant.recipient_email_failed', { project_id: projectId, error: String(error) })
+  }
 }
