@@ -113,7 +113,7 @@ const AT_A_GLANCE: Row[] = [
   },
   {
     name: 'AISTOF',
-    donated2025: { v: '$15M', n: 16 },
+    donated2025: { v: '~$15M', n: 16 },
     grants2025: { v: '—' },
     expected2026: { v: '$40M', n: 17 },
     fte: '1',
