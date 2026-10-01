@@ -33,6 +33,7 @@ const COUNTED = [
 const BANK_CATEGORIES = [
   'internal_transfer',
   'stripe_payout',
+  'loan_repayment',
   'payroll',
   'rent',
   'cleaning',
@@ -44,6 +45,8 @@ const BANK_CATEGORIES = [
   'revenue_fiscal_sponsorship',
   'revenue_coinbase_yield',
   'revenue_private_offices',
+  'revenue_fellowships',
+  'revenue_mox_donations',
   'revenue_stripe',
   'revenue_other',
   'other',
@@ -53,6 +56,8 @@ const REVENUE_LABELS = {
   revenue_fiscal_sponsorship: 'Fiscal sponsorship fees',
   revenue_coinbase_yield: 'Coinbase yield',
   revenue_private_offices: 'Private offices',
+  revenue_fellowships: 'Fellowships',
+  revenue_mox_donations: 'Mox donations',
   revenue_stripe: 'Stripe payments',
   revenue_other: 'Other revenue',
   revenue: 'Other revenue',
@@ -62,9 +67,10 @@ const NC_CATEGORIES = [
   'direct_grant',
   'investor_pass_through',
   'ops',
+  'loan_repayment',
   'other',
 ]
-const OFFPLAT = ['paypal', 'usdc', 'other']
+const OFFPLAT = ['paypal', 'usdc', 'regrantor_pot', 'other']
 
 async function api(path, body) {
   const res = await fetch(path, {
@@ -345,7 +351,7 @@ function renderMatching() {
               .map((id) => S.platformTxns.find((t) => t.id === id))
               .filter(Boolean)
             return `<tr>
-            <td><span class="badge ${m.kind}">${m.kind}</span>${m.category ? ` <span class="badge cat">${m.category}</span>` : ''}${m.revenueRemainder ? ` <span class="badge auto">+${fmt0(m.revenueRemainder)} revenue</span>` : ''}</td>
+            <td><span class="badge ${m.kind}">${m.kind}</span>${m.category ? ` <span class="badge cat">${m.category}</span>` : ''}${m.revenueRemainder ? ` <span class="badge auto">+${fmt0(m.revenueRemainder)} revenue</span>` : ''}${m.uncreditedRemainder ? ` <span class="badge auto">${fmt0(m.uncreditedRemainder)} uncredited</span>` : ''}</td>
             <td class="desc" title="${esc(bts.map((t) => t.description).join(' + '))}">${bts.map((t) => `${t.date} ${fmt(t.amount)} ${esc(t.description.slice(0, 40))}`).join('<br/>') || '<span class="muted">—</span>'}</td>
             <td>${pts.map((t) => `${t.created_at.slice(0, 10)} ${fmt(t.amount)} ${esc(t.username)}`).join('<br/>') || '<span class="muted">—</span>'}</td>
             <td class="desc note-cell" data-editnote="${m.id}" title="click to edit note">${esc(m.note || '') || '<span class="muted">+ note</span>'}</td>
@@ -357,7 +363,7 @@ function renderMatching() {
     <div id="matchbar">
       <span class="sums" id="sums"></span>
       <span id="bar-hint" class="muted"></span>
-      <span id="grp-match"><input type="text" id="m-note" placeholder="note (optional)" />
+      <span id="grp-match"><input type="text" id="m-note" placeholder="note (optional)" /><input type="number" id="m-uncredited" placeholder="uncredited $" title="Part of the bank inflow received for a platform account that does not exist yet; booked as a pending liability" style="width:9em" />
         <button class="action" id="do-match" title="Link the selected bank row(s) and platform row(s) as one payment">Match</button>
         <button class="action secondary" id="do-match-rev" title="Link them, and record the leftover bank amount as Manifund revenue"></button></span>
       <span id="grp-nc"><select id="nc-cat" title="Why this bank row has no platform transaction">${NC_CATEGORIES.map((c) => `<option>${c}</option>`).join('')}</select>
@@ -495,6 +501,7 @@ function renderMatching() {
         category,
         note: $('#m-note').value || undefined,
         remainderToRevenue,
+        uncredited: Number($('#m-uncredited').value) || undefined,
       })
       clearSel()
       await loadState()
@@ -510,6 +517,7 @@ function renderMatching() {
           kind,
           category,
           note: $('#m-note').value || undefined,
+          uncredited: Number($('#m-uncredited').value) || undefined,
           force: true,
         })
         clearSel()
@@ -521,7 +529,8 @@ function renderMatching() {
   $('#do-match').onclick = () => {
     const nb = selBank.size,
       np = selPlat.size
-    if (!((nb && np) || nb >= 2 || np >= 2))
+    const uncredited = Number($('#m-uncredited').value) > 0
+    if (!((nb && np) || nb >= 2 || np >= 2 || (nb === 1 && uncredited)))
       return status(
         'select bank+platform rows, ≥2 bank rows, or ≥2 platform rows that cancel',
         true
@@ -594,6 +603,8 @@ function renderOverview() {
   for (const m of S.matches) for (const id of m.bankTxnIds) mBank.set(id, m)
   const mPlat = matchedPlatIds()
   const mb = matchedBankIds()
+  const mPlatMatch = new Map()
+  for (const m of S.matches) for (const id of m.platformTxnIds) mPlatMatch.set(id, m)
 
   // one P&L-style table: rows keyed by group+label, columns manifund / mox
   const rows = new Map()
@@ -605,11 +616,13 @@ function renderOverview() {
   let residual = 0
   for (const t of S.bankTxns) {
     if (!inWin(t.date)) continue
-    const org = ORG[t.source]
-    if (!org) continue
     const m = mBank.get(t.id)
     const cat = t.category ?? (m && m.category)
+    // Mox donations sometimes land in a Manifund account; attribute them to Mox anyway
+    const org = cat === 'revenue_mox_donations' ? 'mox' : ORG[t.source]
+    if (!org) continue
     if (cat === 'stripe_payout') continue // counterpart is our own Stripe balance
+    if (cat === 'loan_repayment') continue // asset swap (loan receivable -> cash), not income
     if (t.fee) add('out', 'Payment processing fees', org, -t.fee)
     if (cat === 'internal_transfer') {
       const partnerId =
@@ -636,7 +649,7 @@ function renderOverview() {
   }
   // match-level revenue remainders: shift from the diff bucket into revenue
   for (const m of S.matches) {
-    if (!m.revenueRemainder) continue
+    if (!m.revenueRemainder && !m.uncreditedRemainder) continue
     const t = m.bankTxnIds.map((id) => bankById.get(id)).find((x) => x && ORG[x.source])
     if (t && !inWin(t.date)) continue
     if (!t) {
@@ -645,8 +658,14 @@ function renderOverview() {
       if (!p || !inWin(p.created_at.slice(0, 10))) continue
     }
     const org = t ? ORG[t.source] : 'manifund'
-    add('in', REVENUE_LABELS.revenue_fiscal_sponsorship, org, m.revenueRemainder)
-    add('diff', 'Unexplained diff', org, -m.revenueRemainder)
+    if (m.revenueRemainder) {
+      add('in', REVENUE_LABELS.revenue_fiscal_sponsorship, org, m.revenueRemainder)
+      add('diff', 'Unexplained diff', org, -m.revenueRemainder)
+    }
+    if (m.uncreditedRemainder) {
+      // cash for a platform account that does not exist yet: offset by the pending liability on the sheet, so NAV-neutral
+      add('diff', 'Unexplained diff', org, -m.uncreditedRemainder)
+    }
   }
   // user balance (liability) changes — platform balances are a Manifund liability
   let deposits = 0
@@ -654,6 +673,8 @@ function renderOverview() {
   const inFlight = []
   for (const p of S.platformTxns) {
     if (!inWin(p.created_at.slice(0, 10))) continue
+    // credited from the regrantor pot: liability swap, not a NAV change
+    if (mPlatMatch.get(p.id)?.category === 'regrantor_pot') continue
     if (p.type === 'deposit') deposits += p.amount
     else {
       withdrawals += p.amount

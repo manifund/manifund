@@ -9,7 +9,7 @@ export type LocalConfig = {
   // last-4 digits of Mercury account -> source key
   mercuryAccounts: Record<string, string>
   // ordered payee rules; pattern is a case-insensitive regex source
-  payeeRules: { pattern: string; category: string }[]
+  payeeRules: { pattern: string; category: string; inflowTo?: string }[]
 }
 
 const CONFIG_PATH = join(import.meta.dir, '..', 'data', 'config.json')
@@ -34,6 +34,7 @@ export function loadLocalConfig(): LocalConfig | null {
     (config.payeeRules ?? []).map((r) => ({
       pattern: new RegExp(r.pattern, 'i'),
       category: r.category,
+      inflowTo: r.inflowTo,
     }))
   )
   return config

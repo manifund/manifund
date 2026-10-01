@@ -61,6 +61,8 @@ export type Match = {
   platformTxnIds: string[]
   // portion of the bank inflow not credited to any platform balance, kept as Manifund revenue
   revenueRemainder?: number
+  // portion of the bank inflow received for a platform account that does not exist yet (pending liability)
+  uncreditedRemainder?: number
   createdAt: string
 }
 
@@ -91,16 +93,20 @@ export const NO_COUNTERPART_CATEGORIES = [
   'direct_grant',
   'investor_pass_through',
   'ops',
+  'loan_repayment',
   'other',
 ]
 
-export const OFFPLATFORM_CATEGORIES = ['paypal', 'usdc', 'other']
+// regrantor_pot: balance credited out of the regrantor pot liability, not new money (liability swap)
+export const OFFPLATFORM_CATEGORIES = ['paypal', 'usdc', 'regrantor_pot', 'other']
 
 // revenue sub-buckets; each rolls up into total revenue on the overview
 export const REVENUE_CATEGORIES = [
   'revenue_fiscal_sponsorship',
   'revenue_coinbase_yield',
   'revenue_private_offices',
+  'revenue_fellowships',
+  'revenue_mox_donations',
   'revenue_stripe',
   'revenue_other',
 ]
@@ -109,6 +115,8 @@ export const REVENUE_LABELS: Record<string, string> = {
   revenue_fiscal_sponsorship: 'Fiscal sponsorship fees',
   revenue_coinbase_yield: 'Coinbase yield',
   revenue_private_offices: 'Private offices',
+  revenue_fellowships: 'Fellowships',
+  revenue_mox_donations: 'Mox donations',
   revenue_stripe: 'Stripe payments',
   revenue_other: 'Other revenue',
   revenue: 'Other revenue', // legacy rows tagged before the split
@@ -120,6 +128,7 @@ export const isRevenue = (cat?: string | null): boolean =>
 export const BANK_CATEGORIES = [
   'internal_transfer',
   'stripe_payout',
+  'loan_repayment',
   'payroll',
   'rent',
   'cleaning',
@@ -136,6 +145,7 @@ export const BANK_CATEGORIES = [
 export const NEVER_PLATFORM_MATCH = new Set([
   'internal_transfer',
   'stripe_payout',
+  'loan_repayment',
   'payroll',
   'rent',
   'card_autopay',

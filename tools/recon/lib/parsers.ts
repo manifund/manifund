@@ -155,6 +155,17 @@ export function parseStripeBalanceHistory(
         amount: num(r['Amount']),
         description: 'Stripe Connect transfer (user payout)',
       })
+    } else if (type === 'topup' || type === 'topup_reversal') {
+      // bank -> Stripe balance top-up; pairs with the outgoing Mercury row
+      out.push({
+        ...base,
+        dedupeKey: 'stripe:' + r['id'],
+        externalId: r['Source'],
+        amount: num(r['Amount']),
+        description: type === 'topup' ? 'Stripe top-up from bank' : 'Stripe top-up reversal',
+        category: 'internal_transfer',
+        categorySource: 'auto',
+      })
     } else if (type === 'stripe_fee') {
       out.push({
         ...base,
