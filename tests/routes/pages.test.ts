@@ -26,7 +26,7 @@ describe('pages render', () => {
   standard("C30 a profile shows comments on it (first tab) and comments the person wrote elsewhere (second tab)", async () => {
     const alicePage = await anonymous().get('/alice')
     expect(alicePage.text).toContain('id="comments-on-profile"')
-    const bobWritten = await anonymous().get('/bob?tab=their-comments')
+    const bobWritten = await anonymous().get('/bob?tab=by')
     expect(bobWritten.text).toContain('Seen on the feed')
   })
   // The cause tabs render in the browser, so this checks the data the page ships; what is shown is

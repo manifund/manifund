@@ -43,14 +43,14 @@ describe('C20 the admins’ queue', () => {
     const open = await sql`select 1 from comment_reports where comment_id = ${commentId} and resolved_at is null`
     expect(open).toHaveLength(0)
   })
-  standard('acting on the comment with "also close the reports" off leaves them open', async () => {
+  standard('removing the comment from the queue closes its reports', async () => {
     const c = await bob.post('/api/comments', { target: { project: w.project.id }, content: doc(`Personal details ${RUN}`) })
     const id = c.body.comment.id
     expect((await alice.post(`/api/comments/${id}/report`, { note: 'has an address' })).status).toBe(201)
-    const r = await rita.post(`/api/comments/${id}/resolve`, { resolution: 'removed', reason: 'private information', closeReports: false })
+    const r = await rita.post(`/api/comments/${id}/resolve`, { resolution: 'removed', reason: 'private information' })
     expect(r.status).toBe(200)
     const [row] = await sql`select deleted_at from comments where id = ${id}`
     expect(row.deleted_at).not.toBeNull()
-    expect(await sql`select 1 from comment_reports where comment_id = ${id} and resolved_at is null`).toHaveLength(1)
+    expect(await sql`select resolution from comment_reports where comment_id = ${id}`).toEqual([{ resolution: 'removed' }])
   })
 })

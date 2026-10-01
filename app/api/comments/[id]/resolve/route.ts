@@ -4,7 +4,7 @@ import { getSignedIn } from '@/lib/comments/auth'
 
 export const runtime = 'nodejs'
 
-// POST /api/comments/:id/resolve  { resolution: 'dismissed' | 'removed', reason?, closeReports? } (admins)
+// POST /api/comments/:id/resolve  { resolution: 'dismissed' | 'removed', reason? } (admins)
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const me = await getSignedIn()
@@ -13,13 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (body?.resolution !== 'dismissed' && body?.resolution !== 'removed') {
     return NextResponse.json({ error: 'resolution must be dismissed or removed' }, { status: 400 })
   }
-  const result = await resolveReports(
-    me,
-    id,
-    body.resolution,
-    body.reason ?? null,
-    body.closeReports !== false
-  )
+  const result = await resolveReports(me, id, body.resolution, body.reason ?? null)
   if (!result.ok) return NextResponse.json({ error: result.message }, { status: result.status })
   return NextResponse.json({ ok: true })
 }

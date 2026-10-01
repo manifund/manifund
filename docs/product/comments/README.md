@@ -105,7 +105,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   toggle. Reporters see only their own reports.
 - **C20** Admins see open reports per comment (the comment, its author, a link, the notes). They dismiss them (the
   comment stays; the reports are marked dismissed, kept for later), or remove the comment with a public reason, which
-  closes the reports too unless the admin keeps them open (e.g. to follow up).
+  closes the reports too.
 
 ### Reactions
 
@@ -165,7 +165,8 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-30 | Val | Rate limits never meet normal use (C9); the numbers are Claude's proposal from real use | Stop floods only |
 | 2026-09-30 | Val | Rate limits per 5 minutes, with a daily threshold that warns admins (C9); refusals explain themselves and never lose the text (C9, C10) | Stop floods without blocking normal use; watch for odd behaviour |
 | 2026-09-30 | Val | A word limit, with refused attempts logged for review (C4) | Very long comments are rare and worth a look |
-| 2026-09-30 | Val | Acting on a reported comment has an "also close the reports" toggle (C20) | Sometimes a report needs a follow-up after acting |
+| 2026-09-30 | Val | Removing a reported comment always closes its reports; no "keep open" option (replaces the toggle decided earlier the same day) | Simpler; the follow-up case hasn't come up |
+| 2026-09-30 | Val | Acting on a reported comment has an "also close the reports" toggle (C20); replaced the same day, see above | Sometimes a report needs a follow-up after acting |
 | 2026-09-30 | Val | Profile comments stay plain for now: no separate vouch type | Simple by default; revisit once people use them |
 | 2026-09-30 | Val | Tags people choose (recommendation, question, concern, evaluation), for search and filters: planned | Let readers find the kind of comment they want |
 | 2026-09-30 | Val | Evaluations of projects shelved: comments only for now | Scope |

@@ -24,8 +24,8 @@ export function ProfileCommentTabs(props: {
   const written = comments.filter((c) => isListed(c) && c.profile_id !== profile.id)
   const tabs = [
     {
-      name: 'Comments',
-      id: 'comments',
+      name: `About ${firstName}`,
+      id: 'about',
       count: profileComments.length,
       display: (
         <section id="comments-on-profile">
@@ -43,8 +43,8 @@ export function ProfileCommentTabs(props: {
       ),
     },
     {
-      name: 'Their comments',
-      id: 'their-comments',
+      name: `By ${firstName}`,
+      id: 'by',
       count: written.length,
       display:
         written.length > 0 ? (

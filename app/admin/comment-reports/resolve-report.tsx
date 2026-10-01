@@ -6,8 +6,7 @@ import { Button } from '@/components/button'
 import { Row } from '@/components/layout/row'
 
 // The two outcomes of a report (C20). Dismissing closes the reports and leaves the comment as it is.
-// Removing asks for the public reason first; the reports close too, unless the admin keeps them open
-// to follow up.
+// Removing asks for the public reason first, then closes the reports too.
 export function ResolveReport(props: {
   commentId: string
   reportCount: number
@@ -16,7 +15,6 @@ export function ResolveReport(props: {
   const { commentId, reportCount, alreadyRemoved } = props
   const [removing, setRemoving] = useState(false)
   const [reason, setReason] = useState('')
-  const [keepOpen, setKeepOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const router = useRouter()
   const resolve = async (resolution: 'dismissed' | 'removed') => {
@@ -24,7 +22,7 @@ export function ResolveReport(props: {
     const res = await fetch(`/api/comments/${commentId}/resolve`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ resolution, reason, closeReports: !keepOpen }),
+      body: JSON.stringify({ resolution, reason }),
     })
     setBusy(false)
     if (!res.ok) {
@@ -34,7 +32,7 @@ export function ResolveReport(props: {
     router.refresh()
   }
   const reports = reportCount === 1 ? 'report' : `${reportCount} reports`
-  const dismissLabel = alreadyRemoved ? `Close ${reports}` : `Dismiss ${reports}`
+  const dismissLabel = `Dismiss ${reports}`
 
   if (removing) {
     return (
@@ -47,16 +45,7 @@ export function ResolveReport(props: {
           maxLength={500}
           className="w-full rounded-md border-gray-300 text-sm focus:border-rose-400 focus:ring-0"
         />
-        <Row className="items-center justify-between gap-3">
-          <label className="flex items-center gap-1.5 text-xs text-gray-500">
-            <input
-              type="checkbox"
-              checked={keepOpen}
-              onChange={(e) => setKeepOpen(e.target.checked)}
-              className="rounded text-orange-500"
-            />
-            Keep the {reportCount === 1 ? 'report' : 'reports'} open
-          </label>
+        <Row className="items-center justify-end gap-3">
           <Row className="items-center gap-3">
             <button
               onClick={() => setRemoving(false)}

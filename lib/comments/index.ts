@@ -256,20 +256,18 @@ export async function report(
   return { ok: true }
 }
 
-// From the reports queue (C20): dismiss (closes every open report on the comment), or remove the
-// comment with a reason, closing the reports only if asked (left open e.g. to follow up).
+// From the reports queue (C20): dismiss (the comment stays), or remove the comment with a reason.
+// Either way every open report on the comment is closed with that resolution.
 export async function resolveReports(
   admin: Actor,
   commentId: string,
   resolution: 'dismissed' | 'removed',
-  reason?: string | null,
-  closeReports = true
+  reason?: string | null
 ): Promise<Result> {
   if (!admin.admin) return denied(403, 'admins only')
   if (resolution === 'removed') {
     const removed = await remove(admin, commentId, reason)
     if (!removed.ok) return removed
-    if (!closeReports) return { ok: true }
   }
   const { error } = await createAdminClient()
     .from('comment_reports')
