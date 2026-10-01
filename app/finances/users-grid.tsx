@@ -74,28 +74,30 @@ export default function UsersGrid({ users }: { users: User[] }) {
 }
 
 export function BalanceSheet() {
-  const lastUpdated = '2026-09-01'
+  const lastUpdated = '2026-10-01'
   const $ = {
     // Stripe Opal + Payments balance
-    stripe: 17_781,
+    stripe: 83_656,
     // Mercury Manifund Grants account
-    mercury: 3_483_610,
-    coinbase: 2_073_904,
+    mercury: 3_237_447,
+    // USDC yield was roughly $196/day in September 2026
+    coinbase: 2_078_097,
     // Current users
-    users: -5_543_184,
+    users: -4_408_262,
     // Regranting pot owed + amount assigned to regrantors
-    regranting: -2_250_000 + 2_075_000,
+    // (Sept 2026: +$50k each to Gavin Leech and Ryan Kidd)
+    regranting: -2_250_000 + 2_175_000,
     // not credited: -pending grants on Airtable
-    pending: -0,
+    // Oct 2026: $900k received for AISTOF, not yet credited (account not created yet); $20k held for Julia Bossmann;
+    // $28,650 returned Future Matters grant, not yet re-credited; $5k Lucas Irwin withdrawal awaiting recipient details
+    pending: -900_000 - 20_000 - 28_650 - 5_000,
     // Donations for Manifold for Charity
     // 500k initial - donated - David MCF - AmmonLam
     charity: 500000 - 315832 - 186747,
     // Mox: Mercury + Stripe pending
-    mox: 321_228,
+    mox: 323_015 + 1_348,
 
     mox_fund: 142_300,
-    // Part of the $180k sent to Manifest on 2026-06-01; repayable, so it stays an asset
-    manifest_loan: 100_000,
   }
   const financeRows = [
     { name: 'Stripe Bank', balance: $.stripe },
@@ -103,10 +105,9 @@ export function BalanceSheet() {
     { name: 'Coinbase (USDC)', balance: $.coinbase },
     { name: 'Mox balance (Mercury + Stripe)', balance: $.mox },
     { name: 'Mox Fund investments', balance: $.mox_fund },
-    { name: 'Loan to Manifest', balance: $.manifest_loan },
     {
       name: 'Total assets',
-      balance: $.stripe + $.mercury + $.coinbase + $.mox + $.mox_fund + $.manifest_loan,
+      balance: $.stripe + $.mercury + $.coinbase + $.mox + $.mox_fund,
     },
     {},
     { name: 'User balances', balance: $.users },
@@ -129,13 +130,12 @@ export function BalanceSheet() {
         $.pending +
         $.charity +
         $.mox +
-        $.mox_fund +
-        $.manifest_loan,
+        $.mox_fund,
     },
     {},
     { name: '(not included in net calculations)' },
     { name: 'ACX Grants balance', balance: 385 },
-    { name: 'Frame Fellowship', balance: 496_579 },
+    { name: 'Frame Fellowship', balance: 502_180 },
   ]
   // Using a grid to display the finances
   return (
