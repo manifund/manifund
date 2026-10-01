@@ -103,8 +103,9 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
 - **C19** Anyone signed in can report someone else's comment, once, with an optional note and a "this is spam"
   toggle. Reporters see only their own reports.
-- **C20** Admins see open reports per comment (the comment, its author, a link, the notes). They dismiss them, or act
-  on the comment with an "also close the reports" toggle (off leaves them open, e.g. to follow up).
+- **C20** Admins see open reports per comment (the comment, its author, a link, the notes). They dismiss them (the
+  comment stays; the reports are marked dismissed, kept for later), or remove the comment with a public reason, which
+  closes the reports too unless the admin keeps them open (e.g. to follow up).
 
 ### Reactions
 
