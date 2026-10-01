@@ -201,7 +201,13 @@ Newest first. Everything here is also reflected in the rules above.
 - **Vouches** as their own kind of profile comment, if plain comments turn out not to be enough (see Decisions).
 - **Evaluations** of projects (shelved), with their own table.
 - **The home feed**, reworked once comments on people and programs show up in it at volume.
-- **Errors in PostHog**: forward the comment code's logged errors there, next to the Vercel logs.
+- **Errors in PostHog**: today only thrown errors reach PostHog; the failures the comment code handles itself are
+  only log lines. Worth a ping: notifications that couldn't be recorded (nobody hears about the comment), emails
+  that fail or stop going out (with bounced addresses counted as skipped), database failures on posting, editing,
+  removing or reporting, a grant's rationale or an admin's note that wasn't saved, a failed verdict, attempts over
+  the word limit, and a failed follow after commenting. Also: check that a removal cancelled the comment's pending
+  emails, refuse a second final report if closing a project fails halfway, and answer database outages with a 500
+  rather than the database's own message.
 
 ## Tests
 
