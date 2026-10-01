@@ -13,6 +13,7 @@ export default defineConfig({
   expect: { timeout: 15_000 },
   reporter: [['list']],
   outputDir: './test-results', // traces of failed runs (git-ignored)
+  globalSetup: './setup.ts', // full profiles for the test accounts (tests/fixtures/personas.sql)
   globalTeardown: './teardown.ts',
   use: {
     baseURL: process.env.TEST_BASE_URL || `http://localhost:${process.env.PORT || '3002'}`,

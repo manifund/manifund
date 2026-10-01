@@ -111,13 +111,6 @@ export function ProfileContent(props: {
       />
       {profile.long_description && <AboutMeSection content={profile.long_description} />}
       {(relevantProjects.length > 0 || isOwnProfile) && <Projects projects={relevantProjects} />}
-      <ProfileCommentTabs
-        profile={profile}
-        profileComments={profileComments}
-        comments={comments}
-        userProfile={userProfile}
-        userCharityBalance={userCharityBalance}
-      />
       {(donations.length > 0 || pendingDonateBids.length > 0) && (
         <OutgoingDonationsHistory donations={donations} pendingDonateBids={pendingDonateBids} />
       )}
@@ -126,6 +119,14 @@ export function ProfileContent(props: {
       )}
       {activeBids.length > 0 && <ActiveBids bids={activeBids} isOwnProfile={isOwnProfile} />}
       {proposalBids.length > 0 && <ProposalBids bids={proposalBids} isOwnProfile={isOwnProfile} />}
+      {/* Where main had "Comments X wrote": the comment tabs keep the page's order (the user, 2026-10-01). */}
+      <ProfileCommentTabs
+        profile={profile}
+        profileComments={profileComments}
+        comments={comments}
+        userProfile={userProfile}
+        userCharityBalance={userCharityBalance}
+      />
       <Col className="gap-4">
         <UserTxns txns={sortedTxns.filter((t) => t.token === 'USD')} profile={profile} />
       </Col>

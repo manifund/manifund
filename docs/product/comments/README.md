@@ -162,39 +162,39 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
-| 2026-09-30 | Val | Word limit of 10,000 words for every comment (C4) | Never triggers normally: the longest comments so far are ~3,800 words (a progress update) and ~2,200 (thoughtful funding reasoning) |
-| 2026-09-30 | Val | Rate limits never meet normal use (C9); the numbers are Claude's proposal from real use | Stop floods only |
-| 2026-09-30 | Val | Rate limits per 5 minutes, with a daily threshold that warns admins (C9); refusals explain themselves and never lose the text (C9, C10) | Stop floods without blocking normal use; watch for odd behaviour |
-| 2026-09-30 | Val | A word limit, with refused attempts logged for review (C4) | Very long comments are rare and worth a look |
-| 2026-09-30 | Val | Removing a reported comment always closes its reports; no "keep open" option (replaces the toggle decided earlier the same day) | Simpler; the follow-up case hasn't come up |
-| 2026-09-30 | Val | Acting on a reported comment has an "also close the reports" toggle (C20); replaced the same day, see above | Sometimes a report needs a follow-up after acting |
-| 2026-09-30 | Val | Profile comments stay plain for now: no separate vouch type | Simple by default; revisit once people use them |
-| 2026-09-30 | Val | Tags people choose (recommendation, question, concern, evaluation), for search and filters: planned | Let readers find the kind of comment they want |
-| 2026-09-30 | Val | Evaluations of projects shelved: comments only for now | Scope |
+| 2026-09-30 | Vals | Word limit of 10,000 words for every comment (C4) | Never triggers normally: the longest comments so far are ~3,800 words (a progress update) and ~2,200 (thoughtful funding reasoning) |
+| 2026-09-30 | Vals | Rate limits never meet normal use (C9); the numbers are Claude's proposal from real use | Stop floods only |
+| 2026-09-30 | Vals | Rate limits per 5 minutes, with a daily threshold that warns admins (C9); refusals explain themselves and never lose the text (C9, C10) | Stop floods without blocking normal use; watch for odd behaviour |
+| 2026-09-30 | Vals | A word limit, with refused attempts logged for review (C4) | Very long comments are rare and worth a look |
+| 2026-09-30 | Vals | Removing a reported comment always closes its reports; no "keep open" option (replaces the toggle decided earlier the same day) | Simpler; the follow-up case hasn't come up |
+| 2026-09-30 | Vals | Acting on a reported comment has an "also close the reports" toggle (C20); replaced the same day, see above | Sometimes a report needs a follow-up after acting |
+| 2026-09-30 | Vals | Profile comments stay plain for now: no separate vouch type | Simple by default; revisit once people use them |
+| 2026-09-30 | Vals | Tags people choose (recommendation, question, concern, evaluation), for search and filters: planned | Let readers find the kind of comment they want |
+| 2026-09-30 | Vals | Evaluations of projects shelved: comments only for now | Scope |
 | 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2) | Topics are categories; programs have people and decisions to discuss |
 | 2026-09-30 | Team | No deletion by authors; moderators edit with a note or remove with a reason (C13, C15-C17) | Transparency: what was said stays on record; removal is for private information |
-| 2026-10-01 | Val | Past grant rationales get their label at deploy; the comments feed's pager counts what it shows, up to 7 pages as before (C31) | The "Grant reasoning" filter should find the history too |
-| 2026-09-30 | Val | No tipping your own comment (C35) | Sending yourself money is confusing; none in production so far |
-| 2026-09-30 | Val | No commenting guidelines on profiles for now (C8) | Don't solve a problem before it appears; fewer words |
-| 2026-09-28 | Val | Reports: optional note and a spam toggle, no reason list (C19) | Simple by default |
-| 2026-09-28 | Val | Profile owner replies but doesn't start threads; profile comments in the home feed; owner notified (C8, C22, C31) | Their own words go in their profile; comments about them are public discussion |
-| 2026-09-28 | Val | Agents may not comment on people | Comments about people need a person behind them (not built yet: see below) |
-| 2026-09-28 | Val | Notifications as a table; sent after the response with a cron backup; a failure doesn't fail the comment (C21-C25) | One path for every comment; in-app list and email settings on the same rows |
-| 2026-09-28 | Val | Server-only writes through `lib/comments`; grant functions stop inserting comments (C3, C26-C28) | One place for the rules; money stays atomic, comments don't need to be |
-| 2026-09-28 | Val | Mentions by user id (C32) | Renamed users' mentions broke |
-| 2026-09-28 | Val | One level of threads (C11) | Enough in practice; simpler to read |
-| 2026-09-28 | Val | Edit history as whole past versions, no diff (C12) | Simple by default |
-| 2026-09-28 | Val | Comments have their own history, not a shared "text with history" unit | Less interconnection; project descriptions will want a different, structured history |
-| 2026-09-28 | Val | Avoid type-specific data on comments (evaluation scores, if they come, get their own table) | Most comments share one structure |
-| 2026-09-28 | Val | One comments table with one column per target | Clear what each row is about; real foreign keys; simple to query |
-| 2026-09-28 | Val, with Austin | Comments everywhere (profiles, programs), starting with profiles | Reputation is built from what others say about people and programs |
+| 2026-10-01 | Vals | Past grant rationales get their label at deploy; the comments feed's pager counts what it shows, up to 7 pages as before (C31) | The "Grant reasoning" filter should find the history too |
+| 2026-09-30 | Vals | No tipping your own comment (C35) | Sending yourself money is confusing; none in production so far |
+| 2026-09-30 | Vals | No commenting guidelines on profiles for now (C8) | Don't solve a problem before it appears; fewer words |
+| 2026-09-28 | Vals | Reports: optional note and a spam toggle, no reason list (C19) | Simple by default |
+| 2026-09-28 | Vals | Profile owner replies but doesn't start threads; profile comments in the home feed; owner notified (C8, C22, C31) | Their own words go in their profile; comments about them are public discussion |
+| 2026-09-28 | Vals | Agents may not comment on people | Comments about people need a person behind them (not built yet: see below) |
+| 2026-09-28 | Vals | Notifications as a table; sent after the response with a cron backup; a failure doesn't fail the comment (C21-C25) | One path for every comment; in-app list and email settings on the same rows |
+| 2026-09-28 | Vals | Server-only writes through `lib/comments`; grant functions stop inserting comments (C3, C26-C28) | One place for the rules; money stays atomic, comments don't need to be |
+| 2026-09-28 | Vals | Mentions by user id (C32) | Renamed users' mentions broke |
+| 2026-09-28 | Vals | One level of threads (C11) | Enough in practice; simpler to read |
+| 2026-09-28 | Vals | Edit history as whole past versions, no diff (C12) | Simple by default |
+| 2026-09-28 | Vals | Comments have their own history, not a shared "text with history" unit | Less interconnection; project descriptions will want a different, structured history |
+| 2026-09-28 | Vals | Avoid type-specific data on comments (evaluation scores, if they come, get their own table) | Most comments share one structure |
+| 2026-09-28 | Vals | One comments table with one column per target | Clear what each row is about; real foreign keys; simple to query |
+| 2026-09-28 | Vals, with Austin | Comments everywhere (profiles, programs), starting with profiles | Reputation is built from what others say about people and programs |
 
 ## Open questions
 
 - **Numbers proposed by Claude, not yet reviewed by the team**: the rate limits (C9) and the order of notification
   reasons (C21).
 - **What commenting on a profile is for (C8)**: vouches only, or also concerns? Calling the section "vouches" would
-  make it clearer, but would rule out negative information (Val, 2026-09-30).
+  make it clearer, but would rule out negative information (Vals, 2026-09-30).
 
 ## Later
 

@@ -57,7 +57,7 @@ test('C2 a program shows comments under About', async ({ page }) => {
   const w = await world()
   await api('bob', '/api/comments', 'POST', { target: { cause_slug: w.program }, content: doc(`Does my project fit? ${RUN}`) })
   await page.goto(`/causes/${w.program}?tab=about`)
-  await expect(page.getByText(/Comments on/)).toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Comments', exact: true })).toBeVisible()
   await expect(page.getByText(`Does my project fit? ${RUN}`)).toBeVisible()
 })
 
@@ -108,4 +108,13 @@ test('C35 a free reaction shows under the comment, and clicking it again takes i
   const undo = page.waitForResponse((r) => r.url().includes(`/api/comments/${c.body.comment.id}/react`))
   await card.getByText('💡').click()
   expect(await (await undo).json()).toEqual({ reacted: false, tipped: false })
+})
+
+test('C30 a profile keeps its sections in order: donations, then the comment tabs', async ({ page }) => {
+  await page.goto('/alice')
+  const donations = page.getByRole('heading', { name: 'Outgoing donations' })
+  const tabs = page.locator('nav[aria-label="Tabs"]')
+  await expect(donations).toBeVisible()
+  const [d, t] = [await donations.boundingBox(), await tabs.boundingBox()]
+  expect(d && t && d.y < t.y).toBe(true)
 })

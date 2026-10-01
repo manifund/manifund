@@ -1,6 +1,8 @@
 // The people and things tests use. People: the local stack's fictional test accounts (alice, bob,
 // rita; rita is an admin in development). Things: a project, a program and a topic cause created
 // for the run and deleted after it, so tests never touch real projects.
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { sql, type Tx } from './db'
 import { doc, RUN } from './content'
 
@@ -16,6 +18,8 @@ export async function getPeople(): Promise<People> {
   for (const name of ['alice', 'bob', 'rita'] as const) {
     if (!byName[name]) throw new Error(`test account ${name}@local.test is missing: run local-dev/reset.sh`)
   }
+  // Give them full profiles (bio, About, a project, donations), so pages look like real ones.
+  await sql.unsafe(readFileSync(join(import.meta.dir, '..', 'fixtures', 'personas.sql'), 'utf8'))
   people = byName
   return people
 }
