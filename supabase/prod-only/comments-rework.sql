@@ -12,3 +12,8 @@ drop function if exists public.give_grant(public.project_row, public.comment_row
 drop function if exists public.create_transfer_grant(public.project_row, public.comment_row, public.transfer_row, numeric);
 drop function if exists public.execute_grant_verdict(boolean, uuid, uuid, uuid, jsonb);
 drop function if exists public.execute_grant_verdict(boolean, uuid, uuid, uuid, jsonb, text);
+
+-- 4. Server-only writes to reactions (the reactions route writes with the service role; tips through
+--    tip_comment). Reading stays public.
+drop policy if exists "Enable insert for authenticated users only" on public.comment_rxns;
+drop policy if exists "Enable delete for users based on user_id" on public.comment_rxns;

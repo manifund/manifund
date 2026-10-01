@@ -71,7 +71,11 @@ export async function tempUser(name: string): Promise<Client> {
   const email = `${RUN}-${name}@local.test`
   const res = await fetch(`${env.supabaseUrl}/auth/v1/admin/users`, {
     method: 'POST',
-    headers: { apikey: env.serviceKey, authorization: `Bearer ${env.serviceKey}`, 'content-type': 'application/json' },
+    headers: {
+      apikey: env.serviceKey,
+      authorization: `Bearer ${env.serviceKey}`,
+      'content-type': 'application/json',
+    },
     body: JSON.stringify({ email, password: env.password, email_confirm: true }),
   })
   if (!res.ok) throw new Error(`creating ${email} failed: ${res.status} ${await res.text()}`)
@@ -85,6 +89,8 @@ export async function tempUser(name: string): Promise<Client> {
 export async function deleteTempUsers() {
   for (const id of temp.splice(0)) {
     await sql`delete from comment_reports where reporter_id = ${id}`
+    await sql`delete from comment_rxns where reactor_id = ${id}`
+    await sql`delete from txns where from_id = ${id} or to_id = ${id}`
     await sql`delete from notifications where recipient_id = ${id} or actor_id = ${id}`
     await sql`delete from comments where commenter = ${id}`
     await sql`delete from project_follows where follower_id = ${id}`

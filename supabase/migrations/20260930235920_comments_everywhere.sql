@@ -254,3 +254,39 @@ begin
 end $$;
 revoke execute on function public.execute_grant_verdict_v2(boolean, uuid, uuid, text)
   from public, anon, authenticated;
+
+-- 7. Tips (C35): a tipped reaction and its money move together, once. The reaction row is the guard: a repeated
+-- request (a double click, a direct API call) finds it and charges nothing. Returns the new txn's id, or null
+-- when this person already gave this tip on this comment. Service role only: lib/comments checks who is tipping
+-- and their balance first.
+create function public.tip_comment(p_comment_id uuid, p_tipper uuid, p_reaction text, p_amount numeric)
+returns uuid
+language plpgsql
+set search_path = public
+as $$
+declare
+  v_recipient uuid;
+  v_txn uuid := gen_random_uuid();
+begin
+  if p_amount is null or p_amount <= 0 then
+    raise exception 'tip_comment: invalid amount';
+  end if;
+  select commenter into v_recipient from comments where id = p_comment_id and deleted_at is null;
+  if not found then
+    raise exception 'tip_comment: no such comment';
+  end if;
+
+  insert into comment_rxns (comment_id, reactor_id, reaction)
+  values (p_comment_id, p_tipper, p_reaction)
+  on conflict do nothing;
+  if not found then
+    return null;
+  end if;
+
+  insert into txns (id, from_id, to_id, amount, token, type)
+  values (v_txn, p_tipper, v_recipient, p_amount, 'USD', 'tip');
+  update comment_rxns set txn_id = v_txn
+  where comment_id = p_comment_id and reactor_id = p_tipper and reaction = p_reaction;
+  return v_txn;
+end $$;
+revoke execute on function public.tip_comment(uuid, uuid, text, numeric) from public, anon, authenticated;

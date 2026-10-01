@@ -1589,6 +1589,10 @@ export type Database = {
           title: string
         }[]
       }
+      tip_comment: {
+        Args: { p_amount: number; p_comment_id: string; p_reaction: string; p_tipper: string }
+        Returns: string
+      }
       toggle_follow: { Args: { follower_id: string; project_id: string }; Returns: undefined }
       transfer_project:
         | {
