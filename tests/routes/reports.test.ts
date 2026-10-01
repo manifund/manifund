@@ -51,6 +51,7 @@ describe('C20 the admins’ queue', () => {
     expect(r.status).toBe(200)
     const [row] = await sql`select deleted_at from comments where id = ${id}`
     expect(row.deleted_at).not.toBeNull()
-    expect(await sql`select resolution from comment_reports where comment_id = ${id}`).toEqual([{ resolution: 'removed' }])
+    const reports = await sql`select resolution from comment_reports where comment_id = ${id}`
+    expect(reports.map((r: any) => r.resolution)).toEqual(['removed'])
   })
 })

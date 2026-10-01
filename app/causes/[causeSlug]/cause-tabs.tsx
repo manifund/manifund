@@ -121,7 +121,7 @@ export function CauseTabs(props: {
           <EditCause cause={cause} />
           {commentable && (
             <>
-              <h2 className="mb-3 mt-8 text-lg font-medium">Comments on {cause.title}</h2>
+              <h2 className="mb-3 mt-8 text-lg font-medium">Comments</h2>
               <CommentsSection
                 target={{ cause_slug: cause.slug }}
                 basePath={`/causes/${cause.slug}?tab=about`}

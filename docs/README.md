@@ -5,7 +5,7 @@ What Manifund is for, how it's built, and how we work on it. For setting up a de
 
 **About this text.** "Most text here is LLM written, read and okayed by a human at a high level as being better
 than nothing, but should not be taken everywhere as a well viewed considered take, much of it is bad and could easily
-be improved and just a result of moving fast, so change it as appropriate" (Val). A person's exact words are in
+be improved and just a result of moving fast, so change it as appropriate" (Vals). A person's exact words are in
 quotation marks with their name, like that; everything else is the LLM's wording.
 
 ## How we work
@@ -38,15 +38,15 @@ quotation marks with their name, like that; everything else is the LLM's wording
 We use various guidelines and heuristics as first order evaluations on what to do, but any of them can be overruled
 by need or context.
 
-- **"Fewer words fewer explanations" (Val).** Where we can, the design of the page shows what's going on and what to do,
+- **"Fewer words fewer explanations" (Vals).** Where we can, the design of the page shows what's going on and what to do,
   rather than text explaining it: "want the UX of site itself to show what's going on, avoid words where possible"
-  (Val). Headers, labels and helper text are sometimes needed; often they aren't.
+  (Vals). Headers, labels and helper text are sometimes needed; often they aren't.
 - **Don't fix a problem before it appears.** For example, we don't add commenting guidelines until people seem to need
   them. Pages stay cleaner by default, and we learn what the actual problem is first. Some things are still worth
   preventing up front (money, privacy, security).
 - **Show what fits what someone is doing.** While editing a comment, there's no need to offer "Edit" again.
 - **Start from what people expect.** When a page resembles something people know from other sites (a profile, a
-  feed), we start from what they'd expect there: "what do people expect from a profile page?" (Val).
+  feed), we start from what they'd expect there: "what do people expect from a profile page?" (Vals).
 
 ## Architecture and services
 
@@ -114,7 +114,7 @@ Areas so far: `comments/` (full), `projects/` and `people/` (stubs).
    what the docs say, do the tests check it. Merged, the docs are true.
 7. **Ship safely.** Additive database changes first, then the code, then removal of old things (see "How we work").
 
-### One setup in practice (Val's, for the curious)
+### One setup in practice (Vals', for the curious)
 
 Most work happens locally, with Claude Code. The shape of it (the tooling lives outside this repo):
 
