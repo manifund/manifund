@@ -3,7 +3,7 @@ import { after } from 'next/server'
 import { createAdminClient } from '@/db/supabase-admin'
 import type { Profile } from '@/db/profile'
 import { log } from '@/lib/log'
-import { checkContent, mentionIds, wordLimitFor } from './content'
+import { checkContent, mentionIds } from './content'
 import { bucketFor, checkRate } from './limits'
 import { recordCommentNotifications } from '@/lib/notifications/record'
 import { sendPendingEmails } from '@/lib/notifications/send'
@@ -27,7 +27,7 @@ export async function post(
   if (source === 'user' && !USER_TYPES.includes(type)) {
     return denied(400, `comments of type "${type}" can't be posted directly`)
   }
-  const checked = checkContent(input.content, wordLimitFor(type))
+  const checked = checkContent(input.content)
   if (!checked.ok) {
     if (checked.tooLong) {
       log.warn('comment.too_long', {
@@ -141,7 +141,7 @@ export async function edit(
   const existing = await getComment(commentId)
   if (!existing) return denied(404, 'comment not found')
   if (existing.deleted_at) return denied(409, 'this comment was removed')
-  const checked = checkContent(content, wordLimitFor(existing.special_type))
+  const checked = checkContent(content)
   if (!checked.ok) {
     if (checked.tooLong) {
       log.warn('comment.too_long', {

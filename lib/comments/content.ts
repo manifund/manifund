@@ -19,15 +19,12 @@ const NODE_TYPES = new Set([
   'image',
 ])
 const MARK_TYPES = new Set(['bold', 'italic', 'strike', 'code', 'link'])
-const MAX_BYTES = 100_000
+const MAX_BYTES = 300_000 // editor JSON; 10,000 words is ~160 KB (the largest real comment is 60 KB)
 const MAX_DEPTH = 20
 
-// Word limits (C4; numbers proposed by Claude 2026-09-30, not yet reviewed by the team): long-form
-// types (progress updates, final reports) get more room.
-const WORD_LIMIT = 3000 // above the longest existing comments (~2,200 words, thoughtful funding reasoning)
-const LONG_FORM_WORD_LIMIT = 5000
-export const wordLimitFor = (type: string | null | undefined) =>
-  type === 'progress update' || type === 'final report' ? LONG_FORM_WORD_LIMIT : WORD_LIMIT
+// Word limit (C4): one limit for every type, far above real use (the longest existing comment is a
+// ~3,800-word progress update), so it only stops abuse (the user, 2026-09-30: "have them be 10k").
+const WORD_LIMIT = 10_000
 
 export type ContentCheck =
   | { ok: true; content: JSONContent; words: number }
@@ -38,7 +35,10 @@ export function checkContent(content: unknown, maxWords = WORD_LIMIT): ContentCh
     return { ok: false, message: 'content must be an editor document' }
   }
   if (JSON.stringify(content).length > MAX_BYTES) {
-    return { ok: false, message: 'comment is too long' }
+    return {
+      ok: false,
+      message: 'This comment is too large to save. Shorten it, or link to a longer document.',
+    }
   }
   const problem = findProblem(content as JSONContent, 0)
   if (problem) return { ok: false, message: problem }
