@@ -1551,10 +1551,7 @@ export default function AisFunderBulletinPage() {
                       </ul>
                     </li>
                     <li>grant sizes between $0-$500k</li>
-                    <li>
-                      staff: ~2 FTE. Caroline Ellison joined full-time in August 2026 as Senior
-                      Researcher &amp; Ops, and they are advertising three more roles.
-                    </li>
+                    <li>staff: ~2 FTE</li>
                   </ul>
                 </li>
                 <li>
