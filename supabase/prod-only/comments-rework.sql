@@ -6,7 +6,7 @@ drop policy if exists "Enable insert for authenticated users only" on public.com
 -- 2. Notifications come from lib/comments now.
 drop trigger if exists "comment-notifications" on public.comments;
 
--- 3. The grant functions without comment inserts (bodies: migration *_poc_comments_grant_functions_v2).
+-- 3. The grant functions without comment inserts (the `_v2` functions in migration 20260930235920_comments_everywhere).
 --    Old versions, once nothing calls them:
 drop function if exists public.give_grant(public.project_row, public.comment_row, public.bid_row);
 drop function if exists public.create_transfer_grant(public.project_row, public.comment_row, public.transfer_row, numeric);

@@ -8,169 +8,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      comment_reports: {
-        Row: {
-          comment_id: string
-          created_at: string
-          id: string
-          is_spam: boolean
-          note: string | null
-          reporter_id: string
-          resolution: string | null
-          resolved_at: string | null
-          resolved_by: string | null
-        }
-        Insert: {
-          comment_id: string
-          created_at?: string
-          id?: string
-          is_spam?: boolean
-          note?: string | null
-          reporter_id: string
-          resolution?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-        }
-        Update: {
-          comment_id?: string
-          created_at?: string
-          id?: string
-          is_spam?: boolean
-          note?: string | null
-          reporter_id?: string
-          resolution?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'comment_reports_comment_id_fkey'
-            columns: ['comment_id']
-            isOneToOne: false
-            referencedRelation: 'comments'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'comment_reports_reporter_id_fkey'
-            columns: ['reporter_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'comment_reports_resolved_by_fkey'
-            columns: ['resolved_by']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      comment_revisions: {
-        Row: {
-          note: string | null
-          written_by: string | null
-          comment_id: string
-          content: Json | null
-          id: string
-          replaced_at: string
-          written_at: string
-        }
-        Insert: {
-          note?: string | null
-          written_by?: string | null
-          comment_id: string
-          content?: Json | null
-          id?: string
-          replaced_at?: string
-          written_at: string
-        }
-        Update: {
-          note?: string | null
-          written_by?: string | null
-          comment_id?: string
-          content?: Json | null
-          id?: string
-          replaced_at?: string
-          written_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'comment_revisions_comment_id_fkey'
-            columns: ['comment_id']
-            isOneToOne: false
-            referencedRelation: 'comments'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      notifications: {
-        Row: {
-          actor_id: string | null
-          comment_id: string | null
-          created_at: string
-          email_attempts: number
-          email_claimed_at: string | null
-          email_status: string
-          emailed_at: string | null
-          id: string
-          last_error: string | null
-          read_at: string | null
-          reason: string
-          recipient_id: string
-        }
-        Insert: {
-          actor_id?: string | null
-          comment_id?: string | null
-          created_at?: string
-          email_attempts?: number
-          email_claimed_at?: string | null
-          email_status?: string
-          emailed_at?: string | null
-          id?: string
-          last_error?: string | null
-          read_at?: string | null
-          reason: string
-          recipient_id: string
-        }
-        Update: {
-          actor_id?: string | null
-          comment_id?: string | null
-          created_at?: string
-          email_attempts?: number
-          email_claimed_at?: string | null
-          email_status?: string
-          emailed_at?: string | null
-          id?: string
-          last_error?: string | null
-          read_at?: string | null
-          reason?: string
-          recipient_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'notifications_actor_id_fkey'
-            columns: ['actor_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'notifications_comment_id_fkey'
-            columns: ['comment_id']
-            isOneToOne: false
-            referencedRelation: 'comments'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'notifications_recipient_id_fkey'
-            columns: ['recipient_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
-        ]
-      }
       bids: {
         Row: {
           amount: number
@@ -269,6 +106,109 @@ export type Database = {
           },
         ]
       }
+      comment_reports: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          is_spam: boolean
+          note: string | null
+          reporter_id: string
+          resolution: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          is_spam?: boolean
+          note?: string | null
+          reporter_id: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          is_spam?: boolean
+          note?: string | null
+          reporter_id?: string
+          resolution?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'comment_reports_comment_id_fkey'
+            columns: ['comment_id']
+            isOneToOne: false
+            referencedRelation: 'comments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comment_reports_reporter_id_fkey'
+            columns: ['reporter_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comment_reports_resolved_by_fkey'
+            columns: ['resolved_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      comment_revisions: {
+        Row: {
+          comment_id: string
+          content: Json | null
+          id: string
+          note: string | null
+          replaced_at: string
+          written_at: string
+          written_by: string | null
+        }
+        Insert: {
+          comment_id: string
+          content?: Json | null
+          id?: string
+          note?: string | null
+          replaced_at?: string
+          written_at: string
+          written_by?: string | null
+        }
+        Update: {
+          comment_id?: string
+          content?: Json | null
+          id?: string
+          note?: string | null
+          replaced_at?: string
+          written_at?: string
+          written_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'comment_revisions_comment_id_fkey'
+            columns: ['comment_id']
+            isOneToOne: false
+            referencedRelation: 'comments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comment_revisions_written_by_fkey'
+            columns: ['written_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       comment_rxns: {
         Row: {
           comment_id: string
@@ -314,64 +254,57 @@ export type Database = {
       }
       comments: {
         Row: {
-          edit_note: string | null
-          edited_by: string | null
           cause_slug: string | null
-          profile_id: string | null
-          deleted_at: string | null
-          deleted_by: string | null
-          edited_at: string | null
-          removed_reason: string | null
           commenter: string
           content: Json | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
+          edit_note: string | null
+          edited_at: string | null
+          edited_by: string | null
           id: string
+          profile_id: string | null
           project: string | null
+          removed_reason: string | null
           replying_to: string | null
           special_type: Database['public']['Enums']['comment_type'] | null
         }
         Insert: {
-          edit_note?: string | null
-          edited_by?: string | null
           cause_slug?: string | null
-          profile_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          edited_at?: string | null
-          removed_reason?: string | null
           commenter: string
           content?: Json | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edit_note?: string | null
+          edited_at?: string | null
+          edited_by?: string | null
           id?: string
+          profile_id?: string | null
           project?: string | null
+          removed_reason?: string | null
           replying_to?: string | null
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Update: {
-          edit_note?: string | null
-          edited_by?: string | null
           cause_slug?: string | null
-          profile_id?: string | null
-          deleted_at?: string | null
-          deleted_by?: string | null
-          edited_at?: string | null
-          removed_reason?: string | null
           commenter?: string
           content?: Json | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
+          edit_note?: string | null
+          edited_at?: string | null
+          edited_by?: string | null
           id?: string
+          profile_id?: string | null
           project?: string | null
+          removed_reason?: string | null
           replying_to?: string | null
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Relationships: [
-          {
-            foreignKeyName: 'comments_profile_id_fkey'
-            columns: ['profile_id']
-            isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
-          },
           {
             foreignKeyName: 'comments_cause_slug_fkey'
             columns: ['cause_slug']
@@ -382,6 +315,27 @@ export type Database = {
           {
             foreignKeyName: 'comments_commenter_fkey'
             columns: ['commenter']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comments_deleted_by_fkey'
+            columns: ['deleted_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comments_edited_by_fkey'
+            columns: ['edited_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comments_profile_id_fkey'
+            columns: ['profile_id']
             isOneToOne: false
             referencedRelation: 'profiles'
             referencedColumns: ['id']
@@ -408,7 +362,7 @@ export type Database = {
           already_given: string | null
           already_given_link: string | null
           capacity: string[]
-          cause_ratings: Json
+          cause_ratings: NonNullable<Json>
           charities_interested: string | null
           created_at: string
           dream_setup: string | null
@@ -439,7 +393,7 @@ export type Database = {
           already_given?: string | null
           already_given_link?: string | null
           capacity?: string[]
-          cause_ratings?: Json
+          cause_ratings?: NonNullable<Json>
           charities_interested?: string | null
           created_at?: string
           dream_setup?: string | null
@@ -470,7 +424,7 @@ export type Database = {
           already_given?: string | null
           already_given_link?: string | null
           capacity?: string[]
-          cause_ratings?: Json
+          cause_ratings?: NonNullable<Json>
           charities_interested?: string | null
           created_at?: string
           dream_setup?: string | null
@@ -648,6 +602,73 @@ export type Database = {
             columns: ['project_id']
             isOneToOne: true
             referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          actor_id: string | null
+          comment_id: string | null
+          created_at: string
+          email_attempts: number
+          email_claimed_at: string | null
+          email_status: string
+          emailed_at: string | null
+          id: string
+          last_error: string | null
+          read_at: string | null
+          reason: string
+          recipient_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          email_attempts?: number
+          email_claimed_at?: string | null
+          email_status?: string
+          emailed_at?: string | null
+          id?: string
+          last_error?: string | null
+          read_at?: string | null
+          reason: string
+          recipient_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          comment_id?: string | null
+          created_at?: string
+          email_attempts?: number
+          email_claimed_at?: string | null
+          email_status?: string
+          emailed_at?: string | null
+          id?: string
+          last_error?: string | null
+          read_at?: string | null
+          reason?: string
+          recipient_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_actor_id_fkey'
+            columns: ['actor_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_comment_id_fkey'
+            columns: ['comment_id']
+            isOneToOne: false
+            referencedRelation: 'comments'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_recipient_id_fkey'
+            columns: ['recipient_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
             referencedColumns: ['id']
           },
         ]
@@ -1428,29 +1449,6 @@ export type Database = {
       }
     }
     Functions: {
-      create_transfer_grant_v2: {
-        Args: {
-          project: Database['public']['CompositeTypes']['project_row']
-          project_transfer: Database['public']['CompositeTypes']['transfer_row']
-          grant_amount: number
-        }
-        Returns: undefined
-      }
-      execute_grant_verdict_v2: {
-        Args: { approved: boolean; project_id: string; admin_id: string; public_benefit?: string }
-        Returns: undefined
-      }
-      give_grant_v2: {
-        Args: {
-          project: Database['public']['CompositeTypes']['project_row']
-          donation: Database['public']['CompositeTypes']['bid_row']
-        }
-        Returns: undefined
-      }
-      claim_notification_emails: {
-        Args: { p_comment_id?: string | null; p_min_age?: unknown; p_limit?: number }
-        Returns: Database['public']['Tables']['notifications']['Row'][]
-      }
       _transfer_project:
         | {
             Args: {
@@ -1474,23 +1472,45 @@ export type Database = {
             }
             Returns: undefined
           }
-        | {
-            Args: { project_id: string; to_id: string; transfer_id: string }
-            Returns: undefined
-          }
-      activate_cert: {
-        Args: { project_creator: string; project_id: string }
-        Returns: undefined
+        | { Args: { project_id: string; to_id: string; transfer_id: string }; Returns: undefined }
+      activate_cert: { Args: { project_creator: string; project_id: string }; Returns: undefined }
+      activate_grant: { Args: { project_creator: string; project_id: string }; Returns: undefined }
+      add_tags: { Args: Record<PropertyKey, never>; Returns: undefined }
+      add_topics: { Args: Record<PropertyKey, never>; Returns: undefined }
+      claim_notification_emails: {
+        Args: { p_comment_id?: string; p_limit?: number; p_min_age?: string }
+        Returns: {
+          actor_id: string | null
+          comment_id: string | null
+          created_at: string
+          email_attempts: number
+          email_claimed_at: string | null
+          email_status: string
+          emailed_at: string | null
+          id: string
+          last_error: string | null
+          read_at: string | null
+          reason: string
+          recipient_id: string
+        }[]
+        SetofOptions: {
+          from: '*'
+          to: 'notifications'
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
-      activate_grant: {
-        Args: { project_creator: string; project_id: string }
-        Returns: undefined
-      }
-      add_tags: { Args: never; Returns: undefined }
-      add_topics: { Args: never; Returns: undefined }
       create_transfer_grant: {
         Args: {
           donor_comment: Database['public']['CompositeTypes']['comment_row']
+          grant_amount: number
+          project: Database['public']['CompositeTypes']['project_row']
+          project_transfer: Database['public']['CompositeTypes']['transfer_row']
+        }
+        Returns: undefined
+      }
+      create_transfer_grant_v2: {
+        Args: {
           grant_amount: number
           project: Database['public']['CompositeTypes']['project_row']
           project_transfer: Database['public']['CompositeTypes']['transfer_row']
@@ -1519,10 +1539,11 @@ export type Database = {
             }
             Returns: undefined
           }
-      execute_readonly_sql: {
-        Args: { max_rows?: number; query: string }
-        Returns: Json
+      execute_grant_verdict_v2: {
+        Args: { admin_id: string; approved: boolean; project_id: string; public_benefit?: string }
+        Returns: undefined
       }
+      execute_readonly_sql: { Args: { max_rows?: number; query: string }; Returns: Json }
       find_similar_projects: {
         Args: { match_count?: number; project_id: string }
         Returns: {
@@ -1533,14 +1554,18 @@ export type Database = {
           title: string
         }[]
       }
-      follow_project: {
-        Args: { follower_id: string; project_id: string }
-        Returns: undefined
-      }
+      follow_project: { Args: { follower_id: string; project_id: string }; Returns: undefined }
       give_grant: {
         Args: {
           donation: Database['public']['CompositeTypes']['bid_row']
           donor_comment: Database['public']['CompositeTypes']['comment_row']
+          project: Database['public']['CompositeTypes']['project_row']
+        }
+        Returns: undefined
+      }
+      give_grant_v2: {
+        Args: {
+          donation: Database['public']['CompositeTypes']['bid_row']
           project: Database['public']['CompositeTypes']['project_row']
         }
         Returns: undefined
@@ -1554,11 +1579,7 @@ export type Database = {
       reject_grant: { Args: { project_id: string }; Returns: undefined }
       reject_proposal: { Args: { project_id: string }; Returns: undefined }
       search_projects_by_embedding: {
-        Args: {
-          include_hidden?: boolean
-          match_count?: number
-          query_embedding: string
-        }
+        Args: { include_hidden?: boolean; match_count?: number; query_embedding: string }
         Returns: {
           blurb: string
           id: string
@@ -1568,10 +1589,7 @@ export type Database = {
           title: string
         }[]
       }
-      toggle_follow: {
-        Args: { follower_id: string; project_id: string }
-        Returns: undefined
-      }
+      toggle_follow: { Args: { follower_id: string; project_id: string }; Returns: undefined }
       transfer_project:
         | {
             Args: {
@@ -1606,10 +1624,7 @@ export type Database = {
             }
             Returns: undefined
           }
-      unfollow_project: {
-        Args: { follower_id: string; project_id: string }
-        Returns: undefined
-      }
+      unfollow_project: { Args: { follower_id: string; project_id: string }; Returns: undefined }
     }
     Enums: {
       bid_status: 'deleted' | 'pending' | 'accepted' | 'declined'
@@ -1683,15 +1698,13 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
@@ -1710,14 +1723,12 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
@@ -1735,14 +1746,12 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
@@ -1760,14 +1769,12 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
     ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
@@ -1777,14 +1784,12 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals
-}
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
     ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
