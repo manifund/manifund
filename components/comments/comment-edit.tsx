@@ -42,7 +42,7 @@ export function CommentEdit(props: { comment: Comment; asModerator: boolean; onD
       <div className="[&>div]:!min-h-0 [&>div]:!shadow-none">
         <TextEditor editor={editor} />
       </div>
-      <Row className="mt-2 items-center justify-end gap-3">
+      <Row className="mt-1 h-[30px] items-center justify-end gap-3">
         {asModerator && (
           <input
             value={note}
@@ -55,7 +55,7 @@ export function CommentEdit(props: { comment: Comment; asModerator: boolean; onD
         <button onClick={onDone} className="text-xs text-gray-500 hover:text-gray-700">
           Cancel
         </button>
-        <Button size="xs" loading={saving} disabled={asModerator && !note.trim()} onClick={save}>
+        <Button size="2xs" loading={saving} disabled={asModerator && !note.trim()} onClick={save}>
           Save
         </Button>
       </Row>

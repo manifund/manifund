@@ -17,7 +17,10 @@ beforeAll(async () => {
 })
 
 describe('pages render', () => {
-  const pages = ['/', '/projects', '/causes', '/people', '/about/regranting-data', '/donor-survey', '/docs']
+  const pages = ['/', '/projects', '/causes', '/people', '/about/regranting-data', '/donor-survey', '/docs',
+    // C31 the comments feed and its filters
+    '/projects?tab=comments', '/projects?tab=comments&show=updates', '/projects?tab=comments&show=grants',
+    '/projects?tab=comments&show=discussion']
   for (const path of pages) {
     smoke(`${path} renders`, async () => {
       expect((await anonymous().get(path)).status).toBe(200)

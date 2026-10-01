@@ -12,7 +12,16 @@ export type CommentRxnWithProfile = CommentRxn & { profiles: Profile }
 export type CommentAndProfile = Comment & { profiles: Profile }
 export type FullComment = Comment & { profiles: Profile } & TargetEmbeds & {
     comment_rxns: CommentRxnWithProfile[]
+    // For replies in feeds: whom they answer.
+    parent?: { profiles: { username: string; full_name: string } | null } | null
   }
+
+// Feed filters (the comments feed's chips): long-form updates, grant reasoning, or plain discussion.
+export const FEED_FILTERS = {
+  updates: ['progress update', 'final report'],
+  grants: ['grant rationale'],
+} as const
+export type FeedFilter = keyof typeof FEED_FILTERS | 'discussion'
 export type CommentAndProject = Comment & { projects: Project }
 export type CommentAndProfileAndRxns = Comment & { profiles: Profile } & {
   comment_rxns: CommentRxnWithProfile[]
@@ -79,14 +88,18 @@ export async function getCommentsByUser(supabase: SupabaseClient, commenterId: s
 export async function getRecentFullComments(
   supabase: SupabaseClient,
   size: number = 10,
-  start: number = 0
+  start: number = 0,
+  filter?: FeedFilter
 ) {
-  const { data } = await supabase
+  let query = supabase
     .from('comments')
     .select(
-      `*, profiles!comments_commenter_fkey(*), ${TARGET_EMBEDS}, comment_rxns(reactor_id, reaction, profiles!comment_rxns_reactor_id_fkey(id, username, avatar_url, full_name))`
+      `*, profiles!comments_commenter_fkey(*), ${TARGET_EMBEDS}, comment_rxns(reactor_id, reaction, profiles!comment_rxns_reactor_id_fkey(id, username, avatar_url, full_name)), parent:replying_to(profiles!comments_commenter_fkey(username, full_name))`
     )
     .is('deleted_at', null)
+  if (filter === 'discussion') query = query.is('special_type', null)
+  else if (filter) query = query.in('special_type', [...FEED_FILTERS[filter]])
+  const { data } = await query
     .order('created_at', { ascending: false })
     .range(start, start + size)
     .throwOnError()
