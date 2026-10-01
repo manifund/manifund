@@ -43,11 +43,10 @@ test('C16 a removed comment shows the moderator\'s reason to visitors', async ({
   await expect(page.getByText('1 Example St')).toHaveCount(0)
 })
 
-test('C8 a profile: visitors see the guidelines; the person can reply but not start a thread', async ({ page, context }) => {
+test('C8 a profile: visitors see its comments; the person can reply but not start a thread', async ({ page, context }) => {
   const alice = await person('alice')
   await api('bob', '/api/comments', 'POST', { target: { profile_id: alice.id }, content: doc(`Great collaborator ${RUN}`) })
   await page.goto('/alice')
-  await expect(page.getByText('Commenting guidelines')).toBeVisible()
   await expect(page.getByText(`Great collaborator ${RUN}`)).toBeVisible()
   await signIn(context, 'alice')
   await page.goto('/alice')

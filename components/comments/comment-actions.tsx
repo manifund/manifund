@@ -34,7 +34,7 @@ export function CommentActions(props: {
       {!isAuthor && isModerator && (
         <>
           <button className={link} onClick={() => onEdit(true)}>
-            Edit as moderator
+            Edit
           </button>
           <button className={link} onClick={() => setRemoving(true)}>
             Remove
@@ -77,15 +77,11 @@ function RemoveDialog(props: { commentId: string; open: boolean; setOpen: (o: bo
   return (
     <Modal open={open} setOpen={setOpen}>
       <h2 className="mb-1 text-lg font-medium">Remove this comment</h2>
-      <p className="mb-3 text-sm text-gray-500">
-        For private information and similar cases; otherwise prefer editing as a moderator, which
-        keeps the history public. The reason is shown in place of the comment, and the author is
-        told.
-      </p>
+      <p className="mb-3 text-sm text-gray-500">The reason replaces the comment. The author is told.</p>
       <input
         value={reason}
         onChange={(e) => setReason(e.target.value)}
-        placeholder="Public reason, e.g. contained a private phone number"
+        placeholder="Reason (public)"
         maxLength={500}
         className="w-full rounded-md border-gray-300 text-sm focus:border-orange-500 focus:ring-orange-500"
       />

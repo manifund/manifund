@@ -59,8 +59,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C6** Hidden and draft projects take no comments (a draft's creator can't comment on it before publishing).
 - **C7** Commenting on a project follows it.
 - **C8** On a profile, the person can reply to comments but not start a thread (their own words go in their About
-  section). Profile comments show "Commenting guidelines" on hover: "Comments on People's pages should be
-  informative. Both vouches and negative appraisals should be phrased professionally and factually where possible."
+  section).
 - **C9** Rate limits, set so that normal use never meets them: they're there to stop floods. Refusals say which
   limit and when to try again (the text stays in its editor). Server flows (grant rationale, admin note, final
   report) aren't limited.
@@ -170,7 +169,8 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-30 | Val | Evaluations of projects shelved: comments only for now | Scope |
 | 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2) | Topics are categories; programs have people and decisions to discuss |
 | 2026-09-30 | Team | No deletion by authors; moderators edit with a note or remove with a reason (C13, C15-C17) | Transparency: what was said stays on record; removal is for private information |
-| 2026-09-30 | Team | Guidelines hover on profile comments (C8) | Comments about people should be informative and professional |
+| 2026-09-30 | Val | No commenting guidelines on profiles for now (replaces the team's guidelines hover, same day) | Don't solve a problem before it appears; fewer words. Open question: what commenting on a profile is for (vouches? also concerns?) |
+| 2026-09-30 | Team | Guidelines hover on profile comments (C8); replaced the same day, see above | Comments about people should be informative and professional |
 | 2026-09-28 | Val | Reports: optional note and a spam toggle, no reason list (C19) | Simple by default |
 | 2026-09-28 | Val | Profile owner replies but doesn't start threads; profile comments in the home feed; owner notified (C8, C22, C31) | Their own words go in their profile; comments about them are public discussion |
 | 2026-09-28 | Val | Agents may not comment on people | Comments about people need a person behind them (not built yet: see below) |

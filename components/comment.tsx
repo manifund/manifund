@@ -133,61 +133,63 @@ export function Comment(props: {
               <Tag text={toSentenceCase(comment.special_type)} className="text-xs" color="blue" />
             )}
           </Row>
-          <div className={clsx('relative', showExpandButton && 'pb-5')}>
-            <div
-              id="content"
-              ref={contentElement}
-              className={clsx(expanded || !showExpandButton ? 'max-h-fit' : 'line-clamp-[12]')}
-            >
-              {editing ? (
-                <CommentEdit
-                  comment={comment}
-                  asModerator={editing === 'moderator'}
-                  onDone={() => setEditing(false)}
-                />
-              ) : (
+          {editing ? (
+            <CommentEdit
+              comment={comment}
+              asModerator={editing === 'moderator'}
+              onDone={() => setEditing(false)}
+            />
+          ) : (
+            <div className={clsx('relative', showExpandButton && 'pb-5')}>
+              <div
+                id="content"
+                ref={contentElement}
+                className={clsx(expanded || !showExpandButton ? 'max-h-fit' : 'line-clamp-[12]')}
+              >
                 <RichContent content={comment.content} className="text-sm" />
+              </div>
+              {showExpandButton && (
+                <div
+                  className={clsx(
+                    'absolute bottom-0 left-0 flex w-full flex-col justify-end',
+                    expanded ? 'h-2' : 'h-32',
+                    !expanded
+                      ? highlighted
+                        ? 'shadow-[inset_0px_-100px_50px_-50px_rgba(255,237,213,0.9)]'
+                        : 'shadow-[inset_0px_-100px_50px_-50px_rgba(255,255,255,0.9)]'
+                      : ''
+                  )}
+                >
+                  <button
+                    className="text-xs text-gray-500 hover:underline"
+                    onClick={() => setExpanded(!expanded)}
+                  >
+                    {expanded ? 'Show less' : 'Show more'}
+                  </button>
+                </div>
               )}
             </div>
-            {showExpandButton && (
-              <div
-                className={clsx(
-                  'absolute bottom-0 left-0 flex w-full flex-col justify-end',
-                  expanded ? 'h-2' : 'h-32',
-                  !expanded
-                    ? highlighted
-                      ? 'shadow-[inset_0px_-100px_50px_-50px_rgba(255,237,213,0.9)]'
-                      : 'shadow-[inset_0px_-100px_50px_-50px_rgba(255,255,255,0.9)]'
-                    : ''
-                )}
-              >
-                <button
-                  className="text-xs text-gray-500 hover:underline"
-                  onClick={() => setExpanded(!expanded)}
-                >
-                  {expanded ? 'Show less' : 'Show more'}
-                </button>
-              </div>
-            )}
-          </div>
-          <Row className="mt-1 justify-between gap-2">
-            <CommentRxnsPanel
-              commentId={comment.id}
-              userId={userId}
-              userCharityBalance={userCharityBalance}
-              rxns={rxns}
-              orangeBg={highlighted}
-              userProfile={userProfile}
-            />
-            <Row className="mt-1.5 items-center gap-3">
-              <CommentActions
-                comment={comment}
-                viewerId={userId}
-                onEdit={(asModerator) => setEditing(asModerator ? 'moderator' : 'author')}
+          )}
+          {!editing && (
+            <Row className="mt-1 justify-between gap-2">
+              <CommentRxnsPanel
+                commentId={comment.id}
+                userId={userId}
+                userCharityBalance={userCharityBalance}
+                rxns={rxns}
+                orangeBg={highlighted}
+                userProfile={userProfile}
               />
-              {children}
+              <Row className="mt-1.5 items-center gap-3">
+                <CommentActions
+                  comment={comment}
+                  viewerId={userId}
+                  onEdit={(asModerator) => setEditing(asModerator ? 'moderator' : 'author')}
+                />
+                {children}
+              </Row>
             </Row>
-          </Row>
+          )}
         </Card>
       </Row>
     </Col>
