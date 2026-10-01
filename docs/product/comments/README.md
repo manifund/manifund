@@ -169,8 +169,7 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-30 | Val | Evaluations of projects shelved: comments only for now | Scope |
 | 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2) | Topics are categories; programs have people and decisions to discuss |
 | 2026-09-30 | Team | No deletion by authors; moderators edit with a note or remove with a reason (C13, C15-C17) | Transparency: what was said stays on record; removal is for private information |
-| 2026-09-30 | Val | No commenting guidelines on profiles for now (replaces the team's guidelines hover, same day) | Don't solve a problem before it appears; fewer words. Open question: what commenting on a profile is for (vouches? also concerns?) |
-| 2026-09-30 | Team | Guidelines hover on profile comments (C8); replaced the same day, see above | Comments about people should be informative and professional |
+| 2026-09-30 | Val | No commenting guidelines on profiles for now (C8) | Don't solve a problem before it appears; fewer words |
 | 2026-09-28 | Val | Reports: optional note and a spam toggle, no reason list (C19) | Simple by default |
 | 2026-09-28 | Val | Profile owner replies but doesn't start threads; profile comments in the home feed; owner notified (C8, C22, C31) | Their own words go in their profile; comments about them are public discussion |
 | 2026-09-28 | Val | Agents may not comment on people | Comments about people need a person behind them (not built yet: see below) |
@@ -188,7 +187,8 @@ Newest first. Everything here is also reflected in the rules above.
 
 - **Numbers proposed by Claude, not yet reviewed by the team**: the rate limits (C9) and the order of notification
   reasons (C21).
-- **Profile comments (C8)** need more work (Val, 2026-09-30; not specified yet).
+- **What commenting on a profile is for (C8)**: vouches only, or also concerns? Calling the section "vouches" would
+  make it clearer, but would rule out negative information (Val, 2026-09-30).
 
 ## Later
 
