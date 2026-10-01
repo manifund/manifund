@@ -48,7 +48,7 @@ export function ReportDialog(props: {
       <textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        placeholder="What's the problem?"
+        placeholder="What is the problem?"
         maxLength={2000}
         rows={3}
         className="w-full rounded-md border-gray-300 text-sm focus:border-orange-500 focus:ring-orange-500"
