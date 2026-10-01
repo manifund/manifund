@@ -29,7 +29,7 @@ export async function sendPendingEmails(opts: {
   const admin = createAdminClient()
   const summary: SendSummary = { claimed: 0, sent: 0, skipped: 0, failed: 0, retry: 0 }
   const { data: rows, error } = await admin.rpc('claim_notification_emails', {
-    p_comment_id: opts.commentId ?? null,
+    p_comment_id: opts.commentId, // omitted when undefined: the function's default (null) means every comment
     p_min_age: `${opts.minAgeSeconds ?? 0} seconds`,
     p_limit: opts.limit ?? 50,
   })

@@ -18,9 +18,15 @@ export type ProfileWithRoles = Profile & {
 
 const ADMINS = ['akrolsmir@gmail.com', 'hannah@manifund.org', 'carol@manifund.org']
 
-// POC comments (local only): the fictional persona rita@local.test acts as an admin in
-// development, so the report queue can be demoed. Never true in production builds.
-const LOCAL_ADMINS = process.env.NODE_ENV === 'development' ? ['rita@local.test'] : []
+// Local development only: extra admin emails for test accounts (e.g. the local stack sets
+// rita@local.test), comma-separated. Empty in production builds whatever the variable says.
+const LOCAL_ADMINS =
+  process.env.NODE_ENV === 'development'
+    ? (process.env.NEXT_PUBLIC_LOCAL_ADMIN_EMAILS ?? '')
+        .split(',')
+        .map((e) => e.trim())
+        .filter(Boolean)
+    : []
 
 export function isAdmin(user: User | null) {
   return ADMINS.includes(user?.email ?? '') || LOCAL_ADMINS.includes(user?.email ?? '')
