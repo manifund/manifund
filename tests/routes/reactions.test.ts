@@ -41,6 +41,16 @@ describe('C35 reactions', () => {
     expect((await react(bob, '🦄')).status).toBe(400)
     expect((await react(bob, '💡', '00000000-0000-4000-8000-000000000000')).status).toBe(404)
   })
+  standard("you can't tip your own comment (free reactions are fine)", async () => {
+    const author = await tempUser('self-tipper')
+    await sql`insert into txns (from_id, to_id, amount, token, type) values (null, ${author.id}, 5, 'USD', 'deposit')`
+    const own = (await author.post('/api/comments', { target: { project: w.project.id }, content: doc(`Mine ${RUN}`) })).body.comment.id
+    const r = await react(author, '🧡', own)
+    expect(r.status).toBe(400)
+    expect(r.body.error).toContain('your own comment')
+    expect((await sql`select 1 from txns where from_id = ${author.id} and type = 'tip'`).length).toBe(0)
+    expect((await react(author, '💡', own)).status).toBe(200)
+  })
   standard('a tip needs enough charity balance', async () => {
     const broke = await tempUser('broke-tipper')
     const r = await react(broke, '🧡')

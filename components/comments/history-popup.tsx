@@ -54,7 +54,6 @@ export function HistoryPopup(props: { comment: Comment }) {
       </button>
       <Modal open={open} setOpen={setOpen}>
         <h2 className="mb-1 text-lg font-medium">Edit history</h2>
-        <p className="mb-3 text-xs text-gray-500">Every version stays visible, newest first.</p>
         {!versions && <p className="text-sm text-gray-500">Loading…</p>}
         <div className="flex max-h-[60vh] flex-col gap-3 overflow-y-auto">
           {versions?.map((v) => (

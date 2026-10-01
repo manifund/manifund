@@ -8,7 +8,8 @@ import { isListed } from '@/lib/comments/links'
 import { ProfileComments } from './profile-comments'
 
 // The comments part of a profile: what people say about this person (C8), and what they wrote
-// elsewhere (C30), as two tabs rather than two headed sections.
+// elsewhere (C30), as two tabs rather than two headed sections. Their replies on their own profile
+// stay in the first tab, in their threads, and aren't repeated in the second.
 export function ProfileCommentTabs(props: {
   profile: Profile
   profileComments: CommentAndProfileAndRxns[]
@@ -20,7 +21,7 @@ export function ProfileCommentTabs(props: {
   const isOwnProfile = userProfile?.id === profile.id
   const firstName = (profile.full_name || profile.username).split(' ')[0]
   const searchParams = useSearchParams()
-  const written = comments.filter(isListed)
+  const written = comments.filter((c) => isListed(c) && c.profile_id !== profile.id)
   const tabs = [
     {
       name: 'Comments',
@@ -35,15 +36,15 @@ export function ProfileCommentTabs(props: {
             userProfile={userProfile}
             userCharityBalance={userCharityBalance}
             canStartThread={!isOwnProfile}
-            placeholder={`What's it like to work with ${firstName}?`}
+            placeholder={`What is it like to work with ${firstName}?`}
             emptyText="No comments yet."
           />
         </section>
       ),
     },
     {
-      name: 'Activity',
-      id: 'activity',
+      name: 'Their comments',
+      id: 'their-comments',
       count: written.length,
       display:
         written.length > 0 ? (

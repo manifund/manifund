@@ -31,6 +31,9 @@ export async function react(
     .maybeSingle()
     .throwOnError()
   if (!comment || comment.deleted_at) return denied(404, 'comment not found')
+  if (price && comment.commenter === reactor.id) {
+    return denied(400, "You can't tip your own comment.")
+  }
 
   const key = { comment_id: commentId, reactor_id: reactor.id, reaction }
   if (!price) {
