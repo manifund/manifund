@@ -13,7 +13,7 @@ export default async function ApprovalsPage() {
   const { data: projects } = await supabaseAdmin
     .from('projects')
     .select(
-      'id, title, slug, stage, approved, min_funding, lobbying, signed_agreement, alerts_paused, profiles!projects_creator_fkey(username, full_name), bids(amount, type)'
+      'id, title, slug, stage, approved, min_funding, lobbying, signed_agreement, alerts_paused, profiles!projects_creator_fkey(username, full_name), bids(amount, type, status)'
     )
     .eq('stage', 'proposal')
     .order('created_at', { ascending: false })
@@ -26,7 +26,9 @@ export default async function ApprovalsPage() {
         project.approved === null &&
         project.bids.reduce(
           (acc, bid) =>
-            bid.type === 'assurance buy' || bid.type === 'donate' ? acc + bid.amount : acc,
+            bid.status === 'pending' && (bid.type === 'assurance buy' || bid.type === 'donate')
+              ? acc + bid.amount
+              : acc,
           0
         ) >= project.min_funding
     ) ?? []
