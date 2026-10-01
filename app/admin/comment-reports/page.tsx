@@ -51,7 +51,7 @@ export default async function CommentReportsPage() {
               <ul className="mt-3 flex flex-col gap-1.5 text-sm">
                 {reports.map((r) => (
                   <li key={r.id} className="flex flex-wrap items-baseline gap-x-2">
-                    <span className="text-gray-500">@{r.reporter?.username}</span>
+                    <span className="text-gray-500">Reported by @{r.reporter?.username}</span>
                     {r.note ? (
                       <span className="text-gray-900">&ldquo;{r.note}&rdquo;</span>
                     ) : (
