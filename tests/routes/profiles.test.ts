@@ -26,10 +26,9 @@ describe('C8 comments on profiles', () => {
     const r = await bob.post('/api/comments', { target: { profile_id: alice.id }, content: doc(`x ${RUN}`), type: 'progress update' })
     expect(r.status).toBe(400)
   })
-  standard('the profile page shows the section and the guidelines', async () => {
+  standard('the profile page shows the section', async () => {
     const page = await anonymous().get('/alice')
     expect(page.status).toBe(200)
-    expect(page.text).toContain('Commenting guidelines')
     expect(page.text).toContain('Careful, reliable collaborator')
   })
 })

@@ -4,14 +4,20 @@ import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { TextEditor } from '@/components/editor'
 import { useTextEditor } from '@/hooks/use-text-editor'
+import { Row } from '@/components/layout/row'
 import { Button } from '@/components/button'
 import type { Comment } from '@/db/comment'
 
-// Inline editor for the author, or a moderator (who adds a note). Saving keeps the old version
-// in the public history.
+// Inline editor for the author, or a moderator (who adds a public note). Laid out like the comment
+// box: the text, then a bar with Cancel on the left and Save on the right.
 export function CommentEdit(props: { comment: Comment; asModerator: boolean; onDone: () => void }) {
   const { comment, asModerator, onDone } = props
-  const editor = useTextEditor(comment.content ?? '')
+  const editor = useTextEditor(
+    comment.content ?? '',
+    undefined,
+    undefined,
+    'border-0 focus:!outline-none focus:ring-0 text-sm'
+  )
   const [note, setNote] = useState('')
   const [saving, setSaving] = useState(false)
   const router = useRouter()
@@ -32,29 +38,25 @@ export function CommentEdit(props: { comment: Comment; asModerator: boolean; onD
     router.refresh()
   }
   return (
-    <div className="flex flex-col gap-2">
+    <div className="-mx-2 overflow-hidden rounded-lg ring-1 ring-gray-200 focus-within:ring-orange-400">
       <TextEditor editor={editor} />
       {asModerator && (
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="Moderator's note (public), e.g. removed an email address"
+          placeholder="Moderator's note (public)"
           maxLength={500}
-          className="w-full rounded-md border-gray-300 text-sm focus:border-orange-500 focus:ring-orange-500"
+          className="w-full border-0 border-t border-gray-100 px-3 py-1.5 text-sm placeholder:text-gray-400 focus:ring-0"
         />
       )}
-      <p className="text-xs text-gray-500">
-        Earlier versions stay visible to everyone.
-        {!asModerator && ' To retract something, strike it through (select it, then S).'}
-      </p>
-      <div className="flex justify-end gap-2">
-        <Button color="gray" size="xs" onClick={onDone}>
+      <Row className="items-center justify-between border-t border-gray-100 bg-gray-50 px-3 py-1">
+        <button onClick={onDone} className="text-sm text-gray-500 hover:text-gray-700">
           Cancel
-        </Button>
+        </button>
         <Button size="xs" loading={saving} disabled={asModerator && !note.trim()} onClick={save}>
           Save
         </Button>
-      </div>
+      </Row>
     </div>
   )
 }

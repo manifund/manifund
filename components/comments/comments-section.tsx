@@ -32,7 +32,6 @@ export function CommentsSection(props: {
   userCharityBalance?: number
   specialPrompt?: string
   canStartThread?: boolean
-  cannotStartThreadNote?: string
   emptyText?: string
 }) {
   const {
@@ -45,7 +44,6 @@ export function CommentsSection(props: {
     userCharityBalance,
     specialPrompt,
     canStartThread = true,
-    cannotStartThreadNote,
     emptyText = 'No comments yet.',
   } = props
   const [replyingTo, setReplyingTo] = useState<CommentAndProfile | null>(null)
@@ -131,9 +129,6 @@ export function CommentsSection(props: {
         <div className="mb-5" id="main-write-comment">
           <WriteComment target={target} commenter={userProfile} specialPrompt={specialPrompt} />
         </div>
-      )}
-      {userProfile && !canStartThread && cannotStartThreadNote && (
-        <p className="mb-5 text-sm text-gray-500">{cannotStartThreadNote}</p>
       )}
       {commentsDisplay}
     </div>
