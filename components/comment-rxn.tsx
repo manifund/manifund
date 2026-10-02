@@ -3,6 +3,7 @@ import { Popover } from '@headlessui/react'
 import { PaperAirplaneIcon } from '@heroicons/react/20/solid'
 import { FaceSmileIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
+import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { buttonClass } from './button'
@@ -13,13 +14,8 @@ import { Tooltip } from './tooltip'
 import { Avatar } from './avatar'
 import { Profile } from '@/db/profile'
 
-export const freeRxns = ['➕', '➖', '🤔', '😮', '🥳', '💡', '❓', '🔥', '👏', '🌈']
-
-export const tippedRxns = {
-  '🧡': 1,
-  '🏅': 10,
-  '🏆': 100,
-} as { [key: string]: number }
+import { freeRxns, tippedRxns } from '@/lib/comments/reaction-list'
+export { freeRxns, tippedRxns }
 
 const AddRxnIcon = (props: { className?: string }) => (
   <div className="relative mt-1 w-5">
@@ -323,16 +319,14 @@ export function CommentRxnsPanel(props: {
       rxns.splice(existingRxnIdx, 1)
       setLocalRxns(rxns)
     }
-    await fetch(`/api/react-to-comment`, {
+    const res = await fetch(`/api/comments/${commentId}/react`, {
       method: 'POST',
-      body: JSON.stringify({
-        commentId,
-        reaction,
-      }),
+      body: JSON.stringify({ reaction }),
       headers: {
         'Content-Type': 'application/json',
       },
     })
+    if (!res.ok) toast.error((await res.json().catch(() => ({}))).error ?? 'Could not react')
     router.refresh()
   }
 

@@ -1,4 +1,5 @@
 import { Col } from '@/components/layout/col'
+import { commentHref, isListed, targetTitle } from '@/lib/comments/links'
 import { CommentAndProjectAndRxns } from '@/db/comment'
 import { Profile } from '@/db/profile'
 import { orderBy } from 'es-toolkit'
@@ -12,12 +13,11 @@ export function ProfileComments(props: {
   userProfile?: Profile
 }) {
   const { comments, profile, userId, userCharityBalance, userProfile } = props
-  const filteredComments = comments.filter((comment) => comment.projects.stage !== 'hidden')
+  const filteredComments = comments.filter(isListed)
   const sortedComments = orderBy(filteredComments, ['created_at'], ['desc'])
   return (
     <div>
-      <h1 className="mb-2 text-xl font-medium sm:text-2xl">Comments</h1>
-      <Col className="gap-8">
+      <Col className="gap-6">
         {sortedComments.map((comment) => {
           return (
             <Comment
@@ -27,8 +27,8 @@ export function ProfileComments(props: {
               userId={userId}
               userCharityBalance={userCharityBalance}
               rxns={comment.comment_rxns}
-              commentHref={`/projects/${comment.projects.slug}?tab=comments#${comment.id}`}
-              projectTitle={comment.projects.title}
+              commentHref={commentHref(comment)}
+              targetLabel={targetTitle(comment)}
               userProfile={userProfile}
             />
           )

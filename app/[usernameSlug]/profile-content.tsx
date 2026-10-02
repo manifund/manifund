@@ -13,7 +13,8 @@ import { calculateCashBalance } from '@/utils/math'
 import { DonateBox } from '@/components/donate-box'
 import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
-import { ProfileComments } from './profile-comments'
+import { ProfileCommentTabs } from './profile-comment-tabs'
+import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
 import { useState } from 'react'
@@ -35,13 +36,24 @@ export function ProfileContent(props: {
   profile: Profile
   projects: FullProject[]
   comments: CommentAndProjectAndRxns[]
+  profileComments: CommentAndProfileAndRxns[]
   bids: BidAndProject[]
   txns: FullTxn[]
   userProfile?: Profile
   userTxns?: TxnAndProject[]
   userBids?: BidAndProject[]
 }) {
-  const { profile, projects, comments, bids, txns, userProfile, userTxns, userBids } = props
+  const {
+    profile,
+    projects,
+    comments,
+    profileComments,
+    bids,
+    txns,
+    userProfile,
+    userTxns,
+    userBids,
+  } = props
   const isOwnProfile = userProfile?.id === profile.id
   const proposalBids = bids.filter(
     (bid) => bid.projects.stage === 'proposal' && bid.status === 'pending' && bid.type !== 'donate'
@@ -107,15 +119,14 @@ export function ProfileContent(props: {
       )}
       {activeBids.length > 0 && <ActiveBids bids={activeBids} isOwnProfile={isOwnProfile} />}
       {proposalBids.length > 0 && <ProposalBids bids={proposalBids} isOwnProfile={isOwnProfile} />}
-      {comments.length > 0 && (
-        <ProfileComments
-          comments={comments}
-          profile={profile}
-          userCharityBalance={userCharityBalance}
-          userId={userProfile?.id}
-          userProfile={userProfile}
-        />
-      )}
+      {/* Where main had "Comments X wrote": the comment tabs keep the page's order (the user, 2026-10-01). */}
+      <ProfileCommentTabs
+        profile={profile}
+        profileComments={profileComments}
+        comments={comments}
+        userProfile={userProfile}
+        userCharityBalance={userCharityBalance}
+      />
       <Col className="gap-4">
         <UserTxns txns={sortedTxns.filter((t) => t.token === 'USD')} profile={profile} />
       </Col>

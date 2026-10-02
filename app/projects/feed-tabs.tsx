@@ -1,5 +1,6 @@
 'use client'
 import { Comment } from '@/components/comment'
+import { commentHref, targetTitle } from '@/lib/comments/links'
 import { Col } from '@/components/layout/col'
 import { Tabs } from '@/components/tabs'
 import { FullTxn } from '@/db/txn'
@@ -17,16 +18,26 @@ import { FullBid } from '@/db/bid'
 import { Row } from '@/components/layout/row'
 import { UserAvatarAndBadge } from '@/components/user-link'
 import { RelativeTime } from '@/components/relative-time'
+import clsx from 'clsx'
 
 export function FeedTabs(props: {
   recentComments: FullComment[]
+  commentsTotal: number // for the comments tab's pager (capped at 7 pages, as before)
   recentDonations: FullTxn[]
   recentBids: FullBid[]
   projects: FullProject[]
   causesList: SimpleCause[]
   userId?: string
 }) {
-  const { recentComments, recentDonations, recentBids, projects, causesList, userId } = props
+  const {
+    recentComments,
+    commentsTotal,
+    recentDonations,
+    recentBids,
+    projects,
+    causesList,
+    userId,
+  } = props
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab') ?? 'projects'
   const [page, setPage] = useState(1)
@@ -39,17 +50,47 @@ export function FeedTabs(props: {
     <Pagination
       page={page}
       itemsPerPage={20}
-      totalItems={140}
+      totalItems={currentTabId === 'comments' ? Math.min(commentsTotal, 140) : 140}
       setPage={setPage}
       savePageToQuery={true}
     />
   )
 
+  // What the feed is for: catching up on what's said across Manifund. Filters separate the
+  // long-form posts (progress updates, final reports), regrantors' grant reasoning, and discussion.
+  const show = searchParams.get('show')
+  const filters = [
+    { id: null, label: 'All' },
+    { id: 'updates', label: 'Updates' },
+    { id: 'grants', label: 'Grant reasoning' },
+    { id: 'discussion', label: 'Discussion' },
+  ]
   const CommentsTab = (
     <>
+      <Row className="mb-6 flex-wrap gap-2">
+        {filters.map((f) => (
+          <Link
+            key={f.label}
+            href={f.id ? `?tab=comments&show=${f.id}` : '?tab=comments'}
+            scroll={false}
+            className={clsx(
+              'rounded-full px-3 py-1 text-sm',
+              (show ?? null) === f.id
+                ? 'bg-orange-500 text-white'
+                : 'bg-white text-gray-600 ring-1 ring-gray-200 hover:text-gray-900'
+            )}
+          >
+            {f.label}
+          </Link>
+        ))}
+      </Row>
       {PaginationWrapper}
       <Col className="gap-8">
+        {recentComments.length === 0 && (
+          <p className="text-center text-sm text-gray-500">Nothing here yet.</p>
+        )}
         {recentComments.map((comment) => {
+          const parent = comment.parent?.profiles
           return (
             <Comment
               key={comment.id}
@@ -57,8 +98,9 @@ export function FeedTabs(props: {
               commenter={comment.profiles}
               userId={userId}
               rxns={comment.comment_rxns}
-              commentHref={`/projects/${comment.projects.slug}?tab=comments#${comment.id}`}
-              projectTitle={comment.projects.title}
+              commentHref={commentHref(comment)}
+              targetLabel={targetTitle(comment)}
+              contextNote={parent ? `reply to ${parent.full_name || parent.username}` : undefined}
             />
           )
         })}
@@ -138,10 +180,7 @@ function DonationItem(props: { type: 'donation' | 'bid'; item: FullTxn | FullBid
         </div>
       </Row>
       <Row className="items-center justify-end gap-2">
-        <RelativeTime
-          date={item.created_at}
-          className="hidden text-right text-gray-500 sm:block"
-        />
+        <RelativeTime date={item.created_at} className="hidden text-right text-gray-500 sm:block" />
       </Row>
     </div>
   )

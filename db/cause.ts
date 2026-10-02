@@ -6,6 +6,13 @@ import { sortBy, uniq } from 'es-toolkit'
 // shown by default on /create, and not addable through the edit-project UI.
 export const LINK_ONLY_PRIZE_CAUSE_SLUGS = ['leo-microgrants', 'grantmaking-ai']
 
+// A program (Falcon Fund, prize rounds, ACX Grants) rather than a topic category (Science &
+// technology, AI governance): today a cause flagged `prize` (what /causes lists as programs and
+// prize rounds) or tied to a fund's profile. Programs take comments; topics don't (the user,
+// 2026-09-30). TENTATIVE rule: LTFF and EAIF have neither flag, so they count as topics.
+export const isProgram = (cause: { prize: boolean; fund_id: string | null }) =>
+  cause.prize || !!cause.fund_id
+
 export type Cause = Omit<Database['public']['Tables']['causes']['Row'], 'cert_params'> & {
   cert_params: CertParams | null
 }
@@ -75,17 +82,21 @@ export async function listCauses(supabase: SupabaseClient) {
   return data as Cause[]
 }
 
+// A project can sit in several prize rounds (e.g. EA Community Choice and LTFF, once LTFF is
+// flagged as a past round). Pick one instead of failing: the round with cert parameters (they drive
+// auctions, reactivation and publishing), then an open one, then the first by slug.
 export async function getPrizeCause(causeSlugs: string[], supabase: SupabaseClient) {
   const { data, error } = await supabase
     .from('causes')
     .select('*')
     .in('slug', causeSlugs)
     .eq('prize', true)
-    .maybeSingle()
+    .order('slug')
   if (error) {
     throw error
   }
-  return data ? (data as Cause) : undefined
+  const causes = (data ?? []) as Cause[]
+  return causes.find((c) => c.cert_params) ?? causes.find((c) => c.open) ?? causes[0]
 }
 
 export async function updateProjectCauses(

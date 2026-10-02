@@ -1,4 +1,5 @@
 'use client'
+import toast from 'react-hot-toast'
 import { Button, buttonClass } from '@/components/button'
 import { Row } from '@/components/layout/row'
 import { SimpleCause, Cause, LINK_ONLY_PRIZE_CAUSE_SLUGS } from '@/db/cause'
@@ -101,19 +102,24 @@ function ProgressUpdate(props: { project: Project }) {
             onClick={async () => {
               setIsSubmitting(true)
               const content = editor?.getJSON()
-              await fetch('/api/post-comment', {
+              const res = await fetch('/api/comments', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
+                  target: { project: project.id },
                   content: content,
-                  projectId: project.id,
-                  specialType: 'progress update',
+                  type: 'progress update',
                 }),
               })
-              setModalOpen(false)
               setIsSubmitting(false)
+              // On failure the modal stays open with the text (C10).
+              if (!res.ok) {
+                toast.error(await errorMessage(res, 'Could not post the update'))
+                return
+              }
+              setModalOpen(false)
               router.refresh()
             }}
           >
@@ -185,15 +191,19 @@ function CloseProject(props: { projectId: string }) {
             onClick={async () => {
               setIsSubmitting(true)
               const reportContent = editor?.getJSON()
-              await fetch('/api/close-active-project', {
+              const res = await fetch('/api/close-active-project', {
                 method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({ projectId: projectId, reportContent }),
               })
-              setModalOpen(false)
               setIsSubmitting(false)
+              if (!res.ok) {
+                toast.error(await errorMessage(res, 'Could not post the report'))
+                return
+              }
+              setModalOpen(false)
               router.refresh()
             }}
           >
@@ -478,4 +488,9 @@ function Publish(props: { projectSlug: string }) {
       Edit & publish
     </Link>
   )
+}
+
+async function errorMessage(res: Response, fallback: string) {
+  const body = await res.json().catch(() => null)
+  return body?.error ?? fallback
 }

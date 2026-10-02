@@ -13,10 +13,17 @@ async function listCommentsPaginated(supabase: SupabaseClient, before?: string |
       content,
       commenter,
       project,
+      profile_id,
+      cause_slug,
       profiles!comments_commenter_fkey(username, full_name),
       projects(title, slug),
+      target_profile:profiles!comments_profile_id_fkey(username, full_name),
+      causes(title, slug),
       replying_to,
-      special_type
+      special_type,
+      edited_at,
+      deleted_at,
+      removed_reason
     `
     )
     .order('created_at', { ascending: false })
@@ -40,7 +47,7 @@ export async function GET(request: Request) {
 
   comments?.map((comment) => {
     // Convert Tiptap content to markdown
-    comment.content = toMarkdown(comment.content)
+    comment.content = comment.content ? toMarkdown(comment.content) : null
     // Convert created_at to ISO string
     comment.created_at = new Date(comment.created_at).toISOString()
   })

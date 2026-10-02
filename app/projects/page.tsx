@@ -3,7 +3,7 @@ import { createPublicSupabaseClient, createServerSupabaseClient } from '@/db/sup
 import { getUser } from '@/db/profile'
 import { Col } from '@/components/layout/col'
 import { FeedTabs } from './feed-tabs'
-import { getRecentFullComments } from '@/db/comment'
+import { countFeedComments, getRecentFullComments } from '@/db/comment'
 import { getRecentFullTxns } from '@/db/txn'
 import { getRecentFullBids } from '@/db/bid'
 import { listSimpleCauses } from '@/db/cause'
@@ -63,6 +63,8 @@ async function AsyncFeedTabs({
   const PAGE_SIZE = 20
   const page = parseInt(searchParams?.p as string) || 1
   const tab = searchParams?.tab as string
+  const show = searchParams?.show as string
+  const filter = (['updates', 'grants', 'discussion'] as const).find((f) => f === show)
   // Hack for faster loading: don't load projects on other tabs
   // Ideally, we'd structure NextJS routing to only load the needed data
   const shouldLoadProjects = !tab || tab === 'projects'
@@ -77,17 +79,20 @@ async function AsyncFeedTabs({
     return await listProjects(supabase)
   }
 
-  const [projects, recentComments, recentDonations, recentBids, causesList] = await Promise.all([
-    loadProjects(),
-    getRecentFullComments(supabase, PAGE_SIZE, start),
-    getRecentFullTxns(supabase, PAGE_SIZE, start),
-    getRecentFullBids(supabase, PAGE_SIZE, start),
-    listSimpleCauses(supabase),
-  ])
+  const [projects, recentComments, commentsTotal, recentDonations, recentBids, causesList] =
+    await Promise.all([
+      loadProjects(),
+      getRecentFullComments(supabase, PAGE_SIZE, start, filter),
+      tab === 'comments' ? countFeedComments(supabase, filter) : Promise.resolve(0),
+      getRecentFullTxns(supabase, PAGE_SIZE, start),
+      getRecentFullBids(supabase, PAGE_SIZE, start),
+      listSimpleCauses(supabase),
+    ])
 
   return (
     <FeedTabs
       recentComments={recentComments}
+      commentsTotal={commentsTotal}
       recentDonations={recentDonations}
       recentBids={recentBids}
       projects={projects}
