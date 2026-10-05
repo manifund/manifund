@@ -140,7 +140,7 @@ export function WithdrawalDetails(props: {
               <dt className="flex-none">
                 <span className="sr-only">
                   {isBank
-                    ? 'last 4 digits of routing number'
+                    ? 'last 4 digits of account number'
                     : 'last 4 digits of credit card number'}
                 </span>
                 <HashtagIcon className="h-6 w-5 text-gray-400" aria-hidden="true" />

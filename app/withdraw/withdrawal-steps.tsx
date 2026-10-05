@@ -258,7 +258,7 @@ function ConfirmWithdrawal(props: {
               <div className="grid grid-cols-2 gap-4 px-6 py-6">
                 <dt className=" text-sm font-medium text-gray-900">
                   {isBank
-                    ? 'last 4 digits of routing number'
+                    ? 'last 4 digits of account number'
                     : 'last 4 digits of credit card number'}
                 </dt>
                 <dd className=" mt-0 text-sm leading-6 text-gray-700">
