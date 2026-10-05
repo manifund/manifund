@@ -6,7 +6,7 @@ export type CommentRow = Database['public']['Tables']['comments']['Row']
 
 // A target is the column that stores it, with its value: spread it into an insert, pass it to
 // .match() to read. One variant per commentable thing.
-export type Target = { project: string } | { profile_id: string } | { cause_slug: string }
+export type Target = { project: string } | { profile_id: string }
 
 // `special_type` in the database; null = a plain comment.
 export type CommentType = Database['public']['Enums']['comment_type'] | null

@@ -1,6 +1,6 @@
 # Comments
 
-What people write about something on Manifund: a project, a person, a program. How it used to work and how it
+What people write about something on Manifund: a project or a person. How it used to work and how it
 changed: `history.md`.
 
 ## What comments are for
@@ -10,18 +10,18 @@ changed: `history.md`.
 - **Reasoning behind money.** A regrantor's rationale for a grant is a comment the grantee can't edit; after donating
   or voting, people are invited to say why.
 - **Accountability.** Progress updates and final reports are comments by the project's creator.
-- **Reputation.** Comments on people's profiles (vouches, appraisals) and on programs (questions about a round,
-  feedback on a fund's choices) add to the public record.
+- **Reputation.** Comments on people's profiles (vouches, appraisals) add to the public record.
 - **Staying informed.** Followers, mentioned people and the people answered hear about new comments.
 - **Signal.** Comments count toward a project's ranking; notable ones go in the weekly digest; agents read them
   through the API and MCP server.
 
 ## How it's built
 
-- **One `comments` table** for every target, with **one explicit column per target** (`project`, `profile_id`,
-  `cause_slug`) and a check that exactly one is set. Each row says plainly what it's about; foreign keys cascade.
-  (We chose this over a generic `target_type` + `target_id` pair, which loses foreign keys, and over a separate
-  `discussions` table, which adds a hop nobody needs yet.)
+- **One `comments` table** for every target, with **one explicit column per target** (`project`, `profile_id`)
+  and a check that exactly one is set. Each row says plainly what it's about; foreign keys cascade. (We chose this
+  over a generic `target_type` + `target_id` pair, which loses foreign keys; over link tables per target
+  (`project_comments`, …), which can't say "exactly one" without triggers and read as "a comment can be about
+  several things"; and over a separate `discussions` table, which adds a hop nobody needs yet.)
 - **One writer.** Only server code in `lib/comments` writes comments (post, edit, moderate, report), with one rules
   file per target (`lib/comments/targets/`: who may post what, who gets notified, how it's labelled). The database
   refuses direct writes from browsers.
@@ -32,8 +32,8 @@ changed: `history.md`.
 - **Content** is the editor's JSON document (Tiptap); mentions are nodes holding the person's id.
 - **Notifications are data**: a `notifications` table, one row per person per comment, used for the in-app list and
   for email (sent right after the response, with a cron as a backup).
-- **One component** (`components/comments/comments-section.tsx`) shows threads and the composer on project, profile
-  and program pages.
+- **One component** (`components/comments/comments-section.tsx`) shows threads and the composer on project and profile
+  pages.
 
 ## Rules
 
@@ -42,10 +42,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
 ### Targets
 
-- **C1** A comment is about exactly one thing: a project, a person's or an organization's profile, or a program.
-  (A fund's account shows its program page, so funds take comments as programs.)
-- **C2** Programs take comments (funds and rounds, e.g. Falcon Fund, ACX Grants); topic causes (e.g. Science &
-  technology) don't. A cause is a program when it's a prize round or has a fund.
+- **C1** A comment is about exactly one thing: a project, or a person's or an organization's profile. Funds' accounts
+  and causes (programs, rounds, topics) take no comments for now (C2 was removed: see Decisions).
 
 ### Posting
 
@@ -66,7 +64,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
   | What | Limit | Admins get a warning when someone passes, in a day |
   |---|---|---|
-  | Comments on projects and programs | 30 per 5 minutes | 60 |
+  | Comments on projects | 30 per 5 minutes | 60 |
   | Comments on profiles | 10 per 5 minutes | 30 |
   | Reports | 10 per 5 minutes | 20 |
 
@@ -121,8 +119,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   a project you follow. Nobody is notified of their own comment.
 - **C22** Who hears about what:
   - project: its creator; followers (top-level comments); the person replied to; mentioned people;
-  - profile: the person; the person replied to; mentioned people;
-  - program: the person replied to; mentioned people (programs have no owners).
+  - profile: the person; the person replied to; mentioned people.
 - **C23** No double emails for one event. When a regrantor gives a grant, the recipient already gets a "you received
   a grant" email, and when an admin approves or rejects a proposal, its creator gets a verdict email. The rationale
   and the admin's note posted with them are comments too, so they would also trigger a "new comment on your project"
@@ -152,7 +149,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   updates and final reports), grant reasoning, or discussion (plain comments). The weekly digest covers project
   comments. *(Planned: search, and filters by where and tag.)*
 - **C32** Mentions show the person's current username and link to their profile even after a rename.
-- **C33** The public API returns each comment's target (`project`, `profile_id` or `cause_slug`), type, and edit and
+- **C33** The public API returns each comment's target (`project` or `profile_id`), type, and edit and
   removal fields; a removed comment has no content.
 - **C34** Posting, editing, moderation, reports, refusals for limits and notifications write structured log lines.
 
@@ -162,6 +159,7 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-10-05 | Vals | Programs (causes, e.g. Falcon Fund) take no comments for now; C2 removed. Two target columns stay (`project`, `profile_id`), over one generic parent column or link tables | Causes are keyed by slug, not id, and will be reworked; two columns keep real foreign keys and a one-line "exactly one" check |
 | 2026-09-30 | Vals | Word limit of 10,000 words for every comment (C4) | Never triggers normally: the longest comments so far are ~3,800 words (a progress update) and ~2,200 (thoughtful funding reasoning) |
 | 2026-09-30 | Vals | Rate limits never meet normal use (C9); the numbers are Claude's proposal from real use | Stop floods only |
 | 2026-09-30 | Vals | Rate limits per 5 minutes, with a daily threshold that warns admins (C9); refusals explain themselves and never lose the text (C9, C10) | Stop floods without blocking normal use; watch for odd behaviour |
@@ -171,7 +169,7 @@ Newest first. Everything here is also reflected in the rules above.
 | 2026-09-30 | Vals | Profile comments stay plain for now: no separate vouch type | Simple by default; revisit once people use them |
 | 2026-09-30 | Vals | Tags people choose (recommendation, question, concern, evaluation), for search and filters: planned | Let readers find the kind of comment they want |
 | 2026-09-30 | Vals | Evaluations of projects shelved: comments only for now | Scope |
-| 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2) | Topics are categories; programs have people and decisions to discuss |
+| 2026-09-30 | Team | Only programs take cause comments, not topic causes (C2; superseded 2026-10-05: no cause comments for now) | Topics are categories; programs have people and decisions to discuss |
 | 2026-09-30 | Team | No deletion by authors; moderators edit with a note or remove with a reason (C13, C15-C17) | Transparency: what was said stays on record; removal is for private information |
 | 2026-10-01 | Vals | Past grant rationales get their label at deploy; the comments feed's pager counts what it shows, up to 7 pages as before (C31) | The "Grant reasoning" filter should find the history too |
 | 2026-09-30 | Vals | No tipping your own comment (C35) | Sending yourself money is confusing; none in production so far |
@@ -203,10 +201,11 @@ Newest first. Everything here is also reflected in the rules above.
 - **Notification settings**: a settings page where each person turns emails on or off, and moving Manifund's other
   emails (about 24 kinds) onto notifications so they also show in the app. Until then some things only email, which
   is fine.
+- **Comments on programs** (funds, rounds), once causes are reworked (they have no id today, only a slug).
 - **Following** people and programs, and more thought on what following a project should mean (C7).
 - **Vouches** as their own kind of profile comment, if plain comments turn out not to be enough (see Decisions).
 - **Evaluations** of projects (shelved), with their own table.
-- **The home feed**, reworked once comments on people and programs show up in it at volume.
+- **The home feed**, reworked once comments on people show up in it at volume.
 - **Errors in PostHog**: today only thrown errors reach PostHog; the failures the comment code handles itself are
   only log lines. Worth a ping: notifications that couldn't be recorded (nobody hears about the comment), emails
   that fail or stop going out (with bounced addresses counted as skipped), database failures on posting, editing,

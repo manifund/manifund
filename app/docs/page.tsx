@@ -77,17 +77,15 @@ const apis = [
     // Markdown; null when the comment was removed
     content: string | null,
     commenter: string,
-    // Exactly one of project, profile_id, cause_slug is set: what the comment is about
+    // Exactly one of project, profile_id is set: what the comment is about
     project: string | null,
     profile_id: string | null,
-    cause_slug: string | null,
     profiles: {
       username: string,
       full_name: string
     },
     projects: { title: string, slug: string } | null,
     target_profile: { username: string, full_name: string } | null,
-    causes: { title: string, slug: string } | null,
     replying_to: string,
     // "progress update" | "final report" | "grant rationale" | "admin note" | null
     special_type: string,

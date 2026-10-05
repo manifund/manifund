@@ -1,6 +1,6 @@
 // The people and things tests use. People: the local stack's fictional test accounts (alice, bob,
-// rita; rita is an admin in development). Things: a project, a program and a topic cause created
-// for the run and deleted after it, so tests never touch real projects.
+// rita; rita is an admin in development). Things: projects created for the run and deleted after
+// it, so tests never touch real projects.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { sql, type Tx } from './db'
@@ -33,29 +33,11 @@ export async function makeProject(db: Tx | typeof sql, creator: string, stage = 
   return row as { id: string; slug: string }
 }
 
-// A cause: a program (prize round) or a plain topic.
-// A header image the app accepts (next/image only loads configured hosts): borrow an existing
-// cause's. Locally the network guard answers it with a placeholder.
-async function headerImage(db: Tx | typeof sql) {
-  const [row] = await db`select header_image_url from causes where header_image_url like 'https://%' limit 1`
-  return (row?.header_image_url as string) ?? ''
-}
-
-export async function makeCause(db: Tx | typeof sql, program: boolean, slug = `${RUN}-${program ? 'program' : 'topic'}`) {
-  const [row] = await db`
-    insert into causes (title, slug, header_image_url, prize, open)
-    values (${'Test ' + slug}, ${slug}, ${await headerImage(db)}, ${program}, true)
-    returning slug`
-  return row as { slug: string }
-}
-
 // Committed fixtures for route tests (the server can't see a test's transaction).
 export type World = {
   people: People
   project: { id: string; slug: string }
   draft: { id: string; slug: string }
-  program: string
-  topic: string
 }
 let world: World | undefined
 export async function getWorld(): Promise<World> {
@@ -63,9 +45,7 @@ export async function getWorld(): Promise<World> {
   const p = await getPeople()
   const project = await makeProject(sql, p.alice.id)
   const draft = await makeProject(sql, p.alice.id, 'draft', `${RUN}-draft`)
-  const program = (await makeCause(sql, true)).slug
-  const topic = (await makeCause(sql, false)).slug
-  world = { people: p, project, draft, program, topic }
+  world = { people: p, project, draft }
   return world
 }
 
@@ -73,11 +53,11 @@ export async function getWorld(): Promise<World> {
 // notifications). Profile comments are found by the run marker in their text.
 export async function cleanWorld() {
   if (!world) return
-  const { project, draft, program, topic, people: p } = world
+  const { project, draft, people: p } = world
   // Projects made during the run (grants, closing), found by the run marker in their title or slug.
   const made = await sql`select id from projects where slug like ${RUN + '%'} or title like ${'%' + RUN + '%'}`
   const ids = [project.id, draft.id, ...made.map((r: any) => r.id)]
-  await sql`delete from comments where project in ${sql(ids)} or cause_slug in (${program}, ${topic})`
+  await sql`delete from comments where project in ${sql(ids)}`
   await sql`delete from comments where profile_id in (${p.alice.id}, ${p.bob.id}, ${p.rita.id})
             and content::text like ${'%' + RUN + '%'}`
   await sql`delete from project_follows where project_id in ${sql(ids)}`
@@ -85,6 +65,5 @@ export async function cleanWorld() {
   await sql`delete from project_causes where project_id in ${sql(ids)}`
   await sql`delete from project_transfers where project_id in ${sql(ids)}`
   await sql`delete from projects where id in ${sql(ids)}`
-  await sql`delete from causes where slug in (${program}, ${topic})`
   world = undefined
 }

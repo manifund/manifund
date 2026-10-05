@@ -1,4 +1,4 @@
--- Comments everywhere: comments on projects, profiles and programs; edit history; moderation; reports;
+-- Comments everywhere: comments on projects and profiles; edit history; moderation; reports;
 -- notifications. Rules: docs/product/comments/README.md.
 --
 -- BEFORE DEPLOY. Every change here is additive or a loosening, so the code on main keeps working once it's
@@ -7,25 +7,22 @@
 -- supabase/prod-only/comments-rework.sql (after deploy: drops the paths the new code no longer uses).
 -- One side effect before deploy: a reply to a reply from main's UI is now refused (main can post those; the
 -- new code moves them under the top-level comment).
--- Tested on a fresh copy of production's schema (2026-09-30): see supabase/prod-only/README.md.
+-- Tested on a fresh copy of production's schema (2026-09-30, again 2026-10-05): see supabase/prod-only/README.md.
 
 -- Comment types posted by server flows (a grant's rationale, an admin's verdict note).
 alter type public.comment_type add value 'grant rationale';
 alter type public.comment_type add value 'admin note';
 
--- 1. What a comment is about: exactly one of a project, a profile, or a program (a cause). One explicit column
--- per target, so each row says plainly what it's about.
+-- 1. What a comment is about: exactly one of a project or a profile. One explicit column per target, so each row
+-- says plainly what it's about and keeps a real foreign key (and cascade).
 alter table public.comments
   add column profile_id uuid references public.profiles(id) on delete cascade,
-  add column cause_slug text references public.causes(slug) on delete cascade on update cascade,
   alter column project drop not null,
-  add constraint comments_one_target check (num_nonnulls(project, profile_id, cause_slug) = 1);
+  add constraint comments_one_target check (num_nonnulls(project, profile_id) = 1);
 
 create index comments_project_created_idx on public.comments (project, created_at desc);
 create index comments_profile_created_idx
   on public.comments (profile_id, created_at desc) where profile_id is not null;
-create index comments_cause_created_idx
-  on public.comments (cause_slug, created_at desc) where cause_slug is not null;
 create index comments_replying_to_idx on public.comments (replying_to);
 
 -- 2. One level of threads, whoever writes: a reply answers a top-level comment on the same target, and is a
@@ -46,8 +43,7 @@ begin
     raise exception 'comments: replies must answer a top-level comment';
   end if;
   if parent.project is distinct from new.project
-     or parent.profile_id is distinct from new.profile_id
-     or parent.cause_slug is distinct from new.cause_slug then
+     or parent.profile_id is distinct from new.profile_id then
     raise exception 'comments: a reply must be on the same target as its parent';
   end if;
   if new.special_type is not null then

@@ -13,7 +13,6 @@ beforeAll(async () => {
   w = await getWorld()
   bob = await as('bob')
   await bob.post('/api/comments', { target: { profile_id: (await as('alice')).id }, content: doc(`Seen on the feed ${RUN}`) })
-  await bob.post('/api/comments', { target: { cause_slug: w.program }, content: doc(`Program question ${RUN}`) })
 })
 
 describe('pages render', () => {
@@ -31,14 +30,6 @@ describe('pages render', () => {
     expect(alicePage.text).toContain('id="comments-on-profile"')
     const bobWritten = await anonymous().get('/bob?tab=by')
     expect(bobWritten.text).toContain('Seen on the feed')
-  })
-  // The cause tabs render in the browser, so this checks the data the page ships; what is shown is
-  // checked by the browser tests.
-  standard("C2 a program's page carries its comments", async () => {
-    const page = await anonymous().get(`/causes/${w.program}?tab=about`)
-    expect(page.status).toBe(200)
-    expect(page.text).toContain('Program question')
-    expect((await anonymous().get(`/causes/${w.topic}?tab=about`)).status).toBe(200)
   })
   standard('C31 the home feed includes profile comments, tagged with where', async () => {
     const feed = await anonymous().get('/?tab=comments')
@@ -74,7 +65,7 @@ describe('C33 the public API', () => {
     const r = await anonymous().get('/api/v0/comments')
     expect(r.status).toBe(200)
     const first = r.body[0]
-    for (const key of ['project', 'profile_id', 'cause_slug', 'special_type', 'edited_at', 'deleted_at', 'removed_reason']) {
+    for (const key of ['project', 'profile_id', 'special_type', 'edited_at', 'deleted_at', 'removed_reason']) {
       expect(first).toHaveProperty(key)
     }
     const older = await anonymous().get(`/api/v0/comments?before=${encodeURIComponent(r.body[r.body.length - 1].created_at)}`)

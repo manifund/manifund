@@ -12,7 +12,7 @@ import { denied, type Denied, type Target } from './types'
 const WINDOW_MINUTES = 5
 const LIMITS = {
   profile: { perWindow: 10, warnPerDay: 30, what: 'comments on profiles' },
-  project: { perWindow: 30, warnPerDay: 60, what: 'comments on projects and programs' },
+  project: { perWindow: 30, warnPerDay: 60, what: 'comments on projects' },
   report: { perWindow: 10, warnPerDay: 20, what: 'reports' },
 } as const
 type Bucket = keyof typeof LIMITS
@@ -66,7 +66,7 @@ async function timestamps(authorId: string, bucket: Bucket, since: string) {
             .from('comments')
             .select('created_at')
             .eq('commenter', authorId)
-            .or('project.not.is.null,cause_slug.not.is.null')
+            .not('project', 'is', null)
   const { data } = await query.gte('created_at', since).order('created_at').throwOnError()
   return (data ?? []).map((r: { created_at: string }) => r.created_at)
 }

@@ -28,10 +28,10 @@ describe('C9 rate limits', () => {
     expect(eleventh.body.error).toContain('10 comments on profiles per 5 minutes')
     expect(eleventh.body.error).toMatch(/try again in \d+ (seconds|minutes)/)
   })
-  standard('a 31st project or program comment within 5 minutes is refused', async () => {
+  standard('a 31st project comment within 5 minutes is refused', async () => {
     const u = await tempUser('projects')
     for (let i = 0; i < 30; i++) {
-      const target = i % 2 ? { project: w.project.id } : { cause_slug: w.program }
+      const target = { project: w.project.id }
       expect((await u.post('/api/comments', { target, content: doc(`Point ${i} ${RUN}`) })).status).toBe(201)
     }
     const r = await u.post('/api/comments', { target: { project: w.project.id }, content: doc(`One more ${RUN}`) })

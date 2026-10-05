@@ -45,7 +45,6 @@ export async function insertComment(
     by: string
     project?: string
     profile?: string
-    cause?: string
     text?: string
     replyingTo?: string
     type?: string
@@ -53,8 +52,8 @@ export async function insertComment(
 ): Promise<string> {
   const content = { type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: c.text ?? 'test' }] }] }
   const [row] = await tx`
-    insert into comments (commenter, project, profile_id, cause_slug, content, replying_to, special_type)
-    values (${c.by}, ${c.project ?? null}, ${c.profile ?? null}, ${c.cause ?? null}, ${content},
+    insert into comments (commenter, project, profile_id, content, replying_to, special_type)
+    values (${c.by}, ${c.project ?? null}, ${c.profile ?? null}, ${content},
             ${c.replyingTo ?? null}, ${c.type ?? null})
     returning id`
   return row.id

@@ -70,7 +70,7 @@ rules. The overview of the code and services is in `../README.md`.
 
 ### Discussion
 
-- **Comments** on projects, on people's profiles and on programs: questions, answers, reasoning, appraisals. Edits
+- **Comments** on projects and on people's profiles: questions, answers, reasoning, appraisals. Edits
   keep every version visible; moderators can remove a comment with a public reason. Details: `comments/`.
 - **Progress updates and final reports** are comments by the project's creator; creators of active projects get a
   reminder when they haven't posted an update in six months.

@@ -2,7 +2,7 @@
 // inside a transaction that is always rolled back.
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { inRollback, insertComment } from '../helpers/db'
-import { getPeople, makeCause, makeProject, type People } from '../helpers/fixtures'
+import { getPeople, makeProject, type People } from '../helpers/fixtures'
 
 let p: People
 beforeAll(async () => {
@@ -13,10 +13,8 @@ describe('C1 a comment is about exactly one thing', () => {
   test('one target is fine, for each kind of target', () =>
     inRollback(async (tx) => {
       const project = await makeProject(tx, p.alice.id)
-      const program = await makeCause(tx, true)
       await insertComment(tx, { by: p.bob.id, project: project.id })
       await insertComment(tx, { by: p.bob.id, profile: p.alice.id })
-      await insertComment(tx, { by: p.bob.id, cause: program.slug })
     }))
   test('two targets are refused', () =>
     inRollback(async (tx) => {

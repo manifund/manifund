@@ -70,12 +70,12 @@ describe('C7 commenting on a project follows it', () => {
   })
 })
 
-describe('C1 C2 what takes comments', () => {
-  smoke('a program takes comments, a topic cause does not', async () => {
-    expect((await post(bob, { target: { cause_slug: w.program }, content: doc(`Fits? ${RUN}`) })).status).toBe(201)
-    expect((await post(bob, { target: { cause_slug: w.topic }, content: doc('x') })).status).toBe(403)
+describe('C1 what takes comments', () => {
+  smoke('causes (programs, topics) take no comments', async () => {
+    const [cause] = await sql`select slug from causes limit 1`
+    expect((await post(bob, { target: { cause_slug: cause.slug }, content: doc(`Fits? ${RUN}`) })).status).toBe(400)
   })
-  standard("a fund's account takes no profile comments (its page is the program)", async () => {
+  standard("a fund's account takes no profile comments", async () => {
     const [fund] = await sql`select id from profiles where type = 'fund' limit 1`
     if (!fund) return
     expect((await post(bob, { target: { profile_id: fund.id }, content: doc('x') })).status).toBe(403)

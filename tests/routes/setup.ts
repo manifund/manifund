@@ -24,7 +24,7 @@ beforeEach(async () => {
   const w = await getWorld()
   await sql`update comments set created_at = created_at - interval '1 day'
             where created_at > now() - interval '1 day'
-              and (project = ${w.project.id} or cause_slug in (${w.program}, ${w.topic})
+              and (project = ${w.project.id}
                    or content::text like ${'%' + RUN + '%'})`
   await sql`update comment_reports set created_at = created_at - interval '1 day'
             where created_at > now() - interval '1 day'

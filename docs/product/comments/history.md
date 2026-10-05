@@ -38,7 +38,7 @@ How comments used to work and how they changed. The current rules are in `README
 
 What changed and why, in short. The decisions with dates are in `README.md`.
 
-- **Comments everywhere**: profiles and programs, with one table and one column per target.
+- **Comments everywhere**: projects and profiles, with one table and one column per target.
 - **One writer** (`lib/comments`) and database rules for what must always hold; the old posting route, the webhook
   handler and the comment inserts inside grant functions are gone.
 - **Edits with public history; moderation instead of deletion; reports** with an admin queue.
@@ -49,6 +49,7 @@ What changed and why, in short. The decisions with dates are in `README.md`.
 
 - 2026-09-28: every deletion (by the author or a moderator) would leave a placeholder. Replaced on 2026-09-30 by the
   team's decision that authors don't delete at all (C13) and moderators remove with a public reason (C16).
-- 2026-09-28: comments on any cause. Narrowed on 2026-09-30 to programs only (C2).
+- 2026-09-28: comments on any cause. Narrowed on 2026-09-30 to programs only (C2), then dropped on 2026-10-05 before
+  merging (C2 removed): causes have no id, only a slug, and will be reworked first.
 - 2026-09-30: a "Commenting guidelines" hover on profile comments (the team), removed the same day (C8): don't solve a
   problem before it appears.

@@ -32,5 +32,8 @@ constraints, indexes):
   reply is refused;
 - `comments-rework.sql` then applies, and removes the policies, the webhook and the four old functions; a direct
   insert from a signed-in user is then refused;
+- retested 2026-10-05 after dropping the program target (`cause_slug`): the migration and `comments-rework.sql`
+  apply on a fresh copy of the same schema dump (production's comments columns were checked unchanged that day), main's
+  style of posting still works and a reply to a reply is refused;
 - `db/database.types.ts` is generated from the result of step 1 (plus the platform's `__InternalSupabase` header,
   which only the project-based generator writes), so `bun run gen-types` after step 1 should change nothing.

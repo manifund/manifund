@@ -19,7 +19,7 @@ import { clearLocalStorageItem } from '@/hooks/use-local-storage'
 import { Comment } from '@/components/comment'
 import toast from 'react-hot-toast'
 
-// Threads and composer for any target (project, profile, cause). The target-specific parts come in
+// Threads and composer for any target (project or profile). The target-specific parts come in
 // as props: where comments link to, whose words get the owner badge, tags per commenter, and
 // whether the viewer may start a thread here (the server enforces the same rules).
 export function CommentsSection(props: {

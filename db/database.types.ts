@@ -254,7 +254,6 @@ export type Database = {
       }
       comments: {
         Row: {
-          cause_slug: string | null
           commenter: string
           content: Json | null
           created_at: string
@@ -271,7 +270,6 @@ export type Database = {
           special_type: Database['public']['Enums']['comment_type'] | null
         }
         Insert: {
-          cause_slug?: string | null
           commenter: string
           content?: Json | null
           created_at?: string
@@ -288,7 +286,6 @@ export type Database = {
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Update: {
-          cause_slug?: string | null
           commenter?: string
           content?: Json | null
           created_at?: string
@@ -305,13 +302,6 @@ export type Database = {
           special_type?: Database['public']['Enums']['comment_type'] | null
         }
         Relationships: [
-          {
-            foreignKeyName: 'comments_cause_slug_fkey'
-            columns: ['cause_slug']
-            isOneToOne: false
-            referencedRelation: 'causes'
-            referencedColumns: ['slug']
-          },
           {
             foreignKeyName: 'comments_commenter_fkey'
             columns: ['commenter']

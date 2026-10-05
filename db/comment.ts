@@ -34,7 +34,7 @@ export type CommentAndProfileAndProject = Comment & { profiles: Profile } & {
   projects: Project
 }
 
-// Every comment on one target (project, profile or cause), with authors and reactions.
+// Every comment on one target (project or profile), with authors and reactions.
 export async function getCommentsByTarget(supabase: SupabaseClient, target: Target) {
   const { data, error } = await supabase
     .from('comments')

@@ -8,7 +8,7 @@ import { EmptyContent } from '@/components/empty-content'
 import { ProjectsDisplay } from '@/components/projects-display'
 import { Tabs } from '@/components/tabs'
 import { FullProject } from '@/db/project'
-import { Cause, SimpleCause, isProgram } from '@/db/cause'
+import { Cause, SimpleCause } from '@/db/cause'
 import { WrenchIcon } from '@heroicons/react/20/solid'
 import { useSearchParams } from 'next/navigation'
 import { EditCause } from './edit-cause'
@@ -20,8 +20,6 @@ import { DividerWithHeader } from '@/components/divider-with-header'
 import { Donors } from './donors'
 import QuadraticMatch from './qf'
 import { BidAndProfile } from '@/db/bid'
-import { CommentAndProfileAndRxns } from '@/db/comment'
-import { CommentsSection } from '@/components/comments/comments-section'
 
 export function CauseTabs(props: {
   cause: Cause
@@ -34,8 +32,6 @@ export function CauseTabs(props: {
   profiles?: ProfileWithRoles[]
   matchTxns?: TxnAndProfiles[]
   matchBids?: BidAndProfile[]
-  comments?: CommentAndProfileAndRxns[]
-  userProfile?: Profile
 }) {
   const {
     cause,
@@ -48,8 +44,6 @@ export function CauseTabs(props: {
     profiles,
     matchTxns,
     matchBids,
-    comments = [],
-    userProfile,
   } = props
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab')
@@ -99,14 +93,11 @@ export function CauseTabs(props: {
     })
   }
 
-  // About: the description; for programs and funds (not topic categories), comments too
-  // (the user, 2026-09-28 and 2026-09-30).
-  const commentable = isProgram(cause)
-  if (cause.description || commentable) {
+  if (cause.description) {
     tabs.push({
       name: 'About',
       id: 'about',
-      count: commentable ? comments.filter((c) => !c.deleted_at).length : 0,
+      count: 0,
       display: (
         <>
           {cause.slug === 'falcon-fund' && (
@@ -117,20 +108,8 @@ export function CauseTabs(props: {
               Apply for funding
             </Link>
           )}
-          {cause.description && <RichContent content={cause.description} />}
+          <RichContent content={cause.description} />
           <EditCause cause={cause} />
-          {commentable && (
-            <>
-              <h2 className="mb-3 mt-8 text-lg font-medium">Comments</h2>
-              <CommentsSection
-                target={{ cause_slug: cause.slug }}
-                basePath={`/causes/${cause.slug}?tab=about`}
-                comments={comments}
-                userProfile={userProfile}
-                userCharityBalance={charityBalance}
-              />
-            </>
-          )}
         </>
       ),
     })

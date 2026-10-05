@@ -53,14 +53,6 @@ test('C8 a profile: visitors see its comments; the person can reply but not star
   await expect(page.locator('#comments-on-profile #main-write-comment')).toHaveCount(0)
 })
 
-test('C2 a program shows comments under About', async ({ page }) => {
-  const w = await world()
-  await api('bob', '/api/comments', 'POST', { target: { cause_slug: w.program }, content: doc(`Does my project fit? ${RUN}`) })
-  await page.goto(`/causes/${w.program}?tab=about`)
-  await expect(page.getByRole('heading', { name: 'Comments', exact: true })).toBeVisible()
-  await expect(page.getByText(`Does my project fit? ${RUN}`)).toBeVisible()
-})
-
 test('C10 a refused comment keeps its text', async ({ page, context }) => {
   const w = await world()
   await signIn(context, 'bob')

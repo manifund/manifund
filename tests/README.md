@@ -35,8 +35,8 @@ Settings come from the environment or the checkout's `.env.development.local` (w
   (`actAsAnon`) so row-level security applies. Production-only rules (e.g. no direct writes from browsers) are
   applied inside the transaction.
 - **Routes** (`tests/routes/`): HTTP calls to the dev server as the local test accounts `alice`, `bob` and
-  `rita` (an admin in development), signed in through local Supabase Auth. Each run creates its own project,
-  program and topic, and deletes them and every comment it made at the end (rows carry a run marker). Throwaway
+  `rita` (an admin in development), signed in through local Supabase Auth. Each run creates its own projects
+  and deletes them and every comment it made at the end (rows carry a run marker). Throwaway
   accounts cover rate limits. So the rate limits don't refuse the suite's own setup, each test starts with the
   run's earlier comments moved a day into the past.
 - **Browser** (`tests/e2e/`, files `*.e2e.ts`): Playwright on Node, with setup through Supabase's REST API and the

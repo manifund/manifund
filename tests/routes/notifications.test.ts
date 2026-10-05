@@ -47,11 +47,9 @@ describe('C21 C22 one notification per person, for the strongest reason', () => 
     expect(r[bob.id]).toBe('reply_to_you')
     expect(r[alice.id]).toBe('comment_on_your_project')
   })
-  standard('a profile comment notifies the person; a program comment only those answered or mentioned', async () => {
+  standard('a profile comment notifies the person', async () => {
     const onProfile = await bob.post('/api/comments', { target: { profile_id: alice.id }, content: doc(`Great to work with ${RUN}`) })
     expect(await reasons(onProfile.body.comment.id)).toEqual({ [alice.id]: 'comment_on_your_profile' })
-    const onProgram = await bob.post('/api/comments', { target: { cause_slug: w.program }, content: doc(`Question ${RUN}`) })
-    expect(await reasons(onProgram.body.comment.id)).toEqual({})
   })
 })
 

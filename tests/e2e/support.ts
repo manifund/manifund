@@ -73,7 +73,7 @@ export async function api(username: 'alice' | 'bob' | 'rita', path: string, meth
   return { status: res.status, body: await res.json().catch(() => null) }
 }
 
-// A project owned by alice and a program, for this run; teardown.ts deletes them.
+// A project owned by alice, for this run; teardown.ts deletes it.
 export async function world() {
   const alice = await person('alice')
   const existing = await rest(`projects?slug=eq.${RUN}-p&select=id,slug`)
@@ -94,17 +94,5 @@ export async function world() {
         description: doc('A test project.'),
       })
     )[0]
-  const programSlug = `${RUN}-program`
-  if (!(await rest(`causes?slug=eq.${programSlug}&select=slug`)).length) {
-    // next/image only loads configured hosts: borrow an existing cause's header image.
-    const [img] = await rest('causes?header_image_url=like.https*&select=header_image_url&limit=1')
-    await rest('causes', 'POST', {
-      title: `E2E program ${RUN}`,
-      slug: programSlug,
-      header_image_url: img?.header_image_url ?? '',
-      prize: true,
-      open: true,
-    })
-  }
-  return { project: project as { id: string; slug: string }, program: programSlug, alice }
+  return { project: project as { id: string; slug: string }, alice }
 }
