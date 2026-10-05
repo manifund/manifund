@@ -132,7 +132,7 @@ export default async function handler(req: NextRequest) {
   const postmarkVars = {
     amount: dollarAmount,
     id: txnId,
-    methodText: (usedBank ? 'Routing number ending in: ' : 'Card ending in: ') + last4,
+    methodText: (usedBank ? 'Account number ending in: ' : 'Card ending in: ') + last4,
     fullName: profile.full_name,
     email: user.email,
   }
