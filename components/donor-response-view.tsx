@@ -11,6 +11,7 @@ import {
 import type { PublicDonorSurveyResponse, DonorSurveyResponse } from '@/db/donor-survey'
 import { RatingDots } from '@/app/donor-survey/cause-ratings'
 import { SectionHeading } from '@/app/donor-survey/survey-header'
+import { FundsScale } from '@/app/donor-survey/results/charts'
 
 // Read-only rendering of one donor's answers, in the same order and with the
 // same section headings as the form. `full` adds the fields only the owner and
@@ -75,9 +76,11 @@ export function DonorResponseView(props: {
         [
           'Funds vs. picking charities themself',
           r.funds_vs_direct !== null ? (
-            <span className="self-start rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-sm font-normal text-orange-700">
-              {fundsLabel(r.funds_vs_direct)}
-            </span>
+            <FundsScale
+              average={null}
+              mine={r.funds_vs_direct}
+              mineLabel={fundsLabel(r.funds_vs_direct)}
+            />
           ) : null,
         ],
         [

@@ -168,17 +168,29 @@ export function CauseSpread(props: {
 }
 
 // The funds-vs-picks scale: a gradient track with the average as a circle and
-// the viewer's own answer as a line, each labelled on the track.
-export function FundsScale(props: { average: number | null; mine: number | null }) {
-  const { average, mine } = props
+// one person's answer as a line, each labelled on the track (the average
+// above, the answer below; the answer above when there's no average). A label shifts by
+// its own width in proportion to its position, so it stays within the track.
+export function FundsScale(props: {
+  average: number | null
+  mine: number | null
+  mineLabel?: string
+}) {
+  const { average, mine, mineLabel = 'you' } = props
+  const at = (pct: number) => ({ left: `${pct}%`, transform: `translateX(-${pct}%)` })
   return (
     <div className="flex flex-col gap-1">
-      <div className="relative mb-5 mt-7 h-2.5 rounded-[5px] bg-gradient-to-r from-orange-200 to-orange-500">
+      <div
+        className={clsx(
+          'relative mt-7 h-2.5 rounded-[5px] bg-gradient-to-r from-orange-200 to-orange-500',
+          average !== null && mine !== null && 'mb-5'
+        )}
+      >
         {average !== null && (
           <>
             <span
-              className="absolute -top-6 -translate-x-1/2 whitespace-nowrap text-[11px] text-orange-700"
-              style={{ left: `${average}%` }}
+              className="absolute -top-6 whitespace-nowrap text-[11px] text-orange-700"
+              style={at(average)}
             >
               avg {average}%
             </span>
@@ -192,15 +204,19 @@ export function FundsScale(props: { average: number | null; mine: number | null 
         {mine !== null && (
           <>
             <div
-              title="You"
+              title={mineLabel}
               className="absolute -top-2.5 h-[30px] w-0.5 -translate-x-1/2 bg-gray-900"
               style={{ left: `${mine}%` }}
             />
             <span
-              className="absolute top-6 -translate-x-1/2 text-[11px] text-gray-700"
-              style={{ left: `${mine}%` }}
+              className={clsx(
+                'absolute whitespace-nowrap text-[11px] text-gray-700',
+                // Above the track when it's free, so it can't meet the end labels.
+                average === null ? '-top-6' : 'top-6'
+              )}
+              style={at(mine)}
             >
-              you
+              {mineLabel}
             </span>
           </>
         )}
