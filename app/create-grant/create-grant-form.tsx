@@ -1,4 +1,5 @@
 'use client'
+import toast from 'react-hot-toast'
 import { ResetEditor, TextEditor } from '@/components/editor'
 import { useTextEditor } from '@/hooks/use-text-editor'
 import { AmountInput, Checkbox, Input } from '@/components/input'
@@ -186,6 +187,13 @@ export function CreateGrantForm(props: {
       }),
     })
     const newProject = await response.json()
+    if (!response.ok) {
+      toast.error(newProject.error ?? 'Could not create the grant')
+      setIsSubmitting(false)
+      return
+    }
+    // The grant stands even if its rationale wasn't saved; the regrantor is asked to re-post it.
+    if (newProject.rationaleError) toast.error(newProject.rationaleError, { duration: 15000 })
     router.push(`/projects/${newProject.slug}`)
     clearLocalStorageItem(DESCRIPTION_KEY)
     clearLocalStorageItem(REASONING_KEY)

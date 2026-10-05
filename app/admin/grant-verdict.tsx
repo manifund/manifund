@@ -182,6 +182,8 @@ export function GrantVerdict(props: {
                   toast.error(body?.error ?? 'Failed to issue grant verdict.')
                   return
                 }
+                const body = await response.json().catch(() => null)
+                if (body?.noteError) toast.error(body.noteError, { duration: 15000 })
                 setOpen(false)
                 router.refresh()
               }}

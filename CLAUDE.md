@@ -40,8 +40,14 @@ lib/              # Server actions (auth-actions.ts)
 utils/            # Shared utilities (formatting, math, AMM calculations)
 hooks/            # React hooks
 supabase/         # Supabase config and SQL migrations
+docs/             # Product docs (start at docs/README.md): intent, one folder per area with its rules; plans
 proxy.ts          # Next.js 16 middleware (session refresh, JWT validation)
 ```
+
+## Product docs
+
+Before changing how an area behaves, read its doc in `docs/product/<area>/README.md` (rules have ids like `C12`;
+tests name them) and update it in the same branch. How we work and write docs: `docs/README.md`.
 
 ## Code Style
 
@@ -142,9 +148,12 @@ npx supabase migration up         # Apply locally
 bun run gen-types:local           # Regenerate types from local
 ```
 
-## No Test Framework
+## Tests
 
-There is no test runner (jest/vitest) configured. Verify changes by running `bun run build`.
+Local only for now (not in CI): unit and database tests (`bun run test`, needs the local Supabase), route tests
+against a running dev server (`bun run test:routes`), a few browser flows (`bun run test:e2e`, Playwright). Tests
+name the product rules they check (`C12`…); `bun run test:rules` lists rules without a test. Details:
+`tests/README.md`. Also verify changes with `bun run build`.
 
 ## Cron Jobs (Vercel)
 

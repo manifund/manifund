@@ -182,5 +182,5 @@ export const CURRENT_AGREEMENT_VERSION = 3
 
 // The org/fiscal-sponsor agreement is a separate document with its own version
 // line, not a variant of the individual one, so the two can evolve
-// independently. See docs/org-grant-agreements-plan.md.
+// independently. See docs/plans/org-grant-agreements-plan.md.
 export const CURRENT_ORG_AGREEMENT_VERSION = 1
