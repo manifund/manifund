@@ -4,6 +4,7 @@ import {
   GIVING_BANDS,
   GIVING_BANDS_2027,
   HOURS_BANDS,
+  MAX_RATING,
   parseCauseRatings,
 } from '@/utils/donor-survey'
 import type { DonorSurveyResponse } from '@/db/donor-survey'
@@ -41,7 +42,8 @@ export function aggregate(rows: Row[]) {
   const giving2026 = countBy(rows, GIVING_BANDS, (r) => r.giving_2026)
   const giving2027 = countBy(rows, GIVING_BANDS_2027, (r) => r.giving_2027)
 
-  // Average rating per cause among the people who rated it, best first.
+  // Per cause, among the people who rated it: the average and how many gave
+  // each rating (dist[0] = number of 1s). Best average first.
   const ratings = new Map<string, number[]>()
   for (const r of rows) {
     for (const c of parseCauseRatings(r.cause_ratings)) {
@@ -53,6 +55,7 @@ export function aggregate(rows: Row[]) {
       name,
       mean: rs.reduce((a, b) => a + b, 0) / rs.length,
       count: rs.length,
+      dist: Array.from({ length: MAX_RATING }, (_, i) => rs.filter((x) => x === i + 1).length),
     }))
     .sort((a, b) => b.mean - a.mean || b.count - a.count)
 

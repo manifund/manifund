@@ -1,6 +1,6 @@
 'use client'
 import { Avatar } from '@/components/avatar'
-import { PencilIcon, LinkIcon } from '@heroicons/react/24/outline'
+import { PencilIcon, LinkIcon, GiftIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { Database } from '@/db/database.types'
 import { RegranterTag } from '@/components/tags'
@@ -21,8 +21,9 @@ export function ProfileHeader(props: {
   isAdmin?: boolean
   projects?: FullProject[]
   comments?: CommentAndProjectAndRxns[]
+  donorPage?: boolean
 }) {
-  const { profile, isOwnProfile, email, isAdmin, projects, comments } = props
+  const { profile, isOwnProfile, email, isAdmin, projects, comments, donorPage } = props
   const website = addHttpToUrl(profile.website ?? '')
   return (
     <div className="flex flex-col gap-3">
@@ -87,6 +88,15 @@ export function ProfileHeader(props: {
             <LinkIcon className="relative top-1 h-4 w-4" strokeWidth={2.5} />
             {profile.website}
           </a>
+        )}
+        {donorPage && (
+          <Link
+            className="flex gap-1 text-gray-500 hover:cursor-pointer hover:underline"
+            href={`/${profile.username}/donor`}
+          >
+            <GiftIcon className="relative top-1 h-4 w-4" strokeWidth={2.5} />
+            Donor survey answers
+          </Link>
         )}
       </div>
     </div>

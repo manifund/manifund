@@ -44,7 +44,11 @@ function RatingRow(props: { name: string; rating: number; onChange: (rating: num
   return (
     <div className="flex items-center justify-between gap-3 py-1">
       <span className="min-w-0 text-[15px] text-gray-900 [overflow-wrap:anywhere]">{name}</span>
-      <div role="group" aria-label={name} className="flex flex-none">
+      <div
+        role="group"
+        aria-label={`${name}: 1 = not interested, ${MAX_RATING} = very interested`}
+        className="flex flex-none"
+      >
         {Array.from({ length: MAX_RATING }, (_, i) => {
           const value = i + 1
           return (
@@ -109,6 +113,13 @@ export function CauseRatingsInput(props: {
 
   return (
     <div className="flex flex-col gap-1">
+      {/* Scale words over the dot columns: five 32px buttons. */}
+      <div aria-hidden className="flex justify-end">
+        <div className="flex w-40 justify-between px-1 text-xs text-gray-500">
+          <span>Not interested</span>
+          <span>Very</span>
+        </div>
+      </div>
       {top.map(row)}
       {expanded ? (
         <>

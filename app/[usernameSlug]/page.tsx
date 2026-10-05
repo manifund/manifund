@@ -8,6 +8,7 @@ import { getBidsByUser } from '@/db/bid'
 import { getCommentsByTarget, getCommentsByUser } from '@/db/comment'
 import FundPage from '../funds/[fundSlug]/page'
 import { notFound } from 'next/navigation'
+import { getResponseByProfileId } from '@/db/donor-survey'
 
 export const revalidate = 60
 
@@ -24,13 +25,14 @@ export default async function UserProfilePage(props: {
   } else if (profile.type !== 'individual') {
     return <div>Profile type not supported</div>
   }
-  const [bids, projects, txns, comments, profileComments, user] = await Promise.all([
+  const [bids, projects, txns, comments, profileComments, user, donorResponse] = await Promise.all([
     getBidsByUser(supabase, profile.id),
     getProjectsByUser(supabase, profile.id),
     getFullTxnsByUser(supabase, profile.id),
     getCommentsByUser(supabase, profile.id),
     getCommentsByTarget(supabase, { profile_id: profile.id }),
     getUser(supabase),
+    getResponseByProfileId(profile.id),
   ])
   const [userTxns, userProfile, userBids] = await Promise.all([
     user ? getTxnsByUser(supabase, user.id) : undefined,
@@ -39,6 +41,9 @@ export default async function UserProfilePage(props: {
   ])
   const isOwnProfile = user?.id === profile?.id
   const userIsAdmin = isAdmin(user)
+  // Link the donor survey answers when they're public, and for the donor
+  // themself so they can find the page.
+  const showDonorPage = !!donorResponse && (donorResponse.is_public || isOwnProfile)
   return (
     <div className="flex flex-col gap-8 p-3 sm:p-5">
       <ProfileHeader
@@ -48,6 +53,7 @@ export default async function UserProfilePage(props: {
         isAdmin={userIsAdmin}
         projects={projects}
         comments={comments}
+        donorPage={showDonorPage}
       />
       <ProfileContent
         profile={profile}

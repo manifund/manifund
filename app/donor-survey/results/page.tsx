@@ -5,11 +5,18 @@ import clsx from 'clsx'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getUser, isAdmin } from '@/db/profile'
 import { getAllResponses, getMyResponse, ResponseWithProfile } from '@/db/donor-survey'
-import { CAPACITIES, GIVING_BANDS_2027, labelFor } from '@/utils/donor-survey'
+import {
+  CAPACITIES,
+  GIVING_BANDS_2027,
+  MAX_RATING,
+  labelFor,
+  parseCauseRatings,
+} from '@/utils/donor-survey'
 import { Avatar } from '@/components/avatar'
-import { SurveyShell } from '../survey-header'
+import { SectionHeading, SurveyShell } from '../survey-header'
+import { SectionNav } from '../section-nav'
 import { aggregate } from './aggregate'
-import { BarList, CauseRatingList, Figure, FundsScale } from './charts'
+import { BarList, CauseSpread, Figure, FundsScale } from './charts'
 
 export const dynamic = 'force-dynamic'
 
@@ -61,21 +68,28 @@ export default async function ResultsPage() {
     ? `Your answers will be ${shareBits.join(' and ')}. You can change this anytime.`
     : 'Your individual answers stay private — only you and the Manifund team can see them.'
 
+  const myRatings = mine
+    ? Object.fromEntries(parseCauseRatings(mine.cause_ratings).map((c) => [c.name, c.rating]))
+    : undefined
+
   return (
     <SurveyShell>
-      <div className="flex flex-col gap-12">
+      <SectionNav items={GROUPS} />
+      <div className="flex flex-col gap-16">
         <section className="flex flex-col gap-3.5">
-          <div className="grid h-12 w-12 place-items-center rounded-full bg-orange-50 text-orange-600">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
-              <path
-                d="M5 12.5l4.5 4.5L19 7.5"
-                stroke="currentColor"
-                strokeWidth="2.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </div>
+          {mine && (
+            <div className="grid h-12 w-12 place-items-center rounded-full bg-orange-50 text-orange-600">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <path
+                  d="M5 12.5l4.5 4.5L19 7.5"
+                  stroke="currentColor"
+                  strokeWidth="2.4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          )}
           <h1 className="text-[32px] font-medium leading-[1.15] tracking-[-0.02em]">
             {firstName ? `Thanks, ${firstName}. ` : ''}Here’s what other donors said.
           </h1>
@@ -83,32 +97,105 @@ export default async function ResultsPage() {
             Live tallies from {agg.n} {agg.n === 1 ? 'response' : 'responses'} so far. We’ll publish
             the full aggregate in a couple of weeks.
           </p>
+          {mine && (
+            <p className="flex items-center gap-2 text-[13px] text-gray-600">
+              <span aria-hidden className="h-2.5 w-5 rounded bg-orange-500" />
+              Your own answers are in dark orange.
+            </p>
+          )}
         </section>
 
-        <Figure
-          title="Total giving planned for 2026"
-          note={mine ? 'Your answer highlighted.' : undefined}
-        >
-          <BarList bars={agg.giving2026} total={agg.n} highlight={mine?.giving_2026 ?? null} />
-        </Figure>
+        <Group id="giving" title="Giving">
+          <Figure title="Total giving planned for 2026">
+            <BarList bars={agg.giving2026} total={agg.n} highlight={mine?.giving_2026} />
+          </Figure>
+          <Figure title="And in 2027">
+            <BarList bars={agg.giving2027} total={agg.n} highlight={mine?.giving_2027} />
+          </Figure>
+        </Group>
 
-        <Figure title="Interest in each cause area" note="Average rating, out of 5.">
-          <CauseRatingList causes={agg.causes} />
-        </Figure>
+        <Group id="causes" title="Causes">
+          <Figure
+            title="Interest in each cause area"
+            note={`Bars show how many people gave each rating; the number is the average, out of ${MAX_RATING}.`}
+          >
+            <CauseSpread causes={agg.causes} mine={myRatings} />
+          </Figure>
+        </Group>
 
-        <Figure
-          title="Funds vs. picking charities yourself"
-          note={
-            agg.fundsMean === null
-              ? 'Nobody has answered this one yet.'
-              : `Circle = average (${Math.round(agg.fundsMean)}%).${mine?.funds_vs_direct != null ? ' Line = you.' : ''}`
-          }
-        >
-          <FundsScale
-            average={agg.fundsMean === null ? null : Math.round(agg.fundsMean)}
-            mine={mine?.funds_vs_direct ?? null}
-          />
-        </Figure>
+        <Group id="how" title="How people give">
+          <Figure
+            title="Funds vs. picking charities yourself"
+            note={agg.fundsMean === null ? 'Nobody has answered this one yet.' : undefined}
+          >
+            <FundsScale
+              average={agg.fundsMean === null ? null : Math.round(agg.fundsMean)}
+              mine={mine?.funds_vs_direct ?? null}
+            />
+          </Figure>
+          <Figure
+            title="Hours per month spent on donating"
+            note={`${agg.hoursAnswered} of ${agg.n} answered this optional question.`}
+          >
+            <BarList bars={agg.hours} total={agg.hoursAnswered} highlight={mine?.hours_per_month} />
+          </Figure>
+          <Figure
+            title="In what capacity people are giving"
+            note="People could pick more than one."
+          >
+            <BarList bars={agg.capacity} total={agg.n} highlight={mine?.capacity} />
+          </Figure>
+        </Group>
+
+        <Group id="touch" title="Staying in touch">
+          <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-2.5 text-sm">
+            <Term>Want opportunities sent to them</Term>
+            <Count n={agg.wantsOpportunities} total={agg.n} />
+            {agg.frequency.map((f) => (
+              <Row key={f.key} label={f.label} n={f.count} total={agg.wantsOpportunities} indent />
+            ))}
+            <Term>Want to come to fundraising events</Term>
+            <Count n={agg.wantsEvents} total={agg.n} />
+          </dl>
+        </Group>
+
+        <Group id="donors" title="Donors">
+          <section className="flex flex-col gap-3.5">
+            <h3 className="text-base font-medium text-gray-900">
+              Donors who published their answers
+            </h3>
+            {published.length === 0 ? (
+              <p className="text-sm text-gray-500">Nobody yet.</p>
+            ) : (
+              <ul className="flex flex-col divide-y divide-gray-100">
+                {published.map((r) => (
+                  <DonorRow key={r.id} response={r} href={`/${r.profiles!.username}/donor`} />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          {admin && (
+            <section className="flex flex-col gap-3.5">
+              <div className="flex items-baseline gap-3">
+                <h3 className="text-base font-medium text-gray-900">All responses</h3>
+                <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
+                  Admins only
+                </span>
+              </div>
+              <ul className="flex flex-col divide-y divide-gray-100">
+                {responses.map((r) => (
+                  <DonorRow
+                    key={r.id}
+                    response={r}
+                    href={`/donor-survey/responses/${r.id}`}
+                    admin
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
+        </Group>
 
         {mine && (
           <section className="flex flex-col gap-3 rounded-[14px] border border-gray-100 bg-[#fafafa] p-5">
@@ -125,70 +212,25 @@ export default async function ResultsPage() {
             </Link>
           </section>
         )}
-
-        <Figure title="And in 2027" note={mine ? 'Your answer highlighted.' : undefined}>
-          <BarList bars={agg.giving2027} total={agg.n} highlight={mine?.giving_2027 ?? null} />
-        </Figure>
-
-        <Figure
-          title="Hours per month spent on donating"
-          note={agg.hoursAnswered ? `${agg.hoursAnswered} answered.` : undefined}
-        >
-          <BarList
-            bars={agg.hours}
-            total={agg.hoursAnswered}
-            highlight={mine?.hours_per_month ?? null}
-          />
-        </Figure>
-
-        <Figure title="In what capacity people are giving" note="People could pick more than one.">
-          <BarList bars={agg.capacity} total={agg.n} labelWidth="215px" stack />
-        </Figure>
-
-        <Figure title="Staying in touch">
-          <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-2.5 text-sm">
-            <Term>Want opportunities sent to them</Term>
-            <Count n={agg.wantsOpportunities} total={agg.n} />
-            {agg.frequency.map((f) => (
-              <Row key={f.key} label={f.label} n={f.count} total={agg.wantsOpportunities} indent />
-            ))}
-            <Term>Want to come to fundraising events</Term>
-            <Count n={agg.wantsEvents} total={agg.n} />
-          </dl>
-        </Figure>
-
-        <section className="flex flex-col gap-3.5">
-          <h3 className="text-base font-medium text-gray-900">
-            Donors who published their answers
-          </h3>
-          {published.length === 0 ? (
-            <p className="text-sm text-gray-500">Nobody yet.</p>
-          ) : (
-            <ul className="flex flex-col divide-y divide-gray-100">
-              {published.map((r) => (
-                <DonorRow key={r.id} response={r} href={`/${r.profiles!.username}/donor`} />
-              ))}
-            </ul>
-          )}
-        </section>
-
-        {admin && (
-          <section className="flex flex-col gap-3.5">
-            <div className="flex items-baseline gap-3">
-              <h3 className="text-base font-medium text-gray-900">All responses</h3>
-              <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
-                Admins only
-              </span>
-            </div>
-            <ul className="flex flex-col divide-y divide-gray-100">
-              {responses.map((r) => (
-                <DonorRow key={r.id} response={r} href={`/donor-survey/responses/${r.id}`} admin />
-              ))}
-            </ul>
-          </section>
-        )}
       </div>
     </SurveyShell>
+  )
+}
+
+const GROUPS = [
+  { id: 'giving', title: 'Giving' },
+  { id: 'causes', title: 'Causes' },
+  { id: 'how', title: 'How people give' },
+  { id: 'touch', title: 'Staying in touch' },
+  { id: 'donors', title: 'Donors' },
+]
+
+function Group(props: { id: string; title: string; children: React.ReactNode }) {
+  return (
+    <div id={props.id} className="flex scroll-mt-8 flex-col gap-10">
+      <SectionHeading title={props.title} />
+      {props.children}
+    </div>
   )
 }
 
@@ -201,7 +243,7 @@ function Count(props: { n: number; total: number }) {
   return (
     <dd className="m-0 text-right tabular-nums">
       <span className="text-gray-900">{props.n}</span>
-      <span className="ml-2 inline-block w-9 text-gray-400">{share}%</span>
+      <span className="ml-2 inline-block w-9 text-gray-500">{share}%</span>
     </dd>
   )
 }

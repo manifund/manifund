@@ -22,9 +22,26 @@ export function SurveyHeader() {
   )
 }
 
+// The orange section heading shared by the survey, its results and donor pages.
+export function SectionHeading(props: { title: string; badge?: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 pb-3">
+      <h2 className="bg-gradient-to-r from-orange-600 to-rose-500 bg-clip-text font-josefin text-[30px] font-[650] leading-none text-transparent">
+        {props.title}
+      </h2>
+      {props.badge && (
+        <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
+          {props.badge}
+        </span>
+      )}
+    </div>
+  )
+}
+
+// The column's side padding matches the rest of the site on phones (12px).
 export function SurveyShell(props: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-20 px-6 pb-24 pt-12 text-gray-900">
+    <div className="mx-auto flex w-full max-w-[640px] flex-col gap-14 px-3 pb-24 pt-14 text-gray-900 sm:px-6">
       <SurveyHeader />
       {props.children}
     </div>
