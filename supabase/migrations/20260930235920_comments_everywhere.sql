@@ -3,11 +3,12 @@
 --
 -- BEFORE DEPLOY. Every change here is additive or a loosening, so the code on main keeps working once it's
 -- applied (main never writes the new columns; `project` becomes nullable but main only ever sets it). Apply it in
--- one transaction (e.g. `psql --single-transaction -f`), then deploy the code, then run
--- supabase/prod-only/comments-rework.sql (after deploy: drops the paths the new code no longer uses).
+-- one transaction (e.g. `psql --single-transaction -f`), then deploy the code, then apply
+-- 20261005172508_comments_cleanup_after_deploy.sql (drops the paths the new code no longer uses).
 -- One side effect before deploy: a reply to a reply from main's UI is now refused (main can post those; the
 -- new code moves them under the top-level comment).
--- Tested on a fresh copy of production's schema (2026-09-30, again 2026-10-05): see supabase/prod-only/README.md.
+-- Tested on a fresh copy of production's schema and data (2026-09-30, again 2026-10-05), with main's code running on
+-- it: see the header of 20261005172508_comments_cleanup_after_deploy.sql.
 
 -- Comment types posted by server flows (a grant's rationale, an admin's verdict note).
 alter type public.comment_type add value 'grant rationale';
@@ -177,7 +178,7 @@ revoke execute on function public.claim_notification_emails(uuid, interval, int)
 -- 6. Grant functions without comment inserts: the grant's money and project stay in one transaction; the
 -- rationale and the admin's note are posted by lib/comments afterwards (types 'grant rationale' / 'admin
 -- note'), so every comment has one writer and one notification path. The old versions are dropped after
--- deploy (prod-only).
+-- deploy (20261005172508_comments_cleanup_after_deploy).
 create function public.give_grant_v2(project public.project_row, donation public.bid_row)
 returns void
 language plpgsql security definer

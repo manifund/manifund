@@ -60,10 +60,13 @@ describe('C19 C25 people see only their own reports and notifications', () => {
 })
 
 describe('C3 browsers cannot write comments directly (with the production rules)', () => {
-  // Locally the old open insert policy stays so other checkouts keep working; production drops it
-  // (supabase/prod-only/comments-rework.sql). Apply that part here, inside the rolled-back transaction.
-  const prodOnly = readFileSync(join(import.meta.dir, '../../supabase/prod-only/comments-rework.sql'), 'utf8')
-  const dropPolicy = prodOnly.match(/drop policy[^;]+;/i)?.[0]
+  // The after-deploy migration drops the old open insert policy. A local database shared with other checkouts
+  // may not have applied it yet, so apply that part here too, inside the rolled-back transaction.
+  const afterDeploy = readFileSync(
+    join(import.meta.dir, '../../supabase/migrations/20261005172508_comments_cleanup_after_deploy.sql'),
+    'utf8'
+  )
+  const dropPolicy = afterDeploy.match(/drop policy[^;]+;/i)?.[0]
 
   test('a signed-in person inserting a comment through the database API is refused', () =>
     inRollback(async (tx) => {
