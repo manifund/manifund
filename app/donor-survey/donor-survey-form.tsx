@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import clsx from 'clsx'
@@ -20,6 +20,7 @@ import {
 } from '@/utils/donor-survey'
 import { saveDonorSurvey, type SaveResult } from './actions'
 import { CauseRatingsInput } from './cause-ratings'
+import { scrollToSection, SectionNav, useActiveSection } from './section-nav'
 import { CheckCard, Pills, Q, RangeInput, Section, TextArea, TextInput } from './fields'
 
 export type SignedInUser = {
@@ -151,13 +152,29 @@ export function DonorSurveyForm(props: {
 
   return (
     <form
-      className="flex flex-col gap-14 sm:gap-20"
+      className="flex flex-col gap-14"
       onSubmit={(e) => {
         e.preventDefault()
         submit()
       }}
     >
       <ProgressBar sections={sections} />
+      <SectionNav
+        items={sections.map((s) => ({
+          id: s.id,
+          title: s.title,
+          meta: (
+            <span
+              className={clsx(
+                'text-xs tabular-nums',
+                s.done === s.of ? 'text-orange-600' : 'text-gray-400'
+              )}
+            >
+              {s.done === s.of ? '✓' : `${s.done}/${s.of}`}
+            </span>
+          ),
+        }))}
+      />
 
       <Section id="about" title="About you">
         {user ? (
@@ -271,6 +288,7 @@ export function DonorSurveyForm(props: {
         <Q label="How much in total are you looking to give in 2026?">
           <Pills
             options={GIVING_BANDS}
+            grid={GIVING_BANDS.length}
             value={(form.giving_2026 as any) || null}
             onChange={(k) => set('giving_2026', k)}
           />
@@ -278,14 +296,12 @@ export function DonorSurveyForm(props: {
         <Q label="And in 2027?">
           <Pills
             options={GIVING_BANDS_2027}
+            grid={GIVING_BANDS.length}
             value={(form.giving_2027 as any) || null}
             onChange={(k) => set('giving_2027', k)}
           />
         </Q>
-        <Q
-          label="How interested are you in each cause area?"
-          hint="1 = not interested, 5 = very interested."
-        >
+        <Q label="How interested are you in each cause area?">
           <CauseRatingsInput value={form.cause_ratings} onChange={(v) => set('cause_ratings', v)} />
         </Q>
         <Q
@@ -535,7 +551,7 @@ export function DonorSurveyForm(props: {
             ? 'Save and see what other donors said'
             : 'Submit and see what other donors said'}
         </button>
-        <span className="text-center text-[13px] text-gray-400">
+        <span className="text-center text-[13px] text-gray-500">
           Your answers stay private unless you opted to share them above.
         </span>
       </section>
@@ -579,70 +595,53 @@ function count(...flags: boolean[]) {
   return flags.filter(Boolean).length
 }
 
-// One segment per section, filled by how much of that section is answered.
-// The segment for the section currently on screen is highlighted, and its
-// name shows under the bar. Clicking a segment jumps to the section.
+// One segment per section, filled by how much of that section is answered,
+// fixed at the top of the 640px column. The segment for the section on screen
+// is highlighted, and its name shows under the bar. Clicking a segment jumps
+// to the section. Wide screens get the SectionNav instead.
 function ProgressBar(props: { sections: SectionProgress[] }) {
   const { sections } = props
-  const [active, setActive] = useState(sections[0]?.id)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const line = window.scrollY + window.innerHeight * 0.35
-      let current = sections[0]?.id
-      for (const s of sections) {
-        const el = document.getElementById(s.id)
-        if (el && el.offsetTop <= line) current = s.id
-      }
-      setActive(current)
-    }
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [sections])
-
+  const active = useActiveSection(sections.map((s) => s.id))
   const activeSection = sections.find((s) => s.id === active)
+  const complete = sections.filter((s) => s.done === s.of).length
 
   return (
-    <div className="fixed inset-x-0 top-0 z-10">
-      <div className="flex h-1.5 gap-[3px] bg-white">
-        {sections.map((s) => {
-          const pct = s.of ? Math.round((s.done / s.of) * 100) : 0
-          const isActive = s.id === active
-          return (
-            <button
-              key={s.id}
-              type="button"
-              title={`${s.title}: ${s.done} of ${s.of}${s.optional ? ' (optional)' : ''}`}
-              aria-label={`Go to ${s.title}`}
-              onClick={() =>
-                document
-                  .getElementById(s.id)
-                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              }
-              className={clsx(
-                'relative h-full flex-1 overflow-hidden transition-colors',
-                isActive ? 'bg-orange-200' : 'bg-gray-100 hover:bg-gray-200'
-              )}
-            >
-              <span
+    <div className="fixed inset-x-0 top-0 z-10 bg-white/95 min-[1180px]:hidden">
+      <div className="mx-auto max-w-[640px] px-3 pb-1.5 pt-2 sm:px-6">
+        <div className="flex h-1.5 gap-[3px]">
+          {sections.map((s) => {
+            const pct = s.of ? Math.round((s.done / s.of) * 100) : 0
+            const isActive = s.id === active
+            return (
+              <button
+                key={s.id}
+                type="button"
+                title={`${s.title}: ${s.done} of ${s.of}${s.optional ? ' (optional)' : ''}`}
+                aria-label={`Go to ${s.title}`}
+                onClick={() => scrollToSection(s.id)}
                 className={clsx(
-                  'absolute inset-y-0 left-0 transition-[width] duration-300 ease-out',
-                  isActive ? 'bg-orange-500' : 'bg-orange-400'
+                  'relative h-full flex-1 overflow-hidden rounded-full transition-colors',
+                  isActive ? 'bg-orange-200' : 'bg-gray-100 hover:bg-gray-200'
                 )}
-                style={{ width: `${pct}%` }}
-              />
-            </button>
-          )
-        })}
-      </div>
-      {activeSection && (
-        <div className="pointer-events-none flex justify-end px-4 pt-1.5">
-          <span className="rounded-full bg-white/90 px-2 py-0.5 text-xs text-gray-500 shadow-sm ring-1 ring-gray-100">
-            {activeSection.title}
+              >
+                <span
+                  className={clsx(
+                    'absolute inset-y-0 left-0 transition-[width] duration-300 ease-out',
+                    isActive ? 'bg-orange-500' : 'bg-orange-400'
+                  )}
+                  style={{ width: `${pct}%` }}
+                />
+              </button>
+            )
+          })}
+        </div>
+        <div className="pointer-events-none flex justify-between pt-1.5 text-xs text-gray-500">
+          <span>{activeSection?.title}</span>
+          <span>
+            {complete} of {sections.length} sections done
           </span>
         </div>
-      )}
+      </div>
     </div>
   )
 }

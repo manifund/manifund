@@ -2,6 +2,7 @@
 
 import clsx from 'clsx'
 import { ReactNode, useId } from 'react'
+import { SectionHeading } from './survey-header'
 
 // Form primitives for the donor survey, following the Claude Design mockup:
 // one 640px column, section headings with a hairline, pill single-selects,
@@ -16,16 +17,7 @@ export function Section(props: {
 }) {
   return (
     <section id={props.id} className="flex scroll-mt-16 flex-col gap-8">
-      <div className="flex items-baseline justify-between gap-3 border-b border-gray-100 pb-3">
-        <h2 className="bg-gradient-to-r from-orange-600 to-rose-500 bg-clip-text font-josefin text-[30px] font-[650] leading-none text-transparent">
-          {props.title}
-        </h2>
-        {props.badge && (
-          <span className="rounded-full bg-gray-100 px-2 py-[3px] text-xs text-gray-500">
-            {props.badge}
-          </span>
-        )}
-      </div>
+      <SectionHeading title={props.title} badge={props.badge} />
       {props.children}
     </section>
   )
@@ -94,44 +86,61 @@ export function TextArea(props: {
 }
 
 // Single-select pills. Native radios stay in the tree, visually hidden.
+// With `grid`, the first `grid` options are amount bands: three columns on
+// phones, one row on desktop; any further options go on a row below.
 export function Pills<K extends string>(props: {
   options: readonly { key: K; label: string }[]
   value: K | null
   onChange: (key: K) => void
   size?: 'md' | 'sm' | 'wide'
+  grid?: number
 }) {
-  const { options, value, onChange, size = 'md' } = props
+  const { options, value, onChange, size = 'md', grid } = props
   const name = useId()
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((o) => {
-        const on = value === o.key
-        return (
-          <label
-            key={o.key}
-            className={clsx(
-              'cursor-pointer rounded-full border font-normal transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-orange-100',
-              size === 'sm' ? 'px-3.5 py-[7px] text-[13px]' : 'py-[9px] text-sm',
-              size === 'md' && 'px-4',
-              size === 'wide' && 'px-[22px]',
-              on
-                ? 'border-orange-500 bg-orange-500 text-white'
-                : 'border-gray-200 bg-white text-gray-700 hover:border-orange-300'
-            )}
-          >
-            <input
-              type="radio"
-              name={name}
-              className="sr-only"
-              checked={on}
-              onChange={() => onChange(o.key)}
-            />
-            {o.label}
-          </label>
-        )
-      })}
-    </div>
-  )
+  const pill = (o: { key: K; label: string }, inGrid: boolean) => {
+    const on = value === o.key
+    return (
+      <label
+        key={o.key}
+        className={clsx(
+          'cursor-pointer rounded-full border font-normal transition-colors has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-orange-100',
+          inGrid
+            ? 'flex h-10 items-center justify-center whitespace-nowrap px-3 text-[13px] sm:flex-auto sm:px-2.5 sm:text-sm'
+            : size === 'sm'
+              ? 'px-3.5 py-[7px] text-[13px]'
+              : 'py-[9px] text-sm',
+          !inGrid && size === 'md' && 'px-4',
+          !inGrid && size === 'wide' && 'px-[22px]',
+          on
+            ? 'border-orange-500 bg-orange-500 text-white'
+            : 'border-gray-200 bg-white text-gray-700 hover:border-orange-300'
+        )}
+      >
+        <input
+          type="radio"
+          name={name}
+          className="sr-only"
+          checked={on}
+          onChange={() => onChange(o.key)}
+        />
+        {o.label}
+      </label>
+    )
+  }
+  if (grid) {
+    const rest = options.slice(grid)
+    return (
+      <div className="flex flex-col gap-2">
+        <div className="grid grid-cols-3 gap-2 sm:flex">
+          {options.slice(0, grid).map((o) => pill(o, true))}
+        </div>
+        {rest.length > 0 && (
+          <div className="flex flex-wrap gap-2">{rest.map((o) => pill(o, false))}</div>
+        )}
+      </div>
+    )
+  }
+  return <div className="flex flex-wrap gap-2">{options.map((o) => pill(o, false))}</div>
 }
 
 // Multi-select cards with a checkbox mark on the left.

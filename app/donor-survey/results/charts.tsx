@@ -3,44 +3,42 @@ import { ReactNode } from 'react'
 import { MAX_RATING } from '@/utils/donor-survey'
 import type { Bar } from './aggregate'
 
-// Server-rendered bar lists for the results page, in the design's style: a
-// label column, a 10px track, and the share as text.
+// Server-rendered charts for the results page, in the design's style: a
+// label column, a 10px track, and the value as text. Every chart uses the
+// same label width so the tracks line up down the page; below sm the label
+// sits on its own line above the track.
 
 export function Figure(props: { title: string; note?: ReactNode; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-3.5">
       <h3 className="text-base font-medium text-gray-900">{props.title}</h3>
       {props.children}
-      {props.note && <span className="text-xs text-gray-400">{props.note}</span>}
+      {props.note && <span className="text-xs text-gray-500">{props.note}</span>}
     </section>
   )
 }
 
-// With `stack`, the label sits on its own line above the track below sm, so
-// long labels don't squeeze the bar on a phone.
+// `highlight`: the viewer's own answer(s), drawn in dark orange.
 export function BarList(props: {
   bars: Bar[]
   total: number
-  highlight?: string | null
-  labelWidth?: string
-  stack?: boolean
+  highlight?: string | string[] | null
 }) {
-  const { bars, total, highlight = null, labelWidth = '110px', stack } = props
+  const { bars, total } = props
+  const mine = new Set([props.highlight ?? []].flat())
   return (
-    <div className={clsx('flex flex-col', stack ? 'gap-3 sm:gap-2' : 'gap-2')}>
+    <div className="flex flex-col gap-3 sm:gap-2">
       {bars.map((b) => {
         const pct = total ? Math.round((b.count / total) * 100) : 0
-        const mine = highlight !== null && b.key === highlight
         return (
           <BarRow
             key={b.key}
             label={b.label}
-            labelWidth={labelWidth}
             fill={pct}
             value={`${pct}%`}
             title={`${b.label}: ${b.count} of ${total}`}
-            strong={mine}
-            stack={stack}
+            strong={mine.has(b.key)}
+            empty={b.count === 0}
           />
         )
       })}
@@ -48,90 +46,166 @@ export function BarList(props: {
   )
 }
 
-export function CauseRatingList(props: {
-  causes: { name: string; mean: number; count: number }[]
-}) {
-  if (props.causes.length === 0)
-    return <span className="text-sm text-gray-500">Nobody has rated a cause yet.</span>
-  return (
-    <div className="flex flex-col gap-3 sm:gap-2">
-      {props.causes.map((c) => (
-        <BarRow
-          key={c.name}
-          label={c.name}
-          labelWidth="190px"
-          fill={(c.mean / MAX_RATING) * 100}
-          value={c.mean.toFixed(1)}
-          stack
-          title={`${c.name}: ${c.mean.toFixed(1)} of ${MAX_RATING}, from ${c.count} ${c.count === 1 ? 'rating' : 'ratings'}`}
-        />
-      ))}
-    </div>
-  )
-}
+const ROW =
+  'grid grid-cols-[1fr_auto] items-center gap-x-3 gap-y-1 text-sm sm:grid-cols-[200px_1fr_auto]'
 
 function BarRow(props: {
   label: string
-  labelWidth: string
   fill: number
   value: string
   title: string
   strong?: boolean
-  stack?: boolean
+  empty?: boolean
 }) {
   return (
-    <div
-      className={clsx(
-        'grid items-center gap-x-3 gap-y-1 text-sm',
-        props.stack
-          ? 'grid-cols-[1fr_40px] sm:grid-cols-[var(--label-w)_1fr_40px]'
-          : 'grid-cols-[var(--label-w)_1fr_40px]'
-      )}
-      style={{ '--label-w': props.labelWidth } as React.CSSProperties}
-      title={props.title}
-    >
+    <div className={ROW} title={props.title}>
       <span
         className={clsx(
-          props.stack ? 'col-span-2 sm:col-span-1 sm:truncate' : 'truncate',
-          props.strong ? 'font-medium text-gray-900' : 'text-gray-500'
+          'col-span-2 sm:col-span-1 sm:truncate',
+          props.strong
+            ? 'font-medium text-gray-900'
+            : props.empty
+              ? 'text-gray-300'
+              : 'text-gray-500'
         )}
       >
         {props.label}
       </span>
-      <div className="h-2.5 overflow-hidden rounded-[5px] bg-gray-100">
+      <div
+        className={clsx(
+          'h-2.5 overflow-hidden rounded-[5px]',
+          props.empty ? 'bg-gray-50' : 'bg-gray-100'
+        )}
+      >
         <div
           className={clsx('h-full rounded-[5px]', props.strong ? 'bg-orange-500' : 'bg-orange-300')}
           style={{ width: `${props.fill}%` }}
         />
       </div>
-      <span className="text-right tabular-nums text-gray-500">{props.value}</span>
+      <span
+        className={clsx(
+          'w-10 text-right tabular-nums',
+          props.empty ? 'text-gray-300' : 'text-gray-500'
+        )}
+      >
+        {props.value}
+      </span>
+    </div>
+  )
+}
+
+// One shade per rating, from "not interested" (gray) to "very" (deep orange).
+const SHADES = ['bg-gray-200', 'bg-orange-200', 'bg-orange-300', 'bg-orange-400', 'bg-orange-600']
+
+// Interest per cause as the spread of ratings, not only the average: each bar
+// is split by how many people gave each rating. The viewer's own rating is
+// marked next to the average.
+export function CauseSpread(props: {
+  causes: { name: string; mean: number; count: number; dist: number[] }[]
+  mine?: Record<string, number>
+}) {
+  if (props.causes.length === 0)
+    return <span className="text-sm text-gray-500">Nobody has rated a cause yet.</span>
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3 text-xs text-gray-500">
+        <span>Not interested</span>
+        <span aria-hidden className="flex gap-0.5">
+          {SHADES.map((shade, i) => (
+            <span
+              key={shade}
+              className={clsx(
+                'grid h-4 w-5 place-items-center rounded-[3px] text-[10px]',
+                shade,
+                i > 2 ? 'text-white' : 'text-gray-600'
+              )}
+            >
+              {i + 1}
+            </span>
+          ))}
+        </span>
+        <span>Very</span>
+      </div>
+      <div className="flex flex-col gap-3 sm:gap-2">
+        {props.causes.map((c) => {
+          const you = props.mine?.[c.name]
+          const spread = c.dist.map((n, i) => `${n}× ${i + 1}`).join(', ')
+          return (
+            <div
+              key={c.name}
+              className={ROW}
+              title={`${c.name}: average ${c.mean.toFixed(1)} of ${MAX_RATING} from ${c.count} ${c.count === 1 ? 'rating' : 'ratings'} (${spread})`}
+            >
+              <span className="col-span-2 text-gray-500 sm:col-span-1 sm:truncate">{c.name}</span>
+              <div className="flex h-3.5 overflow-hidden rounded-[4px]">
+                {c.dist.map((n, i) =>
+                  n ? (
+                    <div
+                      key={i}
+                      className={clsx('border-r border-white last:border-0', SHADES[i])}
+                      style={{ flex: n }}
+                    />
+                  ) : null
+                )}
+              </div>
+              <span className="flex w-[86px] items-center justify-end gap-2 tabular-nums text-gray-500">
+                {you ? (
+                  <span
+                    title="Your rating"
+                    className="rounded-full bg-gray-900 px-1.5 text-[11px] leading-[18px] text-white"
+                  >
+                    you {you}
+                  </span>
+                ) : null}
+                {c.mean.toFixed(1)}
+              </span>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
 
 // The funds-vs-picks scale: a gradient track with the average as a circle and
-// the viewer's own answer as a line.
+// the viewer's own answer as a line, each labelled on the track.
 export function FundsScale(props: { average: number | null; mine: number | null }) {
   const { average, mine } = props
   return (
     <div className="flex flex-col gap-1">
-      <div className="relative mb-1 mt-4 h-2.5 rounded-[5px] bg-gradient-to-r from-orange-200 to-orange-500">
+      <div className="relative mb-5 mt-7 h-2.5 rounded-[5px] bg-gradient-to-r from-orange-200 to-orange-500">
         {average !== null && (
-          <div
-            title="Average"
-            className="absolute -top-1.5 h-[22px] w-[22px] -translate-x-1/2 rounded-full border-[3px] border-orange-600 bg-white"
-            style={{ left: `${average}%` }}
-          />
+          <>
+            <span
+              className="absolute -top-6 -translate-x-1/2 whitespace-nowrap text-[11px] text-orange-700"
+              style={{ left: `${average}%` }}
+            >
+              avg {average}%
+            </span>
+            <div
+              title="Average"
+              className="absolute -top-1.5 h-[22px] w-[22px] -translate-x-1/2 rounded-full border-[3px] border-orange-600 bg-white"
+              style={{ left: `${average}%` }}
+            />
+          </>
         )}
         {mine !== null && (
-          <div
-            title="You"
-            className="absolute -top-2.5 h-[30px] w-0.5 -translate-x-1/2 bg-gray-900"
-            style={{ left: `${mine}%` }}
-          />
+          <>
+            <div
+              title="You"
+              className="absolute -top-2.5 h-[30px] w-0.5 -translate-x-1/2 bg-gray-900"
+              style={{ left: `${mine}%` }}
+            />
+            <span
+              className="absolute top-6 -translate-x-1/2 text-[11px] text-gray-700"
+              style={{ left: `${mine}%` }}
+            >
+              you
+            </span>
+          </>
         )}
       </div>
-      <div className="flex justify-between text-xs text-gray-400">
+      <div className="flex justify-between text-xs text-gray-500">
         <span>All funds</span>
         <span>All my own picks</span>
       </div>
