@@ -1,5 +1,6 @@
 'use client'
-import { Project } from '@/db/project'
+import { FullProject } from '@/db/project'
+import { getAmountRaised, getMinIncludingAmm } from '@/utils/math'
 import Link from 'next/link'
 import { StageIcon } from '@/components/tags'
 import { orderBy } from 'es-toolkit'
@@ -7,7 +8,7 @@ import { Table, TableRow } from '@/components/table'
 import { Tooltip } from '@/components/tooltip'
 
 // TODO: use full project and display amount raised, valuation, etc.
-export function Projects(props: { projects: Project[] }) {
+export function Projects(props: { projects: FullProject[] }) {
   const { projects } = props
   const sortedProjects = orderBy(projects, ['created_at'], ['desc'])
 
@@ -48,8 +49,14 @@ function NoProjects() {
   )
 }
 
-function NextStep(props: { project: Project }) {
+function NextStep(props: { project: FullProject }) {
   const { project } = props
+  // Manifund only reviews a grant once offers reach its minimum, so below it the project is simply unfunded.
+  const reachedMin =
+    getAmountRaised(project, project.bids, project.txns) >= getMinIncludingAmm(project)
+  if (project.stage === 'proposal' && !reachedMin) {
+    return <p>unfunded</p>
+  }
   if (project.stage === 'proposal' && !project.signed_agreement && project.type === 'grant') {
     return (
       <Link
@@ -62,8 +69,6 @@ function NextStep(props: { project: Project }) {
   }
   if (project.stage === 'proposal' && project.type === 'grant' && !project.approved) {
     return <p>pending admin approval</p>
-  } else if (project.stage === 'proposal') {
-    return <p>pending sufficient pledged funds</p>
   } else if (project.stage === 'draft') {
     return (
       <Link
