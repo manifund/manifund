@@ -152,3 +152,37 @@ There is no test runner (jest/vitest) configured. Verify changes by running `bun
 - `request-updates` - Mondays 3 PM UTC
 - `embeddings/sync` - daily 8 AM UTC
 - `weekly-digest` - Mondays 5 PM UTC
+
+## Sibling Repo: Trace
+
+[trace.manifund.org](https://trace.manifund.org) is a database of AI safety
+grants aggregated from public sources. Its code lives in a separate repo,
+[manifund/trace](https://github.com/manifund/trace) (public), normally checked
+out next to this one at `../trace`. If it is missing (cloud sessions, fresh
+machines), clone it: `git clone https://github.com/manifund/trace ../trace`.
+
+- **Read `../trace/CLAUDE.md` first** for anything Trace-related. It is not
+  loaded automatically.
+- **Treat `../trace` as read-only from here.** If a change is needed on the
+  Trace side, describe it and let the user make it from a session in that repo.
+- **Trace's production data lives in this Supabase project**, in a `trace`
+  schema next to Manifund's `public` (cut over 2026-08-26). No second set of
+  credentials is needed: the Supabase MCP can query `trace.grants`,
+  `trace.orgs`, etc. directly, and app code can use
+  `supabase.schema('trace').from('grants')`. The tables have RLS and are
+  readable by `anon`.
+- `bun run gen-types` only covers `public`, so `db/database.types.ts` has no
+  Trace types. The schema is defined in `../trace/supabase/` (migrations plus
+  `trace-schema.sql`, the same DDL replayed into `trace`); Trace's own
+  `db/database.types.ts` is generated from a separate project
+  (`ylckglpbctcxdohxwsnv`) that keeps the same tables in `public`.
+- Both schemas have an `orgs` table. They are unrelated; always qualify which
+  one you mean.
+- Unlike this repo, Trace checks its RLS policies into its migrations.
+
+To skip permission prompts when reading it, add the checkout to your own
+`.claude/settings.local.json` (`.claude/` is gitignored, so this is per person):
+
+```json
+{ "permissions": { "additionalDirectories": ["/absolute/path/to/trace"] } }
+```
