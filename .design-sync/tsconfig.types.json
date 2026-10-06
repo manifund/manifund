@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "incremental": false,
+    "noEmitOnError": false,
+    "plugins": [],
+    "rootDir": "..",
+    "outDir": "build/types"
+  },
+  "include": ["entry.tsx", "../next-env.d.ts"],
+  "exclude": []
+}

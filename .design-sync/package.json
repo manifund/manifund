@@ -1,0 +1,7 @@
+{
+  "name": "manifund",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Package root for /design-sync: lets the converter treat the presentational components as a library.",
+  "types": "build/types/index.d.ts"
+}

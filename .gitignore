@@ -41,3 +41,11 @@ next-env.d.ts
 .snaplet/structure.d.ts
 .snaplet/config.json
 tools/recon/data/
+
+# design-sync
+.ds-sync/
+ds-bundle/
+.design-sync/.cache/
+.design-sync/learnings/
+.design-sync/node_modules
+.design-sync/build/

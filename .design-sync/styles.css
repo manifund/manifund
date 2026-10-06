@@ -1,0 +1,13 @@
+/* Stylesheet entry for /design-sync. next/font sets these variables in the
+   app; here the same families come from Google Fonts. */
+@import url('https://fonts.googleapis.com/css2?family=Readex+Pro:wght@200..700&family=Josefin+Slab:wght@100..700&family=Satisfy&display=swap');
+@import '../app/globals.css';
+
+:root {
+  --font-readex-pro: 'Readex Pro';
+  --font-josefin-slab: 'Josefin Slab';
+  --font-satisfy-regular: 'Satisfy';
+}
+body {
+  font-family: var(--font-readex-pro), ui-sans-serif, system-ui, sans-serif;
+}

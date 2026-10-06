@@ -1,0 +1,96 @@
+{
+  "projectId": "3fc5d498-6ac6-4c87-a68d-d4c05255701b",
+  "shape": "package",
+  "pkg": "manifund",
+  "globalName": "Manifund",
+  "entry": ".design-sync/entry.tsx",
+  "srcDir": "../components",
+  "tsconfig": "tsconfig.json",
+  "buildCmd": "node .design-sync/build.mjs",
+  "cssEntry": "build/manifund.css",
+  "docsDir": "docs",
+  "guidelinesGlob": [],
+  "componentSrcMap": {
+    "EmptyAvatar": "../components/avatar.tsx",
+    "GeneratedAvatar": "../components/avatar.tsx",
+    "IconButton": "../components/button.tsx",
+    "RightCarrotIcon": "../components/icons.tsx",
+    "Checkbox": "../components/input.tsx",
+    "RadioButton": "../components/input.tsx",
+    "AmountInput": "../components/input.tsx",
+    "SearchBar": "../components/input.tsx",
+    "PaginationNextPrev": "../components/pagination.tsx",
+    "CardlessProfile": "../components/profile-card.tsx",
+    "CardlessProject": "../components/project-card.tsx",
+    "HorizontalRadioGroup": "../components/radio-group.tsx",
+    "AiWrittenIcon": "../components/slop-flag.tsx",
+    "ProjectScoreFlags": "../components/slop-flag.tsx",
+    "SmallStat": "../components/stat.tsx",
+    "Table": "../components/table-catalyst.tsx",
+    "TableHead": "../components/table-catalyst.tsx",
+    "TableBody": "../components/table-catalyst.tsx",
+    "TableRow": "../components/table-catalyst.tsx",
+    "TableHeader": "../components/table-catalyst.tsx",
+    "TableCell": "../components/table-catalyst.tsx",
+    "RoundTag": "../components/tags.tsx",
+    "CauseTag": "../components/tags.tsx",
+    "StageIcon": "../components/tags.tsx",
+    "RegranterTag": "../components/tags.tsx",
+    "Tag": "../components/tags.tsx",
+    "SponsoredTag": "../components/tags.tsx",
+    "RequiredStar": "../components/tags.tsx",
+    "UserAvatarAndBadge": "../components/user-link.tsx",
+    "UserBadge": "../components/user-link.tsx"
+  },
+  "dtsPropsFor": {
+    "Input": "error?: boolean; errorMessage?: string; value?: string | number; defaultValue?: string | number; placeholder?: string; type?: string; name?: string; id?: string; disabled?: boolean; required?: boolean; autoFocus?: boolean; maxLength?: number; className?: string; onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void; onBlur?: (event: React.FocusEvent<HTMLInputElement>) => void;",
+    "Checkbox": "checked?: boolean; defaultChecked?: boolean; name?: string; id?: string; value?: string; disabled?: boolean; className?: string; onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;",
+    "RadioButton": "checked?: boolean; defaultChecked?: boolean; name?: string; id?: string; value?: string; disabled?: boolean; className?: string; onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;",
+    "AmountInput": "amount: number | undefined; onChangeAmount: (newAmount: number | undefined) => void; error?: boolean; errorMessage?: string; placeholder?: string; className?: string; allowFloat?: boolean; allowNegative?: boolean; maxLength?: number; disabled?: boolean; id?: string;",
+    "Tooltip": "text: React.ReactNode; children: React.ReactNode; className?: string; placement?: \"top\" | \"right\" | \"bottom\" | \"left\" | \"top-start\" | \"top-end\" | \"bottom-start\" | \"bottom-end\"; noTap?: boolean; noFade?: boolean; hasSafePolygon?: boolean;",
+    "SmallStat": "statData: { label: string; value: string; icon: React.ComponentType<{ className?: string }>; show: boolean };",
+    "Tabs": "tabs: { name: string; id: string; count?: number; display: React.JSX.Element }[]; currentTabId?: string | null;",
+    "ProfileCard": "profile: { id: string; username: string; full_name: string; avatar_url: string | null; bio: string; website: string | null }; sponsoredAmount: number; className?: string;",
+    "CardlessProfile": "profile: { id: string; username: string; full_name: string; avatar_url: string | null; bio: string; website: string | null };",
+    "UserAvatarAndBadge": "profile: { id: string; username: string; full_name: string; avatar_url: string | null; bio: string; website: string | null }; className?: string; short?: boolean; creatorBadge?: boolean;",
+    "ProjectCard": "project: { slug: string; title: string; blurb: string | null; creator: string; type: \"grant\" | \"cert\" | \"dummy\"; stage: \"draft\" | \"proposal\" | \"active\" | \"not funded\" | \"complete\" | \"hidden\"; funding_goal: number; min_funding: number; amm_shares: number | null; ai_fraction: number | null; profiles: { id: string; username: string; full_name: string; avatar_url: string | null; bio: string; website: string | null }; bids: { bidder: string; type: string; status: string; amount: number }[]; txns: { from_id: string | null; to_id: string; token: string; amount: number }[]; comments: unknown[]; project_votes: { magnitude: number }[]; project_transfers: { recipient_name: string; transferred: boolean }[]; causes: { slug: string; title: string }[] }; valuation?: number;",
+    "CardlessProject": "project: { slug: string; title: string; blurb: string | null; creator: string; type: \"grant\" | \"cert\" | \"dummy\"; stage: \"draft\" | \"proposal\" | \"active\" | \"not funded\" | \"complete\" | \"hidden\"; funding_goal: number; min_funding: number; amm_shares: number | null; ai_fraction: number | null; profiles: { id: string; username: string; full_name: string; avatar_url: string | null; bio: string; website: string | null }; bids: { bidder: string; type: string; status: string; amount: number }[]; txns: { from_id: string | null; to_id: string; token: string; amount: number }[]; comments: unknown[]; project_votes: { magnitude: number }[]; project_transfers: { recipient_name: string; transferred: boolean }[]; causes: { slug: string; title: string }[] }; regrantors?: { id: string; username: string; full_name: string; avatar_url: string | null; bio: string; website: string | null }[]; showFundingBar?: boolean;"
+  },
+  "overrides": {
+    "Modal": {
+      "cardMode": "single",
+      "viewport": "720x420"
+    },
+    "Table": {
+      "cardMode": "column"
+    },
+    "Tabs": {
+      "cardMode": "column"
+    },
+    "Pagination": {
+      "cardMode": "column"
+    },
+    "AlertBox": {
+      "cardMode": "column"
+    },
+    "EmptyContent": {
+      "cardMode": "column"
+    },
+    "HorizontalRadioGroup": {
+      "cardMode": "column"
+    },
+    "SearchBar": {
+      "cardMode": "column"
+    },
+    "Slider": {
+      "cardMode": "column"
+    },
+    "Row": {
+      "cardMode": "column"
+    },
+    "ProjectCard": {
+      "cardMode": "column"
+    }
+  },
+  "readmeHeader": ".design-sync/conventions.md"
+}
