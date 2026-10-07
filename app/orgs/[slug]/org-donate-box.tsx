@@ -70,11 +70,9 @@ export function OrgDonateBox(props: {
     <div className="rounded-lg bg-white p-5 shadow">
       <div className="font-medium text-gray-900">Donate to {orgName}</div>
       <p className="mt-1 text-[13px] leading-normal text-gray-500">
-        {isOffer ? 'An offer to ' : 'Goes to '}
-        <Link href={`/projects/${project.slug}`} className="text-orange-600 hover:underline">
-          {project.title}
-        </Link>
-        {isOffer ? ', charged only if it reaches its minimum.' : ', from your Manifund balance.'}
+        {isOffer
+          ? 'An offer from your Manifund balance, charged only if the fundraiser reaches its minimum.'
+          : 'From your Manifund balance.'}
       </p>
       {profile ? (
         <>
@@ -86,7 +84,7 @@ export function OrgDonateBox(props: {
                 aria-pressed={amount === preset}
                 onClick={() => choose(preset)}
                 className={clsx(
-                  'rounded-md border py-2 text-sm transition-colors',
+                  'rounded-md border py-2 text-sm font-normal transition-colors',
                   amount === preset
                     ? 'border-orange-500 bg-orange-50 text-orange-700'
                     : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
@@ -127,6 +125,13 @@ export function OrgDonateBox(props: {
       ) : (
         <SignInButton buttonText="Sign in to donate" className="mt-4 w-full" />
       )}
+      <p className="mt-3 text-xs leading-normal text-gray-400">
+        Goes to{' '}
+        <Link href={`/projects/${project.slug}`} className="text-orange-600 hover:underline">
+          {project.title}
+        </Link>
+        , {orgName}&apos;s fundraiser on Manifund.
+      </p>
     </div>
   )
 }

@@ -17,7 +17,8 @@ export function ShellChrome(props: { children: ReactNode }) {
   return useStandalone() ? null : <>{props.children}</>
 }
 
-// Routes whose pages have a right rail: the main column takes the grid's spare column too.
+// Routes whose pages have a right rail: the main column takes the grid's spare column, and on wide
+// screens the empty strip beside the sidebar.
 const WIDE_PREFIXES = ['/orgs/']
 
 export function MainColumn(props: { children: ReactNode }) {
@@ -38,7 +39,7 @@ export function MainColumn(props: { children: ReactNode }) {
         standalone
           ? 'min-h-screen bg-white lg:col-span-12'
           : wide
-            ? 'lg:col-span-9'
+            ? 'lg:col-span-9 xl:-ml-16'
             : 'lg:col-span-8'
       )}
     >

@@ -36,19 +36,22 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
   series. Trace's rows for unnamed money ("Unknown Donors") count in totals but are never a named funder.
 - **O5** Anyone signed in can review an org or reply to a review; reviews are plain comments. Nobody is notified of
   a new review (an org page has no owner yet); replies and mentions notify as usual.
-- **O6** Every community review counts as five stars: ratings aren't stored yet, and the stars are a placeholder
-  for where they'll go.
-- **O7** Reviews published elsewhere (from Trace) are listed under the community's, with their author, date and a
-  link to the original; they have no stars and aren't counted in the rating.
+- **O6** Every review counts as five stars, the ones published elsewhere included: ratings aren't stored yet, and
+  the stars, the average and the distribution are a placeholder for where they'll go.
+- **O7** Reviews published elsewhere (from Trace) sit in the same list as the community's, newest first, with
+  their author, where they were published, a "Published elsewhere" badge and a link to the original; their first
+  three lines show, the rest on click.
 - **O8** Reviewers who donated to any of the org's projects are tagged with what they gave.
+- **O9** The list filters by who wrote the review: donors (reviewers who gave), staff, peers (reviews published
+  elsewhere). Nothing says yet who is staff, so that filter is empty.
 
 ## Decisions
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
 | 2026-10-07 | Austin | Donations go through a project: one general fundraiser project per org we handle donations for (O2) | No new way for money to move; orgs need no account |
-| 2026-10-07 | Austin | Reviews with stars in the page, every review counted as five stars for now (O6) | See the design with real reviews before deciding how ratings work |
-| 2026-10-07 | Austin | Org pages keep the site sidebar; the main column is wider to fit the right rail | Stay inside the app |
+| 2026-10-07 | Austin | Reviews laid out as in the mockup (stars, distribution, filters), every review counted as five stars for now; ratings come to the schema later (O6, O9) | See the design with real reviews before deciding how ratings work |
+| 2026-10-07 | Austin | Org pages keep the site sidebar; the main column is wider, into the space beside the sidebar, to fit the right rail | Stay inside the app |
 | 2026-10-07 | Austin | Founded year, city and sources are columns on `orgs`; no cause tags yet | |
 | 2026-10-07 | Austin | "Suggest an edit" and "Claim this page" email the team | Claiming is a later feature |
 

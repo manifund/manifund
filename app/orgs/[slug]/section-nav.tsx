@@ -15,7 +15,7 @@ export function SectionNav(props: { sections: Section[] }) {
       let current = sections[0]?.id
       for (const section of sections) {
         const el = document.getElementById(section.id)
-        if (el && el.getBoundingClientRect().top <= 96) current = section.id
+        if (el && el.getBoundingClientRect().top <= 140) current = section.id
       }
       setActive(current)
     }

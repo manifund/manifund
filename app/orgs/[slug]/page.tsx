@@ -17,7 +17,8 @@ import { buttonClass } from '@/components/button'
 import { OrgLogo } from '../org-logo'
 import { SectionNav, type Section } from './section-nav'
 import { Funding } from './funding'
-import { Reviews, ASSUMED_RATING } from './reviews'
+import { Reviews } from './reviews'
+import { ASSUMED_RATING } from './rating'
 import { OrgDonateBox } from './org-donate-box'
 
 const TRACE_URL = 'https://trace.manifund.org'
@@ -72,7 +73,8 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
   const team = trace?.team && trace.team.people.length > 0 ? trace.team : null
   const leaders = team?.people.filter((person) => person.leadership) ?? []
   const staff = team?.people.filter((person) => !person.leadership) ?? []
-  const reviewCount = comments.filter((c) => !c.replying_to && !c.deleted_at).length
+  const reviewCount =
+    comments.filter((c) => !c.replying_to && !c.deleted_at).length + (trace?.reviews.length ?? 0)
 
   // Donations go to the org's project that's open for funding: the oldest one, when there are several.
   const openProject = [...projects]
@@ -280,7 +282,7 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
           )}
         </main>
 
-        <aside className="contents xl:sticky xl:top-16 xl:order-2 xl:flex xl:w-72 xl:flex-none xl:flex-col xl:gap-4">
+        <aside className="contents xl:sticky xl:top-16 xl:order-2 xl:flex xl:w-80 xl:flex-none xl:flex-col xl:gap-4">
           {openProject ? (
             <div className="order-1">
               <OrgDonateBox
@@ -294,12 +296,16 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
             org.donation_url && (
               <div className="order-1 rounded-lg bg-white p-5 shadow">
                 <div className="font-medium text-gray-900">Donate to {org.name}</div>
+                <p className="mt-1 text-[13px] leading-normal text-gray-500">
+                  {org.name} takes donations on its own site.
+                </p>
                 <a
                   href={org.donation_url}
-                  className={`${buttonClass('lg', 'orange')} mt-3 w-full font-normal`}
+                  className={`${buttonClass('lg', 'orange')} mt-3.5 w-full`}
                 >
-                  Donate on {hostname(org.donation_url)} ↗
+                  Donate on their site ↗
                 </a>
+                <p className="mt-3 truncate text-xs text-gray-400">{hostname(org.donation_url)}</p>
               </div>
             )
           )}
@@ -341,7 +347,7 @@ function OrgFacts(props: { org: Org; legalLong?: string }) {
     <div className="order-3 rounded-lg bg-white p-5 shadow-sm">
       {known.length > 0 && (
         <>
-          <div className="mb-2.5 text-[13px] font-medium text-gray-900">Organization facts</div>
+          <div className="mb-3 text-[13px] font-medium text-gray-900">Organization facts</div>
           <dl className="mb-3.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 border-b border-gray-100 pb-3 text-[13px]">
             {known.map(([label, value]) => (
               <div key={label} className="contents">

@@ -61,7 +61,7 @@ export function Funding(props: { funding: FundingSummary }) {
                   key={year.year}
                   className="min-w-0 flex-1 truncate text-center text-xs text-gray-500"
                 >
-                  {year.label}
+                  {crowded ? `’${String(year.year).slice(2)}` : year.label}
                 </div>
               ))}
             </div>

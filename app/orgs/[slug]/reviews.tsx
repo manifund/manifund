@@ -1,31 +1,89 @@
 'use client'
+import clsx from 'clsx'
 import Link from 'next/link'
+import { useRef, useState } from 'react'
 import { buttonClass } from '@/components/button'
-import { CommentsSection } from '@/components/comments/comments-section'
+import { CommentRxnsPanel } from '@/components/comment-rxn'
+import { CommentActions } from '@/components/comments/comment-actions'
+import { CommentEdit } from '@/components/comments/comment-edit'
+import { WriteComment } from '@/components/comments/comments-section'
+import { HistoryPopup } from '@/components/comments/history-popup'
+import { RichContent } from '@/components/editor'
+import { UserLink } from '@/components/user-link'
 import type { CommentAndProfileAndRxns } from '@/db/comment'
 import type { ExternalReview, Org } from '@/db/org'
 import type { Profile } from '@/db/profile'
+import { useSafeLayoutEffect } from '@/hooks/use-safe-layout-effect'
+import { ASSUMED_RATING } from './rating'
 
-// Ratings aren't stored yet: until they are, every community review counts as five stars.
-export const ASSUMED_RATING = 5
 const STARS = '★'.repeat(ASSUMED_RATING)
+
+// Who a review comes from, for the filter chips. Nothing says yet who is staff; reviews published
+// elsewhere are peers'.
+type Kind = 'donor' | 'staff' | 'peer' | 'other'
+const FILTERS: { id: Kind | 'all'; label: string; empty: string }[] = [
+  { id: 'all', label: 'All', empty: 'No reviews yet.' },
+  { id: 'donor', label: 'Donors', empty: 'No reviews from donors yet.' },
+  { id: 'staff', label: 'Staff', empty: 'No reviews from staff yet.' },
+  { id: 'peer', label: 'Peers', empty: 'No reviews from peers yet.' },
+]
+
+type Item =
+  | {
+      kind: Kind
+      date: string
+      comment: CommentAndProfileAndRxns
+      replies: CommentAndProfileAndRxns[]
+    }
+  | { kind: Kind; date: string; review: ExternalReview }
+
+const monthYear = (date: string) =>
+  new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
+
+const hostname = (url: string) =>
+  url
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/.*$/, '')
 
 export function Reviews(props: {
   org: Org
   comments: CommentAndProfileAndRxns[]
   externalReviews: ExternalReview[]
-  commenterTags: Record<string, string>
+  commenterTags: Record<string, string> // "gave $500", for reviewers who donated
   userProfile?: Profile
   userCharityBalance: number
 }) {
   const { org, comments, externalReviews, commenterTags, userProfile, userCharityBalance } = props
-  const count = comments.filter((c) => !c.replying_to && !c.deleted_at).length
+  const [filter, setFilter] = useState<Kind | 'all'>('all')
+
+  const items: Item[] = [
+    ...comments
+      .filter((comment) => !comment.replying_to)
+      .map((comment) => ({
+        kind: (commenterTags[comment.commenter] ? 'donor' : 'other') as Kind,
+        date: comment.created_at,
+        comment,
+        replies: comments
+          .filter((reply) => reply.replying_to === comment.id)
+          .sort((a, b) => a.created_at.localeCompare(b.created_at)),
+      })),
+    ...externalReviews.map((review) => ({
+      kind: 'peer' as Kind,
+      date: review.reviewedAt,
+      review,
+    })),
+  ].sort((a, b) => b.date.localeCompare(a.date))
+  // A removed review keeps its place in the list but isn't counted.
+  const count = items.filter((item) => !('comment' in item && item.comment.deleted_at)).length
+  const shown = items.filter((item) => filter === 'all' || item.kind === filter)
+
   return (
     <>
       <div className="flex flex-wrap items-baseline justify-between gap-3">
         <h2 className="text-2xl font-normal tracking-tight text-gray-900">Reviews</h2>
         <Link
-          href={userProfile ? '#main-write-comment' : `/login?next=/orgs/${org.slug}`}
+          href={userProfile ? '#write-review' : `/login?next=/orgs/${org.slug}`}
           className={buttonClass('sm', 'orange-outline')}
         >
           Write a review
@@ -33,100 +91,324 @@ export function Reviews(props: {
       </div>
 
       <div className="rounded-lg bg-white p-6 shadow-sm">
-        {count > 0 && (
-          <div className="mb-5 flex flex-wrap items-center gap-8 border-b border-gray-100 pb-5">
-            <div>
-              <div className="text-[40px] font-normal leading-none text-gray-900">
-                {ASSUMED_RATING.toFixed(1)}
-              </div>
-              <div className="mt-1 tracking-[2px] text-orange-500">{STARS}</div>
-              <div className="mt-0.5 text-xs text-gray-500">
-                {count} community review{count === 1 ? '' : 's'}
-              </div>
+        <div className="flex flex-wrap items-center gap-8 border-b border-gray-100 pb-5">
+          <div>
+            <div className="text-[40px] font-normal leading-none text-gray-900">
+              {count > 0 ? ASSUMED_RATING.toFixed(1) : '–'}
             </div>
-            <div className="flex max-w-[360px] flex-[1_1_240px] flex-col gap-1">
-              {[5, 4, 3, 2, 1].map((star) => {
-                const n = star === ASSUMED_RATING ? count : 0
-                return (
-                  <div key={star} className="flex items-center gap-2 text-xs text-gray-500">
-                    <span className="w-2.5">{star}</span>
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
-                      <div className="h-full bg-orange-400" style={{ width: n > 0 ? '100%' : 0 }} />
-                    </div>
-                    <span className="w-[18px] text-right tabular-nums">{n}</span>
-                  </div>
-                )
-              })}
+            <div
+              className={clsx(
+                'mt-1 tracking-[2px]',
+                count > 0 ? 'text-orange-500' : 'text-gray-300'
+              )}
+            >
+              {STARS}
+            </div>
+            <div className="mt-0.5 text-xs text-gray-500">
+              {count} review{count === 1 ? '' : 's'}
             </div>
           </div>
-        )}
-        <CommentsSection
-          target={{ org_id: org.id }}
-          basePath={`/orgs/${org.slug}`}
-          comments={comments}
-          commenterTags={commenterTags}
-          threadTag={STARS}
-          userProfile={userProfile}
-          userCharityBalance={userCharityBalance}
-          placeholder={`What should donors know about ${org.name}?`}
-          emptyText="No reviews yet."
-        />
-      </div>
-
-      {externalReviews.length > 0 && (
-        <div className="rounded-lg bg-white px-6 py-2 shadow-sm">
-          {externalReviews.map((review) => (
-            <ExternalReviewRow key={review.id} review={review} />
-          ))}
+          <div className="flex max-w-[360px] flex-[1_1_240px] flex-col gap-1">
+            {[5, 4, 3, 2, 1].map((star) => {
+              const n = star === ASSUMED_RATING ? count : 0
+              return (
+                <div key={star} className="flex items-center gap-2 text-xs text-gray-500">
+                  <span className="w-2.5">{star}</span>
+                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                    <div className="h-full bg-orange-400" style={{ width: n > 0 ? '100%' : 0 }} />
+                  </div>
+                  <span className="w-[18px] text-right tabular-nums">{n}</span>
+                </div>
+              )
+            })}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {FILTERS.map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                aria-pressed={filter === f.id}
+                onClick={() => setFilter(f.id)}
+                className={clsx(
+                  'rounded-full border px-3 py-1 text-[13px] transition-colors',
+                  filter === f.id
+                    ? 'border-orange-500 bg-orange-50 text-orange-700'
+                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
         </div>
-      )}
+
+        <div className="flex flex-col">
+          {shown.map((item) =>
+            'comment' in item ? (
+              <CommunityReview
+                key={item.comment.id}
+                org={org}
+                comment={item.comment}
+                replies={item.replies}
+                tag={commenterTags[item.comment.commenter]}
+                userProfile={userProfile}
+                userCharityBalance={userCharityBalance}
+              />
+            ) : (
+              <PublishedReview key={item.review.id} review={item.review} />
+            )
+          )}
+          {shown.length === 0 && (
+            <p className="border-b border-gray-100 py-8 text-center text-sm text-gray-500">
+              {FILTERS.find((f) => f.id === filter)?.empty}
+            </p>
+          )}
+        </div>
+
+        <div id="write-review" className="scroll-mt-24 pt-5">
+          {userProfile ? (
+            <WriteComment
+              target={{ org_id: org.id }}
+              commenter={userProfile}
+              placeholder={`What should donors know about ${org.name}?`}
+            />
+          ) : (
+            <p className="text-center text-sm text-gray-500">
+              <Link
+                href={`/login?next=/orgs/${org.slug}`}
+                className="text-orange-600 hover:underline"
+              >
+                Sign in
+              </Link>{' '}
+              to write a review.
+            </p>
+          )}
+        </div>
+      </div>
     </>
   )
 }
 
-// A review published elsewhere. Its first paragraph is the reviewer's one-line verdict; the rest
-// opens on click.
-function ExternalReviewRow(props: { review: ExternalReview }) {
+function ReviewHeader(props: {
+  name: React.ReactNode
+  role?: React.ReactNode
+  badge?: string
+  date: string
+  children?: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+      <span className="text-[13px] tracking-[1px] text-orange-500">{STARS}</span>
+      <span className="text-sm font-normal text-gray-900">{props.name}</span>
+      {props.role && <span className="text-[13px] text-gray-500">· {props.role}</span>}
+      {props.badge && (
+        <span className="rounded bg-gray-100 px-1.5 py-px text-[11px] text-gray-600">
+          {props.badge}
+        </span>
+      )}
+      {props.children}
+      <span className="flex-1" />
+      <span className="text-xs text-gray-400">{monthYear(props.date)}</span>
+    </div>
+  )
+}
+
+// A review written here: a comment on the org, with everything comments have (reactions, replies,
+// editing, reports), laid out as a review.
+function CommunityReview(props: {
+  org: Org
+  comment: CommentAndProfileAndRxns
+  replies: CommentAndProfileAndRxns[]
+  tag?: string
+  userProfile?: Profile
+  userCharityBalance: number
+}) {
+  const { org, comment, replies, tag, userProfile, userCharityBalance } = props
+  const [replying, setReplying] = useState(false)
+  const [highlighted, setHighlighted] = useState(false)
+  const element = useRef<HTMLElement>(null)
+  useSafeLayoutEffect(() => {
+    if (window.location.hash === `#${comment.id}`) {
+      setHighlighted(true)
+      element.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [])
+  const helpful = new Set(comment.comment_rxns.map((rxn) => rxn.reactor_id)).size
+
+  if (comment.deleted_at) {
+    return (
+      <article className="border-b border-gray-100 py-5 text-sm italic text-gray-500">
+        {comment.removed_reason
+          ? `Removed by a moderator: ${comment.removed_reason}`
+          : 'Deleted by the author'}
+      </article>
+    )
+  }
+  return (
+    <article
+      id={comment.id}
+      ref={element}
+      className={clsx(
+        'flex scroll-mt-24 flex-col gap-1.5 border-b border-gray-100 py-5',
+        highlighted && '-mx-3 rounded-md bg-orange-50 px-3'
+      )}
+    >
+      <ReviewHeader
+        name={
+          <UserLink
+            name={comment.profiles.full_name}
+            username={comment.profiles.username}
+            hideBadge
+          />
+        }
+        role={comment.profiles.regranter_status ? 'Regrantor' : undefined}
+        badge={tag ? tag.replace(/^gave/, 'Donated') : undefined}
+        date={comment.created_at}
+      >
+        {comment.edited_at && <HistoryPopup comment={comment} />}
+      </ReviewHeader>
+      <ReviewBody comment={comment} userProfile={userProfile} />
+      <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+        {helpful > 0 && <span>{helpful} found this helpful</span>}
+        <CommentRxnsPanel
+          commentId={comment.id}
+          userId={userProfile?.id}
+          // No tips on your own comment (C35).
+          userCharityBalance={
+            userProfile?.id === comment.commenter ? undefined : userCharityBalance
+          }
+          rxns={comment.comment_rxns}
+          userProfile={userProfile}
+        />
+        {userProfile && (
+          <button
+            type="button"
+            className="hover:text-gray-700 hover:underline"
+            onClick={() => setReplying(!replying)}
+          >
+            Reply
+          </button>
+        )}
+      </div>
+      {replies.length > 0 && (
+        <div className="mt-2 flex flex-col gap-3 border-l-2 border-gray-100 pl-4">
+          {replies
+            .filter((reply) => !reply.deleted_at)
+            .map((reply) => (
+              <div key={reply.id} id={reply.id} className="flex scroll-mt-24 flex-col gap-1">
+                <div className="flex flex-wrap items-baseline gap-2">
+                  <UserLink
+                    name={reply.profiles.full_name}
+                    username={reply.profiles.username}
+                    className="text-[13px] font-normal text-gray-900"
+                    hideBadge
+                  />
+                  {reply.edited_at && <HistoryPopup comment={reply} />}
+                  <span className="flex-1" />
+                  <span className="text-xs text-gray-400">{monthYear(reply.created_at)}</span>
+                </div>
+                <ReviewBody comment={reply} userProfile={userProfile} />
+              </div>
+            ))}
+        </div>
+      )}
+      {replying && userProfile && (
+        <div className="mt-2">
+          <WriteComment
+            target={{ org_id: org.id }}
+            commenter={userProfile}
+            replyingTo={comment}
+            setReplyingTo={() => setReplying(false)}
+          />
+        </div>
+      )}
+    </article>
+  )
+}
+
+// A review's or reply's words, with editing in place for its author (or a moderator).
+function ReviewBody(props: { comment: CommentAndProfileAndRxns; userProfile?: Profile }) {
+  const { comment, userProfile } = props
+  const [editing, setEditing] = useState<false | 'author' | 'moderator'>(false)
+  if (editing) {
+    return (
+      <CommentEdit
+        comment={comment}
+        asModerator={editing === 'moderator'}
+        onDone={() => setEditing(false)}
+      />
+    )
+  }
+  return (
+    <div className="flex items-start gap-3">
+      <RichContent
+        content={comment.content}
+        size="sm"
+        className="min-w-0 max-w-[680px] flex-1 text-gray-700"
+      />
+      <CommentActions
+        comment={comment}
+        viewerId={userProfile?.id}
+        onEdit={(asModerator) => setEditing(asModerator ? 'moderator' : 'author')}
+      />
+    </div>
+  )
+}
+
+// A review published elsewhere, collected by Trace: its first three lines, the rest on click.
+function PublishedReview(props: { review: ExternalReview }) {
   const { review } = props
-  const [lead, ...rest] = review.body.split(/\n\s*\n/)
+  const [expanded, setExpanded] = useState(false)
+  const [overflows, setOverflows] = useState(false)
+  const body = useRef<HTMLDivElement>(null)
+  useSafeLayoutEffect(() => {
+    if (body.current && body.current.scrollHeight > body.current.clientHeight + 1) {
+      setOverflows(true)
+    }
+  }, [])
   const link = review.sourceUrl ?? review.reviewerUrl
   return (
-    <article className="flex flex-col gap-1.5 border-b border-gray-100 py-5 last:border-b-0">
-      <div className="flex flex-wrap items-baseline gap-2">
-        <span className="text-sm font-normal text-gray-900">{review.reviewer}</span>
-        <span className="rounded bg-gray-100 px-1.5 py-px text-[11px] text-gray-600">
-          Published elsewhere
-        </span>
-        <span className="flex-1" />
+    <article className="flex flex-col gap-1.5 border-b border-gray-100 py-5">
+      <ReviewHeader
+        name={
+          review.reviewerUrl ? (
+            <a href={review.reviewerUrl} className="hover:underline">
+              {review.reviewer}
+            </a>
+          ) : (
+            review.reviewer
+          )
+        }
+        role={link ? hostname(link) : undefined}
+        badge="Published elsewhere"
+        date={review.reviewedAt}
+      />
+      <div
+        ref={body}
+        className={clsx(
+          'max-w-[680px] whitespace-pre-line text-pretty text-sm leading-relaxed text-gray-700',
+          !expanded && 'line-clamp-3'
+        )}
+      >
+        {/* Collapsed, paragraph breaks don't spend one of the three lines. */}
+        <MarkdownLinks text={review.body.replace(/\n\s*\n/g, expanded ? '\n\n' : '\n')} />
+      </div>
+      <div className="flex gap-3 text-xs">
+        {overflows && (
+          <button
+            type="button"
+            className="text-orange-600 hover:underline"
+            onClick={() => setExpanded(!expanded)}
+          >
+            {expanded ? 'Show less' : 'Read more'}
+          </button>
+        )}
         {link && (
-          <a href={link} className="text-xs text-orange-600 hover:underline">
+          <a href={link} className="text-gray-400 hover:text-gray-700 hover:underline">
             Full post ↗
           </a>
         )}
-        <span className="text-xs text-gray-400">
-          {new Date(`${review.reviewedAt}T00:00:00Z`).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            timeZone: 'UTC',
-          })}
-        </span>
       </div>
-      <p className="max-w-[680px] text-sm font-normal leading-relaxed text-gray-900">
-        <MarkdownLinks text={lead} />
-      </p>
-      {rest.length > 0 && (
-        <details className="group max-w-[680px] text-sm leading-relaxed text-gray-700">
-          <summary className="cursor-pointer list-none text-xs text-orange-600 [&::-webkit-details-marker]:hidden">
-            <span className="group-open:hidden">Read more</span>
-            <span className="hidden group-open:inline">Show less</span>
-          </summary>
-          {rest.map((paragraph, i) => (
-            <p key={i} className="mt-2">
-              <MarkdownLinks text={paragraph} />
-            </p>
-          ))}
-        </details>
-      )}
     </article>
   )
 }
