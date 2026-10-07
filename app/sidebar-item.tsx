@@ -10,6 +10,7 @@ import {
   InformationCircleIcon,
   HomeIcon,
   UserGroupIcon,
+  BuildingOffice2Icon,
   GlobeAltIcon,
   ChevronRightIcon,
   ChevronDownIcon,
@@ -89,6 +90,8 @@ function findIcon(name: string, isCurrentPage: boolean) {
       return <GlobeAltIcon className={styling} />
     case 'People':
       return <UserGroupIcon className={styling} />
+    case 'Orgs':
+      return <BuildingOffice2Icon className={styling} />
     case 'Login':
       return <UserCircleIcon className={styling} />
     case 'Newsletter':

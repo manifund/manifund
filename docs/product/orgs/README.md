@@ -86,7 +86,7 @@ locally in `temp/design_handoff_orgs/`, not in the repo.
 
 - A Manifund verdict on cards, with its filter; sorting by rating.
 - Orgs claiming their page; orgs sharing applications they sent elsewhere.
-- `/orgs` isn't linked from the sidebar.
+- `/orgs` is in the desktop sidebar but not in the phone's bottom bar, which is full.
 
 ## Tests
 

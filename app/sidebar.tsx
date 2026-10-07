@@ -90,6 +90,7 @@ export default async function Sidebar() {
             />
           )}
           <SidebarItem item={{ name: 'People', href: '/people' }} />
+          <SidebarItem item={{ name: 'Orgs', href: '/orgs' }} />
           <SidebarItem item={{ name: 'Categories', href: '/causes' }} />
           <SidebarItem item={{ name: 'Newsletter', href: 'https://manifund.substack.com' }} />
           {user && (
