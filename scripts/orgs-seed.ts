@@ -30,7 +30,7 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     slug: 'longview',
     cause: 'Philanthropy',
     focus: ['Grantmaking'],
-    name: 'Longview Philanthropy',
+    name: 'Longview',
     website: 'https://www.longview.org',
     summary:
       'Advises major donors and runs funds for reducing risks from AI, nuclear weapons and pandemics.',
@@ -46,7 +46,7 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     legal_name: 'Epoch Artificial Intelligence, Inc.',
     ein: '994050541',
     country: 'US',
-    name: 'Epoch AI',
+    name: 'Epoch',
     website: 'https://epoch.ai',
     summary:
       'Researches the trajectory of AI: compute, training data, benchmarks and economic impact.',
@@ -114,7 +114,7 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     legal_name: 'Lightcone Infrastructure Inc',
     ein: '920861538',
     country: 'US',
-    name: 'Lightcone Infrastructure',
+    name: 'Lightcone',
     city: 'Berkeley, CA',
     trace_slug: 'lightcone-infrastructure',
   },
@@ -126,7 +126,7 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     legal_structure: 'non_us',
     legal_name: 'Forethought Research',
     country: 'GB',
-    name: 'Forethought Foundation',
+    name: 'Forethought',
     trace_slug: 'forethought',
   },
   {
@@ -149,7 +149,7 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     legal_name: 'Tarbell Center for AI Journalism Inc',
     ein: '333721895',
     country: 'US',
-    name: 'Tarbell Center for AI Journalism',
+    name: 'Tarbell',
     trace_slug: 'tarbell-center-for-ai-journalism',
   },
   {
