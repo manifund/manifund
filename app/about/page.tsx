@@ -124,7 +124,7 @@ const TEAM_MEMBERS = [
     username: 'Austin',
   },
   {
-    name: 'Carol N',
+    name: 'Caroline Ellison',
     title: 'Senior Researcher & Ops',
     avatarUrl: null,
     id: '44ab8c88-037b-44a2-a407-5d0006541624',
