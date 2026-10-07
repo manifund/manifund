@@ -13,7 +13,7 @@ import type { CommentAndProfileAndRxns } from '@/db/comment'
 import type { ExternalReview, Org } from '@/db/org'
 import type { Profile } from '@/db/profile'
 import { useSafeLayoutEffect } from '@/hooks/use-safe-layout-effect'
-import { ASSUMED_RATING } from './rating'
+import { ASSUMED_RATING } from '../rating'
 
 const STARS = '★'.repeat(ASSUMED_RATING)
 

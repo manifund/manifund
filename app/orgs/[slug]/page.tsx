@@ -10,6 +10,7 @@ import { getBidsByUser } from '@/db/bid'
 import { calculateCharityBalance } from '@/utils/math'
 import { addHttpToUrl, formatMoney } from '@/utils/formatting'
 import { formatCompactMoney, summarizeFunding } from '@/utils/org-funding'
+import { LEGAL_STRUCTURES } from '@/utils/org-directory'
 import { RichContent } from '@/components/editor'
 import { ProjectCard } from '@/components/project-card'
 import { Tag } from '@/components/tags'
@@ -18,21 +19,11 @@ import { OrgLogo } from '../org-logo'
 import { SectionNav, type Section } from './section-nav'
 import { Funding } from './funding'
 import { Reviews } from './reviews'
-import { ASSUMED_RATING } from './rating'
+import { ASSUMED_RATING } from '../rating'
 import { OrgDonateBox } from './org-donate-box'
 
 const TRACE_URL = 'https://trace.manifund.org'
 const CONTACT = 'mailto:hi@manifund.org'
-
-const LEGAL_STRUCTURES: Record<string, { tag: string; long: string }> = {
-  '501c3': { tag: '501(c)(3)', long: '501(c)(3) public charity' },
-  '501c4': { tag: '501(c)(4)', long: '501(c)(4) social welfare organization' },
-  c_corp: { tag: 'C corp', long: 'C corporation' },
-  pbc: { tag: 'PBC', long: 'Public benefit corporation' },
-  llc: { tag: 'LLC', long: 'Limited liability company' },
-  non_us: { tag: 'Non-US', long: 'Registered outside the US' },
-  other: { tag: 'Other', long: 'Other' },
-}
 
 const hostname = (url: string) =>
   url
@@ -144,7 +135,11 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
             </p>
           )}
           <div className="mt-3.5 flex flex-wrap items-center gap-2 text-[13px] text-gray-500">
-            {legal && <Tag text={legal.tag} color="emerald" />}
+            {org.cause && <Tag text={org.cause} color="orange" />}
+            {legal && <Tag text={legal.short} color="emerald" />}
+            {org.focus.map((focus) => (
+              <Tag key={focus} text={focus} color="gray" />
+            ))}
             {meta.length > 0 && <span>{meta.join(' · ')}</span>}
             {meta.length > 0 && org.website && <span>·</span>}
             {org.website && (

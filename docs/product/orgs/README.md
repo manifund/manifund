@@ -45,6 +45,23 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
 - **O9** The list filters by who wrote the review: donors (reviewers who gave), staff, peers (reviews published
   elsewhere). Nothing says yet who is staff, so that filter is empty.
 
+### The directory (`/orgs`)
+
+Design reference: the Claude Design handoff (the "Right rail" layout, and "Tabs + refine" as its narrow form), kept
+locally in `temp/design_handoff_orgs/`, not in the repo.
+
+- **O10** Every org is listed as a card: logo, name, legal type and city, summary, cause and focus tags, and three
+  figures: all-time funding from Trace with a bar per year for the last five, headcount from Trace, and the number
+  of reviews (the community's and those published elsewhere) with the placeholder rating (O6). A figure with no
+  data shows a dash.
+- **O11** The list filters by search (name, summary, cause, focus), one cause, any of several focuses and any of
+  several legal types. Groups combine with "and". Only causes, focuses and legal types that some org has are
+  offered. The filters and the sort are kept in the address.
+- **O12** Each cause shows how many orgs picking it would list, given the other filters.
+- **O13** Sorts: most funded (the default), most reviewed, largest team, A–Z.
+- **O14** An org's cause, focus and legal type are set by hand (`scripts/orgs-seed.ts`); legal fields only where a
+  public record confirms them.
+
 ## Decisions
 
 | Date | Decided by | Decision | Why |
@@ -52,7 +69,9 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
 | 2026-10-07 | Austin | Donations go through a project: one general fundraiser project per org we handle donations for (O2) | No new way for money to move; orgs need no account |
 | 2026-10-07 | Austin | Reviews laid out as in the mockup (stars, distribution, filters), every review counted as five stars for now; ratings come to the schema later (O6, O9) | See the design with real reviews before deciding how ratings work |
 | 2026-10-07 | Austin | Org pages keep the site sidebar; the main column is wider, into the space beside the sidebar, to fit the right rail | Stay inside the app |
-| 2026-10-07 | Austin | Founded year, city and sources are columns on `orgs`; no cause tags yet | |
+| 2026-10-07 | Austin | Founded year, city and sources are columns on `orgs` | |
+| 2026-10-07 | Austin | Cause (one) and focus (several) are columns on `orgs`, from fixed lists in the code, separate from projects' causes | The directory filters by them; Trace's cause areas are per grant and too many per org |
+| 2026-10-07 | Austin | The directory leaves out Manifund's verdict and its "has a Manifund review" filter, and the "highest rated" sort | No Manifund reviews or stored ratings yet |
 | 2026-10-07 | Austin | "Suggest an edit" and "Claim this page" email the team | Claiming is a later feature |
 
 ## Open questions
@@ -65,10 +84,11 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
 
 ## Later
 
-- Cause tags and browsing orgs by cause; filters on reviews (donors, staff, peers).
+- A Manifund verdict on cards, with its filter; sorting by rating.
 - Orgs claiming their page; orgs sharing applications they sent elsewhere.
-- `/orgs` is a plain list for now, and isn't linked from the sidebar.
+- `/orgs` isn't linked from the sidebar.
 
 ## Tests
 
-- **Logic**: O4 (`tests/unit/org-funding.test.ts`). The rest has no tests yet.
+- **Logic**: O4 (`tests/unit/org-funding.test.ts`), O11 and O12 (`tests/unit/org-directory.test.ts`). The rest has
+  no tests yet.

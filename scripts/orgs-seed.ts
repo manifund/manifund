@@ -4,10 +4,20 @@ type OrgInsert = Database['public']['Tables']['orgs']['Insert']
 
 // The curated org pages, keyed by slug. `bun scripts/seed-orgs.ts` upserts these into public.orgs, writing
 // only the fields given here: anything edited by hand in the database and not listed below is left alone.
-// Legal fields stay out until someone has checked them against the org's filings.
+// Cause and focus come from the lists in utils/org-directory.ts.
+// Legal fields were checked on 2026-10-07 against the IRS record (via ProPublica), Companies House, or the org's
+// own donate page, and are left out where that didn't settle it: Longview has a UK company and a US 501(c)(3)
+// with neither named as primary; Humans First has no record we could tie to it. The state of incorporation
+// isn't in those sources, so us_state is unset throughout. Mox runs inside Manifund's own entity.
 export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
   {
     slug: 'metr',
+    cause: 'AI safety',
+    focus: ['Evals'],
+    legal_structure: '501c3',
+    legal_name: 'Model Evaluation and Threat Research, Inc.',
+    ein: '991219864',
+    country: 'US',
     name: 'METR',
     website: 'https://metr.org',
     summary:
@@ -18,6 +28,8 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
   },
   {
     slug: 'longview',
+    cause: 'Philanthropy',
+    focus: ['Grantmaking'],
     name: 'Longview Philanthropy',
     website: 'https://www.longview.org',
     summary:
@@ -28,6 +40,12 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
   },
   {
     slug: 'epoch',
+    cause: 'AI safety',
+    focus: ['Research'],
+    legal_structure: '501c3',
+    legal_name: 'Epoch Artificial Intelligence, Inc.',
+    ein: '994050541',
+    country: 'US',
     name: 'Epoch AI',
     website: 'https://epoch.ai',
     summary:
@@ -37,6 +55,12 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
   },
   {
     slug: 'mats',
+    cause: 'AI safety',
+    focus: ['Field-building'],
+    legal_structure: '501c3',
+    legal_name: 'MATS Research Inc',
+    ein: '990648563',
+    country: 'US',
     name: 'MATS',
     website: 'https://www.matsprogram.org',
     summary: 'A research and training program pairing emerging AI safety researchers with mentors.',
@@ -46,6 +70,12 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
   },
   {
     slug: 'cais',
+    cause: 'AI safety',
+    focus: ['Research', 'Field-building'],
+    legal_structure: '501c3',
+    legal_name: 'Center for Artificial Intelligence Safety Inc',
+    ein: '881751310',
+    country: 'US',
     name: 'Center for AI Safety',
     website: 'https://safe.ai',
     summary: 'Research, field-building and advocacy to reduce societal-scale risks from AI.',
@@ -55,6 +85,12 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
   },
   {
     slug: '1day-sooner',
+    cause: 'Biosecurity & health',
+    focus: ['Policy & advocacy', 'Global health'],
+    legal_structure: '501c3',
+    legal_name: '1Day Sooner Inc',
+    ein: '851103820',
+    country: 'US',
     name: '1Day Sooner',
     website: 'https://www.1daysooner.org',
     summary:
@@ -62,21 +98,69 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     founded_year: 2020,
     trace_slug: '1day-sooner',
   },
-  { slug: 'humans-first', name: 'Humans First', trace_slug: 'humans-first' },
+  {
+    slug: 'humans-first',
+    cause: 'AI safety',
+    focus: ['Policy & advocacy'],
+    name: 'Humans First',
+    trace_slug: 'humans-first',
+  },
   // Already in the table with their own summary and about text: only the links to Trace are added.
   {
     slug: 'lightcone',
+    cause: 'AI safety',
+    focus: ['Infrastructure'],
+    legal_structure: '501c3',
+    legal_name: 'Lightcone Infrastructure Inc',
+    ein: '920861538',
+    country: 'US',
     name: 'Lightcone Infrastructure',
     city: 'Berkeley, CA',
     trace_slug: 'lightcone-infrastructure',
   },
   // Trace has four rows for Forethought; this is the one with most of its grants until they're merged there.
-  { slug: 'forethought', name: 'Forethought Foundation', trace_slug: 'forethought' },
-  { slug: 'mox', name: 'Mox', city: 'San Francisco, CA', trace_slug: 'mox' },
+  {
+    slug: 'forethought',
+    cause: 'AI safety',
+    focus: ['Research'],
+    legal_structure: 'non_us',
+    legal_name: 'Forethought Research',
+    country: 'GB',
+    name: 'Forethought Foundation',
+    trace_slug: 'forethought',
+  },
+  {
+    slug: 'mox',
+    cause: 'AI safety',
+    focus: ['Infrastructure'],
+    legal_structure: 'fiscally_sponsored',
+    legal_name: 'Manifold for Charity Inc.',
+    ein: '883668801',
+    country: 'US',
+    name: 'Mox',
+    city: 'San Francisco, CA',
+    trace_slug: 'mox',
+  },
   {
     slug: 'tarbell',
+    cause: 'AI safety',
+    focus: ['Field-building'],
+    legal_structure: '501c3',
+    legal_name: 'Tarbell Center for AI Journalism Inc',
+    ein: '333721895',
+    country: 'US',
     name: 'Tarbell Center for AI Journalism',
     trace_slug: 'tarbell-center-for-ai-journalism',
   },
-  { slug: 'transluce', name: 'Transluce', trace_slug: 'transluce' },
+  {
+    slug: 'transluce',
+    cause: 'AI safety',
+    focus: ['Research'],
+    legal_structure: '501c3',
+    legal_name: 'Clarity AI Research Inc.',
+    ein: '993262331',
+    country: 'US',
+    name: 'Transluce',
+    trace_slug: 'transluce',
+  },
 ]

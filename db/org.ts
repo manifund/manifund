@@ -1,6 +1,7 @@
 import { Database } from '@/db/database.types'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { FullProject } from './project'
+import { SPARK_YEARS, type DirectoryOrg } from '@/utils/org-directory'
 
 export type Org = Database['public']['Tables']['orgs']['Row']
 
@@ -126,4 +127,84 @@ export async function getOrgTrace(supabase: SupabaseClient, traceSlug: string) {
     })),
   }
   return result
+}
+
+// Every org as the directory shows it: one pass over Trace for all of them (grants, headcount, reviews),
+// plus the reviews written here.
+export async function listDirectoryOrgs(supabase: SupabaseClient, thisYear: number) {
+  const orgs = await listOrgs(supabase)
+  const trace = supabase.schema('trace' as never) as unknown as SupabaseClient
+  const traceSlugs = orgs.map((org) => org.trace_slug).filter((slug): slug is string => !!slug)
+  const { data: traceOrgs } = await trace
+    .from('orgs')
+    .select('id, slug')
+    .in('slug', traceSlugs)
+    .throwOnError()
+  const traceIds = (traceOrgs ?? []).map((org) => org.id as string)
+  const slugByTraceId = new Map((traceOrgs ?? []).map((org) => [org.id as string, org.slug]))
+
+  // Grants can pass the 1000-row page as orgs are added.
+  const grants: {
+    recipient_org_id: string
+    amount_usd: number | null
+    grant_date: string | null
+  }[] = []
+  for (let from = 0; traceIds.length > 0; from += 1000) {
+    const { data } = await trace
+      .from('grants')
+      .select('recipient_org_id, amount_usd, grant_date')
+      .in('recipient_org_id', traceIds)
+      .eq('status', 'approved')
+      .order('id')
+      .range(from, from + 999)
+      .throwOnError()
+    grants.push(...(data ?? []))
+    if (!data || data.length < 1000) break
+  }
+  const [{ data: teams }, { data: traceReviews }, { data: comments }] = await Promise.all([
+    trace.from('org_teams').select('org_id, headcount').in('org_id', traceIds).throwOnError(),
+    trace.from('org_reviews').select('org_id').in('org_id', traceIds).throwOnError(),
+    supabase
+      .from('comments')
+      .select('org_id')
+      .not('org_id', 'is', null)
+      .is('replying_to', null)
+      .is('deleted_at', null)
+      .throwOnError(),
+  ])
+
+  const firstYear = thisYear - SPARK_YEARS + 1
+  return orgs.map((org): DirectoryOrg => {
+    const mine = <T extends { org_id?: string; recipient_org_id?: string }>(rows: T[] | null) =>
+      (rows ?? []).filter(
+        (row) =>
+          slugByTraceId.get((row.org_id ?? row.recipient_org_id) as string) === org.trace_slug
+      )
+    const priced = org.trace_slug ? mine(grants).filter((grant) => (grant.amount_usd ?? 0) > 0) : []
+    const fundingByYear = Array.from({ length: SPARK_YEARS }, () => 0)
+    for (const grant of priced) {
+      const year = grant.grant_date ? Number(grant.grant_date.slice(0, 4)) : NaN
+      if (year >= firstYear && year <= thisYear)
+        fundingByYear[year - firstYear] += grant.amount_usd ?? 0
+    }
+    const team = org.trace_slug ? mine(teams)[0] : undefined
+    return {
+      slug: org.slug,
+      name: org.name,
+      logo_url: org.logo_url,
+      trace_slug: org.trace_slug,
+      summary: org.summary,
+      cause: org.cause,
+      focus: org.focus,
+      legalStructure: org.legal_structure,
+      city: org.city,
+      funding:
+        priced.length > 0 ? priced.reduce((sum, grant) => sum + (grant.amount_usd ?? 0), 0) : null,
+      fundingByYear,
+      staff: team?.headcount ?? null,
+      reviews:
+        (org.trace_slug ? mine(traceReviews).length : 0) +
+        (comments ?? []).filter((comment) => comment.org_id === org.id).length,
+    }
+  })
 }

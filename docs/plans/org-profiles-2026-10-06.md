@@ -104,3 +104,7 @@ Second migration: `supabase/migrations/20261007000000_org_pages.sql`. How the pa
   agree; Trace's "Unknown Donors" estimate rows are part of both.
 - Still open from the lists above: cause tags, claiming, Trace types, a stored order for several open projects.
   New: stored ratings, and Manifund's own in-depth reviews (mocked, not built).
+- The `/orgs` directory from the design handoff (`temp/design_handoff_orgs/`, kept locally): cards, search, sort and
+  filters by cause, focus and legal type. Third migration: `supabase/migrations/20261007010000_org_directory.sql`
+  (`orgs.cause`, `orgs.focus`, and `fiscally_sponsored` as a legal structure). Legal fields are now filled for ten
+  of the twelve orgs.

@@ -41,3 +41,6 @@ next-env.d.ts
 .snaplet/structure.d.ts
 .snaplet/config.json
 tools/recon/data/
+
+# Scratch files that stay on this machine (design handoffs, exports)
+/temp/

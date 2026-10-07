@@ -709,11 +709,13 @@ export type Database = {
       orgs: {
         Row: {
           about: Json | null
+          cause: string | null
           city: string | null
           country: string | null
           created_at: string
           donation_url: string | null
           ein: string | null
+          focus: string[]
           founded_year: number | null
           id: string
           legal_name: string | null
@@ -730,11 +732,13 @@ export type Database = {
         }
         Insert: {
           about?: Json | null
+          cause?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           donation_url?: string | null
           ein?: string | null
+          focus?: string[]
           founded_year?: number | null
           id?: string
           legal_name?: string | null
@@ -751,11 +755,13 @@ export type Database = {
         }
         Update: {
           about?: Json | null
+          cause?: string | null
           city?: string | null
           country?: string | null
           created_at?: string
           donation_url?: string | null
           ein?: string | null
+          focus?: string[]
           founded_year?: number | null
           id?: string
           legal_name?: string | null
