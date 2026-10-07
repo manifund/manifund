@@ -28,6 +28,7 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
       'Builds and runs evaluations that measure whether frontier AI systems can carry out long, autonomous tasks.',
     city: 'Berkeley, CA',
     founded_year: 2022,
+    donation_url: 'https://metr.org/donate',
     trace_slug: 'model-evaluation-and-threat-research',
   },
   {
