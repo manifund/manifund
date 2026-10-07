@@ -31,8 +31,14 @@ export type OrgTrace = {
   reviews: ExternalReview[]
 }
 
+// Hidden orgs stay out of the directory, and their page is a 404.
 export async function listOrgs(supabase: SupabaseClient) {
-  const { data } = await supabase.from('orgs').select('*').order('name').throwOnError()
+  const { data } = await supabase
+    .from('orgs')
+    .select('*')
+    .eq('hidden', false)
+    .order('name')
+    .throwOnError()
   return (data ?? []) as Org[]
 }
 
@@ -41,6 +47,7 @@ export async function getOrgBySlug(supabase: SupabaseClient, slug: string) {
     .from('orgs')
     .select('*')
     .eq('slug', slug)
+    .eq('hidden', false)
     .maybeSingle()
     .throwOnError()
   return data as Org | null

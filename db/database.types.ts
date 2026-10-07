@@ -717,6 +717,7 @@ export type Database = {
           ein: string | null
           focus: string[]
           founded_year: number | null
+          hidden: boolean
           id: string
           legal_name: string | null
           legal_structure: string | null
@@ -740,6 +741,7 @@ export type Database = {
           ein?: string | null
           focus?: string[]
           founded_year?: number | null
+          hidden?: boolean
           id?: string
           legal_name?: string | null
           legal_structure?: string | null
@@ -763,6 +765,7 @@ export type Database = {
           ein?: string | null
           focus?: string[]
           founded_year?: number | null
+          hidden?: boolean
           id?: string
           legal_name?: string | null
           legal_structure?: string | null

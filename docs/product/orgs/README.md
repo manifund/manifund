@@ -25,6 +25,8 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
 ## Rules
 
 - **O1** Everyone can read every org page; a slug with no org is a 404.
+- **O16** A hidden org (`orgs.hidden`) is in neither the directory nor reachable at its address, which is a 404
+  like a slug with no org. Its row, links and reviews are kept.
 - **O2** Donating to an org is donating to its project that is open for funding (a proposal or an active
   project): an offer for a proposal, a donation for an active one, from the donor's balance. With several open
   projects, the oldest is offered. With none, the page links to the org's own donation page if it has one, and
@@ -64,7 +66,8 @@ locally in `temp/design_handoff_orgs/`, not in the repo.
 - **O12** Each cause shows how many orgs picking it would list, given the other filters.
 - **O13** Sorts: most funded (the default), most reviewed, largest team, A–Z.
 - **O14** An org's cause, focus and legal type are set by hand (`scripts/orgs-seed.ts`); legal fields only where a
-  public record confirms them.
+  public record confirms them. Its donation link is its own donation page, or the every.org page its site links
+  to.
 
 ## Decisions
 
@@ -76,6 +79,7 @@ locally in `temp/design_handoff_orgs/`, not in the repo.
 | 2026-10-07 | Austin | Founded year, city and sources are columns on `orgs` | |
 | 2026-10-07 | Austin | Cause (one) and focus (several) are columns on `orgs`, from fixed lists in the code, separate from projects' causes | The directory filters by them; Trace's cause areas are per grant and too many per org |
 | 2026-10-07 | Austin | The directory leaves out Manifund's verdict and its "has a Manifund review" filter, and the "highest rated" sort | No Manifund reviews or stored ratings yet |
+| 2026-10-07 | Austin | Orgs can be hidden with a flag (O16); Tarbell and Humans First are, for now | |
 | 2026-10-07 | Austin | "Suggest an edit" and "Claim this page" email the team | Claiming is a later feature |
 
 ## Open questions
