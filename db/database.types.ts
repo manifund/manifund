@@ -352,7 +352,7 @@ export type Database = {
           already_given: string | null
           already_given_link: string | null
           capacity: string[]
-          cause_ratings: NonNullable<Json>
+          cause_ratings: Json
           charities_interested: string | null
           created_at: string
           dream_setup: string | null
@@ -383,7 +383,7 @@ export type Database = {
           already_given?: string | null
           already_given_link?: string | null
           capacity?: string[]
-          cause_ratings?: NonNullable<Json>
+          cause_ratings?: Json
           charities_interested?: string | null
           created_at?: string
           dream_setup?: string | null
@@ -414,7 +414,7 @@ export type Database = {
           already_given?: string | null
           already_given_link?: string | null
           capacity?: string[]
-          cause_ratings?: NonNullable<Json>
+          cause_ratings?: Json
           charities_interested?: string | null
           created_at?: string
           dream_setup?: string | null
@@ -663,56 +663,92 @@ export type Database = {
           },
         ]
       }
+      org_projects: {
+        Row: {
+          created_at: string
+          org_id: string
+          project_id: string
+        }
+        Insert: {
+          created_at?: string
+          org_id: string
+          project_id: string
+        }
+        Update: {
+          created_at?: string
+          org_id?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'org_projects_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'orgs'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'org_projects_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: true
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       orgs: {
         Row: {
-          budget_url: string | null
-          created_at: string | null
-          description: string | null
+          about: Json | null
+          country: string | null
+          created_at: string
           donation_url: string | null
-          email: string | null
-          headcount: number | null
+          ein: string | null
           id: string
+          legal_name: string | null
+          legal_structure: string | null
           logo_url: string | null
           name: string
           slug: string
-          subtitle: string | null
-          tags: string[] | null
-          target_2026: number | null
-          updated_at: string | null
+          summary: string | null
+          trace_slug: string | null
+          updated_at: string
+          us_state: string | null
           website: string | null
         }
         Insert: {
-          budget_url?: string | null
-          created_at?: string | null
-          description?: string | null
+          about?: Json | null
+          country?: string | null
+          created_at?: string
           donation_url?: string | null
-          email?: string | null
-          headcount?: number | null
+          ein?: string | null
           id?: string
+          legal_name?: string | null
+          legal_structure?: string | null
           logo_url?: string | null
           name: string
           slug: string
-          subtitle?: string | null
-          tags?: string[] | null
-          target_2026?: number | null
-          updated_at?: string | null
+          summary?: string | null
+          trace_slug?: string | null
+          updated_at?: string
+          us_state?: string | null
           website?: string | null
         }
         Update: {
-          budget_url?: string | null
-          created_at?: string | null
-          description?: string | null
+          about?: Json | null
+          country?: string | null
+          created_at?: string
           donation_url?: string | null
-          email?: string | null
-          headcount?: number | null
+          ein?: string | null
           id?: string
+          legal_name?: string | null
+          legal_structure?: string | null
           logo_url?: string | null
           name?: string
           slug?: string
-          subtitle?: string | null
-          tags?: string[] | null
-          target_2026?: number | null
-          updated_at?: string | null
+          summary?: string | null
+          trace_slug?: string | null
+          updated_at?: string
+          us_state?: string | null
           website?: string | null
         }
         Relationships: []
@@ -1462,11 +1498,20 @@ export type Database = {
             }
             Returns: undefined
           }
-        | { Args: { project_id: string; to_id: string; transfer_id: string }; Returns: undefined }
-      activate_cert: { Args: { project_creator: string; project_id: string }; Returns: undefined }
-      activate_grant: { Args: { project_creator: string; project_id: string }; Returns: undefined }
-      add_tags: { Args: Record<PropertyKey, never>; Returns: undefined }
-      add_topics: { Args: Record<PropertyKey, never>; Returns: undefined }
+        | {
+            Args: { project_id: string; to_id: string; transfer_id: string }
+            Returns: undefined
+          }
+      activate_cert: {
+        Args: { project_creator: string; project_id: string }
+        Returns: undefined
+      }
+      activate_grant: {
+        Args: { project_creator: string; project_id: string }
+        Returns: undefined
+      }
+      add_tags: { Args: never; Returns: undefined }
+      add_topics: { Args: never; Returns: undefined }
       claim_notification_emails: {
         Args: { p_comment_id?: string; p_limit?: number; p_min_age?: string }
         Returns: {
@@ -1490,15 +1535,6 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      create_transfer_grant: {
-        Args: {
-          donor_comment: Database['public']['CompositeTypes']['comment_row']
-          grant_amount: number
-          project: Database['public']['CompositeTypes']['project_row']
-          project_transfer: Database['public']['CompositeTypes']['transfer_row']
-        }
-        Returns: undefined
-      }
       create_transfer_grant_v2: {
         Args: {
           grant_amount: number
@@ -1507,33 +1543,19 @@ export type Database = {
         }
         Returns: undefined
       }
-      execute_grant_verdict:
-        | {
-            Args: {
-              admin_comment_content?: Json
-              admin_id?: string
-              approved: boolean
-              project_creator: string
-              project_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              admin_comment_content?: Json
-              admin_id?: string
-              approved: boolean
-              project_creator: string
-              project_id: string
-              public_benefit?: string
-            }
-            Returns: undefined
-          }
       execute_grant_verdict_v2: {
-        Args: { admin_id: string; approved: boolean; project_id: string; public_benefit?: string }
+        Args: {
+          admin_id: string
+          approved: boolean
+          project_id: string
+          public_benefit?: string
+        }
         Returns: undefined
       }
-      execute_readonly_sql: { Args: { max_rows?: number; query: string }; Returns: Json }
+      execute_readonly_sql: {
+        Args: { max_rows?: number; query: string }
+        Returns: Json
+      }
       find_similar_projects: {
         Args: { match_count?: number; project_id: string }
         Returns: {
@@ -1544,13 +1566,8 @@ export type Database = {
           title: string
         }[]
       }
-      follow_project: { Args: { follower_id: string; project_id: string }; Returns: undefined }
-      give_grant: {
-        Args: {
-          donation: Database['public']['CompositeTypes']['bid_row']
-          donor_comment: Database['public']['CompositeTypes']['comment_row']
-          project: Database['public']['CompositeTypes']['project_row']
-        }
+      follow_project: {
+        Args: { follower_id: string; project_id: string }
         Returns: undefined
       }
       give_grant_v2: {
@@ -1569,7 +1586,11 @@ export type Database = {
       reject_grant: { Args: { project_id: string }; Returns: undefined }
       reject_proposal: { Args: { project_id: string }; Returns: undefined }
       search_projects_by_embedding: {
-        Args: { include_hidden?: boolean; match_count?: number; query_embedding: string }
+        Args: {
+          include_hidden?: boolean
+          match_count?: number
+          query_embedding: string
+        }
         Returns: {
           blurb: string
           id: string
@@ -1580,10 +1601,18 @@ export type Database = {
         }[]
       }
       tip_comment: {
-        Args: { p_amount: number; p_comment_id: string; p_reaction: string; p_tipper: string }
+        Args: {
+          p_amount: number
+          p_comment_id: string
+          p_reaction: string
+          p_tipper: string
+        }
         Returns: string
       }
-      toggle_follow: { Args: { follower_id: string; project_id: string }; Returns: undefined }
+      toggle_follow: {
+        Args: { follower_id: string; project_id: string }
+        Returns: undefined
+      }
       transfer_project:
         | {
             Args: {
@@ -1618,7 +1647,10 @@ export type Database = {
             }
             Returns: undefined
           }
-      unfollow_project: { Args: { follower_id: string; project_id: string }; Returns: undefined }
+      unfollow_project: {
+        Args: { follower_id: string; project_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       bid_status: 'deleted' | 'pending' | 'accepted' | 'declined'
@@ -1692,13 +1724,15 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never) = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
       Row: infer R
@@ -1717,12 +1751,14 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never) = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Insert: infer I
     }
@@ -1740,12 +1776,14 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema['Tables']
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends (DefaultSchemaTableNameOrOptions extends {
+  TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never) = never,
-> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
       Update: infer U
     }
@@ -1763,12 +1801,14 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema['Enums']
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-    : never) = never,
-> = DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
     ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
@@ -1778,12 +1818,14 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema['CompositeTypes']
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-    : never) = never,
-> = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
     ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
