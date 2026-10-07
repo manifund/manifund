@@ -2,7 +2,6 @@
 import clsx from 'clsx'
 import Link from 'next/link'
 import { useRef, useState } from 'react'
-import { buttonClass } from '@/components/button'
 import { CommentRxnsPanel } from '@/components/comment-rxn'
 import { CommentActions } from '@/components/comments/comment-actions'
 import { CommentEdit } from '@/components/comments/comment-edit'
@@ -80,14 +79,11 @@ export function Reviews(props: {
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-3">
+      <div>
         <h2 className="text-2xl font-normal tracking-tight text-gray-900">Reviews</h2>
-        <Link
-          href={userProfile ? '#write-review' : `/login?next=/orgs/${org.slug}`}
-          className={buttonClass('sm', 'orange-outline')}
-        >
-          Write a review
-        </Link>
+        <p className="mt-1 text-[13px] text-gray-500">
+          Star ratings not yet implemented; all default to 5 stars
+        </p>
       </div>
 
       <div className="rounded-lg bg-white p-6 shadow-sm">
@@ -142,7 +138,7 @@ export function Reviews(props: {
           </div>
         </div>
 
-        <div className="flex flex-col">
+        <div className="flex flex-col [&>*:last-child]:border-b-0 [&>*:last-child]:pb-0">
           {shown.map((item) =>
             'comment' in item ? (
               <CommunityReview
@@ -164,27 +160,23 @@ export function Reviews(props: {
             </p>
           )}
         </div>
-
-        <div id="write-review" className="scroll-mt-24 pt-5">
-          {userProfile ? (
-            <WriteComment
-              target={{ org_id: org.id }}
-              commenter={userProfile}
-              placeholder={`What should donors know about ${org.name}?`}
-            />
-          ) : (
-            <p className="text-center text-sm text-gray-500">
-              <Link
-                href={`/login?next=/orgs/${org.slug}`}
-                className="text-orange-600 hover:underline"
-              >
-                Sign in
-              </Link>{' '}
-              to write a review.
-            </p>
-          )}
-        </div>
       </div>
+
+      {/* Outside the card: the comment box is a white card itself. */}
+      {userProfile ? (
+        <WriteComment
+          target={{ org_id: org.id }}
+          commenter={userProfile}
+          placeholder={`What should donors know about ${org.name}?`}
+        />
+      ) : (
+        <p className="text-center text-sm text-gray-500">
+          <Link href={`/login?next=/orgs/${org.slug}`} className="text-orange-600 hover:underline">
+            Sign in
+          </Link>{' '}
+          to write a review.
+        </p>
+      )}
     </>
   )
 }
