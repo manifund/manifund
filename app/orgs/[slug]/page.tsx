@@ -20,7 +20,7 @@ import { SectionNav, type Section } from './section-nav'
 import { Funding } from './funding'
 import { Reviews } from './reviews'
 import { manifundUsername } from './manifund-reviews'
-import { ASSUMED_RATING } from '../rating'
+import { STAR_RATINGS, averageRating } from '../rating'
 import { OrgDonateBox } from './org-donate-box'
 
 const TRACE_URL = 'https://trace.manifund.org'
@@ -68,6 +68,9 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
   const reviewCount =
     comments.filter((c) => !c.replying_to && !c.deleted_at).length + (trace?.reviews.length ?? 0)
 
+  // Reviews don't store a rating yet (../rating.ts), so there is none to average.
+  const rating = averageRating([])
+
   // Donations go to the org's project that's open for funding: the oldest one, when there are several.
   const openProject = [...projects]
     .reverse()
@@ -112,7 +115,12 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
     {
       id: 'reviews',
       label: 'Reviews',
-      stat: reviewCount > 0 ? `${ASSUMED_RATING.toFixed(1)}★` : undefined,
+      stat:
+        STAR_RATINGS && rating !== null
+          ? `${rating.toFixed(1)}★`
+          : reviewCount > 0
+            ? `${reviewCount}`
+            : undefined,
     },
     ...(projects.length > 0
       ? [{ id: 'proposals', label: 'Proposals', stat: `${projects.length}` }]

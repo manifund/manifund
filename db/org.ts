@@ -212,6 +212,8 @@ export async function listDirectoryOrgs(supabase: SupabaseClient, thisYear: numb
       reviews:
         (org.trace_slug ? mine(traceReviews).length : 0) +
         (comments ?? []).filter((comment) => comment.org_id === org.id).length,
+      // Reviews don't store a rating yet (app/orgs/rating.ts).
+      rating: null,
     }
   })
 }

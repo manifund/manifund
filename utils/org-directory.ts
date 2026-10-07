@@ -43,6 +43,8 @@ export type DirectoryOrg = {
   fundingByYear: number[]
   staff: number | null
   reviews: number
+  // The average of the reviews' star ratings; null while no review has one.
+  rating: number | null
 }
 
 export const ALL_CAUSES = 'All'

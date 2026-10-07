@@ -21,6 +21,7 @@ const org = (name: string, patch: Partial<DirectoryOrg> = {}): DirectoryOrg => (
   fundingByYear: [0, 0, 0, 0, 0],
   staff: null,
   reviews: 0,
+  rating: null,
   ...patch,
 })
 

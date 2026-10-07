@@ -38,8 +38,10 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
   series. Trace's rows for unnamed money ("Unknown Donors") count in totals but are never a named funder.
 - **O5** Anyone signed in can review an org or reply to a review; reviews are plain comments. Nobody is notified of
   a new review (an org page has no owner yet); replies and mentions notify as usual.
-- **O6** Every review counts as five stars, the ones published elsewhere included: ratings aren't stored yet, and
-  the stars, the average and the distribution are a placeholder for where they'll go.
+- **O6** Reviews have no star rating: ratings aren't stored yet, so no review, org page or card shows stars or an
+  average. The display for them (stars on a review, the average and distribution, the card's figure) is built
+  and switched off (`STAR_RATINGS` in `app/orgs/rating.ts`). Once on, a review without a rating, which is every
+  review written before ratings exist, still shows no stars and doesn't count towards the average.
 - **O7** Reviews published elsewhere (from Trace) sit in the same list as the community's, newest first, with
   their author, where they were published, a "Published elsewhere" badge and a link to the original; their first
   three lines show, the rest on click.
@@ -58,7 +60,7 @@ locally in `temp/design_handoff_orgs/`, not in the repo.
 
 - **O10** Every org is listed as a card: logo, name, legal type and city, summary, cause and focus tags, and three
   figures: all-time funding from Trace with a bar per year for the last five, headcount from Trace, and the number
-  of reviews (the community's and those published elsewhere) with the placeholder rating (O6). A figure with no
+  of reviews (the community's and those published elsewhere) with no rating (O6). A figure with no
   data shows a dash.
 - **O11** The list filters by search (name, summary, cause, focus), one cause, any of several focuses and any of
   several legal types. Groups combine with "and". Only causes, focuses and legal types that some org has are
@@ -71,16 +73,17 @@ locally in `temp/design_handoff_orgs/`, not in the repo.
 
 ## Decisions
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-07 | Austin | Donations go through a project: one general fundraiser project per org we handle donations for (O2) | No new way for money to move; orgs need no account |
-| 2026-10-07 | Austin | Reviews laid out as in the mockup (stars, distribution, filters), every review counted as five stars for now; ratings come to the schema later (O6, O9) | See the design with real reviews before deciding how ratings work |
-| 2026-10-07 | Austin | Org pages keep the site sidebar; the main column is wider, into the space beside the sidebar, to fit the right rail | Stay inside the app |
-| 2026-10-07 | Austin | Founded year, city and sources are columns on `orgs` | |
-| 2026-10-07 | Austin | Cause (one) and focus (several) are columns on `orgs`, from fixed lists in the code, separate from projects' causes | The directory filters by them; Trace's cause areas are per grant and too many per org |
-| 2026-10-07 | Austin | The directory leaves out Manifund's verdict and its "has a Manifund review" filter, and the "highest rated" sort | No Manifund reviews or stored ratings yet |
-| 2026-10-07 | Austin | Orgs can be hidden with a flag (O16); Tarbell and Humans First are, for now | |
-| 2026-10-07 | Austin | "Suggest an edit" and "Claim this page" email the team | Claiming is a later feature |
+| Date       | Decided by | Decision                                                                                                                                                | Why                                                                                   |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| 2026-10-07 | Austin     | Donations go through a project: one general fundraiser project per org we handle donations for (O2)                                                     | No new way for money to move; orgs need no account                                    |
+| 2026-10-07 | Austin     | Reviews laid out as in the mockup (stars, distribution, filters), every review counted as five stars for now; ratings come to the schema later (O6, O9) | See the design with real reviews before deciding how ratings work                     |
+| 2026-10-07 | Austin     | Org pages keep the site sidebar; the main column is wider, into the space beside the sidebar, to fit the right rail                                     | Stay inside the app                                                                   |
+| 2026-10-07 | Austin     | Founded year, city and sources are columns on `orgs`                                                                                                    |                                                                                       |
+| 2026-10-07 | Austin     | Cause (one) and focus (several) are columns on `orgs`, from fixed lists in the code, separate from projects' causes                                     | The directory filters by them; Trace's cause areas are per grant and too many per org |
+| 2026-10-07 | Austin     | The directory leaves out Manifund's verdict and its "has a Manifund review" filter, and the "highest rated" sort                                        | No Manifund reviews or stored ratings yet                                             |
+| 2026-10-07 | Austin     | Orgs can be hidden with a flag (O16); Tarbell and Humans First are, for now                                                                             |                                                                                       |
+| 2026-10-07 | Austin     | No stars until ratings are stored: the placeholder five stars are gone, and the star display stays in the code behind a flag (O6)                       | Old reviews shouldn't look rated; ratings for new reviews may come in a later PR      |
+| 2026-10-07 | Austin     | "Suggest an edit" and "Claim this page" email the team                                                                                                  | Claiming is a later feature                                                           |
 
 ## Open questions
 

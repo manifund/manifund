@@ -13,10 +13,8 @@ import type { CommentAndProfileAndRxns } from '@/db/comment'
 import type { ExternalReview, Org } from '@/db/org'
 import type { Profile } from '@/db/profile'
 import { useSafeLayoutEffect } from '@/hooks/use-safe-layout-effect'
-import { ASSUMED_RATING } from '../rating'
+import { MAX_RATING, STAR_RATINGS, averageRating } from '../rating'
 import { manifundUsername, splitManifundReview } from './manifund-reviews'
-
-const STARS = '★'.repeat(ASSUMED_RATING)
 
 // Who a review comes from, for the filter chips. Nothing says yet who is staff; reviews published
 // elsewhere are peers'.
@@ -28,14 +26,17 @@ const FILTERS: { id: Kind | 'all'; label: string; empty: string }[] = [
   { id: 'peer', label: 'Peers', empty: 'No reviews from peers yet.' },
 ]
 
+// rating: the review's stars, null when it has none. Nothing stores one yet (../rating.ts), so it's null
+// throughout.
 type Item =
   | {
       kind: Kind
       date: string
+      rating: number | null
       comment: CommentAndProfileAndRxns
       replies: CommentAndProfileAndRxns[]
     }
-  | { kind: Kind; date: string; review: ExternalReview }
+  | { kind: Kind; date: string; rating: number | null; review: ExternalReview }
 
 const monthYear = (date: string) =>
   new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
@@ -73,6 +74,7 @@ export function Reviews(props: {
       .map((comment) => ({
         kind: (commenterTags[comment.commenter] ? 'donor' : 'other') as Kind,
         date: comment.created_at,
+        rating: null,
         comment,
         replies: comments
           .filter((reply) => reply.replying_to === comment.id)
@@ -82,54 +84,64 @@ export function Reviews(props: {
       // Written on Manifund (a project comment Trace collected): one of the community's, not a peer's.
       const username = manifundUsername(review.reviewerUrl)
       const kind: Kind = !username ? 'peer' : reviewers[username]?.tag ? 'donor' : 'other'
-      return { kind, date: review.reviewedAt, review }
+      return { kind, date: review.reviewedAt, rating: null, review }
     }),
   ].sort((a, b) => b.date.localeCompare(a.date))
   // A removed review keeps its place in the list but isn't counted.
-  const count = items.filter((item) => !('comment' in item && item.comment.deleted_at)).length
+  const counted = items.filter((item) => !('comment' in item && item.comment.deleted_at))
+  const count = counted.length
+  const ratings = counted.map((item) => item.rating)
+  const average = averageRating(ratings)
   const shown = items.filter((item) => filter === 'all' || item.kind === filter)
 
   return (
     <>
-      <div>
-        <h2 className="text-2xl font-normal tracking-tight text-gray-900">Reviews</h2>
-        <p className="mt-1 text-[13px] text-gray-500">
-          Star ratings not yet implemented; all default to 5 stars
-        </p>
-      </div>
+      <h2 className="text-2xl font-normal tracking-tight text-gray-900">Reviews</h2>
 
       <div className="rounded-lg bg-white p-6 shadow-sm">
-        <div className="flex flex-wrap items-center gap-8 border-b border-gray-100 pb-5">
-          <div>
-            <div className="text-[40px] font-normal leading-none text-gray-900">
-              {count > 0 ? ASSUMED_RATING.toFixed(1) : '–'}
-            </div>
-            <div
-              className={clsx(
-                'mt-1 tracking-[2px]',
-                count > 0 ? 'text-orange-500' : 'text-gray-300'
-              )}
-            >
-              {STARS}
-            </div>
-            <div className="mt-0.5 text-xs text-gray-500">
+        <div
+          className={clsx(
+            'flex flex-wrap items-center gap-x-8 gap-y-3 border-b border-gray-100 pb-5',
+            !STAR_RATINGS && 'justify-between'
+          )}
+        >
+          {STAR_RATINGS ? (
+            <>
+              <div>
+                <div className="text-[40px] font-normal leading-none text-gray-900">
+                  {average !== null ? average.toFixed(1) : '–'}
+                </div>
+                <div className="mt-1">
+                  <Stars rating={average !== null ? Math.round(average) : 0} wide />
+                </div>
+                <div className="mt-0.5 text-xs text-gray-500">
+                  {count} review{count === 1 ? '' : 's'}
+                </div>
+              </div>
+              <div className="flex max-w-[360px] flex-[1_1_240px] flex-col gap-1">
+                {Array.from({ length: MAX_RATING }, (_, i) => MAX_RATING - i).map((star) => {
+                  const n = ratings.filter((rating) => rating === star).length
+                  const rated = ratings.filter((rating) => rating !== null).length
+                  return (
+                    <div key={star} className="flex items-center gap-2 text-xs text-gray-500">
+                      <span className="w-2.5">{star}</span>
+                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                        <div
+                          className="h-full bg-orange-400"
+                          style={{ width: rated > 0 ? `${(n / rated) * 100}%` : 0 }}
+                        />
+                      </div>
+                      <span className="w-[18px] text-right tabular-nums">{n}</span>
+                    </div>
+                  )
+                })}
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-gray-500">
               {count} review{count === 1 ? '' : 's'}
             </div>
-          </div>
-          <div className="flex max-w-[360px] flex-[1_1_240px] flex-col gap-1">
-            {[5, 4, 3, 2, 1].map((star) => {
-              const n = star === ASSUMED_RATING ? count : 0
-              return (
-                <div key={star} className="flex items-center gap-2 text-xs text-gray-500">
-                  <span className="w-2.5">{star}</span>
-                  <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-100">
-                    <div className="h-full bg-orange-400" style={{ width: n > 0 ? '100%' : 0 }} />
-                  </div>
-                  <span className="w-[18px] text-right tabular-nums">{n}</span>
-                </div>
-              )
-            })}
-          </div>
+          )}
           <div className="flex flex-wrap gap-1.5">
             {FILTERS.map((f) => (
               <button
@@ -156,6 +168,7 @@ export function Reviews(props: {
               <CommunityReview
                 key={item.comment.id}
                 org={org}
+                rating={item.rating}
                 comment={item.comment}
                 replies={item.replies}
                 tag={commenterTags[item.comment.commenter]}
@@ -166,6 +179,7 @@ export function Reviews(props: {
               <PublishedReview
                 key={item.review.id}
                 review={item.review}
+                rating={item.rating}
                 reviewer={reviewers[manifundUsername(item.review.reviewerUrl) ?? '']}
               />
             )
@@ -197,7 +211,24 @@ export function Reviews(props: {
   )
 }
 
+// Filled stars out of MAX_RATING, the rest grey.
+function Stars(props: { rating: number; wide?: boolean }) {
+  return (
+    <span
+      className={clsx(
+        'text-orange-500',
+        props.wide ? 'tracking-[2px]' : 'text-[13px] tracking-[1px]'
+      )}
+      aria-label={`${props.rating} out of ${MAX_RATING} stars`}
+    >
+      {'★'.repeat(props.rating)}
+      <span className="text-gray-300">{'★'.repeat(MAX_RATING - props.rating)}</span>
+    </span>
+  )
+}
+
 function ReviewHeader(props: {
+  rating: number | null
   name: React.ReactNode
   role?: React.ReactNode
   badge?: string
@@ -206,7 +237,7 @@ function ReviewHeader(props: {
 }) {
   return (
     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-      <span className="text-[13px] tracking-[1px] text-orange-500">{STARS}</span>
+      {STAR_RATINGS && props.rating !== null && <Stars rating={props.rating} />}
       <span className="text-sm font-normal text-gray-900">{props.name}</span>
       {props.role && <span className="text-[13px] text-gray-500">· {props.role}</span>}
       {props.badge && (
@@ -225,13 +256,14 @@ function ReviewHeader(props: {
 // editing, reports), laid out as a review.
 function CommunityReview(props: {
   org: Org
+  rating: number | null
   comment: CommentAndProfileAndRxns
   replies: CommentAndProfileAndRxns[]
   tag?: string
   userProfile?: Profile
   userCharityBalance: number
 }) {
-  const { org, comment, replies, tag, userProfile, userCharityBalance } = props
+  const { org, rating, comment, replies, tag, userProfile, userCharityBalance } = props
   const [replying, setReplying] = useState(false)
   const [highlighted, setHighlighted] = useState(false)
   const element = useRef<HTMLElement>(null)
@@ -262,6 +294,7 @@ function CommunityReview(props: {
       )}
     >
       <ReviewHeader
+        rating={rating}
         name={
           <UserLink
             name={comment.profiles.full_name}
@@ -367,6 +400,7 @@ function ReviewBody(props: { comment: CommentAndProfileAndRxns; userProfile?: Pr
 // Manifund project. Its first three lines show, the rest on click.
 function PublishedReview(props: {
   review: ExternalReview
+  rating: number | null
   reviewer?: { regrantor: boolean; tag?: string }
 }) {
   const { review, reviewer } = props
@@ -387,6 +421,7 @@ function PublishedReview(props: {
   return (
     <article className="flex flex-col gap-1.5 border-b border-gray-100 py-5">
       <ReviewHeader
+        rating={props.rating}
         name={
           username ? (
             <Link href={`/${username}`} className="hover:underline">

@@ -2,8 +2,8 @@ import Link from 'next/link'
 import { Tag } from '@/components/tags'
 import { formatCompactMoney } from '@/utils/org-funding'
 import { LEGAL_STRUCTURES, type DirectoryOrg } from '@/utils/org-directory'
-import { ASSUMED_RATING } from './rating'
 import { OrgLogo } from './org-logo'
+import { STAR_RATINGS } from './rating'
 
 const SPARK_HEIGHT = 15
 
@@ -65,14 +65,16 @@ export function OrgCard(props: { org: DirectoryOrg }) {
         </Stat>
         <Stat label="Team">{org.staff ?? <Empty />}</Stat>
         <Stat label="Reviews" className="pr-5">
-          {org.reviews > 0 ? (
+          {org.reviews === 0 ? (
+            <Empty />
+          ) : STAR_RATINGS && org.rating !== null ? (
             <>
-              {ASSUMED_RATING.toFixed(1)}
+              {org.rating.toFixed(1)}
               <span className="text-orange-500">★</span>
               <span className="text-[13px] text-gray-400"> · {org.reviews}</span>
             </>
           ) : (
-            <Empty />
+            org.reviews
           )}
         </Stat>
       </div>
