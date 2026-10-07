@@ -14,6 +14,7 @@ import type { ExternalReview, Org } from '@/db/org'
 import type { Profile } from '@/db/profile'
 import { useSafeLayoutEffect } from '@/hooks/use-safe-layout-effect'
 import { ASSUMED_RATING } from '../rating'
+import { manifundUsername, splitManifundReview } from './manifund-reviews'
 
 const STARS = '★'.repeat(ASSUMED_RATING)
 
@@ -50,10 +51,20 @@ export function Reviews(props: {
   comments: CommentAndProfileAndRxns[]
   externalReviews: ExternalReview[]
   commenterTags: Record<string, string> // "gave $500", for reviewers who donated
+  // Manifund profiles of people whose reviews Trace collected from project comments, by username.
+  reviewers: Record<string, { regrantor: boolean; tag?: string }>
   userProfile?: Profile
   userCharityBalance: number
 }) {
-  const { org, comments, externalReviews, commenterTags, userProfile, userCharityBalance } = props
+  const {
+    org,
+    comments,
+    externalReviews,
+    commenterTags,
+    reviewers,
+    userProfile,
+    userCharityBalance,
+  } = props
   const [filter, setFilter] = useState<Kind | 'all'>('all')
 
   const items: Item[] = [
@@ -67,11 +78,12 @@ export function Reviews(props: {
           .filter((reply) => reply.replying_to === comment.id)
           .sort((a, b) => a.created_at.localeCompare(b.created_at)),
       })),
-    ...externalReviews.map((review) => ({
-      kind: 'peer' as Kind,
-      date: review.reviewedAt,
-      review,
-    })),
+    ...externalReviews.map((review) => {
+      // Written on Manifund (a project comment Trace collected): one of the community's, not a peer's.
+      const username = manifundUsername(review.reviewerUrl)
+      const kind: Kind = !username ? 'peer' : reviewers[username]?.tag ? 'donor' : 'other'
+      return { kind, date: review.reviewedAt, review }
+    }),
   ].sort((a, b) => b.date.localeCompare(a.date))
   // A removed review keeps its place in the list but isn't counted.
   const count = items.filter((item) => !('comment' in item && item.comment.deleted_at)).length
@@ -151,7 +163,11 @@ export function Reviews(props: {
                 userCharityBalance={userCharityBalance}
               />
             ) : (
-              <PublishedReview key={item.review.id} review={item.review} />
+              <PublishedReview
+                key={item.review.id}
+                review={item.review}
+                reviewer={reviewers[manifundUsername(item.review.reviewerUrl) ?? '']}
+              />
             )
           )}
           {shown.length === 0 && (
@@ -347,9 +363,13 @@ function ReviewBody(props: { comment: CommentAndProfileAndRxns; userProfile?: Pr
   )
 }
 
-// A review published elsewhere, collected by Trace: its first three lines, the rest on click.
-function PublishedReview(props: { review: ExternalReview }) {
-  const { review } = props
+// A review Trace collected: published elsewhere (Zvi's, Michael Dickens's), or written in comments on a
+// Manifund project. Its first three lines show, the rest on click.
+function PublishedReview(props: {
+  review: ExternalReview
+  reviewer?: { regrantor: boolean; tag?: string }
+}) {
+  const { review, reviewer } = props
   const [expanded, setExpanded] = useState(false)
   const [overflows, setOverflows] = useState(false)
   const body = useRef<HTMLDivElement>(null)
@@ -358,12 +378,21 @@ function PublishedReview(props: { review: ExternalReview }) {
       setOverflows(true)
     }
   }, [])
+  const username = manifundUsername(review.reviewerUrl)
   const link = review.sourceUrl ?? review.reviewerUrl
+  // A project comment names its project in its first line: shown as where it was said, not as text.
+  const { project, text } = username
+    ? splitManifundReview(review.body)
+    : { project: null, text: review.body }
   return (
     <article className="flex flex-col gap-1.5 border-b border-gray-100 py-5">
       <ReviewHeader
         name={
-          review.reviewerUrl ? (
+          username ? (
+            <Link href={`/${username}`} className="hover:underline">
+              {review.reviewer}
+            </Link>
+          ) : review.reviewerUrl ? (
             <a href={review.reviewerUrl} className="hover:underline">
               {review.reviewer}
             </a>
@@ -371,8 +400,8 @@ function PublishedReview(props: { review: ExternalReview }) {
             review.reviewer
           )
         }
-        role={link ? hostname(link) : undefined}
-        badge="Published elsewhere"
+        role={username ? (reviewer?.regrantor ? 'Regrantor' : undefined) : link && hostname(link)}
+        badge={username ? reviewer?.tag?.replace(/^gave/, 'Donated') : 'Published elsewhere'}
         date={review.reviewedAt}
       />
       <div
@@ -383,9 +412,9 @@ function PublishedReview(props: { review: ExternalReview }) {
         )}
       >
         {/* Collapsed, paragraph breaks don't spend one of the three lines. */}
-        <MarkdownLinks text={review.body.replace(/\n\s*\n/g, expanded ? '\n\n' : '\n')} />
+        <MarkdownLinks text={text.replace(/\n\s*\n/g, expanded ? '\n\n' : '\n')} />
       </div>
-      <div className="flex gap-3 text-xs">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-gray-400">
         {overflows && (
           <button
             type="button"
@@ -395,30 +424,48 @@ function PublishedReview(props: { review: ExternalReview }) {
             {expanded ? 'Show less' : 'Read more'}
           </button>
         )}
-        {link && (
-          <a href={link} className="text-gray-400 hover:text-gray-700 hover:underline">
-            Full post ↗
-          </a>
+        {project ? (
+          <span>
+            Commented on{' '}
+            <a href={link ?? project.href} className="hover:text-gray-700 hover:underline">
+              {project.title}
+            </a>
+          </span>
+        ) : (
+          link && (
+            <a href={link} className="hover:text-gray-700 hover:underline">
+              Full post ↗
+            </a>
+          )
         )}
       </div>
     </article>
   )
 }
 
-// Trace stores review text as Markdown; links are the only markup these use.
+// Trace stores review text as Markdown; links and bold are the markup these use.
 function MarkdownLinks(props: { text: string }) {
-  const parts = props.text.split(/(\[[^\]]+\]\(https?:\/\/[^)\s]+\))/g)
+  const parts = props.text.split(/(\[[^\]]+\]\(https?:\/\/[^)\s]+\)|\*\*[^*\n]+\*\*)/g)
   return (
     <>
       {parts.map((part, i) => {
-        const match = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/)
-        return match ? (
-          <a key={i} href={match[2]} className="text-orange-600 hover:underline">
-            {match[1]}
-          </a>
-        ) : (
-          part
-        )
+        const link = part.match(/^\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)$/)
+        if (link) {
+          return (
+            <a key={i} href={link[2]} className="text-orange-600 hover:underline">
+              {link[1]}
+            </a>
+          )
+        }
+        const bold = part.match(/^\*\*([^*\n]+)\*\*$/)
+        if (bold) {
+          return (
+            <span key={i} className="font-normal text-gray-900">
+              {bold[1]}
+            </span>
+          )
+        }
+        return part
       })}
     </>
   )

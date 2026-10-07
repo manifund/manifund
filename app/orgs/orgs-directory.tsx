@@ -226,7 +226,7 @@ export function OrgsDirectory(props: { orgs: DirectoryOrg[] }) {
           <div className="text-[13px] text-gray-500">
             {shown.length} org{shown.length === 1 ? '' : 's'}
             {total > 0 && <> · {formatCompactMoney(total)} in tracked funding</>}
-            {' · '}orgs are not affiliated with Manifund
+            {' · '}many orgs not affiliated with Manifund
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(320px,100%),1fr))] gap-4">
             {shown.map((org) => (

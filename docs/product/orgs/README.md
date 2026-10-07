@@ -41,6 +41,10 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
 - **O7** Reviews published elsewhere (from Trace) sit in the same list as the community's, newest first, with
   their author, where they were published, a "Published elsewhere" badge and a link to the original; their first
   three lines show, the rest on click.
+- **O15** Trace also collects what people wrote about the org in comments on Manifund projects. Those show as
+  the community's, not as published elsewhere: the name links to the person's Manifund profile, with "Regrantor"
+  and what they gave where that applies, the project they commented on, and no line naming the project in the
+  text. Several comments by one person are one review.
 - **O8** Reviewers who donated to any of the org's projects are tagged with what they gave.
 - **O9** The list filters by who wrote the review: donors (reviewers who gave), staff, peers (reviews published
   elsewhere). Nothing says yet who is staff, so that filter is empty.

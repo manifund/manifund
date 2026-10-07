@@ -19,6 +19,7 @@ import { OrgLogo } from '../org-logo'
 import { SectionNav, type Section } from './section-nav'
 import { Funding } from './funding'
 import { Reviews } from './reviews'
+import { manifundUsername } from './manifund-reviews'
 import { ASSUMED_RATING } from '../rating'
 import { OrgDonateBox } from './org-donate-box'
 
@@ -83,6 +84,24 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
   }
   const commenterTags = Object.fromEntries(
     Object.entries(given).map(([id, amount]) => [id, `gave ${formatMoney(amount)}`])
+  )
+
+  // Trace also collects what people wrote about the org in comments on Manifund projects. Those are by
+  // people with profiles here: look them up, so their reviews link to them and carry the same tags.
+  const manifundReviewers = (trace?.reviews ?? [])
+    .map((review) => manifundUsername(review.reviewerUrl))
+    .filter((username): username is string => !!username)
+  const { data: reviewerProfiles } = manifundReviewers.length
+    ? await supabase
+        .from('profiles')
+        .select('id, username, regranter_status')
+        .in('username', manifundReviewers)
+    : { data: [] }
+  const reviewers = Object.fromEntries(
+    (reviewerProfiles ?? []).map((reviewer) => [
+      reviewer.username,
+      { regrantor: reviewer.regranter_status, tag: commenterTags[reviewer.id] },
+    ])
   )
 
   const sections: Section[] = [
@@ -212,6 +231,7 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
               comments={comments}
               externalReviews={trace?.reviews ?? []}
               commenterTags={commenterTags}
+              reviewers={reviewers}
               userProfile={profile ?? undefined}
               userCharityBalance={userCharityBalance}
             />
