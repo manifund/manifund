@@ -164,3 +164,21 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     trace_slug: 'transluce',
   },
 ]
+
+// Each org's own projects on Manifund, by project slug: what the org itself raised or is raising for. Projects
+// that only mention an org (a MATS scholar's compute grant, an event held at Lighthaven) aren't the org's.
+// The org page lists these, and offers donating to the oldest one still open.
+export const ORG_PROJECTS: Record<string, string[]> = {
+  '1day-sooner': ['create-a-special'],
+  cais: ['ai-safety--society'],
+  epoch: [
+    'pilot-for-new-benchmark-by-epoch-ai',
+    'investigating-and-informing-the-public-about-the-trajectory-of-ai',
+  ],
+  forethought: ['forethought'],
+  lightcone: ['lightcone-infrastructure'],
+  mats: ['mats-funding'],
+  mox: ['mox-2026-fundraiser', 'mox-a-coworking--events-space-in-sf'],
+  tarbell: ['tarbell-center-for-ai-journalism'],
+  transluce: ['transluce-fund-scalable-democratic-oversight-of-ai'],
+}
