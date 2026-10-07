@@ -12,13 +12,14 @@ import { denied, type Denied, type Target } from './types'
 const WINDOW_MINUTES = 5
 const LIMITS = {
   profile: { perWindow: 10, warnPerDay: 30, what: 'comments on profiles' },
+  org: { perWindow: 10, warnPerDay: 30, what: 'reviews of organizations' },
   project: { perWindow: 30, warnPerDay: 60, what: 'comments on projects' },
   report: { perWindow: 10, warnPerDay: 20, what: 'reports' },
 } as const
 type Bucket = keyof typeof LIMITS
 
 export const bucketFor = (target: Target): Bucket =>
-  'profile_id' in target ? 'profile' : 'project'
+  'profile_id' in target ? 'profile' : 'org_id' in target ? 'org' : 'project'
 
 // null when allowed; otherwise a 429 saying which limit and when to retry.
 export async function checkRate(authorId: string, bucket: Bucket): Promise<Denied | null> {
@@ -62,11 +63,17 @@ async function timestamps(authorId: string, bucket: Bucket, since: string) {
             .select('created_at')
             .eq('commenter', authorId)
             .not('profile_id', 'is', null)
-        : admin
-            .from('comments')
-            .select('created_at')
-            .eq('commenter', authorId)
-            .not('project', 'is', null)
+        : bucket === 'org'
+          ? admin
+              .from('comments')
+              .select('created_at')
+              .eq('commenter', authorId)
+              .not('org_id', 'is', null)
+          : admin
+              .from('comments')
+              .select('created_at')
+              .eq('commenter', authorId)
+              .not('project', 'is', null)
   const { data } = await query.gte('created_at', since).order('created_at').throwOnError()
   return (data ?? []).map((r: { created_at: string }) => r.created_at)
 }

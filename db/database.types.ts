@@ -263,6 +263,7 @@ export type Database = {
           edited_at: string | null
           edited_by: string | null
           id: string
+          org_id: string | null
           profile_id: string | null
           project: string | null
           removed_reason: string | null
@@ -279,6 +280,7 @@ export type Database = {
           edited_at?: string | null
           edited_by?: string | null
           id?: string
+          org_id?: string | null
           profile_id?: string | null
           project?: string | null
           removed_reason?: string | null
@@ -295,6 +297,7 @@ export type Database = {
           edited_at?: string | null
           edited_by?: string | null
           id?: string
+          org_id?: string | null
           profile_id?: string | null
           project?: string | null
           removed_reason?: string | null
@@ -321,6 +324,13 @@ export type Database = {
             columns: ['edited_by']
             isOneToOne: false
             referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'comments_org_id_fkey'
+            columns: ['org_id']
+            isOneToOne: false
+            referencedRelation: 'orgs'
             referencedColumns: ['id']
           },
           {
@@ -699,16 +709,19 @@ export type Database = {
       orgs: {
         Row: {
           about: Json | null
+          city: string | null
           country: string | null
           created_at: string
           donation_url: string | null
           ein: string | null
+          founded_year: number | null
           id: string
           legal_name: string | null
           legal_structure: string | null
           logo_url: string | null
           name: string
           slug: string
+          sources: string[]
           summary: string | null
           trace_slug: string | null
           updated_at: string
@@ -717,16 +730,19 @@ export type Database = {
         }
         Insert: {
           about?: Json | null
+          city?: string | null
           country?: string | null
           created_at?: string
           donation_url?: string | null
           ein?: string | null
+          founded_year?: number | null
           id?: string
           legal_name?: string | null
           legal_structure?: string | null
           logo_url?: string | null
           name: string
           slug: string
+          sources?: string[]
           summary?: string | null
           trace_slug?: string | null
           updated_at?: string
@@ -735,16 +751,19 @@ export type Database = {
         }
         Update: {
           about?: Json | null
+          city?: string | null
           country?: string | null
           created_at?: string
           donation_url?: string | null
           ein?: string | null
+          founded_year?: number | null
           id?: string
           legal_name?: string | null
           legal_structure?: string | null
           logo_url?: string | null
           name?: string
           slug?: string
+          sources?: string[]
           summary?: string | null
           trace_slug?: string | null
           updated_at?: string

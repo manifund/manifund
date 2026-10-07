@@ -84,3 +84,16 @@ Migration: `supabase/migrations/20261006000000_orgs.sql`.
 - Trace types: try `gen-types --schema public,trace` for typed Trace queries.
 - Several open projects on one org: no stored order for which to feature first.
 - Seeding the ~25 orgs: a checked-in file plus an upsert script, keyed by slug.
+
+## Built so far (2026-10-07)
+
+Second migration: `supabase/migrations/20261007000000_org_pages.sql`. How the page behaves: `docs/product/orgs/README.md`.
+
+- `/orgs/<slug>` and a plain `/orgs` list, from the Claude Design mockup: overview, funding by year and funder,
+  reviews, proposals, team, with a donate box and organization facts in a right rail.
+- Added to `public.orgs`: `founded_year`, `city`, `sources`. Reviews are comments with `comments.org_id`.
+- Seeded 12 orgs (`scripts/orgs-seed.ts`), each linked to its Trace row.
+- Org totals: checked. A plain sum of approved grants received is what Trace's own org page shows, so the two
+  agree; Trace's "Unknown Donors" estimate rows are part of both.
+- Still open from the lists above: cause tags, claiming, Trace types, a stored order for several open projects.
+  New: stored ratings, and Manifund's own in-depth reviews (mocked, not built).
