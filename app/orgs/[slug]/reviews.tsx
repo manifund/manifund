@@ -16,27 +16,16 @@ import { useSafeLayoutEffect } from '@/hooks/use-safe-layout-effect'
 import { MAX_RATING, STAR_RATINGS, averageRating } from '../rating'
 import { manifundUsername, splitManifundReview } from './manifund-reviews'
 
-// Who a review comes from, for the filter chips. Nothing says yet who is staff; reviews published
-// elsewhere are peers'.
-type Kind = 'donor' | 'staff' | 'peer' | 'other'
-const FILTERS: { id: Kind | 'all'; label: string; empty: string }[] = [
-  { id: 'all', label: 'All', empty: 'No reviews yet.' },
-  { id: 'donor', label: 'Donors', empty: 'No reviews from donors yet.' },
-  { id: 'staff', label: 'Staff', empty: 'No reviews from staff yet.' },
-  { id: 'peer', label: 'Peers', empty: 'No reviews from peers yet.' },
-]
-
 // rating: the review's stars, null when it has none. Nothing stores one yet (../rating.ts), so it's null
 // throughout.
 type Item =
   | {
-      kind: Kind
       date: string
       rating: number | null
       comment: CommentAndProfileAndRxns
       replies: CommentAndProfileAndRxns[]
     }
-  | { kind: Kind; date: string; rating: number | null; review: ExternalReview }
+  | { date: string; rating: number | null; review: ExternalReview }
 
 const monthYear = (date: string) =>
   new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' })
@@ -66,13 +55,11 @@ export function Reviews(props: {
     userProfile,
     userCharityBalance,
   } = props
-  const [filter, setFilter] = useState<Kind | 'all'>('all')
 
   const items: Item[] = [
     ...comments
       .filter((comment) => !comment.replying_to)
       .map((comment) => ({
-        kind: (commenterTags[comment.commenter] ? 'donor' : 'other') as Kind,
         date: comment.created_at,
         rating: null,
         comment,
@@ -80,31 +67,20 @@ export function Reviews(props: {
           .filter((reply) => reply.replying_to === comment.id)
           .sort((a, b) => a.created_at.localeCompare(b.created_at)),
       })),
-    ...externalReviews.map((review) => {
-      // Written on Manifund (a project comment Trace collected): one of the community's, not a peer's.
-      const username = manifundUsername(review.reviewerUrl)
-      const kind: Kind = !username ? 'peer' : reviewers[username]?.tag ? 'donor' : 'other'
-      return { kind, date: review.reviewedAt, rating: null, review }
-    }),
+    ...externalReviews.map((review) => ({ date: review.reviewedAt, rating: null, review })),
   ].sort((a, b) => b.date.localeCompare(a.date))
   // A removed review keeps its place in the list but isn't counted.
   const counted = items.filter((item) => !('comment' in item && item.comment.deleted_at))
   const count = counted.length
   const ratings = counted.map((item) => item.rating)
   const average = averageRating(ratings)
-  const shown = items.filter((item) => filter === 'all' || item.kind === filter)
 
   return (
     <>
       <h2 className="text-2xl font-normal tracking-tight text-gray-900">Reviews</h2>
 
       <div className="rounded-lg bg-white p-6 shadow-sm">
-        <div
-          className={clsx(
-            'flex flex-wrap items-center gap-x-8 gap-y-3 border-b border-gray-100 pb-5',
-            !STAR_RATINGS && 'justify-between'
-          )}
-        >
+        <div className="flex flex-wrap items-center gap-x-8 gap-y-3 border-b border-gray-100 pb-5">
           {STAR_RATINGS ? (
             <>
               <div>
@@ -142,28 +118,10 @@ export function Reviews(props: {
               {count} review{count === 1 ? '' : 's'}
             </div>
           )}
-          <div className="flex flex-wrap gap-1.5">
-            {FILTERS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                aria-pressed={filter === f.id}
-                onClick={() => setFilter(f.id)}
-                className={clsx(
-                  'rounded-full border px-3 py-1 text-[13px] transition-colors',
-                  filter === f.id
-                    ? 'border-orange-500 bg-orange-50 text-orange-700'
-                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'
-                )}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
         </div>
 
         <div className="flex flex-col [&>*:last-child]:border-b-0 [&>*:last-child]:pb-0">
-          {shown.map((item) =>
+          {items.map((item) =>
             'comment' in item ? (
               <CommunityReview
                 key={item.comment.id}
@@ -184,9 +142,9 @@ export function Reviews(props: {
               />
             )
           )}
-          {shown.length === 0 && (
+          {items.length === 0 && (
             <p className="border-b border-gray-100 py-8 text-center text-sm text-gray-500">
-              {FILTERS.find((f) => f.id === filter)?.empty}
+              No reviews yet.
             </p>
           )}
         </div>
@@ -232,6 +190,7 @@ function ReviewHeader(props: {
   name: React.ReactNode
   role?: React.ReactNode
   badge?: string
+  donated?: string // "Donated $500", for a reviewer who gave
   date: string
   children?: React.ReactNode
 }) {
@@ -243,6 +202,11 @@ function ReviewHeader(props: {
       {props.badge && (
         <span className="rounded bg-gray-100 px-1.5 py-px text-[11px] text-gray-600">
           {props.badge}
+        </span>
+      )}
+      {props.donated && (
+        <span className="rounded bg-orange-50 px-1.5 py-px text-[11px] text-orange-700">
+          {props.donated}
         </span>
       )}
       {props.children}
@@ -303,7 +267,7 @@ function CommunityReview(props: {
           />
         }
         role={comment.profiles.regranter_status ? 'Regrantor' : undefined}
-        badge={tag ? tag.replace(/^gave/, 'Donated') : undefined}
+        donated={tag?.replace(/^gave/, 'Donated')}
         date={comment.created_at}
       >
         {comment.edited_at && <HistoryPopup comment={comment} />}
@@ -436,7 +400,8 @@ function PublishedReview(props: {
           )
         }
         role={username ? (reviewer?.regrantor ? 'Regrantor' : undefined) : link && hostname(link)}
-        badge={username ? reviewer?.tag?.replace(/^gave/, 'Donated') : 'Published elsewhere'}
+        badge={username ? undefined : 'External'}
+        donated={username ? reviewer?.tag?.replace(/^gave/, 'Donated') : undefined}
         date={review.reviewedAt}
       />
       <div

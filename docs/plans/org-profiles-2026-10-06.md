@@ -45,13 +45,6 @@ Create a Manifund page for a selection of ~25 top orgs in AI safety and other EA
 - Cover every relevant charity (eg every one tracked in Trace)
 - Make it easy for new charities to create their own profile
 
-other notes/todos
-
-- flesh out more of the data for "org facts"
-- find donate links for all orgs
-- some system to flag obvious errors (via, chat?)
-- link "staff" on org profiles to Manifund accounts, if possible
-
 ## Data model notes by Opus 5.5 (2026-10-06)
 
 Migration: `supabase/migrations/20261006000000_orgs.sql`.

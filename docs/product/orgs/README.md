@@ -43,15 +43,14 @@ The plan and the data model's reasoning: `docs/plans/org-profiles-2026-10-06.md`
   and switched off (`STAR_RATINGS` in `app/orgs/rating.ts`). Once on, a review without a rating, which is every
   review written before ratings exist, still shows no stars and doesn't count towards the average.
 - **O7** Reviews published elsewhere (from Trace) sit in the same list as the community's, newest first, with
-  their author, where they were published, a "Published elsewhere" badge and a link to the original; their first
+  their author, where they were published, an "External" badge and a link to the original; their first
   three lines show, the rest on click.
 - **O15** Trace also collects what people wrote about the org in comments on Manifund projects. Those show as
   the community's, not as published elsewhere: the name links to the person's Manifund profile, with "Regrantor"
   and what they gave where that applies, the project they commented on, and no line naming the project in the
   text. Several comments by one person are one review.
 - **O8** Reviewers who donated to any of the org's projects are tagged with what they gave.
-- **O9** The list filters by who wrote the review: donors (reviewers who gave), staff, peers (reviews published
-  elsewhere). Nothing says yet who is staff, so that filter is empty.
+- **O9** (retired) The list is not filtered by who wrote the review.
 
 ### The directory (`/orgs`)
 
@@ -83,6 +82,7 @@ locally in `temp/design_handoff_orgs/`, not in the repo.
 | 2026-10-07 | Austin     | The directory leaves out Manifund's verdict and its "has a Manifund review" filter, and the "highest rated" sort                                        | No Manifund reviews or stored ratings yet                                             |
 | 2026-10-07 | Austin     | Orgs can be hidden with a flag (O16); Tarbell and Humans First are, for now                                                                             |                                                                                       |
 | 2026-10-07 | Austin     | No stars until ratings are stored: the placeholder five stars are gone, and the star display stays in the code behind a flag (O6)                       | Old reviews shouldn't look rated; ratings for new reviews may come in a later PR      |
+| 2026-10-07 | Austin     | The reviews list has no filter chips (all, donors, staff, peers) (O9)                                                                                   |                                                                                       |
 | 2026-10-07 | Austin     | "Suggest an edit" and "Claim this page" email the team                                                                                                  | Claiming is a later feature                                                           |
 
 ## Open questions

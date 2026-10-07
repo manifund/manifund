@@ -224,9 +224,10 @@ export function OrgsDirectory(props: { orgs: DirectoryOrg[] }) {
             <div className="min-w-[170px]">{sortSelect}</div>
           </div>
           <div className="text-[13px] text-gray-500">
-            {shown.length} org{shown.length === 1 ? '' : 's'}
-            {total > 0 && <> · {formatCompactMoney(total)} in tracked funding</>}
-            {' · '}many orgs not affiliated with Manifund
+            {/* {shown.length} org{shown.length === 1 ? '' : 's'} */}
+            {/* {total > 0 && <> · {formatCompactMoney(total)} in tracked funding</>} */}
+            {/* {' · '} */}
+            We're highlighting orgs we respect, but they're not affiliated with Manifund by default.
           </div>
           <div className="grid grid-cols-[repeat(auto-fill,minmax(min(320px,100%),1fr))] gap-4">
             {shown.map((org) => (
@@ -242,9 +243,9 @@ export function OrgsDirectory(props: { orgs: DirectoryOrg[] }) {
             </div>
           )}
           <div className="mt-4 flex justify-center gap-1.5 text-sm text-gray-500">
-            Missing an org?
+            Missing someone?
             <a href={ADD_ORG} className="text-orange-600 hover:underline">
-              Add an org →
+              Suggest an org →
             </a>
           </div>
         </main>
