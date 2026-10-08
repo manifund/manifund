@@ -6,8 +6,10 @@ import { readFileSync, writeFileSync } from 'fs'
 import { parseArgs } from 'util'
 import { createAdminClient } from '@/db/edge'
 import { loadKarmaInputs } from '@/db/karma'
-import { getHotProjects } from '@/db/project-hot'
+import { listProjects } from '@/db/project'
 import { hotScore } from '@/utils/sort'
+import { isSlopProject } from '@/utils/slop'
+import { sortBy } from 'es-toolkit'
 import {
   computeKarma,
   KARMA_CONFIG,
@@ -89,17 +91,25 @@ async function main() {
 
   const people = [...result.profiles.entries()].sort((a, b) => b[1].karma - a[1].karma)
   const projects = [...result.projects.entries()].sort((a, b) => b[1].karma - a[1].karma)
+  console.log('Loading current hot ranking for comparison...')
+  // Mirror the homepage: it hides slop projects by default, then sorts the rest by hotScore.
+  // Both rankings below exclude the same slop set.
+  const allProjects = await listProjects(supabase)
+  const slopIds = new Set(allProjects.filter(isSlopProject).map((p) => p.id))
+  const currentHot = sortBy(
+    allProjects.filter((p) => !slopIds.has(p.id)),
+    [hotScore]
+  ).slice(0, 30)
+
   const now = Date.now()
   const hot = [...result.projects.entries()]
+    .filter(([id]) => !slopIds.has(id))
     .map(([id, r]) => ({
       id,
       karma: r.karma,
       hot: projectHotScore(r.karma, projectById.get(id)!.created_at, now, config),
     }))
     .sort((a, b) => b.hot - a.hot)
-
-  console.log('Loading current hot ranking for comparison...')
-  const currentHot = await getHotProjects(supabase, 30)
 
   const personRow = (
     rank: number | string,
