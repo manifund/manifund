@@ -66,11 +66,7 @@ function projectLines(b: ProjectKarmaBreakdown, total: number): Line[] {
     },
     {
       label: 'Comments',
-      formula: (
-        <>
-          {weightFormula('commenter')} · {b.commentCount}
-        </>
-      ),
+      formula: weightFormula('commenter'),
       value: b.comments,
     },
     { label: 'Base', formula: 'every project', value: b.base },
@@ -108,7 +104,7 @@ function profileLines(b: ProfileKarmaBreakdown, total: number): Line[] {
       label: 'Reactions',
       formula: (
         <>
-          {c.reactMultiplier} × {weightFormula('reactor')} · {b.reactCount}
+          {c.reactMultiplier} × {weightFormula('reactor')}
         </>
       ),
       value: b.reacts,
