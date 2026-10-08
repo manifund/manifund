@@ -13,6 +13,9 @@ export const KARMA_CONFIG = {
   // Applied to every react on top of the reactor's weight (and tip multiplier)
   reactMultiplier: 2,
   tippedReactMultipliers: { '🧡': 2, '🏅': 3, '🏆': 5 } as Record<string, number>,
+  // Every live project starts with this much karma, so a new project from an unknown
+  // creator gets a brief run near the top of the homepage before the age decay buries it
+  projectBaseKarma: 2,
   // project karma += creatorKarmaCoefficient * log10(1 + creator karma)
   creatorKarmaCoefficient: 5,
   // homepage: project karma / (age in days + 1) ^ hotAgeExponent
@@ -84,6 +87,7 @@ export type ProfileKarmaBreakdown = {
   reactCount: number
 }
 export type ProjectKarmaBreakdown = {
+  base: number
   votes: number
   comments: number
   donations: number
@@ -292,6 +296,7 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
   for (const p of projects) {
     const creatorKarma = k(p.creator)
     projectBreakdown.set(p.id, {
+      base: config.projectBaseKarma,
       votes: 0,
       comments: 0,
       donations: quadraticDonationScore(projectDonors.get(p.id) ?? new Map(), config),
@@ -313,7 +318,10 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
     b.commentCount += 1
   }
   for (const [id, b] of projectBreakdown) {
-    projectResults.set(id, { karma: b.votes + b.comments + b.donations + b.creator, breakdown: b })
+    projectResults.set(id, {
+      karma: b.base + b.votes + b.comments + b.donations + b.creator,
+      breakdown: b,
+    })
   }
 
   return { profiles, projects: projectResults, iterations, converged }
