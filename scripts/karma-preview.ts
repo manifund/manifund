@@ -107,7 +107,13 @@ async function main() {
     .map(([id, r]) => ({
       id,
       karma: r.karma,
-      hot: projectHotScore(r.karma, projectById.get(id)!.created_at, now, config),
+      hot: projectHotScore(
+        r.karma,
+        projectById.get(id)!.created_at,
+        r.breakdown.acceptingDonations,
+        now,
+        config
+      ),
     }))
     .sort((a, b) => b.hot - a.hot)
 
@@ -157,6 +163,7 @@ async function main() {
       fmt(b.comments),
       fmt(b.donations),
       fmt(b.creator),
+      b.acceptingDonations ? 'open' : 'closed',
       b.voteCount,
       b.commentCount,
       b.donorCount,
@@ -174,6 +181,7 @@ async function main() {
     'Comments',
     'Donations',
     'Creator term',
+    'Donations?',
     '# votes',
     '# comments',
     '# donors',
@@ -196,7 +204,7 @@ async function main() {
         const c = currentHot[i]
         return [
           i + 1,
-          `${p.title} [${p.stage}]`,
+          `${p.title} [${p.stage}${result.projects.get(h.id)!.breakdown.acceptingDonations ? '' : ', closed'}]`,
           fmt(h.karma),
           h.hot.toFixed(3),
           c ? `${c.title} [${c.stage}]` : '',

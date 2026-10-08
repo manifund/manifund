@@ -20,6 +20,9 @@ export const KARMA_CONFIG = {
   creatorKarmaCoefficient: 5,
   // homepage: project karma / (age in days + 1) ^ hotAgeExponent
   hotAgeExponent: 1.5,
+  // homepage only: multiplier for projects no longer accepting donations
+  // (complete / not funded, or a grant that has reached its funding goal)
+  closedProjectMultiplier: 0.2,
   maxIterations: 10,
   convergenceEpsilon: 0.01,
   excludedProjectStages: ['hidden', 'draft'],
@@ -38,6 +41,7 @@ export type KarmaProjectRow = {
   created_at: string
   stage: string
   type: string
+  funding_goal: number
   title: string
   slug: string
 }
@@ -96,6 +100,8 @@ export type ProjectKarmaBreakdown = {
   commentCount: number
   donorCount: number
   creatorKarma: number
+  raised: number
+  acceptingDonations: boolean
 }
 export type KarmaResult = {
   profiles: Map<string, { karma: number; breakdown: ProfileKarmaBreakdown }>
@@ -125,11 +131,22 @@ export function quadraticDonationScore(
 export function projectHotScore(
   karma: number | null | undefined,
   createdAt: string,
+  acceptingDonations: boolean,
   now: number = Date.now(),
   config: KarmaConfig = KARMA_CONFIG
 ) {
   const ageDays = Math.max(0, now - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
-  return (karma ?? 0) / (ageDays + 1) ** config.hotAgeExponent
+  const multiplier = acceptingDonations ? 1 : config.closedProjectMultiplier
+  return ((karma ?? 0) * multiplier) / (ageDays + 1) ** config.hotAgeExponent
+}
+
+// Same rule as the project page's DonateBox: open stage, and grants must be under goal.
+export function isAcceptingDonations(
+  project: Pick<KarmaProjectRow, 'stage' | 'type' | 'funding_goal'>,
+  raised: number
+) {
+  if (project.stage !== 'proposal' && project.stage !== 'active') return false
+  return project.type !== 'grant' || raised < project.funding_goal
 }
 
 type Donation = { total: number; early: number }
@@ -183,6 +200,25 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
     } else if (bid.status === 'accepted') {
       const key = `${bid.bidder}|${bid.project}`
       acceptedBidTotal.set(key, (acceptedBidTotal.get(key) ?? 0) + bid.amount)
+    }
+  }
+
+  const raisedByProject = new Map<string, number>()
+  for (const bid of inputs.bids) {
+    const project = projectById.get(bid.project)
+    if (project?.stage === 'proposal' && bid.status === 'pending' && bid.type !== 'sell') {
+      raisedByProject.set(bid.project, (raisedByProject.get(bid.project) ?? 0) + bid.amount)
+    }
+  }
+  for (const txn of inputs.txns) {
+    const project = txn.project ? projectById.get(txn.project) : undefined
+    if (
+      project &&
+      project.stage !== 'proposal' &&
+      txn.token === 'USD' &&
+      txn.to_id === project.creator
+    ) {
+      raisedByProject.set(project.id, (raisedByProject.get(project.id) ?? 0) + txn.amount)
     }
   }
 
@@ -305,6 +341,8 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
       commentCount: 0,
       donorCount: projectDonors.get(p.id)?.size ?? 0,
       creatorKarma,
+      raised: raisedByProject.get(p.id) ?? 0,
+      acceptingDonations: isAcceptingDonations(p, raisedByProject.get(p.id) ?? 0),
     })
   }
   for (const v of votes) {
