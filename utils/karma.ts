@@ -3,12 +3,19 @@
 export const KARMA_CONFIG = {
   // Multiplier on the portion of a donation committed before the project hit min funding
   earlyDonationMultiplier: 1.5,
+  // Dollars -> karma: amount ^ donationExponent (0.5 = square root). Lower = big gifts count less.
+  donationExponent: 0.3,
+  // Multiplier on the above; 1 for plain square root. 2.5 keeps $100 ≈ 10 karma at exponent 0.3.
+  donationScale: 2.5,
   // [karma threshold, weight], ascending. Below the first threshold the weight is 0.
-  weightTiers: [
-    [10, 1],
-    [100, 2],
-    [1000, 3],
-  ] as [number, number][],
+  // Granted once someone has put money in (a txn of one of these types to them), so a
+  // depositor's first upvote carries weight log10(10) = 1 while throwaway accounts stay at 0
+  startingKarma: 10,
+  startingKarmaTxnTypes: ['deposit', 'mana deposit'],
+  // Vote/react weight = log10(voter karma) - weightOffset, floored at 0.
+  // With offset 0: 10 -> 1, 100 -> 2, 1000 -> 3.
+  weightLogBase: 10,
+  weightOffset: 0,
   positiveReacts: ['➕', '🥳', '💡', '🔥', '👏', '🌈'],
   // Applied to every react on top of the reactor's weight (and tip multiplier)
   reactMultiplier: 2,
@@ -82,6 +89,7 @@ export type KarmaInputs = {
 }
 
 export type ProfileKarmaBreakdown = {
+  starting: number
   donationsGiven: number
   donationsReceived: number
   votes: number
@@ -111,20 +119,21 @@ export type KarmaResult = {
 }
 
 export function karmaWeight(karma: number, config: KarmaConfig = KARMA_CONFIG) {
-  let weight = 0
-  for (const [threshold, w] of config.weightTiers) {
-    if (karma >= threshold) weight = w
-  }
-  return weight
+  if (karma <= 1) return 0
+  return Math.max(0, Math.log(karma) / Math.log(config.weightLogBase) - config.weightOffset)
 }
 
-// Project donation term. Swappable; currently sum over donors of sqrt(amount).
+export function donationKarma(amount: number, config: KarmaConfig = KARMA_CONFIG) {
+  return config.donationScale * Math.max(amount, 0) ** config.donationExponent
+}
+
+// Project donation term. Swappable; currently sum over donors of donationKarma(amount).
 export function quadraticDonationScore(
   amountByDonor: Map<string, number>,
   _config: KarmaConfig = KARMA_CONFIG
 ) {
   let score = 0
-  for (const amount of amountByDonor.values()) score += Math.sqrt(Math.max(amount, 0))
+  for (const amount of amountByDonor.values()) score += donationKarma(amount, _config)
   return score
 }
 
@@ -245,6 +254,7 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
     let b = breakdowns.get(id)
     if (!b) {
       b = {
+        starting: 0,
         donationsGiven: 0,
         donationsReceived: 0,
         votes: 0,
@@ -257,17 +267,23 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
     }
     return b
   }
-  for (const profile of inputs.profiles) ensure(profile.id)
+  const startingTypes = new Set(config.startingKarmaTxnTypes)
+  const depositors = new Set(
+    inputs.txns.filter((t) => t.type && startingTypes.has(t.type)).map((t) => t.to_id)
+  )
+  for (const profile of inputs.profiles) {
+    ensure(profile.id).starting = depositors.has(profile.id) ? config.startingKarma : 0
+  }
   const projectDonors = new Map<string, Map<string, number>>()
   for (const [donor, byProject] of donations) {
     const b = ensure(donor)
     for (const [projectId, d] of byProject) {
       const earlyFraction = d.early / d.total
       b.donationsGiven +=
-        Math.sqrt(d.total) * (1 + (config.earlyDonationMultiplier - 1) * earlyFraction)
+        donationKarma(d.total, config) * (1 + (config.earlyDonationMultiplier - 1) * earlyFraction)
       b.projectsDonatedTo += 1
       const creator = projectById.get(projectId)!.creator
-      ensure(creator).donationsReceived += Math.sqrt(d.total)
+      ensure(creator).donationsReceived += donationKarma(d.total, config)
       let donors = projectDonors.get(projectId)
       if (!donors) projectDonors.set(projectId, (donors = new Map()))
       donors.set(donor, (donors.get(donor) ?? 0) + d.total)
@@ -275,7 +291,7 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
   }
   const base = new Map<string, number>()
   for (const [id, b] of breakdowns) {
-    base.set(id, b.donationsGiven + b.donationsReceived)
+    base.set(id, b.starting + b.donationsGiven + b.donationsReceived)
   }
 
   // Iterate to a fixed point: vote/react weights depend on the voter's karma.
@@ -336,7 +352,9 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
       votes: 0,
       comments: 0,
       donations: quadraticDonationScore(projectDonors.get(p.id) ?? new Map(), config),
-      creator: config.creatorKarmaCoefficient * Math.log10(1 + Math.max(creatorKarma, 0)),
+      creator:
+        config.creatorKarmaCoefficient *
+        Math.log10(1 + Math.max(creatorKarma - (breakdowns.get(p.creator)?.starting ?? 0), 0)),
       voteCount: 0,
       commentCount: 0,
       donorCount: projectDonors.get(p.id)?.size ?? 0,

@@ -9,7 +9,6 @@ export const metadata = {
 // Every number on this page comes from KARMA_CONFIG so it can't drift from the formula.
 export default function KarmaPage() {
   const c = KARMA_CONFIG
-  const tiers = c.weightTiers
   const tipList = Object.entries(c.tippedReactMultipliers)
     .map(([emoji, mult]) => `${emoji} ×${mult}`)
     .join(', ')
@@ -24,28 +23,28 @@ export default function KarmaPage() {
         </p>
 
         <h2>Your karma</h2>
-        <p>Your karma is the sum of:</p>
+        <p>
+          Everyone starts with {c.startingKarma} karma. On top of that, your karma is the sum of:
+        </p>
         <ul>
           <li>
-            <strong>Donations you&apos;ve given.</strong> For each project you donate to, the square
-            root of the total you gave it. Money committed to a proposal before it reached its
-            minimum funding is worth {c.earlyDonationMultiplier}× as much.
+            <strong>Donations you&apos;ve given.</strong> For each project you donate to,{' '}
+            {c.donationScale} × (total given)<sup>{c.donationExponent}</sup>, so $100 is worth about{' '}
+            {Math.round(c.donationScale * 100 ** c.donationExponent)} and $10,000 about{' '}
+            {Math.round(c.donationScale * 10000 ** c.donationExponent)}. Money committed to a
+            proposal before it reached its minimum funding is worth {c.earlyDonationMultiplier}× as
+            much.
           </li>
           <li>
-            <strong>Donations your projects received.</strong> For each donor to one of your
-            projects, the square root of what they gave.
+            <strong>Donations your projects received.</strong> The same formula, applied to each
+            donor&apos;s total to one of your projects.
           </li>
           <li>
-            <strong>Votes on your projects.</strong> Each upvote is worth{' '}
-            {tiers.map(([t, w], i) => (
-              <span key={t}>
-                {i > 0 && (i === tiers.length - 1 ? ' and ' : ', ')}
-                {w} point{w === 1 ? '' : 's'} from a voter with {t}+ karma
-              </span>
-            ))}
-            . Votes from accounts under {tiers[0][0]} karma still show in the count but don&apos;t
-            add karma. Downvotes subtract the same amount. Your own vote on your own project
-            doesn&apos;t count.
+            <strong>Votes on your projects.</strong> Each upvote is worth log
+            <sub>{c.weightLogBase}</sub>
+            (voter&apos;s karma): 1 point from someone with {c.weightLogBase} karma, 2 from someone
+            with {c.weightLogBase ** 2}, 3 from someone with {c.weightLogBase ** 3}. Downvotes
+            subtract the same amount. Your own vote on your own project doesn&apos;t count.
           </li>
           <li>
             <strong>Reactions to your comments.</strong> Positive reactions (
@@ -68,10 +67,10 @@ export default function KarmaPage() {
           <li>
             Comments by people other than the creator, weighted by the commenter&apos;s karma.
           </li>
-          <li>Donations: for each donor, the square root of their total.</li>
+          <li>Donations: the same dollar formula, applied to each donor&apos;s total.</li>
           <li>
-            A prior from the creator: {c.creatorKarmaCoefficient} × log<sub>10</sub>(1 + creator
-            karma).
+            A prior from the creator: {c.creatorKarmaCoefficient} × log<sub>10</sub>(1 + the
+            creator&apos;s karma beyond their starting {c.startingKarma}).
           </li>
         </ul>
 
