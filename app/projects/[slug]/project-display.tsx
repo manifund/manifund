@@ -146,13 +146,6 @@ export function ProjectDisplay(props: {
         <ProjectScoreFlags aiFraction={project.ai_fraction} qualityScore={project.quality_score} />
         <Col className="gap-1">
           <Row className="flex-2 items-center gap-3">
-            <Karma
-              value={project.karma + karmaDelta}
-              breakdown={project.karma_breakdown}
-              kind="project"
-              size="md"
-              placement="bottom-start"
-            />
             <Vote
               projectId={project.id}
               userId={userProfile?.id}
@@ -198,6 +191,15 @@ export function ProjectDisplay(props: {
                 year: 'numeric',
               })}
             </time>
+            <span className="text-gray-400" aria-hidden="true">
+              &middot;
+            </span>
+            <Karma
+              value={project.karma + karmaDelta}
+              breakdown={project.karma_breakdown}
+              kind="project"
+              placement="bottom-start"
+            />
             {pendingProjectTransfers.length > 0 && (
               <span className="text-gray-500">
                 pending transfer to {pendingProjectTransfers[0].recipient_name}
