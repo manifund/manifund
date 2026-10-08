@@ -8,8 +8,8 @@ import { scrollToComments } from './project-display'
 
 export const revalidate = 60
 
-// Vote arrows around `children` (the project's karma). The parent owns the
-// viewer's vote so it can update karma and the vote counts optimistically.
+// Vote arrows around `children` (the net vote count). The parent owns the
+// viewer's vote so it can update karma and the count optimistically.
 export function Vote(props: {
   projectId: string
   magnitude: number

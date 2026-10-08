@@ -112,11 +112,10 @@ export function Karma(props: {
   breakdown: unknown
   kind: 'project' | 'profile'
   size?: 'sm' | 'md'
-  noStar?: boolean
   placement?: Placement
   className?: string
 }) {
-  const { kind, size = 'sm', noStar, className } = props
+  const { kind, size = 'sm', className } = props
   const value = props.value ?? 0
   const [open, setOpen] = useState(false)
   const { x, y, strategy, reference, floating, context } = useFloating({
@@ -146,7 +145,7 @@ export function Karma(props: {
           className
         )}
       >
-        {!noStar && <Star className={size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />}
+        <Star className={size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
         {fmt(value)}
       </span>
       {open && (

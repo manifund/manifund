@@ -20,6 +20,7 @@ import {
 } from '@/utils/math'
 import { useState } from 'react'
 import { karmaWeight } from '@/utils/karma'
+import { countVotes } from '@/utils/sort'
 import { ProjectTabs } from './project-tabs'
 import { ProjectData } from './project-data'
 import { ProposalRequirements } from './proposal-requirements'
@@ -110,13 +111,11 @@ export function ProjectDisplay(props: {
   const [specialCommentPrompt, setSpecialCommentPrompt] = useState<undefined | string>(undefined)
   // The viewer's vote is held here so the counts and karma move at once; their weight
   // is known client-side. Refreshed server data already includes the vote.
-  const othersVotes = project.project_votes.filter((v) => v.voter_id !== userProfile?.id)
   const savedMagnitude =
     project.project_votes.find((v) => v.voter_id === userProfile?.id)?.magnitude ?? 0
   const [newMagnitude, setNewMagnitude] = useState<number | null>(null)
   const myMagnitude = newMagnitude ?? savedMagnitude
-  const upvotes = othersVotes.filter((v) => v.magnitude > 0).length + (myMagnitude > 0 ? 1 : 0)
-  const downvotes = othersVotes.filter((v) => v.magnitude < 0).length + (myMagnitude < 0 ? 1 : 0)
+  const netVotes = countVotes(project) - savedMagnitude + myMagnitude
   const voteWeight =
     userProfile && userProfile.id !== project.creator ? karmaWeight(userProfile.karma) : 0
   const karmaDelta = (myMagnitude - savedMagnitude) * voteWeight
@@ -147,6 +146,13 @@ export function ProjectDisplay(props: {
         <ProjectScoreFlags aiFraction={project.ai_fraction} qualityScore={project.quality_score} />
         <Col className="gap-1">
           <Row className="flex-2 items-center gap-3">
+            <Karma
+              value={project.karma + karmaDelta}
+              breakdown={project.karma_breakdown}
+              kind="project"
+              size="md"
+              placement="bottom-start"
+            />
             <Vote
               projectId={project.id}
               userId={userProfile?.id}
@@ -154,13 +160,7 @@ export function ProjectDisplay(props: {
               setMagnitude={setNewMagnitude}
               setCommentPrompt={setSpecialCommentPrompt}
             >
-              <Karma
-                value={project.karma + karmaDelta}
-                breakdown={project.karma_breakdown}
-                kind="project"
-                noStar
-                placement="right-start"
-              />
+              <span className="text-sm text-gray-400">{netVotes}</span>
             </Vote>
             <Col>
               <h2 className="text-lg font-bold leading-tight text-gray-900 sm:text-2xl">
@@ -198,13 +198,6 @@ export function ProjectDisplay(props: {
                 year: 'numeric',
               })}
             </time>
-            <span className="text-gray-400" aria-hidden="true">
-              &middot;
-            </span>
-            <span className="font-light text-gray-500">
-              {upvotes} upvote{upvotes === 1 ? '' : 's'}, {downvotes} downvote
-              {downvotes === 1 ? '' : 's'}
-            </span>
             {pendingProjectTransfers.length > 0 && (
               <span className="text-gray-500">
                 pending transfer to {pendingProjectTransfers[0].recipient_name}
