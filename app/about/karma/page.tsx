@@ -70,7 +70,7 @@ export default function KarmaPage() {
           <li>Donations: the same dollar formula, applied to each donor&apos;s total.</li>
           <li>
             A prior from the creator: {c.creatorKarmaCoefficient} × log<sub>10</sub>(1 + the
-            creator&apos;s karma beyond their starting {c.startingKarma}).
+            creator&apos;s karma).
           </li>
         </ul>
 

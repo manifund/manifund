@@ -359,9 +359,7 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
       votes: 0,
       comments: 0,
       donations: quadraticDonationScore(projectDonors.get(p.id) ?? new Map(), config),
-      creator:
-        config.creatorKarmaCoefficient *
-        Math.log10(1 + Math.max(creatorKarma - (breakdowns.get(p.creator)?.starting ?? 0), 0)),
+      creator: config.creatorKarmaCoefficient * Math.log10(1 + Math.max(creatorKarma, 0)),
       voteCount: 0,
       commentCount: 0,
       donorCount: projectDonors.get(p.id)?.size ?? 0,
