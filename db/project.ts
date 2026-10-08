@@ -66,7 +66,7 @@ export async function listProjects(supabase: SupabaseClient, limitToProjectIds?:
       title, id, created_at, creator, slug, blurb, stage,
       auction_close, funding_goal, min_funding, type, approved,
       signed_agreement, lobbying, amm_shares, founder_shares,
-      ai_fraction, quality_score, karma,
+      ai_fraction, quality_score, karma, karma_breakdown,
       profiles!projects_creator_fkey(*),
       rounds(title, slug),
       causes(title, slug)
@@ -248,7 +248,7 @@ export async function getFullProjectsByRound(supabase: SupabaseClient, roundTitl
   const { data, error } = await supabase
     .from('projects')
     .select(
-      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, ai_fraction, quality_score, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), causes(title, slug)'
+      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), causes(title, slug)'
     )
     .neq('stage', 'hidden')
     .neq('stage', 'draft')
@@ -264,7 +264,7 @@ export async function getFullProjectsByCause(supabase: SupabaseClient, causeSlug
   const { data, error } = await supabase
     .from('projects')
     .select(
-      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, amm_shares, founder_shares, auction_close, ai_fraction, quality_score, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), project_causes!inner(cause_slug), causes(title, slug)'
+      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, amm_shares, founder_shares, auction_close, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), project_causes!inner(cause_slug), causes(title, slug)'
     )
     .eq('project_causes.cause_slug', causeSlug)
     .neq('stage', 'hidden')

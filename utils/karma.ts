@@ -97,6 +97,9 @@ export type ProfileKarmaBreakdown = {
   projectsDonatedTo: number
   voteCount: number
   reactCount: number
+  // Absent on rows computed before these were added
+  dollarsGiven?: number
+  dollarsReceived?: number
 }
 export type ProjectKarmaBreakdown = {
   base: number
@@ -262,6 +265,8 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
         projectsDonatedTo: 0,
         voteCount: 0,
         reactCount: 0,
+        dollarsGiven: 0,
+        dollarsReceived: 0,
       }
       breakdowns.set(id, b)
     }
@@ -282,8 +287,10 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
       b.donationsGiven +=
         donationKarma(d.total, config) * (1 + (config.earlyDonationMultiplier - 1) * earlyFraction)
       b.projectsDonatedTo += 1
-      const creator = projectById.get(projectId)!.creator
-      ensure(creator).donationsReceived += donationKarma(d.total, config)
+      b.dollarsGiven! += d.total
+      const received = ensure(projectById.get(projectId)!.creator)
+      received.donationsReceived += donationKarma(d.total, config)
+      received.dollarsReceived! += d.total
       let donors = projectDonors.get(projectId)
       if (!donors) projectDonors.set(projectId, (donors = new Map()))
       donors.set(donor, (donors.get(donor) ?? 0) + d.total)

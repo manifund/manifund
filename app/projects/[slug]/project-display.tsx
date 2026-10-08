@@ -1,5 +1,5 @@
 'use client'
-import { KarmaBadge } from '@/components/karma-badge'
+import { Karma } from '@/components/karma'
 import { DonateBox } from '@/components/donate-box'
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
@@ -18,7 +18,7 @@ import {
   getMinIncludingAmm,
   getProjectValuation,
 } from '@/utils/math'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { karmaWeight } from '@/utils/karma'
 import { ProjectTabs } from './project-tabs'
 import { ProjectData } from './project-data'
@@ -108,12 +108,18 @@ export function ProjectDisplay(props: {
     pendingProjectTransfers.length === 0
   const activeAuction = !!prizeCause?.cert_params?.auction && project.stage === 'proposal'
   const [specialCommentPrompt, setSpecialCommentPrompt] = useState<undefined | string>(undefined)
-  // Optimistic karma: the voter's weight is known client-side, so show the change at once.
-  // Server data refreshes after voting with the delta already applied, so reset then.
-  const [karmaDelta, setKarmaDelta] = useState(0)
-  useEffect(() => setKarmaDelta(0), [project.karma])
+  // The viewer's vote is held here so the counts and karma move at once; their weight
+  // is known client-side. Refreshed server data already includes the vote.
+  const othersVotes = project.project_votes.filter((v) => v.voter_id !== userProfile?.id)
+  const savedMagnitude =
+    project.project_votes.find((v) => v.voter_id === userProfile?.id)?.magnitude ?? 0
+  const [newMagnitude, setNewMagnitude] = useState<number | null>(null)
+  const myMagnitude = newMagnitude ?? savedMagnitude
+  const upvotes = othersVotes.filter((v) => v.magnitude > 0).length + (myMagnitude > 0 ? 1 : 0)
+  const downvotes = othersVotes.filter((v) => v.magnitude < 0).length + (myMagnitude < 0 ? 1 : 0)
   const voteWeight =
     userProfile && userProfile.id !== project.creator ? karmaWeight(userProfile.karma) : 0
+  const karmaDelta = (myMagnitude - savedMagnitude) * voteWeight
   return (
     <>
       {showExpandedTimeline ? (
@@ -144,12 +150,18 @@ export function ProjectDisplay(props: {
             <Vote
               projectId={project.id}
               userId={userProfile?.id}
-              votes={project.project_votes}
+              magnitude={myMagnitude}
+              setMagnitude={setNewMagnitude}
               setCommentPrompt={setSpecialCommentPrompt}
-              onVoteChange={(magnitudeDelta) =>
-                setKarmaDelta((d) => d + magnitudeDelta * voteWeight)
-              }
-            />
+            >
+              <Karma
+                value={project.karma + karmaDelta}
+                breakdown={project.karma_breakdown}
+                kind="project"
+                noStar
+                placement="right-start"
+              />
+            </Vote>
             <Col>
               <h2 className="text-lg font-bold leading-tight text-gray-900 sm:text-2xl">
                 {project.title}
@@ -189,7 +201,10 @@ export function ProjectDisplay(props: {
             <span className="text-gray-400" aria-hidden="true">
               &middot;
             </span>
-            <KarmaBadge karma={project.karma + karmaDelta} label className="font-light" />
+            <span className="font-light text-gray-500">
+              {upvotes} upvote{upvotes === 1 ? '' : 's'}, {downvotes} downvote
+              {downvotes === 1 ? '' : 's'}
+            </span>
             {pendingProjectTransfers.length > 0 && (
               <span className="text-gray-500">
                 pending transfer to {pendingProjectTransfers[0].recipient_name}
