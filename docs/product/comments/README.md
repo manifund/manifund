@@ -1,6 +1,6 @@
 # Comments
 
-What people write about something on Manifund: a project or a person. How it used to work and how it
+What people write about something on Manifund: a project, a person or an organization. How it used to work and how it
 changed: `history.md`.
 
 ## What comments are for
@@ -17,7 +17,7 @@ changed: `history.md`.
 
 ## How it's built
 
-- **One `comments` table** for every target, with **one explicit column per target** (`project`, `profile_id`)
+- **One `comments` table** for every target, with **one explicit column per target** (`project`, `profile_id`, `org_id`)
   and a check that exactly one is set. Each row says plainly what it's about; foreign keys cascade. (We chose this
   over a generic `target_type` + `target_id` pair, which loses foreign keys; over link tables per target
   (`project_comments`, …), which can't say "exactly one" without triggers and read as "a comment can be about
@@ -42,7 +42,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
 ### Targets
 
-- **C1** A comment is about exactly one thing: a project, or a person's or an organization's profile. Funds' accounts
+- **C1** A comment is about exactly one thing: a project, a person's or an organization's profile, or an org page
+  (a review: `docs/product/orgs/README.md`). Funds' accounts
   and causes (programs, rounds, topics) take no comments for now (C2 was removed: see Decisions).
 
 ### Posting
@@ -66,6 +67,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   |---|---|---|
   | Comments on projects | 30 per 5 minutes | 60 |
   | Comments on profiles | 10 per 5 minutes | 30 |
+  | Reviews of organizations | 10 per 5 minutes | 30 |
   | Reports | 10 per 5 minutes | 20 |
 
   For scale (up to September 2026): the busiest people wrote 7 comments in 5 minutes and 23 in a day; a fund's
@@ -119,7 +121,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   a project you follow. Nobody is notified of their own comment.
 - **C22** Who hears about what:
   - project: its creator; followers (top-level comments); the person replied to; mentioned people;
-  - profile: the person; the person replied to; mentioned people.
+  - profile: the person; the person replied to; mentioned people;
+  - org page: the person replied to; mentioned people (the page has no owner yet).
 - **C23** No double emails for one event. When a regrantor gives a grant, the recipient already gets a "you received
   a grant" email, and when an admin approves or rejects a proposal, its creator gets a verdict email. The rationale
   and the admin's note posted with them are comments too, so they would also trigger a "new comment on your project"
@@ -149,7 +152,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   updates and final reports), grant reasoning, or discussion (plain comments). The weekly digest covers project
   comments. *(Planned: search, and filters by where and tag.)*
 - **C32** Mentions show the person's current username and link to their profile even after a rename.
-- **C33** The public API returns each comment's target (`project` or `profile_id`), type, and edit and
+- **C33** The public API returns each comment's target (`project`, `profile_id` or `org_id`), type, and edit and
   removal fields; a removed comment has no content.
 - **C34** Posting, editing, moderation, reports, refusals for limits and notifications write structured log lines.
 
@@ -159,6 +162,7 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-10-07 | Austin | Org pages take comments, as reviews: a third target column, `org_id` | Reviews need everything comments already have (editing, moderation, reports) |
 | 2026-10-05 | Vals | Programs (causes, e.g. Falcon Fund) take no comments for now; C2 removed. Two target columns stay (`project`, `profile_id`), over one generic parent column or link tables | Causes are keyed by slug, not id, and will be reworked; two columns keep real foreign keys and a one-line "exactly one" check |
 | 2026-09-30 | Vals | Word limit of 10,000 words for every comment (C4) | Never triggers normally: the longest comments so far are ~3,800 words (a progress update) and ~2,200 (thoughtful funding reasoning) |
 | 2026-09-30 | Vals | Rate limits never meet normal use (C9); the numbers are Claude's proposal from real use | Stop floods only |

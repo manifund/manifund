@@ -19,7 +19,7 @@ import { clearLocalStorageItem } from '@/hooks/use-local-storage'
 import { Comment } from '@/components/comment'
 import toast from 'react-hot-toast'
 
-// Threads and composer for any target (project or profile). The target-specific parts come in
+// Threads and composer for any target (project, profile or organization). The target-specific parts come in
 // as props: where comments link to, whose words get the owner badge, tags per commenter, and
 // whether the viewer may start a thread here (the server enforces the same rules).
 export function CommentsSection(props: {
@@ -28,6 +28,7 @@ export function CommentsSection(props: {
   comments: CommentAndProfileAndRxns[]
   ownerId?: string // the project's creator: shown with a badge
   commenterTags?: Record<string, string> // e.g. "gave $500"
+  threadTag?: string // on every top-level comment, before the commenter's tag (org reviews: stars)
   userProfile?: Profile
   userCharityBalance?: number
   specialPrompt?: string
@@ -41,6 +42,7 @@ export function CommentsSection(props: {
     comments,
     ownerId,
     commenterTags = {},
+    threadTag,
     userProfile,
     userCharityBalance,
     specialPrompt,
@@ -85,7 +87,10 @@ export function CommentsSection(props: {
               userCharityBalance={userCharityBalance}
               commentHref={`${basePath}#${thread.root.id}`}
               writtenByCreator={!!ownerId && thread.root.commenter === ownerId}
-              contributionText={commenterTags[thread.root.commenter]}
+              contributionText={
+                [threadTag, commenterTags[thread.root.commenter]].filter(Boolean).join(' · ') ||
+                undefined
+              }
               userProfile={userProfile}
             >
               {userProfile && replyButton(thread.root)}

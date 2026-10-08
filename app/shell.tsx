@@ -17,8 +17,14 @@ export function ShellChrome(props: { children: ReactNode }) {
   return useStandalone() ? null : <>{props.children}</>
 }
 
+// Routes whose pages have a right rail: the main column takes the grid's spare column, and on wide
+// screens the empty strip beside the sidebar.
+const WIDE_PREFIXES = ['/orgs']
+
 export function MainColumn(props: { children: ReactNode }) {
   const standalone = useStandalone()
+  const pathname = usePathname() ?? ''
+  const wide = WIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))
   // The body paints the app's gray canvas; standalone pages want white
   // edge to edge, beyond the main column's max width.
   useEffect(() => {
@@ -30,7 +36,11 @@ export function MainColumn(props: { children: ReactNode }) {
     <main
       className={clsx(
         'flex flex-col',
-        standalone ? 'min-h-screen bg-white lg:col-span-12' : 'lg:col-span-8'
+        standalone
+          ? 'min-h-screen bg-white lg:col-span-12'
+          : wide
+            ? 'lg:col-span-9 xl:-ml-16'
+            : 'lg:col-span-8'
       )}
     >
       {props.children}
