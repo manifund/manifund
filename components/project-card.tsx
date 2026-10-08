@@ -8,7 +8,6 @@ import { ProgressBar } from './progress-bar'
 import { Col } from './layout/col'
 import {
   ChatBubbleLeftEllipsisIcon,
-  ChevronUpDownIcon,
   CheckBadgeIcon,
   CircleStackIcon,
 } from '@heroicons/react/20/solid'
@@ -32,7 +31,6 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
   const regrantorFunded =
     project.txns.some((txn) => txn.from_id && getSponsoredAmount(txn.from_id) > 0) ||
     project.bids.some((bid) => bid.bidder && getSponsoredAmount(bid.bidder) > 0)
-  const voteCount = project.project_votes.reduce((acc, vote) => vote.magnitude + acc, 0)
   const minIncludingAmm = getMinIncludingAmm(project)
   const fundingGoal = project.type === 'cert' ? minIncludingAmm : project.funding_goal
   const projectTransfers = project.project_transfers
@@ -78,7 +76,6 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
             />
           )}
           <ProjectCardData
-            voteCount={voteCount}
             karma={project.karma}
             numComments={project.comments.length}
             amountRaised={amountRaised}
@@ -93,21 +90,16 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
 
 function ProjectCardData(props: {
   numComments: number
-  voteCount: number
   karma: number | null | undefined
   amountRaised: number
   fundingGoal?: number
   projectSlug: string
 }) {
-  const { numComments, voteCount, karma, amountRaised, fundingGoal, projectSlug } = props
+  const { numComments, karma, amountRaised, fundingGoal, projectSlug } = props
   return (
     <div className="grid grid-cols-3 text-sm text-gray-400">
-      <Row className="justify-start gap-2">
-        <Tooltip text="Votes" className="flex items-center gap-0">
-          <ChevronUpDownIcon className="h-4 w-4 stroke-2" />
-          <span>{voteCount}</span>
-        </Tooltip>
-        <KarmaBadge karma={karma} kind="project" />
+      <Row className="justify-start">
+        <KarmaBadge karma={karma} className="text-gray-400" />
       </Row>
       <Row className="justify-center">
         <Link href={`/projects/${projectSlug}#tabs`}>

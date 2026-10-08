@@ -62,7 +62,10 @@ export function ProfileHeader(props: {
                 <Row className="mt-1 flex-wrap items-center gap-2 text-gray-500">
                   <p>@{profile.username}</p>
                   {profile.regranter_status && <RegranterTag />}
-                  <KarmaBadge karma={profile.karma} kind="profile" />
+                  <span className="text-gray-400" aria-hidden="true">
+                    &middot;
+                  </span>
+                  <KarmaBadge karma={profile.karma} label />
                 </Row>
                 {isOwnProfile && (
                   <Row className="mt-1 flex-wrap items-center gap-2 text-gray-400">

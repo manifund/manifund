@@ -145,7 +145,6 @@ export function ProjectDisplay(props: {
                 {project.title}
               </h2>
             </Col>
-            <KarmaBadge karma={project.karma} kind="project" className="ml-auto" />
           </Row>
           <Row className="mb-1 flex-wrap gap-1">
             {project.causes?.map((cause) => (
@@ -177,6 +176,10 @@ export function ProjectDisplay(props: {
                 year: 'numeric',
               })}
             </time>
+            <span className="text-gray-400" aria-hidden="true">
+              &middot;
+            </span>
+            <KarmaBadge karma={project.karma} label className="font-light" />
             {pendingProjectTransfers.length > 0 && (
               <span className="text-gray-500">
                 pending transfer to {pendingProjectTransfers[0].recipient_name}
