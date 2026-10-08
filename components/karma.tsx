@@ -38,8 +38,6 @@ const weightFormula = (who: string) => (
 // Votes nudge the stored total between recomputes without touching the breakdown,
 // so the votes line takes whatever the other lines don't explain.
 function projectLines(b: ProjectKarmaBreakdown, total: number): Line[] {
-  // Inverted from the stored bonus so the formula matches it even if the creator's karma has moved
-  const creatorInput = 10 ** (b.creator / c.creatorKarmaCoefficient) - 1
   return [
     {
       label: 'Donations',
@@ -54,7 +52,7 @@ function projectLines(b: ProjectKarmaBreakdown, total: number): Line[] {
       label: 'Creator bonus',
       formula: (
         <>
-          {c.creatorKarmaCoefficient} × log<sub>10</sub>(1 + {fmt(creatorInput)})
+          {c.creatorKarmaCoefficient} × log<sub>10</sub>(1 + creator karma)
         </>
       ),
       value: b.creator,
