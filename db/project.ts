@@ -49,7 +49,9 @@ export async function getProjectById(supabase: SupabaseClient, id: string) {
 export async function getProjectsByUser(supabase: SupabaseClient, user: string) {
   const { data, error } = await supabase
     .from('projects')
-    .select('*, bids(*), txns(*), comments(*), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at)')
+    .select(
+      '*, bids(*), txns(*), comments(*), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at)'
+    )
     .eq('creator', user)
   if (error) {
     throw error
@@ -64,7 +66,7 @@ export async function listProjects(supabase: SupabaseClient, limitToProjectIds?:
       title, id, created_at, creator, slug, blurb, stage,
       auction_close, funding_goal, min_funding, type, approved,
       signed_agreement, lobbying, amm_shares, founder_shares,
-      ai_fraction, quality_score,
+      ai_fraction, quality_score, karma,
       profiles!projects_creator_fkey(*),
       rounds(title, slug),
       causes(title, slug)
@@ -110,7 +112,10 @@ export async function listProjects(supabase: SupabaseClient, limitToProjectIds?:
 
       supabase.from('project_votes').select('project_id, magnitude').in('project_id', batchIds),
 
-      supabase.from('project_transfers').select('id, project_id, recipient_name, transferred, created_at').in('project_id', batchIds),
+      supabase
+        .from('project_transfers')
+        .select('id, project_id, recipient_name, transferred, created_at')
+        .in('project_id', batchIds),
 
       supabase.from('comments').select('project, id').in('project', batchIds),
     ])

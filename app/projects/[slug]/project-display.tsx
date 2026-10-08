@@ -1,4 +1,5 @@
 'use client'
+import { KarmaBadge } from '@/components/karma-badge'
 import { DonateBox } from '@/components/donate-box'
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
@@ -144,6 +145,7 @@ export function ProjectDisplay(props: {
                 {project.title}
               </h2>
             </Col>
+            <KarmaBadge karma={project.karma} kind="project" className="ml-auto" />
           </Row>
           <Row className="mb-1 flex-wrap gap-1">
             {project.causes?.map((cause) => (

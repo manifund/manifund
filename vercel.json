@@ -35,6 +35,10 @@
     {
       "path": "/api/notifications/sweep",
       "schedule": "*/10 * * * *"
+    },
+    {
+      "path": "/api/karma/sync",
+      "schedule": "30 * * * *"
     }
   ]
 }

@@ -14,7 +14,7 @@ import { SearchBar } from './input'
 import { searchInAny } from '@/utils/parse'
 import { LoadMoreUntilNotVisible } from './widgets/visibility-observer'
 import { sortBy } from 'es-toolkit'
-import { countVotes, hotScore } from '@/utils/sort'
+import { countVotes, karmaHotScore } from '@/utils/sort'
 import { Checkbox } from './input'
 import { isSlopProject } from '@/utils/slop'
 
@@ -176,7 +176,7 @@ function sortProjects(
     return sortBy(projects, [(project) => -getAmountRaised(project, project.bids, project.txns)])
   }
   if (sortType === 'hot') {
-    return sortBy(projects, [hotScore])
+    return sortBy(projects, [karmaHotScore, (project) => -new Date(project.created_at).getTime()])
   }
   if (sortType === 'closing soon') {
     return sortBy(projects, [

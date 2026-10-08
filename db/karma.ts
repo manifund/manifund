@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
-import { KarmaInputs } from '@/utils/karma'
+import { Database } from '@/db/database.types'
+import { computeKarma, KARMA_CONFIG, KarmaConfig, KarmaInputs } from '@/utils/karma'
 
 // No next/* or server-only imports here: scripts/*.ts import this file.
 
@@ -86,5 +87,47 @@ export async function loadKarmaInputs(supabase: SupabaseClient): Promise<KarmaIn
     bids,
     txns,
     bankId: process.env.NEXT_PUBLIC_PROD_BANK_ID,
+  }
+}
+
+// Recompute everything and store it. Writes every row (not just changed ones): the stored
+// breakdown drives the hot sort (acceptingDonations), and 8.5k row updates take seconds.
+export async function recomputeKarma(
+  admin: SupabaseClient<Database>,
+  config: KarmaConfig = KARMA_CONFIG
+) {
+  const inputs = await loadKarmaInputs(admin)
+  const result = computeKarma(inputs, config)
+  const round = (n: number) => Math.round(n * 100) / 100
+  const profileRows = [...result.profiles.entries()].map(([id, r]) => ({
+    id,
+    karma: round(r.karma),
+    breakdown: r.breakdown,
+  }))
+  const projectRows = [...result.projects.entries()].map(([id, r]) => ({
+    id,
+    karma: round(r.karma),
+    breakdown: r.breakdown,
+  }))
+  const CHUNK = 500
+  for (let i = 0; i < profileRows.length; i += CHUNK) {
+    await withRetry(() =>
+      admin
+        .rpc('apply_karma', { profile_rows: profileRows.slice(i, i + CHUNK), project_rows: [] })
+        .throwOnError()
+    )
+  }
+  for (let i = 0; i < projectRows.length; i += CHUNK) {
+    await withRetry(() =>
+      admin
+        .rpc('apply_karma', { profile_rows: [], project_rows: projectRows.slice(i, i + CHUNK) })
+        .throwOnError()
+    )
+  }
+  return {
+    iterations: result.iterations,
+    converged: result.converged,
+    profilesWritten: profileRows.length,
+    projectsWritten: projectRows.length,
   }
 }

@@ -20,6 +20,7 @@ import { Row } from './layout/row'
 import { Tooltip } from './tooltip'
 import { getSponsoredAmount } from '@/utils/constants'
 import { AiWrittenIcon } from './slop-flag'
+import { KarmaBadge } from './karma-badge'
 
 export function ProjectCard(props: { project: FullProject; valuation?: number }) {
   const { project, valuation } = props
@@ -78,6 +79,7 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
           )}
           <ProjectCardData
             voteCount={voteCount}
+            karma={project.karma}
             numComments={project.comments.length}
             amountRaised={amountRaised}
             fundingGoal={project.stage === 'proposal' ? fundingGoal : undefined}
@@ -92,18 +94,20 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
 function ProjectCardData(props: {
   numComments: number
   voteCount: number
+  karma: number | null | undefined
   amountRaised: number
   fundingGoal?: number
   projectSlug: string
 }) {
-  const { numComments, voteCount, amountRaised, fundingGoal, projectSlug } = props
+  const { numComments, voteCount, karma, amountRaised, fundingGoal, projectSlug } = props
   return (
     <div className="grid grid-cols-3 text-sm text-gray-400">
-      <Row className="justify-start">
+      <Row className="justify-start gap-2">
         <Tooltip text="Votes" className="flex items-center gap-0">
           <ChevronUpDownIcon className="h-4 w-4 stroke-2" />
           <span>{voteCount}</span>
         </Tooltip>
+        <KarmaBadge karma={karma} kind="project" />
       </Row>
       <Row className="justify-center">
         <Link href={`/projects/${projectSlug}#tabs`}>

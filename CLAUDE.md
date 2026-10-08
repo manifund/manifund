@@ -161,6 +161,7 @@ name the product rules they check (`C12`…); `bun run test:rules` lists rules w
 - `request-updates` - Mondays 3 PM UTC
 - `embeddings/sync` - daily 8 AM UTC
 - `weekly-digest` - Mondays 5 PM UTC
+- `karma/sync` - hourly at :30 (recomputes karma; formula in `utils/karma.ts`)
 
 ## Sibling Repo: Trace
 

@@ -4,6 +4,7 @@ import { PencilIcon, LinkIcon, GiftIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { Database } from '@/db/database.types'
 import { RegranterTag } from '@/components/tags'
+import { KarmaBadge } from '@/components/karma-badge'
 import { addHttpToUrl } from '@/utils/formatting'
 import { Row } from '@/components/layout/row'
 import { Col } from '@/components/layout/col'
@@ -61,6 +62,7 @@ export function ProfileHeader(props: {
                 <Row className="mt-1 flex-wrap items-center gap-2 text-gray-500">
                   <p>@{profile.username}</p>
                   {profile.regranter_status && <RegranterTag />}
+                  <KarmaBadge karma={profile.karma} kind="profile" />
                 </Row>
                 {isOwnProfile && (
                   <Row className="mt-1 flex-wrap items-center gap-2 text-gray-400">
