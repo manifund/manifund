@@ -1558,6 +1558,15 @@ export type Database = {
       }
       add_tags: { Args: never; Returns: undefined }
       add_topics: { Args: never; Returns: undefined }
+      adjust_karma: {
+        Args: {
+          profile_delta: number
+          profile_id: string
+          project_delta: number
+          project_id: string
+        }
+        Returns: undefined
+      }
       apply_karma: {
         Args: { profile_rows: Json; project_rows: Json }
         Returns: undefined
