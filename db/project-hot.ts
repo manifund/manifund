@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { FullProject, listProjects } from './project'
 import { projectHotScore, ProjectKarmaBreakdown } from '@/utils/karma'
+import { isLikelyAiWritten, SLOP_FUNDING_EXEMPTION_DOLLARS } from '@/utils/slop'
 
 // Top projects by stored karma, decayed by age (see utils/karma.ts). Karma is
 // recomputed hourly by app/api/karma/sync, so this only needs a tiny projection.
@@ -10,7 +11,7 @@ export async function getHotProjects(
 ): Promise<FullProject[]> {
   const { data } = await supabase
     .from('projects')
-    .select('id, created_at, karma, karma_breakdown')
+    .select('id, created_at, karma, karma_breakdown, ai_fraction')
     .neq('stage', 'hidden')
     .neq('stage', 'draft')
     .order('karma', { ascending: false })
@@ -19,8 +20,12 @@ export async function getHotProjects(
     return []
   }
   const now = Date.now()
-  const scored = data.map((p) => {
+  const scored = data.flatMap((p) => {
     const breakdown = p.karma_breakdown as ProjectKarmaBreakdown | null
+    // Same rule as isSlopProject: the feed hides these by default, so don't spend slots on them
+    const slop =
+      isLikelyAiWritten(p.ai_fraction) && (breakdown?.raised ?? 0) <= SLOP_FUNDING_EXEMPTION_DOLLARS
+    if (slop) return []
     return {
       id: p.id,
       createdAt: new Date(p.created_at).getTime(),
