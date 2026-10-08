@@ -153,7 +153,8 @@ bun run gen-types:local           # Regenerate types from local
 Local only for now (not in CI): unit and database tests (`bun run test`, needs the local Supabase), route tests
 against a running dev server (`bun run test:routes`), a few browser flows (`bun run test:e2e`, Playwright). Tests
 name the product rules they check (`C12`…); `bun run test:rules` lists rules without a test. Details:
-`tests/README.md`. Also verify changes with `bun run build`.
+`tests/README.md` (including where they can run today, and the optional sandbox: a copy of live's data, a database and
+preview per branch, tests run by CI; nothing required). Also verify changes with `bun run build`.
 
 ## Cron Jobs (Vercel)
 

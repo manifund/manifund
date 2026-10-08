@@ -81,6 +81,9 @@ docs/
   postmortems/
 ```
 
+Optional: to try a branch on a copy of live's data with a preview and the tests run for you, see the sandbox
+(`tests/README.md`).
+
 Areas so far: `comments/` (full), `projects/` and `people/` (stubs).
 
 ## Writing product docs

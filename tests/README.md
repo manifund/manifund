@@ -4,6 +4,17 @@ Tests check the rules in the product docs (`docs/product/<area>/README.md`): eac
 checks (e.g. `C11`), and `bun run test:rules` lists rules that no test names yet. They run **locally**, against the
 local Supabase and a dev server; they're not set up for CI yet.
 
+Where they can run today: the unit tests (`bun run test:unit`) anywhere. The database, route and browser tests need a
+local database built from live's schema, which this repo can't build yet (its migrations don't rebuild live, and
+there's no `supabase/seed.sql`). Two ways meanwhile, both optional: push your branch to the **sandbox**, whose CI runs
+the unit and database tests for you on a database built from its copy of the repo, or run them from a clone of the
+sandbox (both described in the sandbox's `docs/development/README.md`).
+
+**Optional: the sandbox** (`manifund/manifund-sandbox`). To try a branch on a copy of live's data, with its own
+database, a preview link and the tests run for you, push it there (ask Vals for access). Nothing there reaches live,
+and nothing is required: this repo's flow is unchanged. How: the sandbox's `docs/development/README.md`, "Trying a
+branch from the main repo".
+
 ## Running them
 
 | Command | What | Needs | Time |
