@@ -18,11 +18,7 @@ async function pageAll<T>(query: (from: number, to: number) => any): Promise<T[]
 export async function loadKarmaInputs(supabase: SupabaseClient): Promise<KarmaInputs> {
   const [profiles, projects, votes, comments, commentRxns, bids, txns] = await Promise.all([
     pageAll<KarmaInputs['profiles'][number]>((f, t) =>
-      supabase
-        .from('profiles')
-        .select('id, regranter_status, username, full_name')
-        .order('id')
-        .range(f, t)
+      supabase.from('profiles').select('id, username, full_name').order('id').range(f, t)
     ),
     pageAll<KarmaInputs['projects'][number]>((f, t) =>
       supabase

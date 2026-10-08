@@ -1,10 +1,6 @@
-import { isSponsoredRegrantor } from '@/utils/constants'
-
 // All tunable constants for karma. Change these (or pass an override to
 // computeKarma) and re-run the recompute; nothing in the DB encodes the formula.
 export const KARMA_CONFIG = {
-  regrantorBonusPerYear: 50,
-  regrantorProgramYears: [2023, 2024, 2025, 2026],
   // Multiplier on the portion of a donation committed before the project hit min funding
   earlyDonationMultiplier: 1.5,
   // [karma threshold, weight], ascending. Below the first threshold the weight is 0.
@@ -14,6 +10,8 @@ export const KARMA_CONFIG = {
     [1000, 3],
   ] as [number, number][],
   positiveReacts: ['➕', '🥳', '💡', '🔥', '👏', '🌈'],
+  // Applied to every react on top of the reactor's weight (and tip multiplier)
+  reactMultiplier: 2,
   tippedReactMultipliers: { '🧡': 2, '🏅': 3, '🏆': 5 } as Record<string, number>,
   // project karma += creatorKarmaCoefficient * log10(1 + creator karma)
   creatorKarmaCoefficient: 5,
@@ -28,7 +26,6 @@ export type KarmaConfig = typeof KARMA_CONFIG
 // Minimal row shapes; db/karma.ts selects exactly these columns.
 export type KarmaProfileRow = {
   id: string
-  regranter_status: boolean
   username: string
   full_name: string
 }
@@ -78,12 +75,10 @@ export type KarmaInputs = {
 }
 
 export type ProfileKarmaBreakdown = {
-  regrantor: number
   donationsGiven: number
   donationsReceived: number
   votes: number
   reacts: number
-  yearsAsRegrantor: number
   projectsDonatedTo: number
   voteCount: number
   reactCount: number
@@ -111,12 +106,6 @@ export function karmaWeight(karma: number, config: KarmaConfig = KARMA_CONFIG) {
     if (karma >= threshold) weight = w
   }
   return weight
-}
-
-export function yearsAsRegrantor(profile: KarmaProfileRow, config: KarmaConfig = KARMA_CONFIG) {
-  const years = config.regrantorProgramYears.filter((y) => isSponsoredRegrantor(profile.id, y))
-  if (years.length > 0) return years.length
-  return profile.regranter_status ? 1 : 0
 }
 
 // Project donation term. Swappable; currently sum over donors of sqrt(amount).
@@ -216,12 +205,10 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
     let b = breakdowns.get(id)
     if (!b) {
       b = {
-        regrantor: 0,
         donationsGiven: 0,
         donationsReceived: 0,
         votes: 0,
         reacts: 0,
-        yearsAsRegrantor: 0,
         projectsDonatedTo: 0,
         voteCount: 0,
         reactCount: 0,
@@ -230,11 +217,7 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
     }
     return b
   }
-  for (const profile of inputs.profiles) {
-    const b = ensure(profile.id)
-    b.yearsAsRegrantor = yearsAsRegrantor(profile, config)
-    b.regrantor = b.yearsAsRegrantor * config.regrantorBonusPerYear
-  }
+  for (const profile of inputs.profiles) ensure(profile.id)
   const projectDonors = new Map<string, Map<string, number>>()
   for (const [donor, byProject] of donations) {
     const b = ensure(donor)
@@ -252,7 +235,7 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
   }
   const base = new Map<string, number>()
   for (const [id, b] of breakdowns) {
-    base.set(id, b.regrantor + b.donationsGiven + b.donationsReceived)
+    base.set(id, b.donationsGiven + b.donationsReceived)
   }
 
   // Iterate to a fixed point: vote/react weights depend on the voter's karma.
@@ -272,7 +255,9 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
       )
     }
     for (const { rxn, comment } of rxns) {
-      const mult = rxn.txn_id ? (config.tippedReactMultipliers[rxn.reaction] ?? 1) : 1
+      const mult =
+        config.reactMultiplier *
+        (rxn.txn_id ? (config.tippedReactMultipliers[rxn.reaction] ?? 1) : 1)
       const c = comment!.commenter
       reactTerm.set(c, (reactTerm.get(c) ?? 0) + karmaWeight(k(rxn.reactor_id), config) * mult)
     }
