@@ -202,7 +202,7 @@ export function Karma(props: {
               href="/about/karma"
               className="mt-2 block text-xs text-orange-600 hover:underline"
             >
-              How this is calculated →
+              How karma is calculated →
             </Link>
           </div>
         </FloatingPortal>
