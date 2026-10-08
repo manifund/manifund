@@ -312,6 +312,9 @@ export function CommentRxnsPanel(props: {
           type: 'individual',
           website: null,
           id_text: null,
+          karma: 0,
+          karma_breakdown: null,
+          karma_updated_at: null,
         },
       })
       setLocalRxns(rxns)
