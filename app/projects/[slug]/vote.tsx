@@ -14,8 +14,9 @@ export function Vote(props: {
   votes: ProjectVote[]
   setCommentPrompt: (value: string) => void
   userId?: string
+  onVoteChange?: (magnitudeDelta: number) => void
 }) {
-  const { projectId, votes, setCommentPrompt, userId } = props
+  const { projectId, votes, setCommentPrompt, userId, onVoteChange } = props
   const oldVote = votes.find((vote) => vote.voter_id === userId)
   const oldMagnitude = oldVote ? oldVote.magnitude : 0
   const [newMagnitude, setNewMagnitude] = useState<null | number>(null)
@@ -24,7 +25,9 @@ export function Vote(props: {
 
   const vote = async (magnitude: number) => {
     if (!userId) return
-    setNewMagnitude(displayMagnitude === magnitude ? 0 : magnitude)
+    const nextMagnitude = displayMagnitude === magnitude ? 0 : magnitude
+    setNewMagnitude(nextMagnitude)
+    onVoteChange?.(nextMagnitude - displayMagnitude)
     await fetch(`/api/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

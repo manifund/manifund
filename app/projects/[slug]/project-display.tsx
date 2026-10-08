@@ -18,7 +18,8 @@ import {
   getMinIncludingAmm,
   getProjectValuation,
 } from '@/utils/math'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { karmaWeight } from '@/utils/karma'
 import { ProjectTabs } from './project-tabs'
 import { ProjectData } from './project-data'
 import { ProposalRequirements } from './proposal-requirements'
@@ -107,6 +108,12 @@ export function ProjectDisplay(props: {
     pendingProjectTransfers.length === 0
   const activeAuction = !!prizeCause?.cert_params?.auction && project.stage === 'proposal'
   const [specialCommentPrompt, setSpecialCommentPrompt] = useState<undefined | string>(undefined)
+  // Optimistic karma: the voter's weight is known client-side, so show the change at once.
+  // Server data refreshes after voting with the delta already applied, so reset then.
+  const [karmaDelta, setKarmaDelta] = useState(0)
+  useEffect(() => setKarmaDelta(0), [project.karma])
+  const voteWeight =
+    userProfile && userProfile.id !== project.creator ? karmaWeight(userProfile.karma) : 0
   return (
     <>
       {showExpandedTimeline ? (
@@ -139,6 +146,9 @@ export function ProjectDisplay(props: {
               userId={userProfile?.id}
               votes={project.project_votes}
               setCommentPrompt={setSpecialCommentPrompt}
+              onVoteChange={(magnitudeDelta) =>
+                setKarmaDelta((d) => d + magnitudeDelta * voteWeight)
+              }
             />
             <Col>
               <h2 className="text-lg font-bold leading-tight text-gray-900 sm:text-2xl">
@@ -179,7 +189,7 @@ export function ProjectDisplay(props: {
             <span className="text-gray-400" aria-hidden="true">
               &middot;
             </span>
-            <KarmaBadge karma={project.karma} label className="font-light" />
+            <KarmaBadge karma={project.karma + karmaDelta} label className="font-light" />
             {pendingProjectTransfers.length > 0 && (
               <span className="text-gray-500">
                 pending transfer to {pendingProjectTransfers[0].recipient_name}
