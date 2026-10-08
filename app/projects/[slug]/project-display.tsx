@@ -169,6 +169,15 @@ export function ProjectDisplay(props: {
         </Col>
         <div className="flex flex-col-reverse gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
           <Row className="flex-wrap items-center gap-1 text-sm text-gray-700">
+            <Karma
+              value={project.karma + karmaDelta}
+              breakdown={project.karma_breakdown}
+              kind="project"
+              placement="bottom-start"
+            />
+            <span className="text-gray-400" aria-hidden="true">
+              &middot;
+            </span>
             <UserAvatarAndBadge profile={project.profiles} />
             {creatorEmail && (
               <Tooltip text="Copy creator email">
@@ -191,15 +200,6 @@ export function ProjectDisplay(props: {
                 year: 'numeric',
               })}
             </time>
-            <span className="text-gray-400" aria-hidden="true">
-              &middot;
-            </span>
-            <Karma
-              value={project.karma + karmaDelta}
-              breakdown={project.karma_breakdown}
-              kind="project"
-              placement="bottom-start"
-            />
             {pendingProjectTransfers.length > 0 && (
               <span className="text-gray-500">
                 pending transfer to {pendingProjectTransfers[0].recipient_name}
