@@ -130,6 +130,28 @@ export function donationKarma(amount: number, config: KarmaConfig = KARMA_CONFIG
   return config.donationScale * Math.max(amount, 0) ** config.donationExponent
 }
 
+export function creatorBonus(creatorKarma: number, config: KarmaConfig = KARMA_CONFIG) {
+  return config.creatorKarmaCoefficient * Math.log10(1 + Math.max(creatorKarma, 0))
+}
+
+// What a project is worth the moment it's created, so it doesn't sit at 0 until the next recompute.
+export function newProjectKarma(creatorKarma: number, config: KarmaConfig = KARMA_CONFIG) {
+  const breakdown: ProjectKarmaBreakdown = {
+    base: config.projectBaseKarma,
+    votes: 0,
+    comments: 0,
+    donations: 0,
+    creator: creatorBonus(creatorKarma, config),
+    voteCount: 0,
+    commentCount: 0,
+    donorCount: 0,
+    creatorKarma,
+    raised: 0,
+    acceptingDonations: true,
+  }
+  return { karma: breakdown.base + breakdown.creator, breakdown }
+}
+
 // Project donation term. Swappable; currently sum over donors of donationKarma(amount).
 export function quadraticDonationScore(
   amountByDonor: Map<string, number>,
@@ -359,7 +381,7 @@ export function computeKarma(inputs: KarmaInputs, config: KarmaConfig = KARMA_CO
       votes: 0,
       comments: 0,
       donations: quadraticDonationScore(projectDonors.get(p.id) ?? new Map(), config),
-      creator: config.creatorKarmaCoefficient * Math.log10(1 + Math.max(creatorKarma, 0)),
+      creator: creatorBonus(creatorKarma, config),
       voteCount: 0,
       commentCount: 0,
       donorCount: projectDonors.get(p.id)?.size ?? 0,
