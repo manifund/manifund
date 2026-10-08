@@ -146,6 +146,18 @@ export function ProjectDisplay(props: {
         <ProjectScoreFlags aiFraction={project.ai_fraction} qualityScore={project.quality_score} />
         <Col className="gap-1">
           <Row className="flex-2 items-center gap-3">
+            <Karma
+              value={project.karma + karmaDelta}
+              breakdown={project.karma_breakdown}
+              kind="project"
+              size="md"
+              placement="bottom-start"
+            />
+            <Col className="min-w-0 flex-1">
+              <h2 className="text-lg font-bold leading-tight text-gray-900 sm:text-2xl">
+                {project.title}
+              </h2>
+            </Col>
             <Vote
               projectId={project.id}
               userId={userProfile?.id}
@@ -155,11 +167,6 @@ export function ProjectDisplay(props: {
             >
               <span className="text-sm text-gray-400">{netVotes}</span>
             </Vote>
-            <Col>
-              <h2 className="text-lg font-bold leading-tight text-gray-900 sm:text-2xl">
-                {project.title}
-              </h2>
-            </Col>
           </Row>
           <Row className="mb-1 flex-wrap gap-1">
             {project.causes?.map((cause) => (
@@ -169,15 +176,6 @@ export function ProjectDisplay(props: {
         </Col>
         <div className="flex flex-col-reverse gap-3 sm:mb-4 sm:flex-row sm:items-center sm:justify-between">
           <Row className="flex-wrap items-center gap-1 text-sm text-gray-700">
-            <Karma
-              value={project.karma + karmaDelta}
-              breakdown={project.karma_breakdown}
-              kind="project"
-              placement="bottom-start"
-            />
-            <span className="text-gray-400" aria-hidden="true">
-              &middot;
-            </span>
             <UserAvatarAndBadge profile={project.profiles} />
             {creatorEmail && (
               <Tooltip text="Copy creator email">
