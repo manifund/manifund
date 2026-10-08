@@ -5,6 +5,7 @@ import { useSupabase } from '@/db/supabase-provider'
 import { Button } from '@/components/button'
 import { Input } from '@/components/input'
 import { Col } from '@/components/layout/col'
+import { PasswordInput } from '@/components/password-input'
 
 interface UpdatePasswordFormProps {
   onSuccess?: () => void
@@ -73,10 +74,11 @@ export function UpdatePasswordForm({
       ) : (
         <form onSubmit={handlePasswordReset} className="space-y-4">
           <Col className="gap-1">
-            <Input
+            <PasswordInput
+              as={Input}
               id="current-password"
               name="current-password"
-              type="password"
+              autoComplete="new-password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -85,10 +87,11 @@ export function UpdatePasswordForm({
           </Col>
 
           <Col className="gap-1">
-            <Input
+            <PasswordInput
+              as={Input}
               id="confirm-current-password"
               name="confirm-current-password"
-              type="password"
+              autoComplete="new-password"
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

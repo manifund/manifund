@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useEffect } from 'react'
 import { signInWithGoogle, signIn, signUp, resetPassword, AuthResult } from '@/lib/auth-actions'
+import { PasswordInput } from '@/components/password-input'
 
 interface AuthError {
   error: string
@@ -154,6 +155,7 @@ export default function AuthModal({
           id="email"
           name="email"
           required
+          autoComplete="email"
           className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
           placeholder="Enter your email"
         />
@@ -164,11 +166,11 @@ export default function AuthModal({
           <label htmlFor="password" className="mb-1 block text-sm font-medium text-gray-700">
             Password
           </label>
-          <input
-            type="password"
+          <PasswordInput
             id="password"
             name="password"
             required
+            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
             className="w-full rounded-lg border border-gray-300 px-3 py-2 outline-none transition focus:border-orange-500 focus:ring-2 focus:ring-orange-500"
             placeholder="Enter your password"
           />
