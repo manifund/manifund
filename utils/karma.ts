@@ -19,7 +19,7 @@ export const KARMA_CONFIG = {
   // project karma += creatorKarmaCoefficient * log10(1 + creator karma)
   creatorKarmaCoefficient: 5,
   // homepage: project karma / (age in days + 1) ^ hotAgeExponent
-  hotAgeExponent: 1.5,
+  hotAgeExponent: 1.7,
   // homepage only: multiplier for projects no longer accepting donations
   // (complete / not funded, or a grant that has reached its funding goal)
   closedProjectMultiplier: 0.2,
