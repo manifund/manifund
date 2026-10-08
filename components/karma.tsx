@@ -16,17 +16,15 @@ import Link from 'next/link'
 import clsx from 'clsx'
 import { ReactNode, useState } from 'react'
 import { KARMA_CONFIG, ProfileKarmaBreakdown, ProjectKarmaBreakdown } from '@/utils/karma'
-import { formatMoney } from '@/utils/formatting'
 
 type Line = { label: string; formula: ReactNode; value: number }
 
 const c = KARMA_CONFIG
 // `|| 0` turns -0 into 0
 const fmt = (n: number) => (Math.round(n) || 0).toLocaleString()
-const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 const dollarFormula = (
   <>
-    {c.donationScale} × $<sup>{c.donationExponent}</sup>
+    {c.donationScale} × (money donated)<sup>{c.donationExponent}</sup>
   </>
 )
 const weightFormula = (who: string) => (
@@ -41,11 +39,7 @@ function projectLines(b: ProjectKarmaBreakdown, total: number): Line[] {
   return [
     {
       label: 'Donations',
-      formula: (
-        <>
-          {dollarFormula} per donor · {plural(b.donorCount, 'donor')}
-        </>
-      ),
+      formula: <>{dollarFormula} per donor</>,
       value: b.donations,
     },
     {
@@ -75,12 +69,7 @@ function profileLines(b: ProfileKarmaBreakdown, total: number): Line[] {
   const lines: Line[] = [
     {
       label: 'Received',
-      formula: (
-        <>
-          {dollarFormula} per donor
-          {b.dollarsReceived != null && ` · ${formatMoney(b.dollarsReceived)}`}
-        </>
-      ),
+      formula: <>{dollarFormula} per donor</>,
       value: b.donationsReceived,
     },
     {
@@ -90,12 +79,7 @@ function profileLines(b: ProfileKarmaBreakdown, total: number): Line[] {
     },
     {
       label: 'Given',
-      formula: (
-        <>
-          {dollarFormula} per project · {plural(b.projectsDonatedTo, 'project')}
-          {b.dollarsGiven != null && `, ${formatMoney(b.dollarsGiven)}`}
-        </>
-      ),
+      formula: <>{dollarFormula} per project</>,
       value: b.donationsGiven,
     },
     {
