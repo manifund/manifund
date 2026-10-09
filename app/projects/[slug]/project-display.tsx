@@ -1,4 +1,5 @@
 'use client'
+import { Karma } from '@/components/karma'
 import { DonateBox } from '@/components/donate-box'
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
@@ -18,6 +19,8 @@ import {
   getProjectValuation,
 } from '@/utils/math'
 import { useState } from 'react'
+import { karmaWeight } from '@/utils/karma'
+import { countVotes } from '@/utils/sort'
 import { ProjectTabs } from './project-tabs'
 import { ProjectData } from './project-data'
 import { ProposalRequirements } from './proposal-requirements'
@@ -106,6 +109,16 @@ export function ProjectDisplay(props: {
     pendingProjectTransfers.length === 0
   const activeAuction = !!prizeCause?.cert_params?.auction && project.stage === 'proposal'
   const [specialCommentPrompt, setSpecialCommentPrompt] = useState<undefined | string>(undefined)
+  // The viewer's vote is held here so the counts and karma move at once; their weight
+  // is known client-side. Refreshed server data already includes the vote.
+  const savedMagnitude =
+    project.project_votes.find((v) => v.voter_id === userProfile?.id)?.magnitude ?? 0
+  const [newMagnitude, setNewMagnitude] = useState<number | null>(null)
+  const myMagnitude = newMagnitude ?? savedMagnitude
+  const netVotes = countVotes(project) - savedMagnitude + myMagnitude
+  const voteWeight =
+    userProfile && userProfile.id !== project.creator ? karmaWeight(userProfile.karma) : 0
+  const karmaDelta = (myMagnitude - savedMagnitude) * voteWeight
   return (
     <>
       {showExpandedTimeline ? (
@@ -133,17 +146,27 @@ export function ProjectDisplay(props: {
         <ProjectScoreFlags aiFraction={project.ai_fraction} qualityScore={project.quality_score} />
         <Col className="gap-1">
           <Row className="flex-2 items-center gap-3">
-            <Vote
-              projectId={project.id}
-              userId={userProfile?.id}
-              votes={project.project_votes}
-              setCommentPrompt={setSpecialCommentPrompt}
+            <Karma
+              value={project.karma + karmaDelta}
+              breakdown={project.karma_breakdown}
+              kind="project"
+              size="md"
+              placement="bottom-start"
             />
-            <Col>
+            <Col className="min-w-0 flex-1">
               <h2 className="text-lg font-bold leading-tight text-gray-900 sm:text-2xl">
                 {project.title}
               </h2>
             </Col>
+            <Vote
+              projectId={project.id}
+              userId={userProfile?.id}
+              magnitude={myMagnitude}
+              setMagnitude={setNewMagnitude}
+              setCommentPrompt={setSpecialCommentPrompt}
+            >
+              <span className="text-sm text-gray-400">{netVotes}</span>
+            </Vote>
           </Row>
           <Row className="mb-1 flex-wrap gap-1">
             {project.causes?.map((cause) => (

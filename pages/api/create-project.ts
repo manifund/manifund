@@ -1,6 +1,7 @@
 import { Project, TOTAL_SHARES } from '@/db/project'
 import { NextRequest, NextResponse } from 'next/server'
 import uuid from 'react-uuid'
+import { newProjectKarma } from '@/utils/karma'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { projectSlugify, toTitleCase } from '@/utils/formatting'
 import { ProjectParams } from '@/utils/upsert-project'
@@ -129,6 +130,7 @@ export default async function handler(req: NextRequest) {
   }
 
   await supabase.from('projects').insert(project).throwOnError()
+  await seedProjectKarma(projectId, user.id)
   await upvoteOwnProject(supabase, projectId, user.id)
   await updateProjectCauses(supabase, causeSlugs, project.id)
   await giveCreatorShares(supabase, projectId, user.id)
@@ -161,4 +163,21 @@ export default async function handler(req: NextRequest) {
   await triggerProjectScoring(projectId)
 
   return NextResponse.json(project)
+}
+
+// Service role: karma columns are not the creator's to write. Failure is fine; the hourly
+// recompute fills it in.
+async function seedProjectKarma(projectId: string, creatorId: string) {
+  const admin = createAdminClient()
+  const { data: creator } = await admin
+    .from('profiles')
+    .select('karma')
+    .eq('id', creatorId)
+    .single()
+  const { karma, breakdown } = newProjectKarma(creator?.karma ?? 0)
+  const { error } = await admin
+    .from('projects')
+    .update({ karma, karma_breakdown: breakdown })
+    .eq('id', projectId)
+  if (error) console.error('seedProjectKarma failed:', error)
 }

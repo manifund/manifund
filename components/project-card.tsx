@@ -4,11 +4,11 @@ import { formatMoney } from '@/utils/formatting'
 import { getAmountRaised, getMinIncludingAmm } from '@/utils/math'
 import { FullProject, Project } from '@/db/project'
 import Link from 'next/link'
+import { ReactNode } from 'react'
 import { ProgressBar } from './progress-bar'
 import { Col } from './layout/col'
 import {
   ChatBubbleLeftEllipsisIcon,
-  ChevronUpDownIcon,
   CheckBadgeIcon,
   CircleStackIcon,
 } from '@heroicons/react/20/solid'
@@ -20,6 +20,7 @@ import { Row } from './layout/row'
 import { Tooltip } from './tooltip'
 import { getSponsoredAmount } from '@/utils/constants'
 import { AiWrittenIcon } from './slop-flag'
+import { Karma } from './karma'
 
 export function ProjectCard(props: { project: FullProject; valuation?: number }) {
   const { project, valuation } = props
@@ -31,7 +32,6 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
   const regrantorFunded =
     project.txns.some((txn) => txn.from_id && getSponsoredAmount(txn.from_id) > 0) ||
     project.bids.some((bid) => bid.bidder && getSponsoredAmount(bid.bidder) > 0)
-  const voteCount = project.project_votes.reduce((acc, vote) => vote.magnitude + acc, 0)
   const minIncludingAmm = getMinIncludingAmm(project)
   const fundingGoal = project.type === 'cert' ? minIncludingAmm : project.funding_goal
   const projectTransfers = project.project_transfers
@@ -45,6 +45,7 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
           valuation={project.stage !== 'not funded' ? valuation : undefined}
           regrantorFunded={regrantorFunded}
           aiFraction={project.ai_fraction}
+          karma={<Karma value={project.karma} breakdown={project.karma_breakdown} kind="project" />}
           projectRecipient={
             incompleteProjectTransfers.length > 0
               ? incompleteProjectTransfers[0].recipient_name
@@ -77,7 +78,6 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
             />
           )}
           <ProjectCardData
-            voteCount={voteCount}
             numComments={project.comments.length}
             amountRaised={amountRaised}
             fundingGoal={project.stage === 'proposal' ? fundingGoal : undefined}
@@ -91,21 +91,14 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
 
 function ProjectCardData(props: {
   numComments: number
-  voteCount: number
   amountRaised: number
   fundingGoal?: number
   projectSlug: string
 }) {
-  const { numComments, voteCount, amountRaised, fundingGoal, projectSlug } = props
+  const { numComments, amountRaised, fundingGoal, projectSlug } = props
   return (
-    <div className="grid grid-cols-3 text-sm text-gray-400">
+    <div className="flex justify-between text-sm text-gray-400">
       <Row className="justify-start">
-        <Tooltip text="Votes" className="flex items-center gap-0">
-          <ChevronUpDownIcon className="h-4 w-4 stroke-2" />
-          <span>{voteCount}</span>
-        </Tooltip>
-      </Row>
-      <Row className="justify-center">
         <Link href={`/projects/${projectSlug}#tabs`}>
           <Tooltip text="Comments" className="flex items-center gap-1">
             <ChatBubbleLeftEllipsisIcon className="h-4 w-4 stroke-2" />
@@ -132,8 +125,10 @@ export function ProjectCardHeader(props: {
   valuation?: number
   regrantorFunded?: boolean
   aiFraction?: number | null
+  karma?: ReactNode
 }) {
-  const { creator, valuation, projectRecipient, projectType, regrantorFunded, aiFraction } = props
+  const { creator, valuation, projectRecipient, projectType, regrantorFunded, aiFraction, karma } =
+    props
   return (
     <Row className="mt-1 items-start justify-between">
       <div>
@@ -160,6 +155,7 @@ export function ProjectCardHeader(props: {
             <CheckBadgeIcon className="relative h-6 w-6 text-orange-500" />
           </Tooltip>
         )}
+        {karma}
       </Row>
     </Row>
   )

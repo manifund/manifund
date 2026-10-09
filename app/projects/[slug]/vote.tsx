@@ -1,66 +1,59 @@
 'use client'
 import { Col } from '@/components/layout/col'
-import { ProjectVote } from '@/db/project'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { ReactNode } from 'react'
 import { scrollToComments } from './project-display'
 
 export const revalidate = 60
 
+// Vote arrows around `children` (the net vote count). The parent owns the
+// viewer's vote so it can update karma and the count optimistically.
 export function Vote(props: {
   projectId: string
-  votes: ProjectVote[]
+  magnitude: number
+  setMagnitude: (magnitude: number) => void
   setCommentPrompt: (value: string) => void
   userId?: string
+  children: ReactNode
 }) {
-  const { projectId, votes, setCommentPrompt, userId } = props
-  const oldVote = votes.find((vote) => vote.voter_id === userId)
-  const oldMagnitude = oldVote ? oldVote.magnitude : 0
-  const [newMagnitude, setNewMagnitude] = useState<null | number>(null)
+  const { projectId, magnitude, setMagnitude, setCommentPrompt, userId, children } = props
   const router = useRouter()
-  const displayMagnitude = newMagnitude ?? oldMagnitude
 
-  const vote = async (magnitude: number) => {
+  const vote = async (clicked: number) => {
     if (!userId) return
-    setNewMagnitude(displayMagnitude === magnitude ? 0 : magnitude)
+    const newMagnitude = magnitude === clicked ? 0 : clicked
+    setMagnitude(newMagnitude)
     await fetch(`/api/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        projectId,
-        newMagnitude: displayMagnitude === magnitude ? 0 : magnitude,
-      }),
+      body: JSON.stringify({ projectId, newMagnitude }),
     })
-    if (displayMagnitude !== magnitude) {
+    if (newMagnitude !== 0) {
       scrollToComments(router)
-      setCommentPrompt(`why did you ${magnitude > 0 ? 'up' : 'down'}vote?`)
+      setCommentPrompt(`why did you ${clicked > 0 ? 'up' : 'down'}vote?`)
     }
   }
   return (
-    <Col className="relative items-center gap-2">
-      <ChevronUpIcon
-        className={clsx(
-          'h-8 w-8 stroke-2',
-          displayMagnitude > 0 ? 'text-orange-500' : ' text-gray-400',
-          userId && 'cursor-pointer'
-        )}
-        onClick={async () => await vote(1)}
-      />
-      <span className="absolute top-6 text-gray-400">
-        {votes
-          .filter((vote) => vote.voter_id !== userId)
-          .reduce((acc, vote) => vote.magnitude + acc, 0) + displayMagnitude}
-      </span>
-      <ChevronDownIcon
-        className={clsx(
-          'h-8 w-8 stroke-2',
-          displayMagnitude < 0 ? 'text-orange-500' : ' text-gray-400',
-          userId && 'cursor-pointer'
-        )}
-        onClick={async () => await vote(-1)}
-      />
+    <Col className="items-center">
+      <button aria-label="Upvote" disabled={!userId} onClick={async () => await vote(1)}>
+        <ChevronUpIcon
+          className={clsx(
+            '-my-1 h-7 w-7 stroke-2',
+            magnitude > 0 ? 'text-orange-500' : 'text-gray-400'
+          )}
+        />
+      </button>
+      {children}
+      <button aria-label="Downvote" disabled={!userId} onClick={async () => await vote(-1)}>
+        <ChevronDownIcon
+          className={clsx(
+            '-my-1 h-7 w-7 stroke-2',
+            magnitude < 0 ? 'text-orange-500' : 'text-gray-400'
+          )}
+        />
+      </button>
     </Col>
   )
 }

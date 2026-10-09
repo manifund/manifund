@@ -72,6 +72,7 @@ export default async function Sidebar() {
                 { name: 'Donor FAQ', href: '/about/donor-faq' },
                 { name: 'Regranting', href: '/about/regranting' },
                 { name: 'Where regrantors give', href: '/about/regranting-data' },
+                { name: 'Karma', href: '/about/karma' },
                 { name: 'Funder Bulletin', href: '/ais-funder-bulletin' },
                 // { name: 'Impact markets', href: '/about/impact-certificates' },
                 // { name: 'Applying for funding', href: '/about/open-call' },

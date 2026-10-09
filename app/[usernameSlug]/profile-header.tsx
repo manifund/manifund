@@ -4,6 +4,7 @@ import { PencilIcon, LinkIcon, GiftIcon } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { Database } from '@/db/database.types'
 import { RegranterTag } from '@/components/tags'
+import { Karma } from '@/components/karma'
 import { addHttpToUrl } from '@/utils/formatting'
 import { Row } from '@/components/layout/row'
 import { Col } from '@/components/layout/col'
@@ -62,6 +63,14 @@ export function ProfileHeader(props: {
                   <p>@{profile.username}</p>
                   {profile.regranter_status && <RegranterTag />}
                 </Row>
+                <Karma
+                  value={profile.karma}
+                  breakdown={profile.karma_breakdown}
+                  kind="profile"
+                  size="md"
+                  placement="right-start"
+                  className="mt-1 self-start"
+                />
                 {isOwnProfile && (
                   <Row className="mt-1 flex-wrap items-center gap-2 text-gray-400">
                     <p>{email}</p>

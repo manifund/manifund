@@ -14,7 +14,7 @@ import { SearchBar } from './input'
 import { searchInAny } from '@/utils/parse'
 import { LoadMoreUntilNotVisible } from './widgets/visibility-observer'
 import { sortBy } from 'es-toolkit'
-import { countVotes, hotScore } from '@/utils/sort'
+import { countVotes, karmaHotScore } from '@/utils/sort'
 import { Checkbox } from './input'
 import { isSlopProject } from '@/utils/slop'
 
@@ -28,9 +28,17 @@ type SortOption =
   | 'newest'
   | 'oldest'
   | 'hot'
+  | 'karma'
   | 'closing soon'
 
-const DEFAULT_SORT_OPTIONS = ['hot', 'newest', 'closing soon', 'votes', 'funding'] as SortOption[]
+const DEFAULT_SORT_OPTIONS = [
+  'hot',
+  'karma',
+  'newest',
+  'closing soon',
+  'votes',
+  'funding',
+] as SortOption[]
 
 export function ProjectsDisplay(props: {
   projects: FullProject[]
@@ -176,7 +184,10 @@ function sortProjects(
     return sortBy(projects, [(project) => -getAmountRaised(project, project.bids, project.txns)])
   }
   if (sortType === 'hot') {
-    return sortBy(projects, [hotScore])
+    return sortBy(projects, [karmaHotScore, (project) => -new Date(project.created_at).getTime()])
+  }
+  if (sortType === 'karma') {
+    return sortBy(projects, [(project) => -(project.karma ?? 0)])
   }
   if (sortType === 'closing soon') {
     return sortBy(projects, [
