@@ -8,9 +8,9 @@ import { AmountInput } from '@/components/input'
 import { SignInButton } from '@/components/sign-in-button'
 import type { Profile } from '@/db/profile'
 import type { Project } from '@/db/project'
+import { donationLimitError, usd } from '@/utils/donation-limits'
 
 const PRESETS = [50, 100, 500, 1000]
-const MIN_DONATION = 10
 
 // Donating to an org is donating to its project on Manifund: an offer while the project is a proposal, a
 // donation once it's active (the same two requests as the project page's donate box).
@@ -19,47 +19,48 @@ export function OrgDonateBox(props: {
   project: Project
   profile?: Profile
   maxDonation: number
+  // What's left of the project's funding goal (fundingLeft); the server applies the same cap.
+  fundingLeft: number
 }) {
-  const { orgName, project, profile, maxDonation } = props
+  const { orgName, project, profile, maxDonation, fundingLeft } = props
   const [amount, setAmount] = useState<number | undefined>(100)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [sent, setSent] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [failed, setFailed] = useState<string | null>(null)
   const router = useRouter()
   const isOffer = project.stage === 'proposal'
 
   let errorMessage: string | null = null
   if (amount && amount > maxDonation) {
     errorMessage = `Your balance covers up to $${Math.max(0, Math.floor(maxDonation)).toLocaleString()}.`
-  } else if (amount && amount < MIN_DONATION) {
-    errorMessage = `The minimum is $${MIN_DONATION}.`
+  } else if (amount) {
+    errorMessage = donationLimitError(amount, fundingLeft)
   }
 
   const choose = (value: number | undefined) => {
     setAmount(value)
     setSent(false)
-    setFailed(false)
+    setFailed(null)
   }
 
   const donate = async () => {
     if (!profile || !amount) return
     setIsSubmitting(true)
-    setFailed(false)
+    setFailed(null)
     // The older money routes answer a refusal with a network error rather than a status.
     const body = isOffer
       ? { projectId: project.id, valuation: 0, amount, type: 'donate' }
       : { fromId: profile.id, toId: project.creator, amount, projectId: project.id }
-    const ok = await fetch(isOffer ? '/api/place-bid' : '/api/transfer-money', {
+    const response = await fetch(isOffer ? '/api/place-bid' : '/api/transfer-money', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
-    }).then(
-      (response) => response.ok,
-      () => false
-    )
+    }).catch(() => undefined)
     setIsSubmitting(false)
-    if (!ok) {
-      setFailed(true)
+    if (!response?.ok) {
+      // A limit refusal (400) carries its own words, e.g. when another offer just reached the goal.
+      const text = response && response.status === 400 ? await response.text() : ''
+      setFailed(text || "That didn't go through. Nothing was charged; try again.")
       return
     }
     setSent(true)
@@ -73,8 +74,13 @@ export function OrgDonateBox(props: {
         {isOffer
           ? 'An offer from your Manifund balance, charged only if the fundraiser reaches its minimum.'
           : 'From your Manifund balance.'}
+        {fundingLeft > 0 && ` ${usd(fundingLeft)} left to reach the funding goal.`}
       </p>
-      {profile ? (
+      {fundingLeft <= 0 ? (
+        <p className="mt-3.5 text-sm italic text-gray-500">
+          Fully funded and not currently accepting donations.
+        </p>
+      ) : profile ? (
         <>
           <div className="mt-3.5 grid grid-cols-4 gap-1.5">
             {PRESETS.map((preset) => (
@@ -111,11 +117,7 @@ export function OrgDonateBox(props: {
             {amount ? `${isOffer ? 'Offer' : 'Donate'} $${amount.toLocaleString()}` : 'Donate'}
           </Button>
           {errorMessage && <p className="mt-2.5 text-[13px] text-rose-600">{errorMessage}</p>}
-          {failed && (
-            <p className="mt-2.5 text-[13px] text-rose-600">
-              That didn&apos;t go through. Nothing was charged; try again.
-            </p>
-          )}
+          {failed && <p className="mt-2.5 text-[13px] text-rose-600">{failed}</p>}
           {sent && (
             <p className="mt-2.5 text-[13px] text-emerald-600">
               {isOffer ? 'Offer placed.' : 'Sent.'} Thank you!

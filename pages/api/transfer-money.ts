@@ -1,10 +1,11 @@
-import { getProjectById } from '@/db/project'
+import { getProjectAndBidsById, getProjectById } from '@/db/project'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { getProfileById } from '@/db/profile'
-import { getTxnAndProjectsByUser } from '@/db/txn'
+import { getTxnAndProjectsByUser, getTxnsByProject } from '@/db/txn'
 import { getPendingBidsByUser } from '@/db/bid'
-import { calculateCharityBalance } from '@/utils/math'
+import { calculateCharityBalance, getAmountRaised } from '@/utils/math'
+import { donationLimitError, fundingLeft } from '@/utils/donation-limits'
 import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
 import { getURL } from '@/utils/constants'
 import { isAdmin } from '@/db/profile'
@@ -47,6 +48,21 @@ export default async function handler(req: NextRequest) {
   if (userSpendableFunds < amount || amount < 0) {
     console.error('not enough funds')
     return NextResponse.error()
+  }
+  // A person's donation to a grant project: the donate box's limits ($10 minimum, nothing past the funding goal).
+  // Admins' manual transfers (admin page, "Create txn") are corrections and skip them.
+  if (projectId && !isAdmin(user)) {
+    const [project, projectTxns] = await Promise.all([
+      getProjectAndBidsById(supabase, projectId),
+      getTxnsByProject(supabase, projectId),
+    ])
+    if (project?.type === 'grant') {
+      const raised = getAmountRaised(project, project.bids, projectTxns)
+      const limitError = donationLimitError(amount, fundingLeft(project.funding_goal, raised))
+      if (limitError) {
+        return new Response(limitError, { status: 400 })
+      }
+    }
   }
   const supabaseAdmin = createAdminClient()
   const { error } = await supabaseAdmin.from('txns').insert({

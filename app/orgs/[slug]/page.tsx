@@ -7,7 +7,8 @@ import { getCommentsByTarget } from '@/db/comment'
 import { getProfileById, getUser } from '@/db/profile'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { getBidsByUser } from '@/db/bid'
-import { calculateCharityBalance } from '@/utils/math'
+import { calculateCharityBalance, getAmountRaised } from '@/utils/math'
+import { fundingLeft } from '@/utils/donation-limits'
 import { addHttpToUrl, formatMoney } from '@/utils/formatting'
 import { formatCompactMoney, summarizeFunding } from '@/utils/org-funding'
 import { LEGAL_STRUCTURES } from '@/utils/org-directory'
@@ -313,6 +314,10 @@ export default async function OrgPage(props: { params: Promise<{ slug: string }>
                 project={openProject}
                 profile={profile ?? undefined}
                 maxDonation={userCharityBalance}
+                fundingLeft={fundingLeft(
+                  openProject.funding_goal,
+                  getAmountRaised(openProject, openProject.bids, openProject.txns)
+                )}
               />
             </div>
           ) : (

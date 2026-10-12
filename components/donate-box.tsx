@@ -11,34 +11,40 @@ import { useState } from 'react'
 import { Row } from './layout/row'
 import { Tooltip } from './tooltip'
 import { SignInButton } from './sign-in-button'
+import { donationLimitError, usd } from '@/utils/donation-limits'
 
 export function DonateBox(props: {
   charity?: Profile
   project?: Project
   profile?: Profile
   maxDonation: number
+  // What's left of a grant project's funding goal (fundingLeft); the server applies the same cap.
+  fundingLeft?: number
   setCommentPrompt?: (value: string) => void
 }) {
-  const { charity, project, profile, maxDonation, setCommentPrompt } = props
+  const { charity, project, profile, maxDonation, fundingLeft, setCommentPrompt } = props
   const [amount, setAmount] = useState<number>()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [refusal, setRefusal] = useState<string | null>(null)
   const router = useRouter()
   const isBid = project && project.stage === 'proposal'
 
   let errorMessage = null
   if (amount && amount > maxDonation) {
     errorMessage = `You don't have enough funds to donate $${amount}. You can donate up to $${maxDonation}.`
-  } else if (amount && amount < 10) {
-    errorMessage = `You must donate at least $10.`
+  } else if (amount) {
+    errorMessage = donationLimitError(amount, fundingLeft ?? null)
   }
 
   const donate = async () => {
     setIsSubmitting(true)
+    setRefusal(null)
     if (!profile) {
       return
     }
+    let response: Response | undefined
     if (project && project.stage === 'proposal') {
-      await fetch('/api/place-bid', {
+      response = await fetch('/api/place-bid', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -49,9 +55,9 @@ export function DonateBox(props: {
           amount,
           type: 'donate',
         }),
-      })
+      }).catch(() => undefined)
     } else if (project || charity) {
-      await fetch('/api/transfer-money', {
+      response = await fetch('/api/transfer-money', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,10 +68,17 @@ export function DonateBox(props: {
           amount,
           projectId: project?.id,
         }),
-      })
+      }).catch(() => undefined)
+    }
+    setIsSubmitting(false)
+    // A refusal by the server (e.g. someone else's offer just reached the goal): its own words when it gave
+    // them (400 with a text body), a generic line otherwise.
+    if (!response?.ok) {
+      const text = response && response.status === 400 ? await response.text() : ''
+      setRefusal(text || "That didn't go through. Nothing was charged; try again.")
+      return
     }
     setAmount(0)
-    setIsSubmitting(false)
     router.refresh()
     if (setCommentPrompt) {
       scrollToComments(router)
@@ -83,6 +96,11 @@ export function DonateBox(props: {
           <p className="text-sm font-light text-gray-500">
             You&apos;re pledging to donate if the project hits its minimum goal and gets approved.
             If not, your funds will be returned.
+          </p>
+        )}
+        {fundingLeft !== undefined && (
+          <p className="text-sm text-gray-500">
+            {usd(fundingLeft)} left to reach the funding goal.
           </p>
         )}
         {charity?.type === 'individual' && (
@@ -114,6 +132,7 @@ export function DonateBox(props: {
       ) : (
         <SignInButton buttonText="Sign in to donate" className="mx-auto my-4" />
       )}
+      {profile && refusal && <p className="text-sm text-rose-600">{refusal}</p>}
     </Card>
   )
 }
