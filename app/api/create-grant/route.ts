@@ -6,7 +6,7 @@ import { Project, TOTAL_SHARES } from '@/db/project'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getURL } from '@/utils/constants'
 import { projectSlugify } from '@/utils/formatting'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { sendTemplateEmail, TEMPLATE_IDS, type EmailResult } from '@/utils/email'
 import { calculateCharityBalance } from '@/utils/math'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { invalidateProjectsCache } from '@/db/project-cached'
@@ -122,7 +122,9 @@ export async function POST(req: Request) {
           loginUrl: `${getURL()}login?email=${recipientEmail}`,
         },
         undefined,
-        recipientEmail
+        recipientEmail,
+        undefined,
+        { project_id: project.id }
       )
     )
   } else if (recipientProfile) {
@@ -141,7 +143,10 @@ export async function POST(req: Request) {
           projectTitle: title,
           projectUrl: `${getURL()}projects/${slug}`,
         },
-        recipientProfile.id
+        recipientProfile.id,
+        undefined,
+        undefined,
+        { project_id: project.id }
       )
     )
   } else {
@@ -168,10 +173,17 @@ export async function POST(req: Request) {
 }
 
 // The grant is saved by now: a failed recipient email is logged and doesn't stop the rationale from
-// being posted (money review 2026-09-30, the user's answer).
-async function sendRecipientEmail(projectId: string, send: () => Promise<unknown>) {
+// being posted (money review 2026-09-30, the user's answer). Postmark refusing it counts as a failure too.
+async function sendRecipientEmail(projectId: string, send: () => Promise<EmailResult>) {
   try {
-    await send()
+    const result = await send()
+    if (!result.ok) {
+      log.error('grant.recipient_email_failed', {
+        project_id: projectId,
+        error_code: result.errorCode,
+        error: result.message,
+      })
+    }
   } catch (error) {
     log.error('grant.recipient_email_failed', { project_id: projectId, error: String(error) })
   }

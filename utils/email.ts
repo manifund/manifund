@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/db/edge'
 import { SupabaseClient } from '@supabase/supabase-js'
+import { log } from '@/lib/log'
 
 export const TEMPLATE_IDS = {
   GENERIC_NOTIF: 32825293,
@@ -34,42 +35,107 @@ export function escapeHtml(value: string) {
     .replace(/'/g, '&#39;')
 }
 
+// What a send returns: whether Postmark accepted it. Failures are already logged here (event `email.failed`), so
+// callers may ignore the result (most do: the email is a side effect of something already saved), or check `ok` to
+// log their own event or tell the person.
+export type EmailResult =
+  | { ok: true; messageId?: string }
+  | { ok: false; status?: number; errorCode?: number; message: string }
+
+type PostmarkAnswer = { ErrorCode?: number; Message?: string; MessageID?: string }
+
+const templateName = (id: number) => Object.entries(TEMPLATE_IDS).find(([, v]) => v === id)?.[0]
+// The recipient's domain only: these logs live in Vercel, and addresses are personal data.
+const domainOf = (to: string) =>
+  to
+    .split(',')
+    .map((a) => a.split('@')[1]?.replace(/>.*$/, '').trim() ?? '?')
+    .join(',')
+
+// Postmark accepted the message when the call answered 2xx with ErrorCode 0.
+export function postmarkResult(
+  status: number,
+  answer: PostmarkAnswer | null | undefined
+): EmailResult {
+  if (status >= 200 && status < 300 && answer?.ErrorCode === 0)
+    return { ok: true, messageId: answer.MessageID }
+  return {
+    ok: false,
+    status,
+    errorCode: answer?.ErrorCode,
+    message: answer?.Message ?? `HTTP ${status}`,
+  }
+}
+
+async function postToPostmark(
+  path: string,
+  body: unknown
+): Promise<{ status: number; json: unknown } | { error: string }> {
+  try {
+    // Using fetch instead of postmark's client because it doesn't work on the edge
+    const response = await fetch(`https://api.postmarkapp.com${path}`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        'X-Postmark-Server-Token': process.env.POSTMARK_SERVER_TOKEN ?? '',
+      },
+      body: JSON.stringify(body),
+    })
+    return { status: response.status, json: await response.json().catch(() => null) }
+  } catch (e) {
+    return { error: `postmark unreachable: ${(e as Error).message}` }
+  }
+}
+
+function logFailure(result: EmailResult, fields: Record<string, unknown>) {
+  if (result.ok) return
+  log.error('email.failed', {
+    ...fields,
+    status: result.status,
+    error_code: result.errorCode,
+    error: result.message,
+  })
+}
+
 export async function sendTemplateEmail(
   templateId: number,
   templateModel: object,
   toId?: string,
   toEmail?: string,
-  fromEmail?: string
-) {
-  const supabase = createAdminClient()
+  fromEmail?: string,
+  // Ids to log with a failure (e.g. { project_id }): never addresses.
+  logFields: Record<string, unknown> = {}
+): Promise<EmailResult> {
   if (!toEmail && !toId) {
     console.log('No email or user id provided')
-    return
+    return { ok: false, message: 'no recipient' }
   }
-  const sendToEmail = toEmail ?? (await getUserEmail(supabase, toId ?? ''))
+  const sendToEmail = toEmail ?? (await getUserEmail(createAdminClient(), toId ?? ''))
 
   if (!sendToEmail) {
     console.log('No email found for user', toId)
-    return
+    return { ok: false, message: 'no email for user' }
   }
 
-  // Using fetch instead of postmark's client because it doesn't work on the edge:
-  const response = await fetch('https://api.postmarkapp.com/email/withTemplate', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Postmark-Server-Token': process.env.POSTMARK_SERVER_TOKEN ?? '',
-    },
-    body: JSON.stringify({
-      From: fromEmail ?? 'info@manifund.org',
-      To: sendToEmail,
-      TemplateId: templateId,
-      TemplateModel: templateModel,
-    }),
+  const answer = await postToPostmark('/email/withTemplate', {
+    From: fromEmail ?? 'info@manifund.org',
+    To: sendToEmail,
+    TemplateId: templateId,
+    TemplateModel: templateModel,
   })
-  const json = await response.json()
-  console.log('Sent message', json)
+  const result =
+    'error' in answer
+      ? { ok: false as const, message: answer.error }
+      : postmarkResult(answer.status, answer.json as PostmarkAnswer)
+  logFailure(result, {
+    template: templateName(templateId),
+    template_id: templateId,
+    to_domain: domainOf(sendToEmail),
+    user_id: toId,
+    ...logFields,
+  })
+  return result
 }
 
 export async function sendEmail(
@@ -79,27 +145,24 @@ export async function sendEmail(
   textBody: string,
   fromEmail?: string,
   // 'outbound' for transactional emails, 'broadcast' for marketing emails
-  messageStream?: string
-) {
-  const response = await fetch('https://api.postmarkapp.com/email', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Postmark-Server-Token': process.env.POSTMARK_SERVER_TOKEN ?? '',
-    },
-    body: JSON.stringify({
-      From: fromEmail ?? 'info@manifund.org',
-      To: toEmail,
-      Subject: subject,
-      HtmlBody: htmlBody,
-      TextBody: textBody,
-      MessageStream: messageStream ?? '',
-    }),
+  messageStream?: string,
+  // Ids to log with a failure: never addresses.
+  logFields: Record<string, unknown> = {}
+): Promise<EmailResult> {
+  const answer = await postToPostmark('/email', {
+    From: fromEmail ?? 'info@manifund.org',
+    To: toEmail,
+    Subject: subject,
+    HtmlBody: htmlBody,
+    TextBody: textBody,
+    MessageStream: messageStream ?? '',
   })
-  const json = await response.json()
-  console.log('Sent email', json)
-  return json
+  const result =
+    'error' in answer
+      ? { ok: false as const, message: answer.error }
+      : postmarkResult(answer.status, answer.json as PostmarkAnswer)
+  logFailure(result, { subject, to_domain: domainOf(toEmail), ...logFields })
+  return result
 }
 
 export async function getUserEmail(supabaseAdmin: SupabaseClient, userId: string) {
@@ -123,7 +186,7 @@ export async function sendBatchEmail(
     fromEmail?: string
     messageStream?: string
   }>
-) {
+): Promise<EmailResult & { failed: number }> {
   const batchPayload = emails.map((email) => ({
     From: email.fromEmail ?? 'info@manifund.org',
     To: email.toEmail,
@@ -133,18 +196,35 @@ export async function sendBatchEmail(
     MessageStream: email.messageStream ?? 'outbound',
   }))
 
-  const response = await fetch('https://api.postmarkapp.com/email/batch', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-      'X-Postmark-Server-Token': process.env.POSTMARK_SERVER_TOKEN ?? '',
-    },
-    body: JSON.stringify(batchPayload),
-  })
-
-  const json = await response.json()
-  console.log('Sent batch emails', json)
+  const answer = await postToPostmark('/email/batch', batchPayload)
   console.log('Request size of batch payload:', JSON.stringify(batchPayload).length)
-  return json
+  // Postmark answers a batch with one entry per message (200 even when some are refused), or one error for all.
+  if ('error' in answer || !Array.isArray(answer.json)) {
+    const result =
+      'error' in answer
+        ? { ok: false as const, message: answer.error }
+        : postmarkResult(answer.status, {
+            ErrorCode: -1,
+            Message: 'unexpected answer',
+            ...(answer.json as PostmarkAnswer),
+          })
+    logFailure(result, { batch: emails.length })
+    return result.ok ? { ok: true as const, failed: 0 } : { ...result, failed: emails.length }
+  }
+  const entries = answer.json as PostmarkAnswer[]
+  let failed = 0
+  entries.forEach((entry, i) => {
+    const result = postmarkResult(answer.status, entry)
+    if (result.ok) return
+    failed++
+    logFailure(result, {
+      batch: emails.length,
+      index: i,
+      subject: emails[i]?.subject,
+      to_domain: domainOf(emails[i]?.toEmail ?? ''),
+    })
+  })
+  return failed
+    ? { ok: false as const, message: `${failed} of ${emails.length} refused`, failed }
+    : { ok: true as const, failed: 0 }
 }
