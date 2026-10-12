@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import clsx from 'clsx'
 import { usePathname } from 'next/navigation'
 import {
@@ -18,7 +18,7 @@ import {
   BellIcon,
 } from '@heroicons/react/24/outline'
 import { SiteLink } from '@/components/site-link'
-import { CountBadge } from '@/components/count-badge'
+import { CountBadge, useUnreadAfterVisit } from '@/components/count-badge'
 
 export type Item = {
   name: string
@@ -73,17 +73,9 @@ export function SidebarItem(props: { item: Item }) {
   )
 }
 
-// The sidebar's notifications item (C25). The sidebar sits in the root layout, which Next keeps across
-// client-side navigation, so the server's unread count would stay stale after the visit to /notifications
-// that marks everything read. Once you've been on that page, the count hides until the server sends a new
-// one (`key` on the count remounts this, so a later notification shows again).
+// The sidebar's notifications item: the bell with the unread count (C25).
 export function NotificationsItem(props: { unread: number }) {
-  const onPage = usePathname() === '/notifications'
-  const [seen, setSeen] = useState(false)
-  useEffect(() => {
-    if (onPage) setSeen(true)
-  }, [onPage])
-  const count = seen || onPage ? 0 : props.unread
+  const count = useUnreadAfterVisit(props.unread)
   return <SidebarItem item={{ name: 'Notifications', href: '/notifications', badge: count }} />
 }
 

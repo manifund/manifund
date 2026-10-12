@@ -130,9 +130,10 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C24** Emails go out right after the comment is saved; failures are retried, and a check every 10 minutes sends
   what was missed and raises an alert when something has waited over 30 minutes. If notifications fail, the comment
   still stands (and the failure is logged).
-- **C25** `/notifications` lists a person's notifications, newest first, and marks them read; the sidebar's bell
-  carries a badge with how many are new ("9+" above nine), which clears once the person has opened the page, without
-  a page reload.
+- **C25** `/notifications` lists a person's notifications, newest first, and marks them read; the bell carries
+  a badge with how many are new ("9+" above nine), which clears once the person has opened the page, without a page
+  reload. The bell is in the sidebar and, on phones, in the bottom bar, where it takes About's place for signed-in
+  people, labelled "Alerts" to fit.
 
 ### Comments posted by other flows
 
@@ -163,6 +164,7 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-10-12 | Vals | The bell is in the phone bottom bar too, in About's place for signed-in people (C25) | Phones had no way to see notifications; six items fit a phone's width, and About matters most to visitors |
 | 2026-10-12 | Vals | The unread count becomes a badge on the sidebar's bell instead of "Notifications (n)"; it clears once `/notifications` is opened, not only after a reload (bug report from the team, 2026-10-09) (C25) | Easier to spot, and the label stays steady. The sidebar sits in the root layout, which survives client-side navigation, so it kept showing the count from before the visit |
 | 2026-10-07 | Austin | Org pages take comments, as reviews: a third target column, `org_id` | Reviews need everything comments already have (editing, moderation, reports) |
 | 2026-10-05 | Vals | Programs (causes, e.g. Falcon Fund) take no comments for now; C2 removed. Two target columns stay (`project`, `profile_id`), over one generic parent column or link tables | Causes are keyed by slug, not id, and will be reworked; two columns keep real foreign keys and a one-line "exactly one" check |

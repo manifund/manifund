@@ -1,6 +1,6 @@
 import { getProfileById, getUser } from '@/db/profile'
 import { createServerSupabaseClient } from '@/db/supabase-server'
-import { NavBarItem } from './bottom-nav-bar-item'
+import { NavBarItem, NotificationsNavItem } from './bottom-nav-bar-item'
 import Link from 'next/link'
 import { Avatar } from '@/components/avatar'
 import { Col } from '@/components/layout/col'
@@ -15,6 +15,8 @@ export type Item = {
   name: string
   href?: string
   icon?: React.ComponentType<{ className?: string }>
+  badge?: number | null // shown on the icon (the unread notifications count)
+  label?: string // what's shown under the icon, when shorter than the name
 }
 
 export async function BottomNavBar() {
@@ -23,9 +25,17 @@ export async function BottomNavBar() {
   const profile = await getProfileById(supabase, user?.id)
   const txns = await getTxnsByUser(supabase, user?.id ?? '')
   const bids = await getPendingBidsByUser(supabase, user?.id ?? '')
+  const { count: unread } = user
+    ? await supabase
+        .from('notifications')
+        .select('id', { count: 'exact', head: true })
+        .is('read_at', null)
+    : { count: 0 }
+  // Signed in, the bell takes About's place: six items fit a phone's width, and About matters most to visitors.
+  // Its label is "Alerts": "Notifications" is too wide for a 375px screen and pushes Create off the edge.
   const navigationOptions = [
     { name: 'Home', href: '/' },
-    { name: 'About', href: '/about' },
+    user ? { name: 'Notifications', href: '/notifications' } : { name: 'About', href: '/about' },
     { name: 'People', href: '/people' },
     { name: 'Categories', href: '/causes' },
     {
@@ -63,6 +73,8 @@ export async function BottomNavBar() {
           </Col>
         </Link>
       )
+    } else if (item.name === 'Notifications') {
+      return <NotificationsNavItem key={`notifications-${unread ?? 0}`} unread={unread ?? 0} />
     } else {
       return <NavBarItem key={item.name} item={item} />
     }

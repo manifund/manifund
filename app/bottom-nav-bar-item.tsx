@@ -5,7 +5,9 @@ import {
   UserGroupIcon,
   XMarkIcon,
   InformationCircleIcon,
+  BellIcon,
 } from '@heroicons/react/24/outline'
+import { CountBadge, useUnreadAfterVisit } from '@/components/count-badge'
 import clsx from 'clsx'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -27,6 +29,7 @@ function findIcon(name: string) {
       Categories: GlobeAltIcon,
       Create: PlusIcon,
       About: InformationCircleIcon,
+      Notifications: BellIcon,
     }[name] ?? UserCircleIcon
   )
 }
@@ -60,10 +63,23 @@ export function NavBarItem(props: { item: Item; children?: any; className?: stri
       onTouchStart={() => setTouched(true)}
       onTouchEnd={() => setTouched(false)}
     >
-      {<i.icon className="mx-auto my-1 h-6 w-6" />}
+      <span className="relative mx-auto my-1 block h-6 w-6">
+        <i.icon className="h-6 w-6" />
+        <CountBadge count={item.badge} />
+      </span>
       {children}
-      {item.name}
+      {item.label ?? item.name}
     </Link>
+  )
+}
+
+// The bottom bar's notifications item: the bell with the unread count (C25).
+export function NotificationsNavItem(props: { unread: number }) {
+  const count = useUnreadAfterVisit(props.unread)
+  return (
+    <NavBarItem
+      item={{ name: 'Notifications', label: 'Alerts', href: '/notifications', badge: count }}
+    />
   )
 }
 

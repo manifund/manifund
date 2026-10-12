@@ -93,6 +93,24 @@ test('C25 after visiting the notifications page, the sidebar no longer counts th
   await expect(sidebar.getByLabel(/unread$/)).toHaveCount(0)
 })
 
+test('C25 on a phone, the bottom bar has the bell with the count, cleared after visiting the page', async ({ page, context }) => {
+  const w = await world()
+  await api('bob', '/api/comments', 'POST', { target: { project: w.project.id }, content: doc(`Phone count ${RUN}`) })
+  await signIn(context, 'alice')
+  await page.setViewportSize({ width: 375, height: 740 })
+  await page.goto('/')
+  const bar = page.locator('nav.fixed.bottom-0')
+  await expect(bar.getByText('About', { exact: true })).toHaveCount(0) // the bell takes About's place
+  await expect(bar.getByLabel(/^(\d+|9\+) unread$/)).toBeVisible()
+  const read = page.waitForResponse((r) => r.url().endsWith('/api/notifications/read'))
+  await bar.getByRole('link', { name: /Alerts$/ }).click() // the link's name starts with the badge's count
+  await expect(page).toHaveURL(/\/notifications$/)
+  await read
+  await bar.locator('a[href="/people"]').click() // client-side navigation (in dev, Next's indicator covers Home)
+  await expect(page).toHaveURL(/\/people$/)
+  await expect(bar.getByLabel(/unread$/)).toHaveCount(0)
+})
+
 test('C29 the project creator\'s comments carry the creator badge', async ({ page }) => {
   const w = await world()
   const mine = await api('alice', '/api/comments', 'POST', { target: { project: w.project.id }, content: doc(`Creator here ${RUN}`) })
