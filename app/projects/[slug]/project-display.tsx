@@ -6,23 +6,16 @@ import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
 import { ProgressBar } from '@/components/progress-bar'
 import { BidAndProfile, BidAndProject } from '@/db/bid'
-import { CommentAndProfileAndRxns } from '@/db/comment'
 import { Profile } from '@/db/profile'
-import { FullProject, FullProjectWithSimilarity, Project } from '@/db/project'
+import { FullProject, Project } from '@/db/project'
 import { Cause, SimpleCause } from '@/db/cause'
 import { TxnAndProfiles, TxnAndProject } from '@/db/txn'
-import {
-  calculateCashBalance,
-  calculateCharityBalance,
-  calculateSellableShares,
-  getAmountRaised,
-  getMinIncludingAmm,
-  getProjectValuation,
-} from '@/utils/math'
+import { calculateCashBalance, getAmountRaised, getMinIncludingAmm, getProjectValuation } from '@/utils/math'
 import { useState } from 'react'
 import { karmaWeight } from '@/utils/karma'
 import { countVotes } from '@/utils/sort'
-import { ProjectTabs } from './project-tabs'
+import { CommentPromptProvider, useCommentPrompt } from './comment-prompt'
+import { getViewerFunds } from './viewer-funds'
 import { ProjectData } from './project-data'
 import { ProposalRequirements } from './proposal-requirements'
 import { ProjectTimeline } from './project-timeline'
@@ -45,11 +38,10 @@ import Link from 'next/link'
 import { ArrowTrendingUpIcon, CircleStackIcon } from '@heroicons/react/24/outline'
 import { format } from 'date-fns'
 
-export function ProjectDisplay(props: {
+type ProjectDisplayProps = {
   project: FullProject
   userTxns: TxnAndProject[]
   userBids: BidAndProject[]
-  comments: CommentAndProfileAndRxns[]
   projectBids: BidAndProfile[]
   projectTxns: TxnAndProfiles[]
   causesList: SimpleCause[]
@@ -57,13 +49,23 @@ export function ProjectDisplay(props: {
   userProfile?: Profile
   creatorEmail?: string
   userIsAdmin?: boolean
-  similarProjects?: FullProjectWithSimilarity[]
-}) {
+  // The tabs (comments, offers, similar projects), rendered by the page and streamed in later.
+  tabs: React.ReactNode
+}
+
+export function ProjectDisplay(props: ProjectDisplayProps) {
+  return (
+    <CommentPromptProvider>
+      <ProjectDisplayInner {...props} />
+    </CommentPromptProvider>
+  )
+}
+
+function ProjectDisplayInner(props: ProjectDisplayProps) {
   const {
     project,
     userTxns,
     userBids,
-    comments,
     projectBids,
     projectTxns,
     userProfile,
@@ -71,22 +73,14 @@ export function ProjectDisplay(props: {
     causesList,
     prizeCause,
     userIsAdmin,
-    similarProjects,
+    tabs,
   } = props
-  const userCharityBalance = userProfile
-    ? calculateCharityBalance(userTxns, userBids, userProfile.id, userProfile.accreditation_status)
-    : 0
-  const userSpendableFunds = Math.max(
-    userProfile
-      ? project.type === 'cert' && userProfile.id === project.creator
-        ? calculateCashBalance(userTxns, userBids, userProfile.id, userProfile.accreditation_status)
-        : userCharityBalance
-      : 0,
-    0
+  const { userSpendableFunds, userSellableShares } = getViewerFunds(
+    project,
+    userProfile,
+    userTxns,
+    userBids
   )
-  const userSellableShares = userProfile
-    ? calculateSellableShares(userTxns, userBids, project.id, userProfile.id)
-    : 0
   const valuation = getProjectValuation(project)
   const isOwnProject = userProfile?.id === project.profiles.id
   const pendingProjectTransfers = project.project_transfers?.filter(
@@ -109,7 +103,7 @@ export function ProjectDisplay(props: {
     ['draft', 'proposal', 'active'].includes(project.stage) &&
     pendingProjectTransfers.length === 0
   const activeAuction = !!prizeCause?.cert_params?.auction && project.stage === 'proposal'
-  const [specialCommentPrompt, setSpecialCommentPrompt] = useState<undefined | string>(undefined)
+  const { setPrompt: setSpecialCommentPrompt } = useCommentPrompt()
   // The viewer's vote is held here so the counts and karma move at once; their weight
   // is known client-side. Refreshed server data already includes the vote.
   const savedMagnitude =
@@ -318,21 +312,7 @@ export function ProjectDisplay(props: {
         {project.description && (
           <RichContent content={project.description} className="px-3 text-sm" />
         )}
-        <div id="tabs">
-          <ProjectTabs
-            project={project}
-            userProfile={userProfile}
-            comments={comments}
-            bids={projectBids}
-            txns={projectTxns}
-            userCharityBalance={userCharityBalance}
-            userSpendableFunds={userSpendableFunds}
-            userSellableShares={userSellableShares}
-            specialCommentPrompt={specialCommentPrompt}
-            activeAuction={activeAuction}
-            similarProjects={similarProjects}
-          />
-        </div>
+        <div id="tabs">{tabs}</div>
       </Col>
     </>
   )

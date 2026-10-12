@@ -1,13 +1,14 @@
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getUser, isAdmin, getProfileAndBidsById } from '@/db/profile'
+import { Suspense } from 'react'
 import { getFullProjectBySlug, getProjectBySlug } from '@/db/project'
-import { getFullSimilarProjectsCached } from '@/db/project-cached'
-import { getCommentsByProject } from '@/db/comment'
 import { getBidsByProject } from '@/db/bid'
 import { getTxnsByProject, getTxnAndProjectsByUser } from '@/db/txn'
 import { getUserEmail } from '@/utils/email'
 import { createAdminClient } from '@/db/edge'
 import { ProjectDisplay } from './project-display'
+import { ProjectTabsSection } from './project-tabs-section'
+import { ProjectTabsSkeleton } from './skeletons'
 import { getPrizeCause, listSimpleCauses } from '@/db/cause'
 import { getBidsByUser } from '@/db/bid'
 import NoAccess from '@/app/no-access'
@@ -49,29 +50,21 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
   if (!project) {
     notFound()
   }
-  const [
-    userProfile,
-    userTxns,
-    userBids,
-    comments,
-    projectBids,
-    projectTxns,
-    causesList,
-    similarProjects,
-  ] = await Promise.all([
-    user ? await getProfileAndBidsById(supabase, user.id) : null,
-    user ? getTxnAndProjectsByUser(supabase, user.id) : [],
-    user ? getBidsByUser(supabase, user.id) : [],
-    getCommentsByProject(supabase, project.id),
-    getBidsByProject(supabase, project.id),
-    getTxnsByProject(supabase, project.id),
-    listSimpleCauses(supabase),
-    getFullSimilarProjectsCached(project.id, 8),
-  ])
-  const prizeCause = await getPrizeCause(
-    project.causes.map((c) => c.slug),
-    supabase
-  )
+  // What the top of the page needs, in one round. Comments and similar projects load in
+  // ProjectTabsSection, streamed in below once the top is on screen.
+  const [userProfile, userTxns, userBids, projectBids, projectTxns, causesList, prizeCause] =
+    await Promise.all([
+      user ? getProfileAndBidsById(supabase, user.id) : null,
+      user ? getTxnAndProjectsByUser(supabase, user.id) : [],
+      user ? getBidsByUser(supabase, user.id) : [],
+      getBidsByProject(supabase, project.id),
+      getTxnsByProject(supabase, project.id),
+      listSimpleCauses(supabase),
+      getPrizeCause(
+        project.causes.map((c) => c.slug),
+        supabase
+      ),
+    ])
   const creatorEmail = userProfile?.regranter_status
     ? await getUserEmail(createAdminClient(), project.creator)
     : undefined
@@ -87,7 +80,6 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
           project={project}
           userTxns={userTxns}
           userBids={userBids}
-          comments={comments}
           projectBids={projectBids}
           projectTxns={projectTxns}
           creatorEmail={creatorEmail}
@@ -95,7 +87,19 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
           causesList={causesList}
           prizeCause={prizeCause}
           userIsAdmin={userIsAdmin}
-          similarProjects={similarProjects}
+          tabs={
+            <Suspense fallback={<ProjectTabsSkeleton />}>
+              <ProjectTabsSection
+                project={project}
+                userProfile={userProfile ?? undefined}
+                userTxns={userTxns}
+                userBids={userBids}
+                projectBids={projectBids}
+                projectTxns={projectTxns}
+                prizeCause={prizeCause}
+              />
+            </Suspense>
+          }
         />
       )}
     </div>
