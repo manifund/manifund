@@ -19,10 +19,11 @@ export type ProjectAndBids = Project & { bids: Bid[] }
 export type ProjectBidsAndFollows = Project & { bids: Bid[] } & {
   project_follows: ProjectFollow[]
 } & { causes: { cert_params: CertParams | null }[] }
-// profiles: the creator; the home feed loads only these columns (listProjects)
+// profiles: the creator. The home feed and cause pages load only these creator columns,
+// and only comment ids (for counts).
 export type FullProject = Project & { profiles: MiniProfile } & {
   bids: Bid[]
-} & { txns: Txn[] } & { comments: Comment[] } & { rounds: Round } & {
+} & { txns: Txn[] } & { comments: Pick<Comment, 'id'>[] } & { rounds: Round } & {
   project_transfers: ProjectTransfer[]
 } & { project_votes: ProjectVote[] } & { causes: MiniCause[] } & {
   project_follows: ProjectFollow[]
@@ -265,7 +266,7 @@ export async function getFullProjectsByCause(supabase: SupabaseClient, causeSlug
   const { data, error } = await supabase
     .from('projects')
     .select(
-      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, amm_shares, founder_shares, auction_close, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), project_causes!inner(cause_slug), causes(title, slug)'
+      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, amm_shares, founder_shares, auction_close, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(id, username, full_name, avatar_url, type), bids(*), txns(*), comments(id), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), project_causes!inner(cause_slug), causes(title, slug)'
     )
     .eq('project_causes.cause_slug', causeSlug)
     .neq('stage', 'hidden')
