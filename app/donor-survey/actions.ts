@@ -127,7 +127,10 @@ async function sendEditLink(email: string, fullName: string, token: string) {
 <p>The same link also gets you to what other donors answered: <a href="${getURL()}donor-survey/results">${getURL()}donor-survey/results</a></p>
 <p>Austin</p>`
   const plain = `Hi ${fullName},\n\nThanks for filling out the Manifund donor survey. You can come back and change your answers any time with this link:\n\n${link}\n\nThe same link also gets you to what other donors answered: ${getURL()}donor-survey/results\n\nAustin`
-  await sendEmail(email, 'Your Manifund donor survey answers', html, plain)
+  // A failure is logged (email.failed); the page still says the link was emailed.
+  await sendEmail(email, 'Your Manifund donor survey answers', html, plain, undefined, undefined, {
+    kind: 'donor_survey.edit_link',
+  })
 }
 
 async function findProfileIdByEmail(email: string) {
