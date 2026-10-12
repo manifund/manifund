@@ -24,30 +24,39 @@ export async function generateMetadata(props: { params: Promise<{ causeSlug: str
 }
 
 export default async function CausePage(props: { params: Promise<{ causeSlug: string }> }) {
-  // TODO: Maybe batch with Promise.all for fewer roundtrips
   const { causeSlug } = await props.params
   const supabase = await createServerSupabaseClient()
-  const cause = await getCause(supabase, causeSlug)
+  const [cause, causesList, user] = await Promise.all([
+    getCause(supabase, causeSlug),
+    listSimpleCauses(supabase),
+    getUser(supabase),
+  ])
   if (!cause) {
     notFound()
   }
-  const causesList = await listSimpleCauses(supabase)
-  const projects = await getFullProjectsByCause(supabase, cause.slug)
-  const user = await getUser(supabase)
-  const fund = cause.fund_id ? await getProfileById(supabase, cause.fund_id) : undefined
-  const fundTxns = fund ? await getIncomingTxnsByUserWithDonor(supabase, fund.id) : []
-  const userTxns = user ? await getTxnAndProjectsByUser(supabase, user.id) : []
-  const userBids = user ? await getPendingBidsByUser(supabase, user.id) : []
-  const userProfile = user ? await getProfileById(supabase, user.id) : null
-
-  const [profiles, matchTxns, matchBids] =
+  const [
+    projects,
+    fund,
+    fundTxns,
+    userTxns,
+    userBids,
+    userProfile,
+    [profiles, matchTxns, matchBids],
+  ] = await Promise.all([
+    getFullProjectsByCause(supabase, cause.slug),
+    cause.fund_id ? getProfileById(supabase, cause.fund_id) : undefined,
+    cause.fund_id ? getIncomingTxnsByUserWithDonor(supabase, cause.fund_id) : [],
+    user ? getTxnAndProjectsByUser(supabase, user.id) : [],
+    user ? getPendingBidsByUser(supabase, user.id) : [],
+    user ? getProfileById(supabase, user.id) : null,
     causeSlug === 'ea-community-choice'
-      ? await Promise.all([
+      ? Promise.all([
           getProfilesWithRoles(supabase),
           getMatchTxns(supabase, causeSlug, MATCH_START, MATCH_END),
           getMatchBids(supabase, causeSlug, MATCH_START, MATCH_END),
         ])
-      : []
+      : [],
+  ])
   const charityBalance = userProfile
     ? calculateCharityBalance(userTxns, userBids, userProfile.id, userProfile.accreditation_status)
     : 0
