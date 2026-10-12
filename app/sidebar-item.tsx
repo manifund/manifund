@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { usePathname } from 'next/navigation'
 import {
@@ -18,17 +18,19 @@ import {
   BellIcon,
 } from '@heroicons/react/24/outline'
 import { SiteLink } from '@/components/site-link'
+import { CountBadge } from '@/components/count-badge'
 
 export type Item = {
   name: string
   href?: string
   children?: Item[]
+  badge?: number | null // shown on the icon (the unread notifications count)
 }
 
 export function SidebarItem(props: { item: Item }) {
   const { item } = props
   const isCurrentPage = item.href === usePathname() && item.href != null
-  const icon = findIcon(item.name, isCurrentPage)
+  const icon = findIcon(item.name, isCurrentPage, item.badge)
   const [isOpen, setIsOpen] = useState(false)
 
   const sidebarItem = (
@@ -71,32 +73,47 @@ export function SidebarItem(props: { item: Item }) {
   )
 }
 
-function findIcon(name: string, isCurrentPage: boolean) {
-  const styling = clsx(
-    isCurrentPage ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500',
-    '-ml-1 mr-3 h-6 w-6 flex-shrink-0' + 'h-6 w-6'
+// The sidebar's notifications item (C25). The sidebar sits in the root layout, which Next keeps across
+// client-side navigation, so the server's unread count would stay stale after the visit to /notifications
+// that marks everything read. Once you've been on that page, the count hides until the server sends a new
+// one (`key` on the count remounts this, so a later notification shows again).
+export function NotificationsItem(props: { unread: number }) {
+  const onPage = usePathname() === '/notifications'
+  const [seen, setSeen] = useState(false)
+  useEffect(() => {
+    if (onPage) setSeen(true)
+  }, [onPage])
+  const count = seen || onPage ? 0 : props.unread
+  return <SidebarItem item={{ name: 'Notifications', href: '/notifications', badge: count }} />
+}
+
+// Every item gets the same icon slot, so labels line up whether or not the bell carries a count;
+// the count badge overlays the bell's corner and never pushes the label.
+function findIcon(name: string, isCurrentPage: boolean, badge?: number | null) {
+  const Icon = ICONS[name]
+  if (!Icon) return null
+  return (
+    <span className="relative -ml-1 mr-3 h-6 w-6 flex-shrink-0">
+      <Icon
+        className={clsx(
+          'h-6 w-6',
+          isCurrentPage ? 'text-gray-500' : 'text-gray-400 group-hover:text-gray-500'
+        )}
+      />
+      {name === 'Notifications' && <CountBadge count={badge} />}
+    </span>
   )
-  if (name.startsWith('Notifications')) return <BellIcon className={styling} />
-  switch (name) {
-    case 'Home':
-      return <HomeIcon className={styling} />
-    case 'Profile':
-      return <UserCircleIcon className={styling} />
-    case 'Projects':
-      return <WrenchIcon className={styling} />
-    case 'About':
-      return <InformationCircleIcon className={styling} />
-    case 'Categories':
-      return <GlobeAltIcon className={styling} />
-    case 'People':
-      return <UserGroupIcon className={styling} />
-    case 'Orgs':
-      return <BuildingOffice2Icon className={styling} />
-    case 'Login':
-      return <UserCircleIcon className={styling} />
-    case 'Newsletter':
-      return <NewspaperIcon className={styling} />
-    default:
-      return null
-  }
+}
+
+const ICONS: Record<string, React.ComponentType<{ className?: string }>> = {
+  Home: HomeIcon,
+  Profile: UserCircleIcon,
+  Projects: WrenchIcon,
+  About: InformationCircleIcon,
+  Categories: GlobeAltIcon,
+  People: UserGroupIcon,
+  Orgs: BuildingOffice2Icon,
+  Login: UserCircleIcon,
+  Newsletter: NewspaperIcon,
+  Notifications: BellIcon,
 }

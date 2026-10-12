@@ -3,7 +3,7 @@ import Link from 'next/link'
 import React from 'react'
 import Image from 'next/image'
 import { getUser, getProfileById, Profile } from '@/db/profile'
-import { SidebarItem } from './sidebar-item'
+import { NotificationsItem, SidebarItem } from './sidebar-item'
 import { SUPABASE_ENV } from '@/db/env'
 import { Avatar } from '@/components/avatar'
 import { formatMoney } from '@/utils/formatting'
@@ -81,14 +81,7 @@ export default async function Sidebar() {
             }}
           />
           {user && (
-            <SidebarItem
-              item={{
-                name: unreadNotifications
-                  ? `Notifications (${unreadNotifications})`
-                  : 'Notifications',
-                href: '/notifications',
-              }}
-            />
+            <NotificationsItem key={unreadNotifications ?? 0} unread={unreadNotifications ?? 0} />
           )}
           <SidebarItem item={{ name: 'People', href: '/people' }} />
           <SidebarItem item={{ name: 'Orgs', href: '/orgs' }} />

@@ -73,6 +73,26 @@ test('C25 notifications list new comments', async ({ page, context }) => {
   await expect(page.getByText('commented on your project').first()).toBeVisible()
 })
 
+// Bug report from the team, 2026-10-09: the sidebar kept its count after the visit that marked everything read,
+// because the root layout survives client-side navigation. The count is a badge on the bell ("<n> unread").
+test('C25 after visiting the notifications page, the sidebar no longer counts them as new', async ({ page, context }) => {
+  const w = await world()
+  await api('bob', '/api/comments', 'POST', { target: { project: w.project.id }, content: doc(`Count me ${RUN}`) })
+  await signIn(context, 'alice')
+  await page.setViewportSize({ width: 1280, height: 800 }) // the sidebar shows from the lg breakpoint
+  await page.goto('/')
+  const sidebar = page.getByRole('navigation', { name: 'Sidebar' })
+  await expect(sidebar.getByLabel(/^(\d+|9\+) unread$/)).toBeVisible()
+  const read = page.waitForResponse((r) => r.url().endsWith('/api/notifications/read'))
+  await sidebar.getByText('Notifications', { exact: true }).click()
+  await expect(page).toHaveURL(/\/notifications$/)
+  await read
+  await sidebar.getByText('Home', { exact: true }).click() // client-side navigation: the layout isn't re-rendered
+  await expect(page).toHaveURL(/\/$/)
+  await expect(sidebar.getByText('Notifications', { exact: true })).toBeVisible()
+  await expect(sidebar.getByLabel(/unread$/)).toHaveCount(0)
+})
+
 test('C29 the project creator\'s comments carry the creator badge', async ({ page }) => {
   const w = await world()
   const mine = await api('alice', '/api/comments', 'POST', { target: { project: w.project.id }, content: doc(`Creator here ${RUN}`) })
