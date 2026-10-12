@@ -1,7 +1,8 @@
 import { Cause } from '@/db/cause'
+import { Bid, getBidsByUser } from '@/db/bid'
 import { getProfileById } from '@/db/profile'
 import { getProjectBidsAndFollowsById, Project, ProjectAndBids, TOTAL_SHARES } from '@/db/project'
-import { getTxnsByProject } from '@/db/txn'
+import { getTxnAndProjectsByUser, getTxnsByProject } from '@/db/txn'
 import { createAdminClient } from '@/db/edge'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { differenceInDays, isBefore } from 'date-fns'
@@ -9,7 +10,7 @@ import { uniq } from 'es-toolkit'
 import uuid from 'react-uuid'
 import { getURL } from './constants'
 import { sendTemplateEmail, TEMPLATE_IDS } from './email'
-import { getProposalValuation } from './math'
+import { calculateCharityBalance, getProposalValuation } from './math'
 import { resolveAuction } from './resolve-auction'
 
 export async function maybeActivateProject(supabase: SupabaseClient, projectId: string) {
@@ -22,6 +23,13 @@ export async function maybeActivateProject(supabase: SupabaseClient, projectId: 
     !!project.causes.find((c) => !!c.cert_params && c.cert_params.auction) &&
     project.type === 'cert'
   if (checkFundingReady(project)) {
+    const uncovered = await findUncoveredOffers(project)
+    if (uncovered.length > 0) {
+      await declineOffers(uncovered)
+      const declinedIds = new Set(uncovered.map((bid) => bid.id))
+      project.bids = project.bids.filter((bid) => !declinedIds.has(bid.id))
+      if (!checkFundingReady(project)) return
+    }
     if (activeAuction) {
       const closeDate = new Date(`${project.auction_close}T23:59:59-07:00`)
       const now = new Date()
@@ -35,6 +43,84 @@ export async function maybeActivateProject(supabase: SupabaseClient, projectId: 
       )
     }
   }
+}
+
+function isFundingBid(project: Project, bid: Bid) {
+  return project.type === 'grant' ? bid.type === 'donate' : bid.type === 'assurance buy'
+}
+
+// Offers are checked against the offerer's balance when they're placed, but the balance can be
+// spent elsewhere afterwards. Before activation turns offers into payments, each offerer must
+// still hold enough charity balance to cover all their pending offers on this project.
+// `availableByBidder` is each offerer's charity balance counting everything except their
+// pending offers on this project.
+export function uncoveredOffers(
+  project: ProjectAndBids,
+  availableByBidder: Map<string, number>
+): Bid[] {
+  const pending = project.bids.filter(
+    (bid) => bid.status === 'pending' && isFundingBid(project, bid)
+  )
+  const offeredByBidder = new Map<string, number>()
+  for (const bid of pending) {
+    offeredByBidder.set(bid.bidder, (offeredByBidder.get(bid.bidder) ?? 0) + bid.amount)
+  }
+  // Half a cent of slack for floating point sums
+  const uncoveredBidders = [...offeredByBidder].filter(
+    ([bidder, offered]) => offered > (availableByBidder.get(bidder) ?? 0) + 0.005
+  )
+  const uncovered = new Set(uncoveredBidders.map(([bidder]) => bidder))
+  return pending.filter((bid) => uncovered.has(bid.bidder))
+}
+
+async function findUncoveredOffers(project: ProjectAndBids) {
+  const supabase = createAdminClient()
+  const bidders = uniq(
+    project.bids
+      .filter((bid) => bid.status === 'pending' && isFundingBid(project, bid))
+      .map((bid) => bid.bidder)
+  )
+  const availableByBidder = new Map<string, number>()
+  for (const bidder of bidders) {
+    const [profile, txns, bids] = await Promise.all([
+      getProfileById(supabase, bidder),
+      getTxnAndProjectsByUser(supabase, bidder),
+      getBidsByUser(supabase, bidder),
+    ])
+    // Fund accounts are run by the Manifund team and may hold a negative balance until they're topped up
+    if (profile?.type === 'fund') {
+      availableByBidder.set(bidder, Infinity)
+      continue
+    }
+    const otherBids = bids.filter(
+      (bid) => !(bid.project === project.id && bid.status === 'pending')
+    )
+    availableByBidder.set(
+      bidder,
+      calculateCharityBalance(txns, otherBids, bidder, !!profile?.accreditation_status)
+    )
+  }
+  return uncoveredOffers(project, availableByBidder)
+}
+
+async function declineOffers(offers: Bid[]) {
+  const supabase = createAdminClient()
+  console.error(
+    'activation: declining offers their bidders no longer cover',
+    offers.map((bid) => ({
+      id: bid.id,
+      bidder: bid.bidder,
+      amount: bid.amount,
+    }))
+  )
+  await supabase
+    .from('bids')
+    .update({ status: 'declined' })
+    .in(
+      'id',
+      offers.map((bid) => bid.id)
+    )
+    .throwOnError()
 }
 
 function checkFundingReady(project: ProjectAndBids) {
