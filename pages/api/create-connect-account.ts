@@ -1,4 +1,4 @@
-import { getUserAndClient } from '@/db/edge'
+import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/utils/stripe'
 export const config = {
@@ -8,7 +8,7 @@ export const config = {
 }
 
 export default async function handler(req: NextRequest) {
-  const { supabase, user } = await getUserAndClient(req)
+  const { user } = await getUserAndClient(req)
   if (!user) {
     return NextResponse.error()
   }
@@ -16,7 +16,8 @@ export default async function handler(req: NextRequest) {
     type: 'express',
     email: user.email,
   })
-  await supabase
+  // Payout accounts are set by the server only
+  await createAdminClient()
     .from('profiles')
     .update({ stripe_connect_id: account.id })
     .eq('id', user.id)
