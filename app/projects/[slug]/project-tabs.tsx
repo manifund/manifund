@@ -15,6 +15,7 @@ import { uniq } from 'es-toolkit'
 import { compareDesc } from 'date-fns'
 import { formatMoneyPrecise, formatPercent } from '@/utils/formatting'
 import { SimilarProjects } from './similar-projects'
+import { useCommentPrompt } from './comment-prompt'
 
 const SIMILARITY_THRESHOLD = 0.6
 
@@ -27,7 +28,6 @@ export function ProjectTabs(props: {
   userSpendableFunds: number
   userSellableShares: number
   userProfile?: Profile
-  specialCommentPrompt?: string
   activeAuction?: boolean
   similarProjects?: FullProjectWithSimilarity[]
 }) {
@@ -40,10 +40,10 @@ export function ProjectTabs(props: {
     userSpendableFunds,
     userSellableShares,
     userProfile,
-    specialCommentPrompt,
     activeAuction,
     similarProjects,
   } = props
+  const { prompt: specialCommentPrompt } = useCommentPrompt()
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab')
   const creator = project.profiles
