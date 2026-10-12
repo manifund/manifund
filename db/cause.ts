@@ -88,6 +88,21 @@ export async function getPrizeCause(causeSlugs: string[], supabase: SupabaseClie
   return data ? (data as Cause) : undefined
 }
 
+// The program a new project joins, read from the database: only open prize programs.
+export async function getOpenPrize(supabase: SupabaseClient, slug: string) {
+  const { data, error } = await supabase
+    .from('causes')
+    .select('*')
+    .eq('slug', slug)
+    .eq('prize', true)
+    .eq('open', true)
+    .maybeSingle()
+  if (error) {
+    throw error
+  }
+  return data ? (data as Cause) : undefined
+}
+
 export async function updateProjectCauses(
   supabase: SupabaseClient,
   causeSlugs: string[],

@@ -5,7 +5,7 @@ import { newProjectKarma } from '@/utils/karma'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { projectSlugify, toTitleCase } from '@/utils/formatting'
 import { ProjectParams } from '@/utils/upsert-project'
-import { getPrizeCause, updateProjectCauses } from '@/db/cause'
+import { getOpenPrize, getPrizeCause, updateProjectCauses } from '@/db/cause'
 import { getProposalValuation, getMinIncludingAmm } from '@/utils/math'
 import { insertBid } from '@/db/bid'
 import { invalidateProjectsCache } from '@/db/project-cached'
@@ -33,13 +33,17 @@ export default async function handler(req: NextRequest) {
     description,
     location,
     selectedCauses,
-    selectedPrize,
+    selectedPrize: requestedPrize,
     founderPercent,
     agreedToTerms,
     lobbying,
   } = (await req.json()) as ProjectParams
   const { supabase, user } = await getUserAndClient(req)
   if (!user) return NextResponse.error()
+  const selectedPrize = requestedPrize ? await getOpenPrize(supabase, requestedPrize.slug) : null
+  if (requestedPrize && !selectedPrize) {
+    return NextResponse.json({ error: 'This program is not open' }, { status: 400 })
+  }
 
   // Check for existing project with same title by this user (prevents duplicates from double-submit)
   const { data: existingProjects } = await supabase
