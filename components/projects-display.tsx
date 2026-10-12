@@ -14,12 +14,11 @@ import { SearchBar } from './input'
 import { searchInAny } from '@/utils/parse'
 import { LoadMoreUntilNotVisible } from './widgets/visibility-observer'
 import { sortBy } from 'es-toolkit'
-import { countVotes, karmaHotScore } from '@/utils/sort'
+import { karmaHotScore } from '@/utils/sort'
 import { Checkbox } from './input'
 import { isSlopProject } from '@/utils/slop'
 
 type SortOption =
-  | 'votes'
   | 'goal'
   | 'funding'
   | 'valuation'
@@ -36,7 +35,6 @@ const DEFAULT_SORT_OPTIONS = [
   'karma',
   'newest',
   'closing soon',
-  'votes',
   'funding',
 ] as SortOption[]
 
@@ -164,9 +162,6 @@ function sortProjects(
   projects.forEach((project) => {
     project.bids = project.bids.filter((bid) => bid.status == 'pending')
   })
-  if (sortType === 'votes') {
-    return sortBy(projects, [countVotes]).reverse()
-  }
   if (sortType === 'oldest') {
     return sortBy(projects, [(project) => new Date(project.created_at)])
   }
