@@ -1,4 +1,4 @@
-// Called by Supabase webhook trigger on projects table UPDATE.
+// Called by the Supabase webhook trigger on auth.users INSERT (a new sign-up).
 // If Vercel Attack Challenge Mode is on, this endpoint must be bypassed in Vercel Firewall rules,
 // otherwise the webhook will be blocked by the security checkpoint.
 import { createAdminClient } from '@/db/edge'

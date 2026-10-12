@@ -15,6 +15,8 @@ import { updateProjectCauses } from '@/db/cause'
 import { triggerProjectScoring } from '@/app/utils/trigger-scoring'
 import { post } from '@/lib/comments'
 import { log } from '@/lib/log'
+import { getAccountIdByEmail, normalizeEmail } from '@/db/project-transfer'
+import { createAdminClient } from '@/db/supabase-admin'
 
 // Moved from pages/api (Edge) to App Router (Node) in the comments POC, so that the rationale is
 // posted through lib/comments, whose notifications are sent after the response.
@@ -39,6 +41,9 @@ type GrantProps = {
 const fail = (error: string, status = 400) => NextResponse.json({ error }, { status })
 
 export async function POST(req: Request) {
+  const body = (await req.json()) as GrantProps
+  // Stored the way sign-up stores it (lowercase), so the claim at sign-up matches.
+  const recipientEmail = body.recipientEmail ? normalizeEmail(body.recipientEmail) : undefined
   const {
     title,
     subtitle,
@@ -47,13 +52,12 @@ export async function POST(req: Request) {
     donorContribution,
     fundingGoal,
     minFunding,
-    recipientEmail,
     recipientName,
     recipientUsername,
     causeSlugs,
     locationDescription,
     lobbying,
-  } = (await req.json()) as GrantProps
+  } = body
   const supabase = await createServerSupabaseClient()
   const {
     data: { user: regranter },
@@ -77,10 +81,16 @@ export async function POST(req: Request) {
   )
   if (regranterCharityBalance < donorContribution) return fail('insufficient funds')
   const slug = await projectSlugify(title, supabase)
-  const recipientProfile = recipientUsername
+  let recipientProfile = recipientUsername
     ? await getProfileByUsername(supabase, recipientUsername)
     : null
   if (!recipientProfile && recipientUsername) return fail('recipient not found', 404)
+  // A grant to the email of an existing account goes straight to that account, as a grant by username would:
+  // a transfer is only claimed at sign-up, so it would otherwise stay pending for good.
+  if (recipientEmail && !recipientProfile) {
+    const accountId = await getAccountIdByEmail(createAdminClient(), recipientEmail)
+    recipientProfile = accountId ? ((await getProfileById(supabase, accountId)) ?? null) : null
+  }
   const project = {
     id: uuid(),
     creator: recipientProfile ? recipientProfile.id : regranter.id,
@@ -100,7 +110,7 @@ export async function POST(req: Request) {
     lobbying,
   }
   // The money and the project: one transaction (SQL function). The rationale follows below.
-  if (recipientEmail && recipientName) {
+  if (recipientEmail && recipientName && !recipientProfile) {
     await supabase
       .rpc('create_transfer_grant_v2', {
         project,
