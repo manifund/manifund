@@ -42,9 +42,9 @@ export function ProjectTimeline(props: {
       cta: { label: 'Edit & publish', href: `/projects/${projectSlug}/publish` },
     },
     {
-      name: 'Sign grant agreement',
-      complete: signedAgreement,
-      cta: { label: 'Review & sign', href: `/projects/${projectSlug}/agreement` },
+      name: 'Spread the word',
+      description: 'Share your project with people and communities who might fund it.',
+      complete: reachedMinFunding,
     },
     {
       name: 'Funding reaches minimum',
@@ -53,6 +53,11 @@ export function ProjectTimeline(props: {
       )}.`,
       complete: reachedMinFunding,
       nonAction: true,
+    },
+    {
+      name: 'Sign grant agreement',
+      complete: signedAgreement,
+      cta: { label: 'Review & sign', href: `/projects/${projectSlug}/agreement` },
     },
     {
       name: 'Manifund reviews grant',
