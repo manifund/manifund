@@ -7,6 +7,7 @@ import { getProfileAndBidsById } from '@/db/profile'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { calculateCashBalance, calculateCharityBalance } from '@/utils/math'
 import { calcFundingNeeded, calcTotalOffered } from '@/utils/activate-project'
+import { donationLimitError, fundingLeft } from '@/utils/donation-limits'
 
 export const config = {
   runtime: 'edge',
@@ -44,6 +45,15 @@ export default async function handler(req: NextRequest) {
   }
   if (!project) {
     return new Response('Project not found', { status: 404 })
+  }
+  // Donation offers on a grant proposal: the donate box's limits ($10 minimum, nothing past the funding goal,
+  // counting the offers already pending).
+  if (type === 'donate' && project.type === 'grant' && project.stage === 'proposal') {
+    const left = fundingLeft(project.funding_goal, calcTotalOffered(project))
+    const limitError = donationLimitError(amount, left)
+    if (limitError) {
+      return new Response(limitError, { status: 400 })
+    }
   }
   // Round bids up slightly to fully fund projects if close (floating point errors)
   let actualBidAmount = amount

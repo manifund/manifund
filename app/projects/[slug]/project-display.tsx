@@ -1,6 +1,7 @@
 'use client'
 import { Karma } from '@/components/karma'
 import { DonateBox } from '@/components/donate-box'
+import { fundingLeft } from '@/utils/donation-limits'
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
 import { ProgressBar } from '@/components/progress-bar'
@@ -303,6 +304,7 @@ export function ProjectDisplay(props: {
                     project={project}
                     profile={userProfile}
                     maxDonation={userSpendableFunds}
+                    fundingLeft={fundingLeft(project.funding_goal, amountRaised)}
                     setCommentPrompt={setSpecialCommentPrompt}
                   />
                 ) : (
