@@ -17,6 +17,9 @@ export const config = {
   unstable_allowDynamic: ['**/node_modules/function-bind/implementation.js'],
 }
 
+// Larger withdrawals go through Mercury (see MERCURY_ENABLED in utils/constants.ts)
+const STRIPE_CONNECT_MAX_WITHDRAWAL = 10_000
+
 export default async function handler(req: NextRequest) {
   const { dollarAmount } = await req.json()
   const { supabase, user } = await getUserAndClient(req)
@@ -43,6 +46,23 @@ export default async function handler(req: NextRequest) {
   const txns = await getFullTxnsByUser(supabase, user.id)
   const bids = await getBidsByUser(supabase, user.id)
   const withdrawBalance = calculateCashBalance(txns, bids, user.id, profile.accreditation_status)
+  if (
+    typeof dollarAmount !== 'number' ||
+    !Number.isFinite(dollarAmount) ||
+    Math.abs(dollarAmount * CENTS_PER_DOLLAR - Math.round(dollarAmount * CENTS_PER_DOLLAR)) > 1e-6
+  ) {
+    console.error('withdraw failed: not a whole number of cents', user.id, dollarAmount)
+    return NextResponse.json({ error: 'Enter an amount in dollars and cents.' }, { status: 400 })
+  }
+  if (dollarAmount > STRIPE_CONNECT_MAX_WITHDRAWAL) {
+    console.error('withdraw failed: above the Stripe limit', user.id, dollarAmount)
+    return NextResponse.json(
+      {
+        error: `Withdrawals through Stripe are up to $${STRIPE_CONNECT_MAX_WITHDRAWAL.toLocaleString()}; use a bank transfer for more.`,
+      },
+      { status: 400 }
+    )
+  }
   if (dollarAmount <= 0 || dollarAmount > withdrawBalance) {
     console.error('withdraw failed: invalid amount', user.id, dollarAmount)
     return NextResponse.json(
@@ -90,7 +110,7 @@ export default async function handler(req: NextRequest) {
   let transfer
   try {
     transfer = await stripe.transfers.create({
-      amount: dollarAmount * CENTS_PER_DOLLAR,
+      amount: Math.round(dollarAmount * CENTS_PER_DOLLAR),
       currency: 'usd',
       destination: profile.stripe_connect_id,
     })
