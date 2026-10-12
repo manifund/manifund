@@ -1,7 +1,7 @@
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
 import { UserAvatarAndBadge } from '@/components/user-link'
-import { Profile } from '@/db/profile'
+import { MiniProfile, Profile } from '@/db/profile'
 import { TOTAL_SHARES } from '@/db/project'
 import { formatMoneyPrecise, formatPercent, showPrecision } from '@/utils/formatting'
 import clsx from 'clsx'
@@ -15,7 +15,7 @@ import { DividerWithHeader } from '@/components/divider-with-header'
 
 export function Shareholders(props: {
   shareholders: Shareholder[]
-  creator: Profile
+  creator: MiniProfile
   txns: TxnAndProfiles[]
   projectId: string
   usingAmm: boolean

@@ -2,7 +2,7 @@ import { Database } from './database.types'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { Bid } from './bid'
 import { Txn } from './txn'
-import { Profile } from './profile'
+import { MiniProfile, Profile } from './profile'
 import { Comment } from '@/db/comment'
 import { Round } from './round'
 import { CertParams, MiniCause } from './cause'
@@ -19,7 +19,8 @@ export type ProjectAndBids = Project & { bids: Bid[] }
 export type ProjectBidsAndFollows = Project & { bids: Bid[] } & {
   project_follows: ProjectFollow[]
 } & { causes: { cert_params: CertParams | null }[] }
-export type FullProject = Project & { profiles: Profile } & {
+// profiles: the creator; the home feed loads only these columns (listProjects)
+export type FullProject = Project & { profiles: MiniProfile } & {
   bids: Bid[]
 } & { txns: Txn[] } & { comments: Comment[] } & { rounds: Round } & {
   project_transfers: ProjectTransfer[]
@@ -67,7 +68,7 @@ export async function listProjects(supabase: SupabaseClient, limitToProjectIds?:
       auction_close, funding_goal, min_funding, type, approved,
       signed_agreement, lobbying, amm_shares, founder_shares,
       ai_fraction, quality_score, karma, karma_breakdown,
-      profiles!projects_creator_fkey(*),
+      profiles!projects_creator_fkey(id, username, full_name, avatar_url, type),
       rounds(title, slug),
       causes(title, slug)
     `

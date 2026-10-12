@@ -3,7 +3,7 @@ import clsx from 'clsx'
 import { Tooltip } from './tooltip'
 import { Avatar } from './avatar'
 import { ShieldCheckIcon, WrenchIcon } from '@heroicons/react/20/solid'
-import { Profile } from '@/db/profile'
+import { MiniProfile } from '@/db/profile'
 import { CheckBadgeIcon } from '@heroicons/react/24/outline'
 
 export function shortenName(name: string) {
@@ -21,7 +21,7 @@ export function shortenName(name: string) {
 }
 
 export function UserAvatarAndBadge(props: {
-  profile: Profile
+  profile: MiniProfile
   className?: string
   short?: boolean
   creatorBadge?: boolean

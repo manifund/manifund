@@ -1,5 +1,5 @@
 'use client'
-import { Profile } from '@/db/profile'
+import { MiniProfile, Profile } from '@/db/profile'
 import { formatMoney } from '@/utils/formatting'
 import { getAmountRaised, getMinIncludingAmm } from '@/utils/math'
 import { FullProject, Project } from '@/db/project'
@@ -119,7 +119,7 @@ function ProjectCardData(props: {
 }
 
 export function ProjectCardHeader(props: {
-  creator: Profile
+  creator: MiniProfile
   projectType: Project['type']
   projectRecipient?: string
   valuation?: number
