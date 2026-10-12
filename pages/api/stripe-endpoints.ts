@@ -52,7 +52,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     const supabase = createAdminClient()
     const txnId = uuid()
-    await issueMoneys(session, txnId, supabase)
+    const credited = await issueMoneys(session, txnId, supabase)
+    if (!credited) {
+      return res.status(200).send('already credited')
+    }
     await sendTemplateEmail(
       TEMPLATE_IDS.PAYMENT_CONFIRMATION,
       {
@@ -87,6 +90,17 @@ const issueMoneys = async (
       `checkout session ${sessionId}: metadata says $${dollarQuantity}, charged $${dollarQuantityNum}`
     )
   }
+  // Stripe may deliver the same event more than once: credit each checkout session once.
+  const { data: existing } = await supabase
+    .from('stripe_txns')
+    .select('id')
+    .eq('session_id', sessionId)
+    .limit(1)
+    .throwOnError()
+  if (existing && existing.length > 0) {
+    console.log(`checkout session ${sessionId} already credited`)
+    return false
+  }
   // TODO: make this an RPC
   await supabase
     .from('txns')
@@ -99,15 +113,21 @@ const issueMoneys = async (
       type: 'deposit',
     })
     .throwOnError()
-  await supabase
-    .from('stripe_txns')
-    .insert({
-      session_id: sessionId,
-      customer_id: userId,
-      txn_id: txnId,
-      amount: dollarQuantityNum,
-    })
-    .throwOnError()
+  const { error: recordError } = await supabase.from('stripe_txns').insert({
+    session_id: sessionId,
+    customer_id: userId,
+    txn_id: txnId,
+    amount: dollarQuantityNum,
+  })
+  if (recordError) {
+    // Unique session_id: a concurrent delivery recorded this session first, so undo this credit
+    await supabase.from('txns').delete().eq('id', txnId).throwOnError()
+    if (recordError.code === '23505') {
+      console.log(`checkout session ${sessionId} credited by a concurrent delivery`)
+      return false
+    }
+    throw recordError
+  }
   if (passFundsToId) {
     await supabase.from('txns').insert({
       amount: dollarQuantityNum,
@@ -117,6 +137,7 @@ const issueMoneys = async (
       type: 'profile donation',
     })
   }
+  return true
 }
 
 async function getProfileNameById(id: string, supabase: SupabaseClient) {
