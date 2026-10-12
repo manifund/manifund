@@ -14,6 +14,8 @@ export type ProjectUpdate = Database['public']['Tables']['projects']['Update']
 export type ProjectTransfer = Database['public']['Tables']['project_transfers']['Row']
 export type ProjectVote = Database['public']['Tables']['project_votes']['Row']
 export type ProjectWithCauses = Project & { causes: MiniCause[] }
+// The project fields shown and used next to a user's bids and transactions (lists, balances)
+export type ProjectSummary = Pick<Project, 'id' | 'title' | 'slug' | 'stage' | 'type' | 'creator'>
 export type ProjectAndProfile = Project & { profiles: Profile }
 export type ProjectAndBids = Project & { bids: Bid[] }
 export type ProjectBidsAndFollows = Project & { bids: Bid[] } & {

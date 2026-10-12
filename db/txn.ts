@@ -1,11 +1,11 @@
 import { Database } from '@/db/database.types'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { Profile } from './profile'
-import { Project } from './project'
+import { ProjectSummary } from './project'
 
 export type Txn = Database['public']['Tables']['txns']['Row']
-export type TxnAndProject = Txn & { projects?: Project }
-export type FullTxn = Txn & { projects?: Project } & { profiles?: Profile }
+export type TxnAndProject = Txn & { projects?: ProjectSummary }
+export type FullTxn = Txn & { projects?: ProjectSummary } & { profiles?: Profile }
 export type TxnAndProfiles = Txn & { profiles?: Profile }
 export type TxnType = Database['public']['Tables']['txns']['Row']['type']
 
@@ -15,7 +15,7 @@ export async function getFullTxnsByUser(supabase: SupabaseClient, user: string) 
   }
   const { data, error } = await supabase
     .from('txns')
-    .select('*, projects(*), profiles!txns_to_id_fkey(*)')
+    .select('*, projects(id, title, slug, stage, type, creator), profiles!txns_to_id_fkey(*)')
     .or(`from_id.eq.${user},to_id.eq.${user}`)
   if (error) {
     throw error

@@ -1,7 +1,7 @@
 'use client'
 import { Profile } from '@/db/profile'
 import { BidAndProject } from '@/db/bid'
-import { FullProject, Project } from '@/db/project'
+import { FullProject, ProjectSummary } from '@/db/project'
 import { ProposalBids } from './profile-proposal-bids'
 import { ActiveBids } from './profile-active-bids'
 import { Investments } from './profile-investments'
@@ -190,7 +190,7 @@ function UserTxns(props: { txns: FullTxn[]; profile: Profile }) {
 }
 
 export type Investment = {
-  project?: Project // Undefined eg for txns that are just transfers of money
+  project?: ProjectSummary // Undefined eg for txns that are just transfers of money
   numShares: number
   priceUsd: number
 }

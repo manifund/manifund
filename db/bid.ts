@@ -1,11 +1,11 @@
 import { Database } from '@/db/database.types'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { Profile } from './profile'
-import { Project } from './project'
+import { Project, ProjectSummary } from './project'
 
 export type Bid = Database['public']['Tables']['bids']['Row']
 export type BidInsert = Database['public']['Tables']['bids']['Insert']
-export type BidAndProject = Bid & { projects: Project }
+export type BidAndProject = Bid & { projects: ProjectSummary }
 export type BidAndProfile = Bid & { profiles: Profile }
 export type FullBid = Bid & { profiles: Profile } & { projects: Project }
 
@@ -13,7 +13,10 @@ export async function getBidsByUser(supabase: SupabaseClient, userId: string) {
   if (!userId) {
     return []
   }
-  const { data, error } = await supabase.from('bids').select('*, projects(*)').eq('bidder', userId)
+  const { data, error } = await supabase
+    .from('bids')
+    .select('*, projects(id, title, slug, stage, type, creator)')
+    .eq('bidder', userId)
   if (error) {
     throw error
   }
