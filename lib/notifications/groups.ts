@@ -42,6 +42,11 @@ export const NOTIFICATION_REASONS = [
   // your account and money: reminders
   'unfinished_withdrawal',
   'idle_balance',
+  // people and searches you follow (docs/product/follows)
+  'followed_person_project',
+  'followed_person_comment',
+  'followed_person_donation',
+  'saved_search_match',
 ] as const
 export type NotificationReason = (typeof NOTIFICATION_REASONS)[number]
 
@@ -61,6 +66,8 @@ export const GROUP_KEYS = [
   'your_projects',
   'records',
   'balance_reminders',
+  'following',
+  'saved_searches',
 ] as const
 export type GroupKey = (typeof GROUP_KEYS)[number]
 
@@ -164,6 +171,20 @@ export const GROUPS: readonly NotificationGroup[] = [
     label: 'Balance reminders: an unfinished withdrawal, money sitting idle',
     default: 'instant',
     reasons: ['unfinished_withdrawal', 'idle_balance'],
+  },
+  {
+    key: 'following',
+    section: 'People and searches you follow',
+    label: 'People you follow: their new projects, comments and donations',
+    default: 'weekly', // Vals 2026-10-09: "I'd have all emails default to weekly"
+    reasons: ['followed_person_project', 'followed_person_comment', 'followed_person_donation'],
+  },
+  {
+    key: 'saved_searches',
+    section: 'People and searches you follow',
+    label: 'New projects matching your saved searches',
+    default: 'weekly', // Vals 2026-10-05: matches weekly by default, "or daily or instant"
+    reasons: ['saved_search_match'],
   },
 ]
 

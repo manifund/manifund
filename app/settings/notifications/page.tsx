@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getUser } from '@/db/profile'
@@ -34,6 +35,12 @@ export default async function NotificationSettingsPage() {
         )}
       </p>
       <SettingsForm rows={rows} />
+      <p className="mt-6 text-sm text-gray-600">
+        People, searches and projects you follow:{' '}
+        <Link href="/settings/subscriptions" className="text-orange-600 hover:underline">
+          Following
+        </Link>
+      </p>
     </div>
   )
 }

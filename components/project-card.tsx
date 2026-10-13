@@ -21,6 +21,7 @@ import { Tooltip } from './tooltip'
 import { getSponsoredAmount } from '@/utils/constants'
 import { AiWrittenIcon } from './slop-flag'
 import { Karma } from './karma'
+import { NetworkTag } from './follows/network-tag'
 
 export function ProjectCard(props: { project: FullProject; valuation?: number }) {
   const { project, valuation } = props
@@ -61,6 +62,7 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
           <h1 className="text-lg font-medium leading-tight tracking-tight group-hover:underline">
             {project.title}
           </h1>
+          <NetworkTag projectId={project.id} />
           <p className="text-xs font-light text-gray-500 sm:text-sm">{project.blurb}</p>
         </Link>
         <Row className="mb-1 flex-wrap gap-1">

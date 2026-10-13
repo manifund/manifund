@@ -22,6 +22,7 @@ export async function notify(input: {
   bidId?: string | null
   txnId?: string | null
   withdrawalRequestId?: string | null
+  savedSearchId?: string | null
   amount?: number | null
   // Sends today's email for this event; gets the footer links to pass on (stop, settings).
   email?: (links: EmailLinks) => Promise<unknown>
@@ -48,6 +49,7 @@ export async function notify(input: {
         bid_id: input.bidId ?? null,
         txn_id: input.txnId ?? null,
         withdrawal_request_id: input.withdrawalRequestId ?? null,
+        saved_search_id: input.savedSearchId ?? null,
         amount: input.amount ?? null,
         email_status: status,
         last_error: !input.email

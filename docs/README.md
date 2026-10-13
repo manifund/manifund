@@ -81,7 +81,7 @@ docs/
   postmortems/
 ```
 
-Areas so far: `comments/` and `notifications/` (full), `projects/` and `people/` (stubs).
+Areas so far: `comments/`, `notifications/` and `follows/` (full), `projects/` and `people/` (stubs).
 
 ## Writing product docs
 

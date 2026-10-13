@@ -2,7 +2,7 @@
 import { FullProject } from '@/db/project'
 import { CheckIcon, ChevronUpDownIcon, FunnelIcon, XMarkIcon } from '@heroicons/react/24/outline'
 import { Listbox, Popover, Transition } from '@headlessui/react'
-import { Fragment, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { getAmountRaised, getProjectValuation } from '@/utils/math'
 import clsx from 'clsx'
 import { ProjectGroup } from '@/components/project-group'
@@ -17,6 +17,8 @@ import { sortBy } from 'es-toolkit'
 import { karmaHotScore } from '@/utils/sort'
 import { Checkbox } from './input'
 import { isSlopProject } from '@/utils/slop'
+import { NotifyBell, type NotifyState } from './follows/notify-bell'
+import { parseSearch, searchName, searchQuery } from '@/lib/follows/match'
 
 type SortOption =
   | 'goal'
@@ -30,13 +32,7 @@ type SortOption =
   | 'karma'
   | 'closing soon'
 
-const DEFAULT_SORT_OPTIONS = [
-  'hot',
-  'karma',
-  'newest',
-  'closing soon',
-  'funding',
-] as SortOption[]
+const DEFAULT_SORT_OPTIONS = ['hot', 'karma', 'newest', 'closing soon', 'funding'] as SortOption[]
 
 export function ProjectsDisplay(props: {
   projects: FullProject[]
@@ -44,12 +40,27 @@ export function ProjectsDisplay(props: {
   defaultSort?: SortOption
   hideRound?: boolean
   noFilter?: boolean
+  // home: the search text and categories live in the URL, and the bell saves them as a search (F5)
+  savedSearches?: { account: NotifyState | null; initialQuery: string }
 }) {
-  const { projects, defaultSort, causesList, noFilter } = props
+  const { projects, defaultSort, causesList, noFilter, savedSearches } = props
   const prices = getPrices(projects)
   const [sortBy, setSortBy] = useState<SortOption>(defaultSort ?? 'hot')
-  const [includedCauses, setIncludedCauses] = useState<MiniCause[]>([])
-  const [search, setSearch] = useState<string>('')
+  const [initial] = useState(() => parseSearch(savedSearches?.initialQuery ?? ''))
+  const [includedCauses, setIncludedCauses] = useState<MiniCause[]>(() =>
+    causesList.filter((c) => initial.causes.includes(c.slug))
+  )
+  const [search, setSearch] = useState<string>(initial.q)
+  const query = searchQuery({ q: search, causes: includedCauses.map((c) => c.slug) })
+  useEffect(() => {
+    if (!savedSearches) return
+    // keep the search in the URL, so it can be shared and the bell's sign-in comes back to it
+    const url = new URL(window.location.href)
+    url.searchParams.delete('q')
+    url.searchParams.delete('cause')
+    for (const [key, value] of new URLSearchParams(query)) url.searchParams.append(key, value)
+    if (url.href !== window.location.href) window.history.replaceState(null, '', url)
+  }, [query, savedSearches])
   const [hideSlop, setHideSlop] = useState<boolean>(true)
   const slopCount = projects.filter(isSlopProject).length
   const anySlop = slopCount > 0
@@ -100,6 +111,16 @@ export function ProjectsDisplay(props: {
             slopCount={anySlop ? slopCount : 0}
             hideSlop={hideSlop}
             setHideSlop={setHideSlop}
+          />
+        )}
+        {savedSearches && (
+          <NotifyBell
+            account={savedSearches.account}
+            query={query}
+            summary={searchName(
+              query,
+              Object.fromEntries(causesList.map((c) => [c.slug, c.title]))
+            )}
           />
         )}
       </Row>

@@ -9,7 +9,8 @@ Comments' own rules for who is notified of a comment are in `../comments/README.
   list is the record; email is a copy.
 - **Fewer, clearer emails**: people choose, per group, whether to get an email right away or in one weekly summary
   ("less choices and things to click through", Vals, 2026-10-07; "just right away or weekly", 2026-10-12).
-- **A base for subscriptions**: following people and saved searches can create notifications the same way.
+- **A base for subscriptions**: following people and saved searches create notifications the same way
+  (`../follows/README.md`).
 
 ## How it's built
 
@@ -37,8 +38,8 @@ Comments' own rules for who is notified of a comment are in `../comments/README.
   inbox) stay email only.
 - **N2** Every reason belongs to exactly one settings group.
 - **N3** Email follows the person's choice for the group: right away, or in the weekly summary. Without a choice,
-  the activity groups (replies, mentions and comments on your things; updates and comments on projects you follow)
-  wait for the weekly summary, and everything else is emailed right
+  the activity and following groups (replies, mentions and comments on your things; updates and comments on
+  projects you follow; people you follow; saved searches, `../follows/README.md`) wait for the weekly summary, and everything else is emailed right
   away, as before. Any other choice is refused.
 - **N4** Some groups are always emailed and can't be turned off: a moderator editing or removing your comment
   (Vals, 2026-10-07), and receipts and records (assumption, see Open questions). The settings page shows only the

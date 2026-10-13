@@ -1,4 +1,5 @@
 import { getProjectAndBidsById, getProjectById } from '@/db/project'
+import { onDonation } from '@/lib/follows'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { getProfileById } from '@/db/profile'
@@ -99,6 +100,8 @@ export default async function handler(req: NextRequest) {
       amount,
       email: templateEmail(TEMPLATE_IDS.PROJECT_DONATION, postmarkVars, toId),
     })
+    // people who follow the donor (F4; never throws)
+    await onDonation({ donorId: donor.id, projectId, amount, txnId: txn?.id })
     const { error } = await supabase.rpc('follow_project', {
       project_id: projectId,
       follower_id: donor.id,

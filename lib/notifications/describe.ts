@@ -19,6 +19,7 @@ export type NotificationRow = {
   commentHref?: string // for comment reasons
   commentTitle?: string
   excerpt?: string
+  searchName?: string // for saved_search_match
 }
 
 export type Described = {
@@ -27,7 +28,7 @@ export type Described = {
   subject?: string // shown bold, after the text (a project title)
   detail?: string // the second line
   href: string
-  icon: 'avatar' | 'money-in' | 'money-out' | 'check' | 'alert' | 'clock' | 'doc'
+  icon: 'avatar' | 'money-in' | 'money-out' | 'check' | 'alert' | 'clock' | 'doc' | 'search'
 }
 
 const COMMENT_WHAT: Record<string, string> = {
@@ -38,6 +39,7 @@ const COMMENT_WHAT: Record<string, string> = {
   progress_update: 'posted a progress update on',
   final_report: 'posted a final report on',
   followed_project_comment: 'commented on',
+  followed_person_comment: 'commented on',
   moderated_your_comment: 'moderated your comment on',
 }
 
@@ -59,6 +61,24 @@ export function describe(n: NotificationRow, me: { username: string }): Describe
     }
   }
   switch (n.reason) {
+    case 'followed_person_project':
+      return { who, text: 'posted a new project:', subject, href: projectHref, icon: 'doc' }
+    case 'followed_person_donation':
+      return {
+        who,
+        text: money ? `gave ${money} to` : 'gave to',
+        subject,
+        href: projectHref,
+        icon: 'money-out',
+      }
+    case 'saved_search_match':
+      return {
+        text: 'New project matching your saved search:',
+        subject,
+        detail: n.searchName,
+        href: projectHref,
+        icon: 'search',
+      }
     case 'donation_to_your_project':
       return { who, text: `donated ${money} to`, subject, href: projectHref, icon: 'money-in' }
     case 'donation_to_your_budget':

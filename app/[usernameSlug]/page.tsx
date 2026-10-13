@@ -9,6 +9,7 @@ import { getCommentsByTarget, getCommentsByUser } from '@/db/comment'
 import FundPage from '../funds/[fundSlug]/page'
 import { notFound } from 'next/navigation'
 import { getResponseByProfileId } from '@/db/donor-survey'
+import { isFollowing } from '@/db/profile-follows'
 
 export const revalidate = 60
 
@@ -34,10 +35,12 @@ export default async function UserProfilePage(props: {
     getUser(supabase),
     getResponseByProfileId(profile.id),
   ])
-  const [userTxns, userProfile, userBids] = await Promise.all([
+  const [userTxns, userProfile, userBids, following] = await Promise.all([
     user ? getTxnsByUser(supabase, user.id) : undefined,
     user ? getProfileById(supabase, user.id) : undefined,
     user ? getBidsByUser(supabase, user.id) : undefined,
+    // your own follow of this person (private: RLS returns only your rows, F2)
+    user && user.id !== profile.id ? isFollowing(supabase, user.id, profile.id) : false,
   ])
   const isOwnProfile = user?.id === profile?.id
   const userIsAdmin = isAdmin(user)
@@ -54,6 +57,7 @@ export default async function UserProfilePage(props: {
         projects={projects}
         comments={comments}
         donorPage={showDonorPage}
+        follow={{ signedIn: !!user, following }}
       />
       <ProfileContent
         profile={profile}

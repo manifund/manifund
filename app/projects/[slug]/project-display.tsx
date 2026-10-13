@@ -10,7 +10,12 @@ import { Profile } from '@/db/profile'
 import { FullProject, Project } from '@/db/project'
 import { Cause, SimpleCause } from '@/db/cause'
 import { TxnAndProfiles, TxnAndProject } from '@/db/txn'
-import { calculateCashBalance, getAmountRaised, getMinIncludingAmm, getProjectValuation } from '@/utils/math'
+import {
+  calculateCashBalance,
+  getAmountRaised,
+  getMinIncludingAmm,
+  getProjectValuation,
+} from '@/utils/math'
 import { useState } from 'react'
 import { karmaWeight } from '@/utils/karma'
 import { countVotes } from '@/utils/sort'
@@ -21,6 +26,7 @@ import { ProposalRequirements } from './proposal-requirements'
 import { ProjectTimeline } from './project-timeline'
 import { Vote } from './vote'
 import { CauseTag, StageIcon } from '@/components/tags'
+import { NetworkLine } from '@/components/follows/network-tag'
 import { Trade } from './trade'
 import { AssuranceBuyBox } from './assurance-buy-box'
 import { calculateTradePoints } from '@/utils/amm'
@@ -49,6 +55,7 @@ type ProjectDisplayProps = {
   userProfile?: Profile
   creatorEmail?: string
   userIsAdmin?: boolean
+  networkText?: string | null // what people the viewer follows did here (F8)
   // The tabs (comments, offers, similar projects), rendered by the page and streamed in later.
   tabs: React.ReactNode
 }
@@ -163,6 +170,7 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
               <span className="text-sm text-gray-400">{netVotes}</span>
             </Vote>
           </Row>
+          <NetworkLine text={props.networkText ?? null} size="sm" className="mb-1" />
           <Row className="mb-1 flex-wrap gap-1">
             {project.causes?.map((cause) => (
               <CauseTag key={cause.slug} causeTitle={cause.title} causeSlug={cause.slug} />

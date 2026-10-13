@@ -7,6 +7,7 @@ import {
   ClockIcon,
   DocumentTextIcon,
   ExclamationTriangleIcon,
+  MagnifyingGlassIcon,
 } from '@heroicons/react/24/outline'
 import { Avatar } from '@/components/avatar'
 import { RelativeTime } from '@/components/relative-time'
@@ -26,6 +27,7 @@ const ICONS = {
   alert: { Icon: ExclamationTriangleIcon, className: 'bg-amber-50 text-amber-700' },
   clock: { Icon: ClockIcon, className: 'bg-gray-100 text-gray-600' },
   doc: { Icon: DocumentTextIcon, className: 'bg-violet-50 text-violet-700' },
+  search: { Icon: MagnifyingGlassIcon, className: 'bg-violet-50 text-violet-700' },
 } as const
 
 // What was new when the page opened stays highlighted until the next visit (opening it marks everything read, N5).

@@ -2,6 +2,7 @@
 // If Vercel Attack Challenge Mode is on, this endpoint must be bypassed in Vercel Firewall rules,
 // otherwise the webhook will be blocked by the security checkpoint.
 import { NextApiRequest, NextApiResponse } from 'next'
+import { onDonation } from '@/lib/follows'
 import { getProjectAndProfileById, ProjectAndProfile, TOTAL_SHARES } from '@/db/project'
 import { maybeActivateProject } from '@/utils/activate-project'
 import { Bid } from '@/db/bid'
@@ -35,6 +36,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         projectId: project.id,
         bidId: bid.id,
         amount: bid.amount,
+      })
+    }
+    // people who follow the bidder (F4): an offer on a proposal is a donation to come (never throws)
+    if (bid.type === 'donate' || bid.type === 'assurance buy' || bid.type === 'buy') {
+      await onDonation({
+        donorId: bid.bidder,
+        projectId: project.id,
+        amount: bid.amount,
+        bidId: bid.id,
       })
     }
     await maybeActivateProject(supabase, bid.project)

@@ -8,6 +8,7 @@ const SELECT = `id, recipient_id, reason, created_at, read_at, amount,
   actor:profiles!notifications_actor_id_fkey(id, username, full_name, avatar_url),
   project:projects(title, slug, approved),
   withdrawal:withdrawal_requests(status),
+  saved_search:saved_searches(name),
   comment:comments(id, content, ${TARGET_EMBEDS})`
 
 // Notification rows with what the inbox and the weekly summary show (describe.ts). Server-only:
@@ -31,5 +32,6 @@ export async function loadNotifications(filter: {
     commentHref: n.comment ? commentHref(n.comment) : undefined,
     commentTitle: n.comment ? targetTitle(n.comment) : undefined,
     excerpt: n.comment?.content ? toPlaintext(n.comment.content).slice(0, 160) : undefined,
+    searchName: n.saved_search?.name ?? undefined,
   }))
 }

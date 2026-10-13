@@ -32,6 +32,7 @@ beforeEach(async () => {
 })
 
 afterAll(async () => {
-  await deleteTempUsers()
+  // projects first: some are made by throwaway accounts (follows)
   await cleanWorld()
+  await deleteTempUsers()
 })

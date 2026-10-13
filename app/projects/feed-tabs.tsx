@@ -10,6 +10,8 @@ import { useSearchParams } from 'next/navigation'
 import { Pagination } from '@/components/pagination'
 import { useState } from 'react'
 import { ProjectsDisplay } from '@/components/projects-display'
+import { NetworkContext, type NetworkActivity } from '@/components/follows/network-tag'
+import type { NotifyState } from '@/components/follows/notify-bell'
 import { FullProject } from '@/db/project'
 import { SimpleCause } from '@/db/cause'
 import { Tag } from '@/components/tags'
@@ -28,6 +30,8 @@ export function FeedTabs(props: {
   projects: FullProject[]
   causesList: SimpleCause[]
   userId?: string
+  network?: NetworkActivity
+  savedSearches?: { account: NotifyState | null; initialQuery: string }
 }) {
   const {
     recentComments,
@@ -37,13 +41,23 @@ export function FeedTabs(props: {
     projects,
     causesList,
     userId,
+    network,
+    savedSearches,
   } = props
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab') ?? 'projects'
   const [page, setPage] = useState(1)
 
   const ProjectsTab = (
-    <ProjectsDisplay projects={projects} defaultSort={'hot'} causesList={causesList} />
+    // the network line on cards (F8)
+    <NetworkContext.Provider value={network ?? null}>
+      <ProjectsDisplay
+        projects={projects}
+        defaultSort={'hot'}
+        causesList={causesList}
+        savedSearches={savedSearches}
+      />
+    </NetworkContext.Provider>
   )
 
   const PaginationWrapper = (

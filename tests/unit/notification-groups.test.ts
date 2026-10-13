@@ -35,7 +35,9 @@ describe('N3 defaults: activity and follows weekly, the rest right away; a choic
   test('without settings, activity and follows emails wait for the weekly summary; the rest go out right away', () => {
     // Vals, 2026-10-05 and 2026-10-09
     const weekly = new Set<string>(
-      ['direct_activity', 'followed_activity'].flatMap((k) => groupByKey(k)!.reasons)
+      ['direct_activity', 'followed_activity', 'following', 'saved_searches'].flatMap(
+        (k) => groupByKey(k)!.reasons
+      )
     )
     for (const reason of NOTIFICATION_REASONS)
       expect(emailModeFor(reason, {})).toBe(weekly.has(reason) ? 'weekly' : 'instant')
