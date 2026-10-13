@@ -1,12 +1,14 @@
 import { Database } from '@/db/database.types'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { Profile } from './profile'
+import { MiniProfile, Profile } from './profile'
 import { ProjectSummary } from './project'
 
 export type Txn = Database['public']['Tables']['txns']['Row']
 export type TxnAndProject = Txn & { projects?: ProjectSummary }
 export type FullTxn = Txn & { projects?: ProjectSummary } & { profiles?: Profile }
 export type TxnAndProfiles = Txn & { profiles?: Profile }
+// Home's donations list: the donor and the project, as the rows show them
+export type RecentTxn = TxnAndProject & { profiles?: MiniProfile }
 export type TxnType = Database['public']['Tables']['txns']['Row']['type']
 
 export async function getFullTxnsByUser(supabase: SupabaseClient, user: string) {
@@ -91,14 +93,16 @@ export async function getRecentFullTxns(
 ) {
   const { data } = await supabase
     .from('txns')
-    .select('*, profiles!txns_from_id_fkey(*), projects(*)')
+    .select(
+      '*, profiles!txns_from_id_fkey(id, username, avatar_url, full_name, type), projects(id, title, slug, stage, type, creator)'
+    )
     // Only return results that have profiles & projects
     .not('project', 'is', null)
     .not('from_id', 'is', null)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit)
     .throwOnError()
-  return data as FullTxn[]
+  return data as RecentTxn[]
 }
 
 // Return all txns to projects related to this cause
