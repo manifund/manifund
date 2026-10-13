@@ -213,7 +213,7 @@ export async function getFullProjectBySlug(supabase: SupabaseClient, slug: strin
   const { data } = await supabase
     .from('projects')
     .select(
-      '*, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(*), project_follows(follower_id), causes(title, slug)'
+      '*, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(id), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(*), project_follows(follower_id), causes(title, slug)'
     )
     .eq('slug', slug)
     .throwOnError()
