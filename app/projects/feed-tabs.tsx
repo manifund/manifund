@@ -10,6 +10,7 @@ import { useSearchParams } from 'next/navigation'
 import { Pagination } from '@/components/pagination'
 import { useState } from 'react'
 import { ProjectsDisplay } from '@/components/projects-display'
+import { NetworkFeed } from '@/components/follows/network-feed'
 import { NetworkContext, type NetworkActivity } from '@/components/follows/network-tag'
 import type { NotifyState } from '@/components/follows/notify-bell'
 import { FullProject } from '@/db/project'
@@ -171,10 +172,14 @@ export function FeedTabs(props: {
             id: 'donations',
             display: DonationsTab,
           },
+          // F12: what people you follow did, for signed-in people (loaded when the tab opens)
+          ...(userId
+            ? [{ name: 'Network', id: 'network', display: <NetworkFeed key="network" /> }]
+            : []),
         ]}
         currentTabId={currentTabId}
       />
-      {currentTabId !== 'projects' && PaginationWrapper}
+      {currentTabId !== 'projects' && currentTabId !== 'network' && PaginationWrapper}
     </div>
   )
 }

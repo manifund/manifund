@@ -54,6 +54,10 @@ email settings: `../notifications/README.md`.
 - **F9** The Following page (`/settings/subscriptions`) lists the people, saved searches and projects you follow,
   to unfollow people and projects, and pause or remove searches. It's linked from the notification settings and the
   bell.
+- **F12** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,
+  comments anywhere with a short excerpt, donations and offers with their amounts), each linking to the project or
+  comment. Comments on hidden projects or hidden org pages, and drafts or hidden projects, stay out. With nothing
+  to show, it explains how to follow people. It loads when the tab opens (`/api/network`).
 
 ## Decisions
 
@@ -61,6 +65,7 @@ Newest first.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-10-13 | Vals (asked; kept meanwhile) | The Network tab stays, in its own commit so it can be dropped (F12) | Q25: "Network first" and the Hot boost go; the tab was the open part |
 | 2026-10-13 | Vals | The bell has no frequency choice: saved searches follow their settings row (F5) | Q22: fewer choices in more places |
 | 2026-10-12 | Austin (team meeting), Vals | Keep following people and saved searches; the home filter panel (amount, status, AI, network filter), "Network first" and seen marks are left out, so a saved search is the search text and categories home already has (F5, F6) | Fewer database changes and a smaller change to the most-visited page |
 | 2026-10-12 | Vals | Following someone covers everything they do: no per-follow switches (F1, F3, F4, F9) | "remove the switches, have it follow all, simpler less complexity" |
@@ -83,5 +88,5 @@ Newest first.
 ## Tests
 
 Each test names the rule it checks: unit `tests/unit/follows-match.test.ts` (F5, F6, F8); database
-`tests/db/profile-follows.test.ts` (F2, F8); routes `tests/routes/follows.test.ts` (F1, F3, F4, F5, F6, F7). No tests
-yet for F9 and the bell's looks.
+`tests/db/profile-follows.test.ts` (F2, F8); routes `tests/routes/follows.test.ts` (F1, F3, F4, F5, F6, F7) and
+`tests/routes/network.test.ts` (F12). No tests yet for F9 and the bell's looks.
