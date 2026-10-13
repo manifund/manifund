@@ -7,6 +7,8 @@ import { rulesFor, targetOf } from '@/lib/comments/targets'
 import type { JSONContent } from '@tiptap/core'
 import type { Reason } from '@/lib/comments/types'
 import { emailFor } from './templates'
+import { emailLinks, unsubscribeHeaders, type EmailLinks } from './settings'
+import { groupOf } from './groups'
 
 const MAX_ATTEMPTS = 5
 
@@ -60,7 +62,10 @@ export async function sendPendingEmails(opts: {
         continue
       }
       const email = emailFor({ reason: row.reason as Reason, ...comment })
-      const error = await postmark(token, to, email.templateId, email.model)
+      // Footer links (N7): the Postmark templates must show {{stopUrl}} and {{settingsUrl}} (empty for
+      // always-sent kinds) to use them.
+      const links = await emailLinks(row.recipient_id, [groupOf(row.reason as Reason).key])
+      const error = await postmark(token, to, email.templateId, { ...email.model, ...links }, links)
       if (!error) {
         await mark({ email_status: 'sent', emailed_at: new Date().toISOString(), last_error: null })
         summary.sent++
@@ -112,7 +117,13 @@ async function loadComment(id: string) {
 }
 
 // Returns null when Postmark accepted the email, else an error message.
-async function postmark(token: string, to: string, templateId: number, model: object) {
+async function postmark(
+  token: string,
+  to: string,
+  templateId: number,
+  model: object,
+  links: EmailLinks
+) {
   try {
     const res = await fetch('https://api.postmarkapp.com/email/withTemplate', {
       method: 'POST',
@@ -126,6 +137,8 @@ async function postmark(token: string, to: string, templateId: number, model: ob
         To: to,
         TemplateId: templateId,
         TemplateModel: model,
+        // One-click unsubscribe from this kind of email (RFC 8058), optional kinds only (N7).
+        Headers: unsubscribeHeaders(links),
       }),
     })
     const json = (await res.json().catch(() => ({}))) as { ErrorCode?: number; Message?: string }

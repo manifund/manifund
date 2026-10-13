@@ -7,6 +7,7 @@ import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getURL } from '@/utils/constants'
 import { projectSlugify } from '@/utils/formatting'
 import { sendTemplateEmail, TEMPLATE_IDS, type EmailResult } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { calculateCharityBalance } from '@/utils/math'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { invalidateProjectsCache } from '@/db/project-cached'
@@ -144,8 +145,14 @@ export async function POST(req: Request) {
         donation: { project: project.id, amount: donorContribution, bidder: regranter.id },
       })
       .throwOnError()
-    await sendRecipientEmail(project.id, () =>
-      sendTemplateEmail(
+    // In-app notification plus the email, per the recipient's settings (notifications N1-N3).
+    await notify({
+      to: recipientProfile.id,
+      reason: 'grant_to_you',
+      actorId: regranter.id,
+      projectId: project.id,
+      amount: donorContribution,
+      email: templateEmail(
         TEMPLATE_IDS.EXISTING_USER_GRANT,
         {
           amount: donorContribution,
@@ -153,12 +160,9 @@ export async function POST(req: Request) {
           projectTitle: title,
           projectUrl: `${getURL()}projects/${slug}`,
         },
-        recipientProfile.id,
-        undefined,
-        undefined,
-        { project_id: project.id }
-      )
-    )
+        recipientProfile.id
+      ),
+    })
   } else {
     return fail('invalid inputs')
   }

@@ -10,7 +10,8 @@ import {
 } from '@/utils/math'
 import { getBidById, getBidsByUser } from '@/db/bid'
 import { TOTAL_SHARES } from '@/db/project'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 
 export const config = {
   runtime: 'edge',
@@ -87,16 +88,24 @@ export default async function handler(req: NextRequest) {
   )
   await updateBidFromTrade(oldBid, numDollarsInTrade, supabaseAdmin)
   const tradeText = genTradeText(oldBid, oldBid.projects.title, numDollarsInTrade)
-  await sendTemplateEmail(
-    TEMPLATE_IDS.TRADE_ACCEPTED,
-    {
-      tradeText: tradeText,
-      recipientProfileUrl: `manifund.org/${oldBid.profiles.username}`,
-      bidType: oldBid.type,
-      projectTitle: oldBid.projects.title,
-    },
-    oldBid.bidder
-  )
+  await notify({
+    to: oldBid.bidder,
+    reason: 'trade_accepted',
+    actorId: user.id,
+    projectId: oldBid.project,
+    bidId: oldBid.id,
+    amount: numDollarsInTrade,
+    email: templateEmail(
+      TEMPLATE_IDS.TRADE_ACCEPTED,
+      {
+        tradeText: tradeText,
+        recipientProfileUrl: `manifund.org/${oldBid.profiles.username}`,
+        bidType: oldBid.type,
+        projectTitle: oldBid.projects.title,
+      },
+      oldBid.bidder
+    ),
+  })
   await supabase.rpc('follow_project', {
     project_id: oldBid.project,
     follower_id: user.id,

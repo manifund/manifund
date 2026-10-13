@@ -6,7 +6,8 @@ import { calculateCashBalance } from '@/utils/math'
 import Stripe from 'stripe'
 import { stripe } from '@/utils/stripe'
 import uuid from 'react-uuid'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { sendDiscordAlert } from '@/utils/discord'
 import { CENTS_PER_DOLLAR } from '@/utils/constants'
 import { getBidsByUser } from '@/db/bid'
@@ -136,6 +137,16 @@ export default async function handler(req: NextRequest) {
     fullName: profile.full_name,
     email: user.email,
   }
-  await sendTemplateEmail(TEMPLATE_IDS.CONFIRM_WITHDRAWAL, postmarkVars, undefined, user.email)
+  await notify({
+    to: user.id,
+    reason: 'withdrawal_update',
+    amount: dollarAmount,
+    email: templateEmail(
+      TEMPLATE_IDS.CONFIRM_WITHDRAWAL,
+      postmarkVars,
+      user.id,
+      user.email ?? undefined
+    ),
+  })
   return NextResponse.json({ dollarAmount })
 }

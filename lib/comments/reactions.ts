@@ -4,7 +4,8 @@ import { createAdminClient } from '@/db/supabase-admin'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { getPendingBidsByUser } from '@/db/bid'
 import { calculateCharityBalance } from '@/utils/math'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import type { Profile } from '@/db/profile'
 import { freeRxns, tippedRxns } from './reaction-list'
 import { log } from '@/lib/log'
@@ -72,16 +73,23 @@ export async function react(
   log.info('comment.tipped', { comment_id: commentId, tipper: reactor.id, amount: price })
   const href = commentHref(comment as { id: string } & TargetEmbeds)
   after(() =>
-    sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF,
-      {
-        subject: `You received a $${price} tip for your comment on Manifund`,
-        notifText: `${reactor.full_name} tipped you $${price} for a comment you made on Manifund, which you can now pass on to the charity or project of your choice. Thanks for your contribution to the discussion!`,
-        buttonUrl: `https://manifund.org${href}`,
-        buttonText: 'View comment',
-      },
-      comment.commenter
-    ).catch((e) => log.error('comment.tip_email_failed', { comment_id: commentId, error: e }))
+    notify({
+      to: comment.commenter,
+      reason: 'tip_on_your_comment',
+      actorId: reactor.id,
+      txnId: typeof txnId === 'string' ? txnId : null,
+      amount: price,
+      email: templateEmail(
+        TEMPLATE_IDS.GENERIC_NOTIF,
+        {
+          subject: `You received a $${price} tip for your comment on Manifund`,
+          notifText: `${reactor.full_name} tipped you $${price} for a comment you made on Manifund, which you can now pass on to the charity or project of your choice. Thanks for your contribution to the discussion!`,
+          buttonUrl: `https://manifund.org${href}`,
+          buttonText: 'View comment',
+        },
+        comment.commenter
+      ),
+    })
   )
   return { ok: true, reacted: true, tipped: true }
 }

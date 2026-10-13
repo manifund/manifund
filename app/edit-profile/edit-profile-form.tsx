@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Profile } from '@/db/profile'
 import uuid from 'react-uuid'
 import Image from 'next/image'
+import Link from 'next/link'
 import { SUPABASE_BUCKET_URL } from '@/db/env'
 import { TextEditor } from '@/components/editor'
 import { useTextEditor } from '@/hooks/use-text-editor'
@@ -219,6 +220,13 @@ export function EditProfileForm(props: { profile: Profile }) {
           setAvatar(event.target.files ? event.target.files[0] : null)
         }}
       ></input>
+
+      <Link
+        href="/settings/notifications"
+        className="w-fit text-sm font-medium text-orange-600 hover:underline"
+      >
+        Email notifications
+      </Link>
 
       {isEmailPasswordUser && <UpdatePasswordForm />}
 
