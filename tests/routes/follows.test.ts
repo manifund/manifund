@@ -38,7 +38,7 @@ async function bobCreates(title: string, causes: string[] = []) {
       content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }],
     },
     location: 'Test',
-    selectedCauses: causes,
+    selectedCauses: causes.map((slug) => ({ slug })),
     selectedPrize: null,
     founderPercent: 0,
     agreedToTerms: true,
