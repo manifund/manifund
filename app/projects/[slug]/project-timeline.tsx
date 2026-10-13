@@ -1,180 +1,96 @@
 import { buttonClass } from '@/components/button'
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
-import { Project } from '@/db/project'
-import { formatMoney } from '@/utils/formatting'
 import { CheckIcon } from '@heroicons/react/20/solid'
 import clsx from 'clsx'
 import Link from 'next/link'
+import { getTimelineSteps, TimelineProps, TimelineStep } from './project-timeline-steps'
 
-type TimelineStep = {
-  name: string
-  description?: string
-  complete: boolean
-  cta?: { label: string; href: string }
-  // Waiting on someone else, not on the creator — drawn with a dashed ring.
-  nonAction?: boolean
-}
-
-export function ProjectTimeline(props: {
-  projectSlug: string
-  stage: Project['stage']
-  signedAgreement: boolean
-  approved: boolean
-  reachedMinFunding: boolean
-  minFunding: number
-  withdrawComplete: boolean
-}) {
-  const {
-    projectSlug,
-    stage,
-    signedAgreement,
-    approved,
-    reachedMinFunding,
-    minFunding,
-    withdrawComplete,
-  } = props
-  const isDraft = stage === 'draft'
-  const steps: TimelineStep[] = [
-    {
-      name: 'Publish proposal',
-      complete: !isDraft,
-      cta: { label: 'Edit & publish', href: `/projects/${projectSlug}/publish` },
-    },
-    {
-      name: 'Sign grant agreement',
-      complete: signedAgreement,
-      cta: { label: 'Review & sign', href: `/projects/${projectSlug}/agreement` },
-    },
-    {
-      name: 'Funding reaches minimum',
-      description: `Your project will only pay out if you receive offers adding to at least ${formatMoney(
-        minFunding
-      )}.`,
-      complete: reachedMinFunding,
-      nonAction: true,
-    },
-    {
-      name: 'Manifund reviews grant',
-      description: 'All grants must be approved by a Manifund admin before they are final.',
-      complete: approved,
-      nonAction: true,
-    },
-    {
-      name: 'Withdraw funds',
-      complete: withdrawComplete,
-      cta: { label: 'Enter bank info', href: '/withdraw' },
-    },
-  ]
+// One vertical list for every screen size: each step on one line, and the step the
+// creator is on now opened up with its full explanation and button.
+export function ProjectTimeline(props: TimelineProps) {
+  const steps = getTimelineSteps(props)
   // The first unfinished step is the one the creator should act on now.
   const currentIdx = steps.findIndex((step) => !step.complete)
   return (
     <nav
       aria-label="Project progress"
-      className="relative mb-5 rounded-xl border border-gray-300 px-4 pb-4 pt-5"
+      className="mb-5 rounded-xl border border-gray-200 bg-white p-4 sm:p-5"
     >
-      <p className="absolute -top-2 left-2 bg-gray-50 px-2 text-xs text-gray-500">Next steps</p>
-      {/* Horizontal: connector line across the top, labels underneath. */}
-      <ol className="hidden sm:flex">
-        {steps.map((step, idx) => (
-          <li key={step.name} className="flex min-w-0 flex-1 flex-col">
-            <Row className="items-center">
-              <Track filled={idx > 0 && steps[idx - 1].complete} hidden={idx === 0} />
-              <StepCircle step={step} isCurrent={idx === currentIdx} />
-              <Track filled={step.complete} hidden={idx === steps.length - 1} />
-            </Row>
-            <StepLabel
-              step={step}
-              isCurrent={idx === currentIdx}
-              className="mt-2 items-center px-1 text-center"
-            />
-          </li>
-        ))}
-      </ol>
-      {/* Vertical on narrow screens, where five columns would be unreadable. */}
-      <ol className="flex flex-col sm:hidden">
-        {steps.map((step, idx) => (
-          <li key={step.name} className="flex flex-col">
-            {idx > 0 && (
-              <div
-                aria-hidden="true"
-                className={clsx(
-                  'my-1 ml-2 h-4 w-0.5',
-                  steps[idx - 1].complete ? 'bg-orange-500' : 'bg-gray-200'
+      <Row className="mb-4 items-baseline justify-between gap-2">
+        <h2 className="text-sm font-semibold text-gray-900">Getting your grant</h2>
+        <span className="text-xs text-gray-500">
+          {currentIdx === -1 ? 'Done' : `Step ${currentIdx + 1} of ${steps.length}`}
+        </span>
+      </Row>
+      <ol>
+        {steps.map((step, idx) => {
+          const isCurrent = idx === currentIdx
+          return (
+            <li
+              key={step.name}
+              aria-current={isCurrent ? 'step' : undefined}
+              className="relative flex gap-3 pb-4 last:pb-0"
+            >
+              {idx < steps.length - 1 && (
+                <span
+                  aria-hidden="true"
+                  className={clsx(
+                    'absolute -bottom-1 left-3 top-7 w-0.5 -translate-x-1/2',
+                    step.complete ? 'bg-orange-400' : 'bg-gray-200'
+                  )}
+                />
+              )}
+              <StepCircle step={step} number={idx + 1} isCurrent={isCurrent} />
+              <Col className="min-w-0 flex-1 gap-0.5">
+                <span
+                  className={clsx(
+                    'text-sm leading-6',
+                    isCurrent
+                      ? 'font-medium text-gray-900'
+                      : step.complete
+                        ? 'text-gray-700'
+                        : 'text-gray-500'
+                  )}
+                >
+                  {step.name}
+                </span>
+                <p className={clsx('text-sm', isCurrent ? 'text-gray-600' : 'text-gray-400')}>
+                  {isCurrent ? step.details : step.summary}
+                </p>
+                {isCurrent && step.cta && (
+                  <Link
+                    href={step.cta.href}
+                    className={clsx(buttonClass('xs', 'orange'), 'mt-2 self-start')}
+                  >
+                    {step.cta.label}
+                  </Link>
                 )}
-              />
-            )}
-            <Row className="items-start gap-2">
-              <StepCircle step={step} isCurrent={idx === currentIdx} />
-              <StepLabel step={step} isCurrent={idx === currentIdx} />
-            </Row>
-          </li>
-        ))}
+              </Col>
+            </li>
+          )
+        })}
       </ol>
     </nav>
   )
 }
 
-// Square ends so neighbouring segments meet flush instead of pinching.
-function Track(props: { filled: boolean; hidden: boolean }) {
-  const { filled, hidden } = props
-  return (
-    <div
-      aria-hidden="true"
-      className={clsx(
-        'h-1 flex-1',
-        hidden ? 'bg-transparent' : filled ? 'bg-orange-500' : 'bg-gray-200'
-      )}
-    />
-  )
-}
-
-function StepCircle(props: { step: TimelineStep; isCurrent: boolean }) {
-  const { step, isCurrent } = props
+function StepCircle(props: { step: TimelineStep; number: number; isCurrent: boolean }) {
+  const { step, number, isCurrent } = props
   return (
     <Row
       className={clsx(
-        'h-5 w-5 shrink-0 items-center justify-center rounded-full',
+        'h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs',
         step.complete
-          ? 'bg-orange-600'
+          ? 'bg-orange-500'
           : isCurrent
-            ? 'border-2 border-orange-500 bg-white'
-            : 'border-2 border-gray-300 bg-white',
+            ? 'border-2 border-orange-500 bg-white font-semibold text-orange-600'
+            : 'border-2 border-gray-300 bg-white text-gray-400',
         // Dashed ring marks steps that aren't the creator's to act on.
         !step.complete && step.nonAction && 'border-dashed'
       )}
     >
-      {step.complete && <CheckIcon className="h-3.5 w-3.5 text-white" aria-hidden="true" />}
+      {step.complete ? <CheckIcon className="h-3.5 w-3.5 text-white" aria-hidden="true" /> : number}
     </Row>
-  )
-}
-
-function StepLabel(props: { step: TimelineStep; isCurrent: boolean; className?: string }) {
-  const { step, isCurrent, className } = props
-  const textColor = step.complete
-    ? 'text-gray-900'
-    : isCurrent
-      ? 'text-orange-600'
-      : 'text-gray-500'
-  return (
-    <Col className={clsx('gap-1', className)}>
-      <span className={clsx('text-sm font-medium', textColor)}>{step.name}</span>
-      {/* Descriptions and actions both retire once the step is done. */}
-      {!step.complete && step.description && (
-        <p className="text-xs text-gray-500">{step.description}</p>
-      )}
-      {!step.complete && step.cta && (
-        <Link
-          href={step.cta.href}
-          className={clsx(
-            // Grayed until this is the step you're actually up to.
-            buttonClass('2xs', isCurrent ? 'orange' : 'gray'),
-            'mt-0.5 self-start sm:self-auto'
-          )}
-        >
-          {step.cta.label}
-        </Link>
-      )}
-    </Col>
   )
 }

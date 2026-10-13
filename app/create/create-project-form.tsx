@@ -34,6 +34,8 @@ const DESCRIPTION_OUTLINE = `
 </br>
 <h3>What are this project's goals? How will you achieve them?</h3>
 </br>
+<h3>How will you know it worked?</h3>
+</br>
 <h3>How will this funding be used?</h3>
 </br>
 <h3>Who is on your team? What's your track record on similar projects?</h3>
