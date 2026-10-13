@@ -8,6 +8,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import { differenceInDays, isBefore } from 'date-fns'
 import { uniq } from 'es-toolkit'
 import uuid from 'react-uuid'
+import { log } from '@/lib/log'
 import { getURL } from './constants'
 import { sendTemplateEmail, TEMPLATE_IDS } from './email'
 import { calculateCharityBalance, getProposalValuation } from './math'
@@ -93,7 +94,8 @@ async function findUncoveredOffers(project: ProjectAndBids) {
       continue
     }
     const otherBids = bids.filter(
-      (bid) => !(bid.project === project.id && bid.status === 'pending')
+      (bid) =>
+        !(bid.project === project.id && bid.status === 'pending' && isFundingBid(project, bid))
     )
     availableByBidder.set(
       bidder,
@@ -105,14 +107,10 @@ async function findUncoveredOffers(project: ProjectAndBids) {
 
 async function declineOffers(offers: Bid[]) {
   const supabase = createAdminClient()
-  console.error(
-    'activation: declining offers their bidders no longer cover',
-    offers.map((bid) => ({
-      id: bid.id,
-      bidder: bid.bidder,
-      amount: bid.amount,
-    }))
-  )
+  log.warn('project.offers_declined_uncovered', {
+    project_id: offers[0]?.project,
+    offers: offers.map((bid) => ({ id: bid.id, bidder: bid.bidder, amount: bid.amount })),
+  })
   await supabase
     .from('bids')
     .update({ status: 'declined' })
@@ -158,7 +156,7 @@ export function checkReactivateEligible(project: Project, prizeCause?: Cause) {
   )
 }
 
-async function activateProject(project: Project, followerIds: string[]) {
+async function activateProject(project: ProjectAndBids, followerIds: string[]) {
   const supabase = createAdminClient()
   const creatorProfile = await getProfileById(supabase, project?.creator)
   if (!project || !creatorProfile) {
@@ -166,20 +164,23 @@ async function activateProject(project: Project, followerIds: string[]) {
     return Response.error()
   }
   const isGrant = project.type === 'grant'
-  if (isGrant) {
-    await supabase
-      .rpc('activate_grant', {
-        project_id: project.id,
-        project_creator: project.creator,
-      })
-      .throwOnError()
-  } else {
-    await supabase
-      .rpc('activate_cert', {
-        project_id: project.id,
-        project_creator: project.creator,
-      })
-      .throwOnError()
+  // Activates with exactly the offers checked above: if they changed in the meantime (or the project
+  // was activated already), nothing happens and the next attempt checks again.
+  const offers = project.bids
+    .filter((bid) => bid.status === 'pending' && isFundingBid(project, bid))
+    .map((bid) => ({ id: bid.id, amount: bid.amount }))
+  const { error } = await supabase.rpc('activate_proposal', {
+    project_id: project.id,
+    offers,
+  })
+  if (error) {
+    if (error.message.startsWith('activate_proposal:')) {
+      log.warn('project.activation_skipped', { project_id: project.id, reason: error.message })
+      return
+    }
+    throw error
+  }
+  if (!isGrant) {
     await seedAmm(project, supabase)
   }
   const txns = await getTxnsByProject(supabase, project.id)
