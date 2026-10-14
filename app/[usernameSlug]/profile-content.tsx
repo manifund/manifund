@@ -14,7 +14,6 @@ import { DonateBox } from '@/components/donate-box'
 import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
 import { ProfileCommentTabs } from './profile-comment-tabs'
-import { ProfileFollowing } from './profile-following'
 import type { Following } from '@/db/following'
 import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
@@ -123,11 +122,6 @@ export function ProfileContent(props: {
       )}
       {activeBids.length > 0 && <ActiveBids bids={activeBids} isOwnProfile={isOwnProfile} />}
       {proposalBids.length > 0 && <ProposalBids bids={proposalBids} isOwnProfile={isOwnProfile} />}
-      <ProfileFollowing
-        following={following}
-        isOwnProfile={isOwnProfile}
-        firstName={profile.full_name.split(' ')[0] || profile.username}
-      />
       {/* Where main had "Comments X wrote": the comment tabs keep the page's order (the user, 2026-10-01). */}
       <ProfileCommentTabs
         profile={profile}
@@ -135,6 +129,7 @@ export function ProfileContent(props: {
         comments={comments}
         userProfile={userProfile}
         userCharityBalance={userCharityBalance}
+        following={following}
       />
       <Col className="gap-4">
         <UserTxns txns={sortedTxns.filter((t) => t.token === 'USD')} profile={profile} />

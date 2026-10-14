@@ -195,20 +195,17 @@ describe('F7 one notification per person per project', () => {
 })
 
 describe('F2 F9 a profile shows who and what someone follows, saved searches included', () => {
-  standard(
-    'others see the people and searches followed; the old page redirects there',
-    async () => {
-      const words = `Fnine${RUN}`
-      expect((await alice.post('/api/follows', { followedId: bob.id })).status).toBe(200)
-      const s = await alice.post('/api/saved-searches', { query: `q=${words}` })
-      expect(s.status).toBe(201)
-      const profile = `/${RUN}-follows-alice`
-      const seen = await anonymous().get(profile)
-      expect(seen.status).toBe(200)
-      expect(seen.text).toContain(`/${RUN}-follows-bob`)
-      expect(seen.text).toContain(words)
-      await alice.del('/api/saved-searches', { id: s.body.search.id })
-      await alice.del('/api/follows', { followedId: bob.id })
-    }
-  )
+  standard('others see the people and searches followed, in the Following tab', async () => {
+    const words = `Fnine${RUN}`
+    expect((await alice.post('/api/follows', { followedId: bob.id })).status).toBe(200)
+    const s = await alice.post('/api/saved-searches', { query: `q=${words}` })
+    expect(s.status).toBe(201)
+    const profile = `/${RUN}-follows-alice`
+    const seen = await anonymous().get(`${profile}?tab=following`)
+    expect(seen.status).toBe(200)
+    expect(seen.text).toContain(`/${RUN}-follows-bob`)
+    expect(seen.text).toContain(words)
+    await alice.del('/api/saved-searches', { id: s.body.search.id })
+    await alice.del('/api/follows', { followedId: bob.id })
+  })
 })

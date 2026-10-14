@@ -6,18 +6,21 @@ import type { CommentAndProfileAndRxns, CommentAndProjectAndRxns } from '@/db/co
 import type { Profile } from '@/db/profile'
 import { isListed } from '@/lib/comments/links'
 import { ProfileComments } from './profile-comments'
+import { ProfileFollowing, followingCount } from './profile-following'
+import type { Following } from '@/db/following'
 
-// The comments part of a profile: what people say about this person (C8), and what they wrote
-// elsewhere (C30), as two tabs rather than two headed sections. Their replies on their own profile
-// stay in the first tab, in their threads, and aren't repeated in the second.
+// The tabs of a profile: what people say about this person (C8), what they wrote elsewhere (C30), and what
+// they follow (F9, a tab since Vals, 2026-10-15). Their replies on their own profile stay in the first tab, in
+// their threads, and aren't repeated in the second. Others see the Following tab only when it isn't empty.
 export function ProfileCommentTabs(props: {
   profile: Profile
   profileComments: CommentAndProfileAndRxns[]
   comments: CommentAndProjectAndRxns[]
   userProfile?: Profile
   userCharityBalance: number
+  following: Following
 }) {
-  const { profile, profileComments, comments, userProfile, userCharityBalance } = props
+  const { profile, profileComments, comments, userProfile, userCharityBalance, following } = props
   const isOwnProfile = userProfile?.id === profile.id
   const firstName = (profile.full_name || profile.username).split(' ')[0]
   const searchParams = useSearchParams()
@@ -60,5 +63,15 @@ export function ProfileCommentTabs(props: {
         ),
     },
   ]
+  const followed = followingCount(following)
+  if (followed > 0 || isOwnProfile)
+    tabs.push({
+      name: 'Following',
+      id: 'following',
+      count: followed,
+      display: (
+        <ProfileFollowing following={following} isOwnProfile={isOwnProfile} firstName={firstName} />
+      ),
+    })
   return <Tabs tabs={tabs} currentTabId={searchParams?.get('tab')} />
 }

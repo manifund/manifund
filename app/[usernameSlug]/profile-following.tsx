@@ -12,7 +12,7 @@ import {
 import { Avatar } from '@/components/avatar'
 import type { Following, SavedSearch } from '@/db/following'
 
-// The Following section of a profile (F9): the people, projects and saved searches someone follows, for everyone
+// The Following tab of a profile (F9): the people, projects and saved searches someone follows, for everyone
 // to see, and on your own profile the buttons to change them. Something you remove stays
 // in the list, faded, with "Undo", until the page reloads.
 
@@ -95,6 +95,11 @@ const rowClass = (gone: boolean) =>
     gone && 'bg-gray-50 [&>*:not(button)]:opacity-40'
   )
 
+// How many things someone follows: the tab's count, and whether others see the tab at all (not when it's empty).
+export function followingCount(following: Following) {
+  return following.people.length + following.projects.length + following.searches.length
+}
+
 export function ProfileFollowing(props: {
   following: Following
   isOwnProfile: boolean
@@ -116,8 +121,7 @@ export function ProfileFollowing(props: {
   if (nothing && !isOwnProfile) return null
 
   return (
-    <section id="following" className="scroll-mt-6">
-      <h1 className="mb-4 text-xl font-medium sm:text-2xl">Following</h1>
+    <section id="following">
       {nothing ? (
         <p className="rounded-md bg-white p-4 text-sm text-gray-500 shadow">
           You don&apos;t follow anyone yet.
