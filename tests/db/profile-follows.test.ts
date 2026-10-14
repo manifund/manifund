@@ -1,4 +1,5 @@
-// Follows and saved searches are private (F2): each person reads only their own rows, and browsers write nothing.
+// F2 at the database: each person's browser reads only their own follows and saved searches, and writes none; the
+// profile shows everyone's through server code (db/following.ts).
 // The network line's data (F8) comes from network_activity(), which reads the caller's own follows.
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { actAs, inRollback, insertComment } from '../helpers/db'
@@ -20,7 +21,7 @@ async function refused(query: PromiseLike<unknown>, message: string) {
   expect(error instanceof Error ? error.message : String(error)).toContain(message)
 }
 
-describe('F2 follows and saved searches are private; only server code writes them', () => {
+describe('F2 browsers read only their own follows and saved searches; only server code writes them', () => {
   test('a follow is visible to the follower only', () =>
     inRollback(async (tx) => {
       await tx`insert into profile_follows (follower_id, followed_id) values (${p.alice.id}, ${p.bob.id})`

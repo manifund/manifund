@@ -6,7 +6,6 @@ import {
   ArrowUturnLeftIcon,
   BookmarkSlashIcon,
   ChevronDownIcon,
-  LockClosedIcon,
   MagnifyingGlassIcon,
   PauseIcon,
   PlayIcon,
@@ -15,8 +14,8 @@ import {
 import { Avatar } from '@/components/avatar'
 import type { Following, SavedSearch } from '@/db/following'
 
-// The Following section of a profile (F9): the people and projects someone follows, for everyone to see, and on
-// your own profile your saved searches (private) and the buttons to change all three. Something you remove stays
+// The Following section of a profile (F9): the people, projects and saved searches someone follows, for everyone
+// to see, and on your own profile the buttons to change them. Something you remove stays
 // in the list, faded, with "Undo", until the page reloads.
 
 async function send(url: string, method: string, body: object) {
@@ -107,9 +106,7 @@ export function ProfileFollowing(props: {
   // Removed on this visit: kept on screen so a slip can be undone.
   const [gonePeople, setGonePeople] = useState<Set<string>>(new Set())
   const [goneProjects, setGoneProjects] = useState<Set<string>>(new Set())
-  const [searches, setSearches] = useState<(SavedSearch & { gone?: boolean })[]>(
-    following.searches ?? []
-  )
+  const [searches, setSearches] = useState<(SavedSearch & { gone?: boolean })[]>(following.searches)
   const toggle = (set: Set<string>, id: string) => {
     const next = new Set(set)
     if (next.has(id)) next.delete(id)
@@ -117,7 +114,6 @@ export function ProfileFollowing(props: {
     return next
   }
   const { people, projects } = following
-  const showSearches = following.searches !== null
   const nothing = people.length === 0 && projects.length === 0 && searches.length === 0
   if (nothing && !isOwnProfile) return null
 
@@ -135,7 +131,7 @@ export function ProfileFollowing(props: {
             .
           </>
         ) : (
-          `People and projects ${firstName} follows.`
+          `People, projects and searches ${firstName} follows.`
         )}
       </p>
       {nothing ? (
@@ -207,19 +203,8 @@ export function ProfileFollowing(props: {
               })}
             </Group>
           )}
-          {showSearches && searches.length > 0 && (
-            <Group
-              title="Saved searches"
-              count={searches.filter((s) => !s.gone).length}
-              note={
-                isOwnProfile && (
-                  <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-                    <LockClosedIcon className="h-3.5 w-3.5" />
-                    Only you see these
-                  </span>
-                )
-              }
-            >
+          {searches.length > 0 && (
+            <Group title="Saved searches" count={searches.filter((s) => !s.gone).length}>
               {searches.map((s) => (
                 <li key={s.id} className={rowClass(!!s.gone)}>
                   <MagnifyingGlassIcon className="h-4 w-4 flex-none text-gray-400" />

@@ -19,20 +19,6 @@ export async function isFollowing(supabase: SupabaseClient, me: string, followed
   return !!data
 }
 
-export async function listMyFollows(supabase: SupabaseClient, me: string) {
-  const { data } = await (supabase as any)
-    .from('profile_follows')
-    .select(
-      'followed_id, created_at, followed:profiles!profile_follows_followed_id_fkey(id, username, full_name, avatar_url)'
-    )
-    .eq('follower_id', me)
-    .order('created_at', { ascending: false })
-  return (data ?? []) as {
-    followed_id: string
-    followed: { id: string; username: string; full_name: string | null; avatar_url: string | null }
-  }[]
-}
-
 export async function listMySavedSearches(supabase: SupabaseClient, me: string) {
   const { data } = await (supabase as any)
     .from('saved_searches')
@@ -40,17 +26,6 @@ export async function listMySavedSearches(supabase: SupabaseClient, me: string) 
     .eq('owner_id', me)
     .order('created_at', { ascending: false })
   return (data ?? []) as { id: string; name: string; query: string; paused_at: string | null }[]
-}
-
-export async function listMyFollowedProjects(supabase: SupabaseClient, me: string) {
-  const { data } = await supabase
-    .from('project_follows')
-    .select('project_id, projects(title, slug)')
-    .eq('follower_id', me)
-  return ((data ?? []) as any[]).filter((r) => r.projects) as {
-    project_id: string
-    projects: { title: string; slug: string }
-  }[]
 }
 
 // The people the viewer follows (F2: read with their own client). Everything they do is in the viewer's network

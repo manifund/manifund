@@ -43,8 +43,8 @@ export default async function UserProfilePage(props: {
     user ? getBidsByUser(supabase, user.id) : undefined,
     // your own follow of this person (private: RLS returns only your rows, F2)
     user && user.id !== profile.id ? isFollowing(supabase, user.id, profile.id) : false,
-    // what this person follows (F9): public, plus their saved searches on their own profile
-    getFollowing(supabase, profile.id, isOwnProfile),
+    // what this person follows (F9): people, projects and saved searches, public
+    getFollowing(profile.id, isOwnProfile),
   ])
   const userIsAdmin = isAdmin(user)
   // Link the donor survey answers when they're public, and for the donor

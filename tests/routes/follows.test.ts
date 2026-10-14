@@ -174,9 +174,9 @@ describe('F7 one notification per person per project', () => {
   })
 })
 
-describe('F2 F9 a profile shows who someone follows; their saved searches only to them', () => {
+describe('F2 F9 a profile shows who and what someone follows, saved searches included', () => {
   standard(
-    'others see the people followed, not the searches; the old page redirects there',
+    'others see the people and searches followed; the old page redirects there',
     async () => {
       const words = `Fnine${RUN}`
       expect((await alice.post('/api/follows', { followedId: bob.id })).status).toBe(200)
@@ -186,10 +186,7 @@ describe('F2 F9 a profile shows who someone follows; their saved searches only t
       const seen = await anonymous().get(profile)
       expect(seen.status).toBe(200)
       expect(seen.text).toContain(`/${RUN}-follows-bob`)
-      expect(seen.text).not.toContain(words)
-      const own = await alice.get(profile)
-      expect(own.text).toContain(words)
-      expect(own.text).toContain('Only you see these')
+      expect(seen.text).toContain(words)
       // the old Following page redirects to the section (in the streamed page: the test client doesn't follow it)
       const old = await alice.get('/settings/subscriptions')
       expect(old.text).toContain(`${profile}#following`)
