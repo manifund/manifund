@@ -10,6 +10,7 @@ import FundPage from '../funds/[fundSlug]/page'
 import { notFound } from 'next/navigation'
 import { getResponseByProfileId } from '@/db/donor-survey'
 import { isFollowing } from '@/db/profile-follows'
+import { getFollowing } from '@/db/following'
 
 export const revalidate = 60
 
@@ -35,14 +36,16 @@ export default async function UserProfilePage(props: {
     getUser(supabase),
     getResponseByProfileId(profile.id),
   ])
-  const [userTxns, userProfile, userBids, following] = await Promise.all([
+  const isOwnProfile = user?.id === profile?.id
+  const [userTxns, userProfile, userBids, following, followingLists] = await Promise.all([
     user ? getTxnsByUser(supabase, user.id) : undefined,
     user ? getProfileById(supabase, user.id) : undefined,
     user ? getBidsByUser(supabase, user.id) : undefined,
     // your own follow of this person (private: RLS returns only your rows, F2)
     user && user.id !== profile.id ? isFollowing(supabase, user.id, profile.id) : false,
+    // what this person follows (F9): public, plus their saved searches on their own profile
+    getFollowing(supabase, profile.id, isOwnProfile),
   ])
-  const isOwnProfile = user?.id === profile?.id
   const userIsAdmin = isAdmin(user)
   // Link the donor survey answers when they're public, and for the donor
   // themself so they can find the page.
@@ -69,6 +72,7 @@ export default async function UserProfilePage(props: {
         userProfile={userProfile}
         userTxns={userTxns}
         userBids={userBids}
+        following={followingLists}
       />
     </div>
   )

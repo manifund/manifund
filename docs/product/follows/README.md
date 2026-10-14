@@ -28,7 +28,8 @@ email settings: `../notifications/README.md`.
 - **F1** Following someone covers everything they do: new projects, comments, donations and offers. One button
   on their profile follows or unfollows them; the Following page unfollows too. How often the emails come is a
   notification setting. Nobody follows themselves.
-- **F2** Follows and saved searches are private: only their owner sees them. Browsers can't write them.
+- **F2** Who follows whom is public: anyone can see the people and projects someone follows on their profile
+  (F9). Saved searches are private: only their owner sees them. Browsers can't write follows or saved searches.
 - **F3** When someone you follow publishes a project, you're notified.
 - **F4** When someone you follow comments anywhere (on a project, a profile, or an org page, reviews included), or
   donates or makes an offer on a project, you're notified. One notification per person per comment: a stronger
@@ -51,9 +52,11 @@ email settings: `../notifications/README.md`.
   offered", when people you follow donated, offered or commented on that project, at any time: up to two people,
   each named once, then "and N more". Drafts and hidden projects never count. No "From your network" label (Vals,
   2026-10-12); screen readers and the hover text say "People you follow". On a card the line stays on one line.
-- **F9** The Following page (`/settings/subscriptions`) lists the people, saved searches and projects you follow,
-  to unfollow people and projects, and pause or remove searches. It's linked from the notification settings and the
-  bell.
+- **F9** A profile's Following section lists the people and projects that person follows, for anyone (drafts and
+  hidden projects only for the owner). On your own profile it also lists your saved searches ("Only you see
+  these") and lets you unfollow, pause, resume or remove, each button with an icon; what you remove stays, faded,
+  with Undo until you leave the page. Long lists show five rows and "Show all". There's no separate Following
+  page: `/settings/subscriptions` redirects to the section (Vals, 2026-10-14).
 - **F12** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,
   comments anywhere with a short excerpt, donations and offers with their amounts), each linking to the project or
   comment. Comments on hidden projects or hidden org pages, and drafts or hidden projects, stay out. With nothing

@@ -14,6 +14,8 @@ import { DonateBox } from '@/components/donate-box'
 import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
 import { ProfileCommentTabs } from './profile-comment-tabs'
+import { ProfileFollowing } from './profile-following'
+import type { Following } from '@/db/following'
 import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
@@ -42,6 +44,7 @@ export function ProfileContent(props: {
   userProfile?: Profile
   userTxns?: TxnAndProject[]
   userBids?: BidAndProject[]
+  following: Following
 }) {
   const {
     profile,
@@ -53,6 +56,7 @@ export function ProfileContent(props: {
     userProfile,
     userTxns,
     userBids,
+    following,
   } = props
   const isOwnProfile = userProfile?.id === profile.id
   const proposalBids = bids.filter(
@@ -119,6 +123,11 @@ export function ProfileContent(props: {
       )}
       {activeBids.length > 0 && <ActiveBids bids={activeBids} isOwnProfile={isOwnProfile} />}
       {proposalBids.length > 0 && <ProposalBids bids={proposalBids} isOwnProfile={isOwnProfile} />}
+      <ProfileFollowing
+        following={following}
+        isOwnProfile={isOwnProfile}
+        firstName={profile.full_name.split(' ')[0] || profile.username}
+      />
       {/* Where main had "Comments X wrote": the comment tabs keep the page's order (the user, 2026-10-01). */}
       <ProfileCommentTabs
         profile={profile}

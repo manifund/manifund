@@ -1,7 +1,7 @@
 // Following people and saved searches through the app's routes (docs/product/follows). Everyone here is a
 // throwaway account (alice follows bob); bob's projects carry the run marker, so the run's cleanup deletes them.
 import { afterAll, beforeAll, describe, expect } from 'bun:test'
-import { tempUser, type Client } from '../helpers/http'
+import { anonymous, tempUser, type Client } from '../helpers/http'
 import { sql } from '../helpers/db'
 import { doc, RUN } from '../helpers/content'
 import { getWorld } from '../helpers/fixtures'
@@ -172,4 +172,29 @@ describe('F7 one notification per person per project', () => {
     await alice.del('/api/follows', { followedId: bob.id })
     await alice.del('/api/saved-searches', { id: s.body.search.id })
   })
+})
+
+describe('F2 F9 a profile shows who someone follows; their saved searches only to them', () => {
+  standard(
+    'others see the people followed, not the searches; the old page redirects there',
+    async () => {
+      const words = `Fnine${RUN}`
+      expect((await alice.post('/api/follows', { followedId: bob.id })).status).toBe(200)
+      const s = await alice.post('/api/saved-searches', { query: `q=${words}` })
+      expect(s.status).toBe(201)
+      const profile = `/${RUN}-follows-alice`
+      const seen = await anonymous().get(profile)
+      expect(seen.status).toBe(200)
+      expect(seen.text).toContain('Test follows-bob')
+      expect(seen.text).not.toContain(words)
+      const own = await alice.get(profile)
+      expect(own.text).toContain(words)
+      expect(own.text).toContain('Only you see these')
+      const old = await alice.get('/settings/subscriptions')
+      expect(old.status).toBe(200)
+      expect(old.text).toContain(words)
+      await alice.del('/api/saved-searches', { id: s.body.search.id })
+      await alice.del('/api/follows', { followedId: bob.id })
+    }
+  )
 })
