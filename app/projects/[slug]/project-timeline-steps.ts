@@ -44,8 +44,7 @@ export function getTimelineSteps(props: TimelineProps): TimelineStep[] {
     {
       name: 'Sign the grant agreement',
       short: 'Sign',
-      details:
-        'Donations are open. Sign the grant agreement now: no money is sent to you until it’s signed.',
+      details: 'Donations are open. Sign the grant agreement now.',
       complete: signedAgreement,
       cta: { label: 'Review & sign', href: `/projects/${projectSlug}/agreement` },
     },
@@ -58,8 +57,7 @@ export function getTimelineSteps(props: TimelineProps): TimelineStep[] {
     {
       name: 'Manifund reviews your grant',
       short: 'Review',
-      details:
-        'An admin approves every grant before it’s final. Nothing to do on your side: once it’s approved, the money offered moves to your Manifund balance.',
+      details: 'An admin approves every grant before it’s final. Nothing to do on your side.',
       complete: approved,
       nonAction: true,
     },
