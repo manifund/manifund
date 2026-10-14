@@ -22,6 +22,8 @@ export const env = {
   serverLog: get('TEST_SERVER_LOG', join(import.meta.dir, '..', '..', '..', '..', 'local-dev', `next-${get('PORT', '3002')}.log`)),
   baseUrl: get('TEST_BASE_URL', `http://localhost:${get('PORT', '3002')}`),
   password: get('TEST_PASSWORD', 'localpass123'),
+  // For calling database-webhook routes (e.g. /api/handle-new-bid) the way the database does.
+  webhookSecret: get('SUPABASE_WEBHOOK_SECRET'),
 }
 
 // How much to run: `smoke` (the core of each area), `standard` (default), `full` (also slow tests:

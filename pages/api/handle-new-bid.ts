@@ -29,7 +29,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (project.stage === 'proposal') {
     await maybeActivateProject(supabase, bid.project)
   } else if (project.type === 'cert') {
-    await findAndMakeTrades(bid, supabase)
+    await findAndMakeTrades(bid, project.creator, supabase)
     if (bid.type === 'buy') {
       await sendShareholderEmails(bid, project, supabase)
     }
@@ -70,8 +70,13 @@ async function sendShareholderEmails(
   }
 }
 
-async function findAndMakeTrades(bid: Bid, supabase: SupabaseClient) {
+async function findAndMakeTrades(bid: Bid, projectCreator: string, supabase: SupabaseClient) {
+  // Only buy and sell offers trade with each other.
+  if ((bid.type !== 'buy' && bid.type !== 'sell') || bid.status !== 'pending') {
+    return
+  }
   const newOfferType = bid.type
+  const counterType = newOfferType === 'buy' ? 'sell' : 'buy'
   const { data, error } = await supabase
     .from('bids')
     .select()
@@ -82,27 +87,38 @@ async function findAndMakeTrades(bid: Bid, supabase: SupabaseClient) {
   }
   const oldBids = data
     .filter((oldBid) => oldBid.bidder !== bid.bidder)
-    .filter((oldBid) => oldBid.type !== newOfferType)
+    .filter((oldBid) => oldBid.type === counterType)
     .filter((oldBid) => oldBid.status === 'pending')
   let budget = bid.amount
-  let newBidderAvailable = await deliverable(bid, supabase)
+  let newBidderHoldings = await getHoldings(bid, projectCreator, supabase)
   for (const oldBid of oldBids) {
     if (
       (newOfferType === 'buy'
         ? oldBid.valuation > bid.valuation
         : oldBid.valuation < bid.valuation) ||
       budget <= 0 ||
-      newBidderAvailable <= 0
+      newBidderHoldings <= 0
     ) {
       return
     }
-    const oldBidderAvailable = await deliverable(oldBid, supabase)
-    const tradeAmount = Math.min(budget, oldBid.amount, newBidderAvailable, oldBidderAvailable)
-    if (tradeAmount <= 0) continue
-    budget -= tradeAmount
-    newBidderAvailable -= tradeAmount
+    // Trades happen at the existing offer's valuation.
+    const price = oldBid.valuation
+    if (!Number.isFinite(price) || price <= 0) {
+      continue
+    }
+    const oldBidderHoldings = await getHoldings(oldBid, projectCreator, supabase)
+    const tradeAmount = Math.min(
+      budget,
+      oldBid.amount,
+      holdingsInDollars(bid, newBidderHoldings, price),
+      holdingsInDollars(oldBid, oldBidderHoldings, price)
+    )
+    if (!(tradeAmount > 0)) {
+      continue
+    }
+    const numShares = (tradeAmount / price) * TOTAL_SHARES
     await makeTrade(
-      (tradeAmount / oldBid.valuation) * TOTAL_SHARES,
+      numShares,
       tradeAmount,
       bid.project,
       oldBid.bidder,
@@ -111,26 +127,34 @@ async function findAndMakeTrades(bid: Bid, supabase: SupabaseClient) {
       supabase
     )
     await updateBidFromTrade(oldBid, tradeAmount, supabase)
-    await updateBidFromTrade(bid, tradeAmount, supabase)
+    await updateBidFromTrade({ ...bid, amount: budget }, tradeAmount, supabase)
+    budget -= tradeAmount
+    newBidderHoldings -= newOfferType === 'sell' ? numShares : tradeAmount
   }
 }
 
-// What one side of a trade can deliver right now, in dollars: a seller, the value of the shares
-// they hold at their offer's valuation; a buyer, their balance not counting this offer.
-async function deliverable(bid: Bid, supabase: SupabaseClient) {
+// What one side of a trade holds right now: a seller, their shares in the project; a buyer, the
+// balance a trade on this project draws from (cash for the project's creator, the charity balance
+// for everyone else), minus their other pending offers.
+async function getHoldings(bid: Bid, projectCreator: string, supabase: SupabaseClient) {
+  if (bid.type === 'sell') {
+    const txns = await getTxnAndProjectsByUser(supabase, bid.bidder)
+    return calculateShares(txns, bid.bidder, bid.project)
+  }
   const [profile, txns, bids] = await Promise.all([
     getProfileById(supabase, bid.bidder),
     getTxnAndProjectsByUser(supabase, bid.bidder),
     getBidsByUser(supabase, bid.bidder),
   ])
-  if (bid.type === 'sell') {
-    return (calculateShares(txns, bid.bidder, bid.project) / TOTAL_SHARES) * bid.valuation
-  }
   const otherBids = bids.filter((other) => other.id !== bid.id)
   const accredited = !!profile?.accreditation_status
-  return accredited
+  return bid.bidder === projectCreator
     ? calculateCashBalance(txns, otherBids, bid.bidder, accredited)
     : calculateCharityBalance(txns, otherBids, bid.bidder, accredited)
+}
+
+function holdingsInDollars(bid: Bid, holdings: number, price: number) {
+  return bid.type === 'sell' ? (holdings / TOTAL_SHARES) * price : holdings
 }
 
 function genBidText(bidderName: string, bid: Bid, project: ProjectAndProfile) {
