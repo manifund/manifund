@@ -106,7 +106,7 @@ export function WithdrawalSteps(props: {
     Math.round(withdrawAmount * 100) > Math.round(withdrawBalance * 100) &&
     currentStepIdx === 1
   ) {
-    errorMessage = `Your withdrawable balance is only $${withdrawBalance}.`
+    errorMessage = `Your withdrawable balance is only $${withdrawBalance.toFixed(2)}.`
   } else if (!complete && currentStepIdx === 2) {
     errorMessage = 'Complete your withdrawal to continue.'
   } else {
@@ -159,7 +159,9 @@ function SelectWithdrawAmount(props: {
       <label htmlFor="price" className="block font-medium leading-6 text-gray-900">
         Withdrawal amount
       </label>
-      <p className="mt-1 text-sm text-gray-500">You may withdraw up to ${withdrawBalance}.</p>
+      <p className="mt-1 text-sm text-gray-500">
+        You may withdraw up to ${withdrawBalance.toFixed(2)}.
+      </p>
       <div className="relative mt-2 rounded-md shadow-sm">
         <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
           <span className="text-gray-500 sm:text-sm">$</span>
