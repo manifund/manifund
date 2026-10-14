@@ -16,11 +16,14 @@ export default async function GrantAgreementPage(props: { params: Promise<{ slug
   if (!project || project.approved === false) {
     return <div>404</div>
   }
-  const agreement = (await getGrantAgreement(supabase, project.id)) ?? undefined
   const user = await getUser(supabase)
   const userIsOwner = user?.id === project.creator
   const userIsAdmin = isAdmin(user)
   const canSeePrivate = userIsOwner || userIsAdmin
+  if ((project.stage === 'hidden' || project.stage === 'draft') && !canSeePrivate) {
+    return <div>404</div>
+  }
+  const agreement = (await getGrantAgreement(supabase, project.id)) ?? undefined
 
   // Read with the admin client because grant_agreement_private is RLS-locked to
   // the service role. Only the EIN-exists flag crosses to the client for
