@@ -53,17 +53,19 @@ email settings: `../notifications/README.md`.
   isn't sent. A match always lands in the notification list; its email follows the one email choice (instant,
   daily or never: docs/product/notifications N4), like other optional notifications.
 - **F8** When people you follow donated, offered or commented on a project, at any time, a line says so above its
-  home card, outside the card on a small tab joined to its top edge, the way social feeds put "reposted by" above a
-  post (Vals, 2026-10-14), and above
+  home card, outside the card on a square orange band joined to its top-left edge (like the project box above
+  comments in the Comments feed; grey text, so it doesn't read as a link; team meeting, 2026-10-15), the way social
+  feeds put "reposted by" above a post (Vals, 2026-10-14), and above
   the title on the project page: "Maya donated and commented, Sam offered", up to two people, each named once,
   then "and N more", after the two-people icon whatever they did (Vals, 2026-10-14). Cards side by side stay aligned
   whether or not they have a line. Drafts and hidden projects never count. No "From your network" label (Vals,
   2026-10-12); screen readers and the hover text say "People you follow". On a card the line stays on one line.
-- **F9** A profile's Following section lists the people, projects and saved searches that person follows, for
-  anyone (drafts and hidden projects only for the owner). On your own profile it lets you unfollow or remove, each
-  button with an icon (no pausing a search: Vals, 2026-10-14); what you remove stays, faded, with Undo until you leave the page. Long lists
-  show five rows and "Show all". There's no separate Following page
-  (Vals, 2026-10-14).
+- **F9** A profile's **Following** tab, after "About" and "By" (`/<username>?tab=following`; Vals, 2026-10-15),
+  lists the people, projects and saved searches that person follows, for anyone (drafts and hidden projects only
+  for the owner). Others see the tab only when it isn't empty; your own profile always has it. On your own profile
+  it lets you unfollow or remove, each button with an icon (no pausing a search: Vals, 2026-10-14); what you
+  remove stays, faded, with Undo until you leave the page. Long lists show five rows and "Show all". There's no
+  separate Following page (Vals, 2026-10-14).
 - **F12** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,
   comments anywhere with a short excerpt, donations and offers with their amounts), each linking to the project or
   comment. Comments on hidden projects or hidden org pages, and drafts or hidden projects, stay out. With nothing
@@ -101,5 +103,5 @@ Newest first.
 ## Tests
 
 Each test names the rule it checks: unit `tests/unit/follows-match.test.ts` (F5, F6, F8); database
-`tests/db/profile-follows.test.ts` (F2, F8); routes `tests/routes/follows.test.ts` (F1, F3, F4, F5, F6, F7) and
-`tests/routes/network.test.ts` (F12). No tests yet for F9 and the search line's looks.
+`tests/db/profile-follows.test.ts` (F2, F8); routes `tests/routes/follows.test.ts` (F1, F3, F4, F5, F6, F7, F9) and
+`tests/routes/network.test.ts` (F12). No tests yet for the search line's looks.
