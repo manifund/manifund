@@ -14,11 +14,9 @@ create index if not exists profile_follows_followed_idx on public.profile_follow
 alter table public.profile_follows enable row level security;
 drop policy if exists "read own follows" on public.profile_follows;
 create policy "read own follows" on public.profile_follows for select using (follower_id = auth.uid());
--- (A local database built before 2026-10-12 keeps unused new_projects, comments and donations columns, default true.)
 
 -- 2. Saved searches: home's search text and categories as a query string, matched against new projects. A search
 -- exists or is removed: no pausing, no per-search frequency (the one email choice applies, N4).
--- (A local database built before 2026-10-14 keeps an unused paused_at column.)
 create table if not exists public.saved_searches (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.profiles(id) on delete cascade,
@@ -56,5 +54,4 @@ alter table public.notifications add constraint notifications_reason_check check
   -- people and searches you follow
   'followed_person_project', 'followed_person_comment', 'followed_person_donation', 'saved_search_match'));
 -- (No unique index on saved searches' notifications: F7, one per person per project, is checked in
--- lib/follows, and an index couldn't stop a duplicate email anyway: notify() sends even when recording fails.
--- A local database built before 2026-10-09 keeps an unused notifications_saved_search_project_idx.)
+-- lib/follows, and an index couldn't stop a duplicate email anyway: notify() sends even when recording fails.)
