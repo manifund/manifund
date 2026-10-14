@@ -76,7 +76,9 @@ export default async function handler(req: NextRequest) {
   const txns = await getFullTxnsByUser(supabase, user.id)
   const bids = await getBidsByUser(supabase, user.id)
   const withdrawBalance = calculateCashBalance(txns, bids, user.id, profile.accreditation_status)
-  if (dollarAmount > withdrawBalance) {
+  // Compared in whole cents: a balance is a sum of float amounts (e.g. 9954.519999999997), and withdrawing all of
+  // it must work. Rounding lets a request exceed the exact balance by at most half a cent.
+  if (cents > Math.round(withdrawBalance * CENTS_PER_DOLLAR)) {
     console.error('withdraw failed: above balance', user.id, dollarAmount)
     return NextResponse.json(
       { error: 'Withdrawal amount exceeds your withdrawable balance.' },
@@ -110,7 +112,8 @@ export default async function handler(req: NextRequest) {
     user.id,
     profile.accreditation_status
   )
-  if (balanceAfter < 0) {
+  // In whole cents, like the check above, so float error on a full withdrawal doesn't count as a concurrent one.
+  if (Math.round(balanceAfter * CENTS_PER_DOLLAR) < 0) {
     // Concurrent withdrawal detected — roll back our txn
     await supabaseAdmin.from('txns').delete().eq('id', txnId).throwOnError()
     console.error('withdraw failed: concurrent withdrawal, rolled back', user.id, dollarAmount)

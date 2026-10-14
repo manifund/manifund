@@ -101,7 +101,11 @@ export function WithdrawalSteps(props: {
     errorMessage = MERCURY_ENABLED
       ? 'Maximum automatic withdrawal is $10,000. Use "Withdraw to your bank" for larger amounts.'
       : 'Maximum automatic withdrawal is $10,000.'
-  } else if (withdrawAmount > withdrawBalance && currentStepIdx === 1) {
+  } else if (
+    // In whole cents, like the server: the balance can be a float sum such as 9954.519999999997.
+    Math.round(withdrawAmount * 100) > Math.round(withdrawBalance * 100) &&
+    currentStepIdx === 1
+  ) {
     errorMessage = `Your withdrawable balance is only $${withdrawBalance}.`
   } else if (!complete && currentStepIdx === 2) {
     errorMessage = 'Complete your withdrawal to continue.'
