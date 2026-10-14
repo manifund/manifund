@@ -1,5 +1,5 @@
 'use client'
-import { Comment } from '@/components/comment'
+import dynamic from 'next/dynamic'
 import { commentHref, targetTitle } from '@/lib/comments/links'
 import { Col } from '@/components/layout/col'
 import { Tabs } from '@/components/tabs'
@@ -19,6 +19,10 @@ import { Row } from '@/components/layout/row'
 import { UserAvatarAndBadge } from '@/components/user-link'
 import { RelativeTime } from '@/components/relative-time'
 import clsx from 'clsx'
+
+// Comments bring the rich-text editor's code (~220 KB compressed); load it only when the
+// Comments tab is shown, not on every home visit.
+const Comment = dynamic(() => import('@/components/comment').then((m) => m.Comment))
 
 export function FeedTabs(props: {
   recentComments: FullComment[]
