@@ -54,11 +54,11 @@ export function PeopleDisplay(props: { profiles: ProfileAndProjectTitles[] }) {
 }
 
 // TODO: use on other profile complete checks
-export function checkProfileComplete(profile: Profile) {
+export function checkProfileComplete(profile: Pick<Profile, 'id' | 'username' | 'full_name'>) {
   return profile.username !== profile.id && profile.full_name
 }
 
-function ProfileRow(props: { profile: Profile; isCreator?: boolean }) {
+function ProfileRow(props: { profile: ProfileAndProjectTitles; isCreator?: boolean }) {
   const { profile, isCreator } = props
   return (
     <Link

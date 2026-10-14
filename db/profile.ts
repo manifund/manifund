@@ -6,7 +6,20 @@ import { ProjectEval } from './eval'
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type ProfileAndTxns = Profile & { txns: Txn[] }
 export type ProfileAndBids = Profile & { bids: Bid[] }
-export type ProfileAndProjectTitles = Profile & {
+// Only the columns the People page shows, searches and sorts by (all 6,000+ profiles go to the browser)
+const PEOPLE_COLUMNS =
+  'id, username, full_name, avatar_url, bio, type, regranter_status, accreditation_status'
+export type ProfileAndProjectTitles = Pick<
+  Profile,
+  | 'id'
+  | 'username'
+  | 'full_name'
+  | 'avatar_url'
+  | 'bio'
+  | 'type'
+  | 'regranter_status'
+  | 'accreditation_status'
+> & {
   projects: { title: string }[]
 }
 export type ProfileAndEvals = Profile & { project_evals: ProjectEval[] }
@@ -112,7 +125,7 @@ export async function getRegranters(supabase: SupabaseClient) {
 export async function listProfiles(supabase: SupabaseClient) {
   const { data } = await supabase
     .from('profiles')
-    .select('*, projects!projects_creator_fkey(title)')
+    .select(`${PEOPLE_COLUMNS}, projects!projects_creator_fkey(title)`)
     .throwOnError()
   return data as ProfileAndProjectTitles[]
 }
