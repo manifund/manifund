@@ -1,9 +1,9 @@
 'use client'
-import { Comment } from '@/components/comment'
+import dynamic from 'next/dynamic'
 import { commentHref, targetTitle } from '@/lib/comments/links'
 import { Col } from '@/components/layout/col'
 import { Tabs } from '@/components/tabs'
-import { FullTxn } from '@/db/txn'
+import { RecentTxn } from '@/db/txn'
 import Link from 'next/link'
 import { FullComment } from '@/db/comment'
 import { useSearchParams } from 'next/navigation'
@@ -17,17 +17,21 @@ import { FullProject } from '@/db/project'
 import { SimpleCause } from '@/db/cause'
 import { Tag } from '@/components/tags'
 import { Card } from '@/components/layout/card'
-import { FullBid } from '@/db/bid'
+import { RecentBid } from '@/db/bid'
 import { Row } from '@/components/layout/row'
 import { UserAvatarAndBadge } from '@/components/user-link'
 import { RelativeTime } from '@/components/relative-time'
 import clsx from 'clsx'
 
+// Comments bring the rich-text editor's code (~220 KB compressed); load it only when the
+// Comments tab is shown, not on every home visit.
+const Comment = dynamic(() => import('@/components/comment').then((m) => m.Comment))
+
 export function FeedTabs(props: {
   recentComments: FullComment[]
   commentsTotal: number // for the comments tab's pager (capped at 7 pages, as before)
-  recentDonations: FullTxn[]
-  recentBids: FullBid[]
+  recentDonations: RecentTxn[]
+  recentBids: RecentBid[]
   projects: FullProject[]
   causesList: SimpleCause[]
   userId?: string
@@ -184,7 +188,7 @@ export function FeedTabs(props: {
   )
 }
 
-function DonationItem(props: { type: 'donation' | 'bid'; item: FullTxn | FullBid }) {
+function DonationItem(props: { type: 'donation' | 'bid'; item: RecentTxn | RecentBid }) {
   const { type, item } = props
   return (
     <div className="grid w-full grid-cols-3 items-center gap-3 rounded p-3 text-sm">

@@ -213,7 +213,7 @@ export async function getFullProjectBySlug(supabase: SupabaseClient, slug: strin
   const { data } = await supabase
     .from('projects')
     .select(
-      '*, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(*), project_follows(follower_id), causes(title, slug)'
+      '*, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(id), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(*), project_follows(follower_id), causes(title, slug)'
     )
     .eq('slug', slug)
     .throwOnError()
@@ -408,19 +408,11 @@ export async function getFullSimilarProjects(
 
   const projectIds = similarProjects.map((p: any) => p.id)
 
-  const { data, error } = await supabase
-    .from('projects')
-    .select(
-      '*, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(*), project_follows(follower_id), causes(title, slug)'
-    )
-    .in('id', projectIds)
-    .neq('stage', 'hidden')
-    .neq('stage', 'draft')
-
-  if (error || !data) {
+  // The tab shows them as cards, so load them the way home's cards are loaded
+  const data = await listProjects(supabase, projectIds).catch((error) => {
     console.error('Error fetching full similar projects:', error)
-    return []
-  }
+    return [] as FullProject[]
+  })
 
   const projectsWithSimilarity = data
     // Add similarity to each project
