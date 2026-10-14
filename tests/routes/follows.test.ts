@@ -185,14 +185,14 @@ describe('F2 F9 a profile shows who someone follows; their saved searches only t
       const profile = `/${RUN}-follows-alice`
       const seen = await anonymous().get(profile)
       expect(seen.status).toBe(200)
-      expect(seen.text).toContain('Test follows-bob')
+      expect(seen.text).toContain(`/${RUN}-follows-bob`)
       expect(seen.text).not.toContain(words)
       const own = await alice.get(profile)
       expect(own.text).toContain(words)
       expect(own.text).toContain('Only you see these')
+      // the old Following page redirects to the section (in the streamed page: the test client doesn't follow it)
       const old = await alice.get('/settings/subscriptions')
-      expect(old.status).toBe(200)
-      expect(old.text).toContain(words)
+      expect(old.text).toContain(`${profile}#following`)
       await alice.del('/api/saved-searches', { id: s.body.search.id })
       await alice.del('/api/follows', { followedId: bob.id })
     }
