@@ -32,21 +32,15 @@ export function EmailChoicePicker(props: { initial: EmailChoice }) {
     <section
       id="email"
       aria-labelledby="email-choice-label"
-      className="mb-5 flex flex-col gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
+      className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-2 rounded-lg border border-gray-200 bg-white px-3 py-2"
     >
-      <div className="min-w-0 text-sm">
-        <p id="email-choice-label" className="text-gray-700">
-          Email me about replies, comments and what I follow
-        </p>
-        <p className="text-xs text-gray-500">
-          Money, your projects and anything that needs you: always right away.
-        </p>
-        {error && <p className="text-xs text-red-700">Couldn't save. Try again.</p>}
-      </div>
+      <p id="email-choice-label" className="min-w-0 text-balance text-sm text-gray-700">
+        Email me about replies, comments and what I follow
+      </p>
       <div
         role="radiogroup"
         aria-labelledby="email-choice-label"
-        className="inline-flex flex-none self-start rounded-md border border-gray-200 bg-gray-50 p-0.5 sm:self-auto"
+        className="inline-flex flex-none rounded-md border border-gray-200 bg-gray-50 p-0.5"
       >
         {OPTIONS.map(({ choice: c, label, Icon }) => (
           <button
@@ -55,7 +49,7 @@ export function EmailChoicePicker(props: { initial: EmailChoice }) {
             aria-checked={choice === c}
             onClick={() => choice !== c && save(c)}
             className={clsx(
-              'flex items-center gap-1 rounded px-2.5 py-1 text-xs',
+              'flex items-center gap-1 rounded px-1.5 py-1 text-xs',
               choice === c
                 ? 'bg-white font-medium text-orange-700 shadow-sm ring-1 ring-orange-200'
                 : 'text-gray-600 hover:text-gray-900'
@@ -66,6 +60,7 @@ export function EmailChoicePicker(props: { initial: EmailChoice }) {
           </button>
         ))}
       </div>
+      {error && <p className="w-full text-xs text-red-700">Couldn't save. Try again.</p>}
     </section>
   )
 }

@@ -6,7 +6,7 @@ export type NetworkActivity = Record<string, NetworkItem[]>
 
 // F8: the context line above a home card and a project's title (TENTATIVE): up to two people, each named once with
 // what they did ("Maya donated and commented, Sam offered"), then how many more. No "From your network" label (Vals,
-// 2026-10-12): the icon says it. Creating isn't mentioned: the card already shows the creator.
+// 2026-10-12): the two-people icon says it, whatever they did (Vals, 2026-10-14). Creating isn't mentioned: the card already shows the creator.
 export type NetworkPerson = { name: string; kinds: NetworkKind[] }
 export function networkPeople(items: NetworkItem[] | undefined) {
   const byPerson = new Map<string, NetworkKind[]>()
@@ -18,13 +18,7 @@ export function networkPeople(items: NetworkItem[] | undefined) {
   }
   if (!byPerson.size) return null
   const people = Array.from(byPerson.entries()).map(([name, kinds]) => ({ name, kinds }))
-  // one kind across everyone gets that kind's icon; a mix gets the people icon
-  const kinds = new Set(people.flatMap((p) => p.kinds))
-  return {
-    shown: people.slice(0, 2),
-    more: Math.max(0, people.length - 2),
-    kind: kinds.size === 1 ? (Array.from(kinds)[0] as NetworkKind) : null,
-  }
+  return { shown: people.slice(0, 2), more: Math.max(0, people.length - 2) }
 }
 
 export function networkText(items: NetworkItem[] | undefined) {

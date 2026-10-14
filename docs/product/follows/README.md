@@ -53,9 +53,10 @@ email settings: `../notifications/README.md`.
   isn't sent. A match always lands in the notification list; its email follows the one email choice (immediately,
   daily or never: docs/product/notifications N4), like other optional notifications.
 - **F8** When people you follow donated, offered or commented on a project, at any time, a line says so above its
-  home card, outside the card, the way social feeds put "reposted by" above a post (Vals, 2026-10-14), and above
+  home card, outside the card on a small tab joined to its top edge, the way social feeds put "reposted by" above a
+  post (Vals, 2026-10-14), and above
   the title on the project page: "Maya donated and commented, Sam offered", up to two people, each named once,
-  then "and N more", after an icon for what they did (a people icon for a mix). Cards side by side stay aligned
+  then "and N more", after the two-people icon whatever they did (Vals, 2026-10-14). Cards side by side stay aligned
   whether or not they have a line. Drafts and hidden projects never count. No "From your network" label (Vals,
   2026-10-12); screen readers and the hover text say "People you follow". On a card the line stays on one line.
 - **F9** A profile's Following section lists the people, projects and saved searches that person follows, for
