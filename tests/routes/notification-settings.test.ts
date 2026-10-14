@@ -19,7 +19,7 @@ const stored = async () =>
 const stopToken = (profileId: string) =>
   `${profileId}.${createHmac('sha256', `notifications-stop:${env.serviceKey}`).update(profileId).digest('base64url')}`
 
-describe('N4 one choice: immediately, daily or never; daily is the default and stores nothing', () => {
+describe('N4 one choice: instant, daily or never; daily is the default and stores nothing', () => {
   smoke('saving a choice stores it; the default removes it', async () => {
     expect((await bob.post('/api/notifications/settings', { choice: 'immediate' })).status).toBe(
       200

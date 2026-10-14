@@ -50,7 +50,7 @@ email settings: `../notifications/README.md`.
 - **F7** Saved searches tell each person about a project once at most: not again when it changes, not once per
   matching search, and not at all if they were already notified about it for another reason (someone they follow
   posted it or commented on it). A notification counts whether its email went out, waits for the daily summary or
-  isn't sent. A match always lands in the notification list; its email follows the one email choice (immediately,
+  isn't sent. A match always lands in the notification list; its email follows the one email choice (instant,
   daily or never: docs/product/notifications N4), like other optional notifications.
 - **F8** When people you follow donated, offered or commented on a project, at any time, a line says so above its
   home card, outside the card on a small tab joined to its top edge, the way social feeds put "reposted by" above a

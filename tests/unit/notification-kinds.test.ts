@@ -32,7 +32,7 @@ describe('N3 essential notifications are always emailed right away', () => {
   })
 })
 
-describe('N4 everything else follows the one choice: immediately, daily (the default) or never', () => {
+describe('N4 everything else follows the one choice: instant, daily (the default) or never', () => {
   const optional = NOTIFICATION_REASONS.filter((r) => !isEssential(r))
   test('comments, replies, follows, saved searches and tips are optional', () => {
     for (const r of [

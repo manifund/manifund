@@ -5,7 +5,9 @@ import { BellSlashIcon, BoltIcon, CalendarDaysIcon } from '@heroicons/react/20/s
 import type { EmailChoice } from '@/lib/notifications/kinds'
 
 const OPTIONS: { choice: EmailChoice; label: string; Icon: typeof BoltIcon }[] = [
-  { choice: 'immediate', label: 'Immediately', Icon: BoltIcon },
+  // 'Instant' reads as a frequency next to Daily and Never, at about their length (Vals, 2026-10-15); the stored
+  // value stays 'immediate'.
+  { choice: 'immediate', label: 'Instant', Icon: BoltIcon },
   { choice: 'daily', label: 'Daily', Icon: CalendarDaysIcon },
   { choice: 'never', label: 'Never', Icon: BellSlashIcon },
 ]

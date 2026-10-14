@@ -1,7 +1,7 @@
 # Notifications
 
 Everything that happens to you on Manifund, in one list. Essential emails always go out right away; for everything
-else, one choice: immediately, daily or never. Comments' own rules for who is notified of a comment are in
+else, one choice: instant, daily or never. Comments' own rules for who is notified of a comment are in
 `../comments/README.md` (C21-C25).
 
 ## What notifications are for
@@ -40,12 +40,12 @@ else, one choice: immediately, daily or never. Comments' own rules for who is no
   auction resolved), receipts and records (deposits, payments, withdrawals, cash moved to charity, signed
   agreements), and what needs you (an unfinished withdrawal, money left idle in your account, a moderator editing or removing your comment).
 - **N4** Everything else is optional and follows one choice per person, shown above the list on `/notifications`:
-  "Immediately", "Daily" (the default) or "Never". Optional: replies, mentions, comments on your projects and
+  "Instant" (each email as it happens), "Daily" (the default) or "Never". Optional: replies, mentions, comments on your projects and
   profile, updates and comments on projects you follow, projects you follow becoming active or closing, people you
   follow, saved-search matches, and tips on your comments. The choice is saved only by server code; people read
   only their own.
 - **N5** The daily summary lists everything waiting for it, then marks it sent; nothing is sent twice. What waits
-  when someone switches to immediately goes out in the next summary; what waits when they switch to never is
+  when someone switches to instant goes out in the next summary; what waits when they switch to never is
   dropped from email.
 - **N6** Optional emails end with "Unsubscribe" (a signed link that sets the choice to never, with Undo, no sign-in
   needed) and "Change how often you get these emails" (the notifications page), plus one-click unsubscribe headers
@@ -62,6 +62,7 @@ Newest first.
 
 | Date       | Decided by                     | Decision                                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Why                                                                                                                                         |
 | ---------- | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-15 | Vals (team meeting)            | The first choice reads "Instant", not "Immediately": about the length of "Daily" and "Never", and still says each email goes out as it happens (N4); the stored value stays `immediate`                                                                                                                                                                                                                                                                                   | "find a word about same length as daily never so it looks better"                                                                           |
 | 2026-10-14 | Vals                           | One email setting for optional notifications, immediately, daily or never, on `/notifications` itself; no settings page; essential emails (e.g. a project's timeline) always right away (N3, N4)                                                                                                                                                                                                                                                                          | "we wanna cut the complexity a lot ... only 1 setting for notifciations going to email (immediate, daily, never), there's no seperate page" |
 | 2026-10-14 | Vals (Q38-Q40)                 | Default daily; the idle-balance reminder essential; tips on comments optional; offers and money you gave essential; the choice in its own table, not a profiles column (profiles are public)                                                                                                                                                                                                                                                                              | Daily is the closest to the earlier "activity weekly" default                                                                               |
 | 2026-10-12 | Vals                           | Opening `/notifications` marks everything read; no marking one by one, no "Mark all read" (N5)                                                                                                                                                                                                                                                                                                                                                                            | "I don't like notifications being one by one as a feature, just cut. site it too low traffic for it to be a better flow rn."                |

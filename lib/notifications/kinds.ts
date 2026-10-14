@@ -1,6 +1,6 @@
 // Pure (no server-only imports), so unit tests and client components can import it.
 // Every notification has a reason, and every reason shows in the in-app list. For email, a reason is either
-// essential (always emailed right away, no setting) or optional (emailed per the person's one choice: immediately,
+// essential (always emailed right away, no setting) or optional (emailed per the person's one choice: instant,
 // daily or never). Rules N2-N4, docs/product/notifications/README.md.
 
 export const NOTIFICATION_REASONS = [
