@@ -3,7 +3,7 @@ import { invalidateProjectsCache } from '@/db/project-cached'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { createUpdateFromParams, ProjectParams } from '@/utils/upsert-project'
-import { getOpenPrize, getPrizeCause } from '@/db/cause'
+import { getOpenPrize } from '@/db/cause'
 import { getProposalValuation, getMinIncludingAmm } from '@/utils/math'
 import { seedAmm } from '@/utils/activate-project'
 import { insertBid } from '@/db/bid'
@@ -34,7 +34,6 @@ export default async function handler(req: NextRequest) {
     return NextResponse.json({ error: 'This program is not open' }, { status: 400 })
   }
   projectParams.selectedPrize = selectedPrize ?? null
-  const causeSlugs = projectParams.selectedCauses.map((cause) => cause.slug)
   const startingStage =
     selectedPrize && !selectedPrize.cert_params?.proposalPhase ? 'active' : 'proposal'
   const type = !!selectedPrize ? 'cert' : 'grant'
@@ -44,9 +43,8 @@ export default async function handler(req: NextRequest) {
     stage: startingStage,
   })
   const updatedProject = await getProjectById(supabase, projectId)
-  const prizeCause = await getPrizeCause(causeSlugs, supabase)
-  if (type === 'cert' && prizeCause) {
-    const certParams = prizeCause.cert_params
+  if (type === 'cert' && selectedPrize) {
+    const certParams = selectedPrize.cert_params
     if (certParams?.proposalPhase) {
       await insertBid(supabase, {
         project: projectId,
