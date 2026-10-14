@@ -60,8 +60,8 @@ email settings: `../notifications/README.md`.
 - **F9** A profile's Following section lists the people, projects and saved searches that person follows, for
   anyone (drafts and hidden projects only for the owner). On your own profile it lets you unfollow, pause, resume
   or remove, each button with an icon; what you remove stays, faded, with Undo until you leave the page. Long lists
-  show five rows and "Show all". There's no separate Following page: `/settings/subscriptions` redirects to the
-  section (Vals, 2026-10-14).
+  show five rows and "Show all". There's no separate Following page
+  (Vals, 2026-10-14).
 - **F12** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,
   comments anywhere with a short excerpt, donations and offers with their amounts), each linking to the project or
   comment. Comments on hidden projects or hidden org pages, and drafts or hidden projects, stay out. With nothing
@@ -73,7 +73,7 @@ Newest first.
 
 | Date       | Decided by                                 | Decision                                                                                                                                                                                                                         | Why                                                                  |
 | ---------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| 2026-10-13 | Vals (asked; kept meanwhile)               | The Network tab stays, in its own commit so it can be dropped (F12)                                                                                                                                                              | Q25: "Network first" and the Hot boost go; the tab was the open part |
+| 2026-10-14 | Vals                                       | The Network tab stays: "it's like twitter" (F12)                                                                                                                                                                                 | Q25 cut "Network first" and the Hot boost; Q29 kept the tab          |
 | 2026-10-14 | Vals                                       | Save a search from a line that appears under the search box once there is a search, not an always-visible bell (F5)                                                                                                              | "just in time ... simple, elegant"                                   |
 | 2026-10-14 | Vals                                       | The network line sits above the card, not in it (F8)                                                                                                                                                                             | "like twitter 'reposted by' is not in tweet but surrounding"         |
 | 2026-10-14 | Vals                                       | Following people and projects share one bookmark button (F1)                                                                                                                                                                     | "standardize ... change icon from eye to bookmark"                   |

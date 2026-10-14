@@ -34,16 +34,11 @@ export function NetworkFeed() {
         <p className="font-medium text-gray-900">Nothing from your network yet</p>
         <p className="mt-2">
           Follow people from their profile (the Follow button next to their name) to see their new
-          projects, comments and donations here. Projects they're involved in also rank higher on
-          Hot.
+          projects, comments and donations here.
         </p>
         <p className="mt-2">
           <Link href="/people" className="text-orange-600 hover:underline">
             Find people
-          </Link>
-          {' · '}
-          <Link href="/settings/subscriptions" className="text-orange-600 hover:underline">
-            Who you follow
           </Link>
         </p>
       </div>

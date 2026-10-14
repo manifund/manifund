@@ -187,9 +187,6 @@ describe('F2 F9 a profile shows who and what someone follows, saved searches inc
       expect(seen.status).toBe(200)
       expect(seen.text).toContain(`/${RUN}-follows-bob`)
       expect(seen.text).toContain(words)
-      // the old Following page redirects to the section (in the streamed page: the test client doesn't follow it)
-      const old = await alice.get('/settings/subscriptions')
-      expect(old.text).toContain(`${profile}#following`)
       await alice.del('/api/saved-searches', { id: s.body.search.id })
       await alice.del('/api/follows', { followedId: bob.id })
     }
