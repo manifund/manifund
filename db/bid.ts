@@ -1,6 +1,6 @@
 import { Database } from '@/db/database.types'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { Profile } from './profile'
+import { MiniProfile, Profile } from './profile'
 import { Project, ProjectSummary } from './project'
 
 export type Bid = Database['public']['Tables']['bids']['Row']
@@ -8,6 +8,8 @@ export type BidInsert = Database['public']['Tables']['bids']['Insert']
 export type BidAndProject = Bid & { projects: ProjectSummary }
 export type BidAndProfile = Bid & { profiles: Profile }
 export type FullBid = Bid & { profiles: Profile } & { projects: Project }
+// Home's offers list: the bidder and the project, as the rows show them
+export type RecentBid = BidAndProject & { profiles: MiniProfile }
 
 export async function getBidsByUser(supabase: SupabaseClient, userId: string) {
   if (!userId) {
@@ -89,13 +91,15 @@ export async function getRecentFullBids(
 ) {
   const { data } = await supabase
     .from('bids')
-    .select('*, profiles(*), projects(*)')
+    .select(
+      '*, profiles(id, username, avatar_url, full_name, type), projects(id, title, slug, stage, type, creator)'
+    )
     .order('created_at', { ascending: false })
     .eq('status', 'pending')
     .or('type.eq.donate, type.eq.buy, type.eq."assurance buy"')
     .range(start, start + size)
     .throwOnError()
-  return data as FullBid[]
+  return data as RecentBid[]
 }
 
 export async function insertBid(supabase: SupabaseClient, bid: BidInsert) {
