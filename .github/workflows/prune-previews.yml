@@ -1,0 +1,49 @@
+# Delete Vercel preview deployments once they're no longer needed: all of a PR's previews when it closes, and an
+# hourly sweep for the rest (superseded previews, branches gone, fork PRs). Logic and rules:
+# .github/scripts/prune-vercel-previews.mjs. Needs the repo secret VERCEL_TOKEN; without it, the jobs do nothing.
+name: prune-previews
+on:
+  pull_request:
+    types: [closed]
+  schedule: [{ cron: '23 * * * *' }]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'List what would be deleted, delete nothing'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: prune-previews
+  cancel-in-progress: false
+
+env:
+  VERCEL_TEAM_ID: team_985Dlyr3wUGsLqEsEe42Cy9l
+  VERCEL_TEAM_SLUG: manifund
+  VERCEL_PROJECT_ID: prj_omCA6T46DR8fkK4IgUz7O3aUgHxg
+  VERCEL_PROJECT_NAME: manifund
+
+jobs:
+  prune:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The script always comes from the default branch: a PR's own code never runs with the token, and closed
+      # PRs' merge refs may no longer exist.
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/scripts
+      - run: node .github/scripts/prune-vercel-previews.mjs
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          MODE: ${{ github.event_name == 'pull_request' && 'pr-closed' || 'sweep' }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          PR_HEAD_REPO_ID: ${{ github.event.pull_request.head.repo.id }}
