@@ -4,53 +4,41 @@
 import { createAdminClient } from '@/db/supabase-admin'
 import { getURL } from '@/utils/constants'
 import { log } from '@/lib/log'
-import { groupByKey, type EmailMode, type GroupKey } from './groups'
+import { DEFAULT_EMAIL_CHOICE, type EmailChoice } from './kinds'
 
-// A person's stored email modes, by group: overrides only; groups without a row use their default (N3). Raw
-// values: groups.ts's effectiveMode treats one that isn't a mode as the default.
-export async function loadOverrides(profileId: string): Promise<Partial<Record<string, string>>> {
+// People's stored email choices (N4), raw: kinds.ts's emailChoice turns a missing one into the default.
+export async function loadEmailChoices(profileIds: string[]): Promise<Map<string, string>> {
+  if (!profileIds.length) return new Map()
   const { data, error } = await (createAdminClient() as any)
-    .from('notification_settings')
-    .select('group_key, email')
-    .eq('profile_id', profileId)
-  if (error) {
-    log.error('notifications.settings_load_failed', { profile_id: profileId, error })
-    return {}
-  }
-  return Object.fromEntries((data ?? []).map((r: any) => [r.group_key, r.email as string]))
+    .from('notification_email')
+    .select('profile_id, choice')
+    .in('profile_id', profileIds)
+  if (error) log.error('notifications.email_choice_load_failed', { error })
+  return new Map((data ?? []).map((r: any) => [r.profile_id as string, r.choice as string]))
 }
 
-// The only writer of notification_settings (server-only, N4): the settings page's choices and the unsubscribe
-// button's 'off'. Refuses unknown and always-emailed groups. Setting the default removes the override.
-export async function setEmailMode(profileId: string, groupKey: string, mode: EmailMode) {
-  const group = groupByKey(groupKey)
-  if (!group) return { error: `unknown group ${groupKey}` }
-  if (group.always) return { error: `${groupKey} is always emailed` }
-  const table = (createAdminClient() as any).from('notification_settings')
+export async function loadEmailChoice(profileId: string) {
+  return (await loadEmailChoices([profileId])).get(profileId) ?? null
+}
+
+// The only writer of notification_email (server-only, N4): the choice on /notifications, and an email's
+// unsubscribe button ('never'). Choosing the default removes the row.
+export async function setEmailChoice(profileId: string, choice: EmailChoice) {
+  const table = (createAdminClient() as any).from('notification_email')
   const { error } =
-    mode === group.default
-      ? await table.delete().eq('profile_id', profileId).eq('group_key', groupKey)
-      : await table.upsert({
-          profile_id: profileId,
-          group_key: groupKey,
-          email: mode,
-          updated_at: new Date().toISOString(),
-        })
+    choice === DEFAULT_EMAIL_CHOICE
+      ? await table.delete().eq('profile_id', profileId)
+      : await table.upsert({ profile_id: profileId, choice, updated_at: new Date().toISOString() })
   if (error) {
-    log.error('notifications.settings_save_failed', {
-      profile_id: profileId,
-      group: groupKey,
-      error,
-    })
+    log.error('notifications.email_choice_save_failed', { profile_id: profileId, error })
     return { error: 'could not save' }
   }
-  log.info('notifications.settings_saved', { profile_id: profileId, group: groupKey, mode })
+  log.info('notifications.email_choice_saved', { profile_id: profileId, choice })
   return { error: null }
 }
 
-// Signed unsubscribe links (N7): profile + the groups the email is about (one, or several for a weekly summary),
-// HMAC-signed with a key derived from the service-role key, so no new secret is needed. No expiry: an old
-// email's link keeps working.
+// Signed unsubscribe links (N6): the profile, HMAC-signed with a key derived from the service-role key, so no new
+// secret is needed. No expiry: an old email's link keeps working.
 async function hmac(data: string) {
   const secret = process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''
   const key = await crypto.subtle.importKey(
@@ -67,35 +55,33 @@ async function hmac(data: string) {
     .replace(/=+$/, '')
 }
 
-export async function stopToken(profileId: string, groupKeys: GroupKey[]) {
-  const payload = `${profileId}.${groupKeys.join(',')}`
-  return `${payload}.${await hmac(payload)}`
+export async function stopToken(profileId: string) {
+  return `${profileId}.${await hmac(profileId)}`
 }
 
 export async function readStopToken(token: string) {
-  const [profileId, groups, sig] = token.split('.')
-  if (!profileId || !groups || !sig) return null
-  if ((await hmac(`${profileId}.${groups}`)) !== sig) return null
-  return { profileId, groupKeys: groups.split(',') }
+  const [profileId, sig, extra] = token.split('.')
+  if (!profileId || !sig || extra !== undefined) return null
+  if ((await hmac(profileId)) !== sig) return null
+  return { profileId }
 }
 
-// Footer links (N7). Optional kinds: "Unsubscribe from these emails" (the groups this email is about) and
-// "Choose which emails you receive" (the settings). Always-sent kinds carry none of it: empty links, no headers.
+// Footer links of optional emails (N6): "Unsubscribe" (sets the choice to never) and "Change how often" (the choice
+// on /notifications). Essential emails carry none of it: empty links, no headers.
 export type EmailLinks = { stopUrl: string; oneClickUrl: string; settingsUrl: string }
 
-export async function emailLinks(profileId: string, groupKeys: GroupKey[]): Promise<EmailLinks> {
-  if (groupKeys.some((k) => groupByKey(k)?.always))
-    return { stopUrl: '', oneClickUrl: '', settingsUrl: '' }
+export async function emailLinks(profileId: string, essential: boolean): Promise<EmailLinks> {
+  if (essential) return { stopUrl: '', oneClickUrl: '', settingsUrl: '' }
   const base = getURL().replace(/\/$/, '')
-  const token = await stopToken(profileId, groupKeys)
+  const token = encodeURIComponent(await stopToken(profileId))
   return {
-    stopUrl: `${base}/notifications/stop?t=${encodeURIComponent(token)}`,
-    oneClickUrl: `${base}/api/notifications/stop?t=${encodeURIComponent(token)}`,
-    settingsUrl: `${base}/settings/notifications`,
+    stopUrl: `${base}/notifications/stop?t=${token}`,
+    oneClickUrl: `${base}/api/notifications/stop?t=${token}`,
+    settingsUrl: `${base}/notifications`,
   }
 }
 
-// One-click unsubscribe headers (RFC 8058) for mail apps; none for always-sent kinds.
+// One-click unsubscribe headers (RFC 8058) for mail apps; none for essential emails.
 export function unsubscribeHeaders(links: EmailLinks) {
   return links.oneClickUrl
     ? [

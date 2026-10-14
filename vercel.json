@@ -37,8 +37,8 @@
       "schedule": "*/10 * * * *"
     },
     {
-      "path": "/api/notifications/weekly",
-      "schedule": "0 14 * * 1"
+      "path": "/api/notifications/daily",
+      "schedule": "0 14 * * *"
     },
     {
       "path": "/api/karma/sync",

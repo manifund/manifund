@@ -4,15 +4,14 @@ import { getURL } from '@/utils/constants'
 import { log } from '@/lib/log'
 import { loadNotifications } from '@/lib/notifications/load'
 import { describe, plainLine } from '@/lib/notifications/describe'
-import { emailModeFor, groupOf, type NotificationReason } from '@/lib/notifications/groups'
-import { emailLinks, loadOverrides, unsubscribeHeaders } from '@/lib/notifications/settings'
+import { emailModeFor, type NotificationReason } from '@/lib/notifications/kinds'
+import { emailLinks, loadEmailChoices, unsubscribeHeaders } from '@/lib/notifications/settings'
 import { emailFooter } from '@/lib/notifications/footer'
 
-// The weekly summary (cron, Mondays, N6): one email per person listing every notification waiting for it
-// (email_status 'digest'), then marks them sent. A waiting notification whose group is now unsubscribed ('off',
-// N7) is marked skipped without an email; one whose group switched to right away still goes out here, so
-// nothing waits forever. Its unsubscribe button covers every kind it lists. Locally email is off.
-export async function sendWeeklySummary() {
+// The daily summary (cron, N5): one email per person listing every notification waiting for it (email_status
+// 'digest'), then marks them sent. If the person has switched to never since, what waits is marked skipped without
+// an email; if they switched to immediate, it still goes out here, so nothing waits forever. Locally email is off.
+export async function sendDailySummary() {
   const now = new Date().toISOString()
   const rows = await loadNotifications({ digestBefore: now, limit: 5000 })
   const byPerson = new Map<string, typeof rows>()
@@ -21,11 +20,11 @@ export async function sendWeeklySummary() {
   const base = getURL().replace(/\/$/, '')
   let people = 0
   let notifications = 0
+  const choices = await loadEmailChoices([...byPerson.keys()])
   for (const [recipientId, waiting] of byPerson) {
     try {
-      const overrides = await loadOverrides(recipientId)
       const off = waiting.filter(
-        (n) => emailModeFor(n.reason as NotificationReason, overrides) === 'off'
+        (n) => emailModeFor(n.reason as NotificationReason, choices.get(recipientId)) === 'never'
       )
       const items = waiting.filter((n) => !off.includes(n))
       if (off.length) {
@@ -49,23 +48,22 @@ export async function sendWeeklySummary() {
           const d = describe(n, me)
           return { text: plainLine(d), href: `${base}${d.href}` }
         })
-        const groups = [...new Set(items.map((n) => groupOf(n.reason as NotificationReason).key))]
-        const links = await emailLinks(recipientId, groups)
+        const links = await emailLinks(recipientId, false)
         const footer = emailFooter(links)
         const html =
-          `<p>What happened on Manifund this week:</p><ul>` +
+          `<p>What happened on Manifund since yesterday:</p><ul>` +
           lines.map((l) => `<li><a href="${l.href}">${escapeHtml(l.text)}</a></li>`).join('') +
           `</ul><p><a href="${base}/notifications">All your notifications</a></p>` +
           footer.html
         const text = lines.map((l) => `- ${l.text}: ${l.href}`).join('\n') + footer.text
         await sendEmail(
           email,
-          `Manifund: ${items.length} new this week`,
+          `Manifund: ${items.length} new since yesterday`,
           html,
           text,
           undefined,
           undefined,
-          { summary: 'weekly', recipient_id: recipientId },
+          { summary: 'daily', recipient_id: recipientId },
           unsubscribeHeaders(links)
         )
       }

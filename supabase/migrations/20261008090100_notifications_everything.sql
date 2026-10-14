@@ -1,4 +1,5 @@
--- Notifications: every event lands in the in-app list; email is a per-person, per-group choice.
+-- Notifications: every event lands in the in-app list; essential kinds are always emailed right away, the optional
+-- ones follow each person's one choice (immediately, daily or never).
 -- Rules: docs/product/notifications/README.md. Additive only: wider checks, new nullable columns, a new table.
 
 -- 1. More kinds of notifications (comments' eight, plus every event that only emailed before).
@@ -22,7 +23,7 @@ alter table public.notifications add constraint notifications_reason_check check
   -- your account and money: reminders
   'unfinished_withdrawal', 'idle_balance'));
 
--- 2. 'digest': waiting for the weekly summary email.
+-- 2. 'digest': waiting for the daily summary email.
 alter table public.notifications drop constraint if exists notifications_email_status_check;
 alter table public.notifications add constraint notifications_email_status_check
   check (email_status in ('pending', 'sending', 'sent', 'skipped', 'failed', 'digest'));
@@ -38,18 +39,17 @@ alter table public.notifications
 create index if not exists notifications_digest_idx
   on public.notifications (recipient_id, created_at) where email_status = 'digest';
 
--- 4. Each person's email choices, overrides only (defaults live in code: lib/notifications/groups.ts):
---    right away or weekly from the settings page, 'off' from an email's unsubscribe button.
-create table if not exists public.notification_settings (
-  profile_id uuid not null references public.profiles(id) on delete cascade,
-  group_key text not null,
-  email text not null check (email in ('instant', 'weekly', 'off')),
-  updated_at timestamptz not null default now(),
-  primary key (profile_id, group_key)
+-- 4. Each person's one email choice for optional notifications (N3), only when it isn't the default (daily, in code:
+--    lib/notifications/kinds.ts): 'immediate' or 'never', or 'daily' again. Its own table rather than a profiles
+--    column, because profiles are readable by everyone.
+create table if not exists public.notification_email (
+  profile_id uuid primary key references public.profiles(id) on delete cascade,
+  choice text not null check (choice in ('immediate', 'daily', 'never')),
+  updated_at timestamptz not null default now()
 );
-alter table public.notification_settings enable row level security;
-drop policy if exists "read own notification settings" on public.notification_settings;
-create policy "read own notification settings" on public.notification_settings
+alter table public.notification_email enable row level security;
+drop policy if exists "read own notification email" on public.notification_email;
+create policy "read own notification email" on public.notification_email
   for select using (profile_id = auth.uid());
 -- No insert/update/delete policies: only server code writes (lib/notifications/settings.ts).
 

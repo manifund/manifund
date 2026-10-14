@@ -30,7 +30,7 @@ const ICONS = {
   search: { Icon: MagnifyingGlassIcon, className: 'bg-violet-50 text-violet-700' },
 } as const
 
-// What was new when the page opened stays highlighted until the next visit (opening it marks everything read, N5).
+// What was new when the page opened stays highlighted until the next visit (opening it marks everything read, N2).
 export function NotificationList(props: { items: Item[] }) {
   const { items } = props
   const unread = items.filter((i) => i.unread).length
@@ -84,13 +84,6 @@ export function NotificationList(props: { items: Item[] }) {
           )
         })}
       </ul>
-      <p className="mt-4 text-xs text-gray-500">
-        Everything shows here; emails are a copy of some of it, per your{' '}
-        <Link href="/settings/notifications" className="text-orange-600 hover:underline">
-          settings
-        </Link>
-        .
-      </p>
     </>
   )
 }

@@ -222,7 +222,7 @@ export function EditProfileForm(props: { profile: Profile }) {
       ></input>
 
       <Link
-        href="/settings/notifications"
+        href="/notifications#email"
         className="w-fit text-sm font-medium text-orange-600 hover:underline"
       >
         Email notifications

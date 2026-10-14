@@ -11,7 +11,7 @@ const SELECT = `id, recipient_id, reason, created_at, read_at, amount,
   saved_search:saved_searches(name),
   comment:comments(id, content, ${TARGET_EMBEDS})`
 
-// Notification rows with what the inbox and the weekly summary show (describe.ts). Server-only:
+// Notification rows with what the inbox and the daily summary show (describe.ts). Server-only:
 // callers filter to one recipient (the inbox) or to rows waiting for the summary.
 export async function loadNotifications(filter: {
   recipientId?: string

@@ -1,43 +1,51 @@
 'use client'
 import { useState } from 'react'
 import Link from 'next/link'
+import { ArrowUturnLeftIcon, BellSlashIcon } from '@heroicons/react/24/outline'
 import { Button } from '@/components/button'
+import { OPTIONAL_ABOUT } from '@/lib/notifications/kinds'
 
-export function StopConfirm(props: { token: string; labels: string[] }) {
-  const [stopped, setStopped] = useState(false)
+export function StopConfirm(props: { token: string }) {
+  const [previous, setPrevious] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const send = async (undo: boolean) => {
+  const send = async (undo?: string) => {
     setError(null)
     const res = await fetch('/api/notifications/stop', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ t: props.token, undo }),
+      body: JSON.stringify(undo ? { t: props.token, undo } : { t: props.token }),
     })
-    if (res.ok) setStopped(!undo)
-    else setError("That didn't work. Try again, or use your notification settings.")
+    const json = await res.json().catch(() => ({}))
+    if (!res.ok)
+      return setError("That didn't work. Try again, or change it on your notifications page.")
+    setPrevious(undo ? null : (json.previous ?? 'daily'))
   }
   return (
     <div className="flex flex-col gap-3 text-sm text-gray-700">
-      <ul className="list-disc pl-5 font-medium">
-        {props.labels.map((l) => (
-          <li key={l}>{l}</li>
-        ))}
-      </ul>
-      {stopped ? (
+      <p>
+        Stop emails about {OPTIONAL_ABOUT}? They still show in your notifications, and Manifund
+        still emails you about money and your projects.
+      </p>
+      {previous ? (
         <p>
-          You won't get these by email anymore; they still show in your notifications.{' '}
-          <button onClick={() => send(true)} className="text-orange-600 hover:underline">
+          Done: no more of these emails.{' '}
+          <button
+            onClick={() => send(previous)}
+            className="inline-flex items-center gap-1 text-orange-600 hover:underline"
+          >
+            <ArrowUturnLeftIcon className="h-4 w-4" />
             Undo
           </button>
         </p>
       ) : (
-        <Button onClick={() => send(false)} className="self-start">
-          Unsubscribe from these emails
+        <Button onClick={() => send()} className="flex items-center gap-1.5 self-start">
+          <BellSlashIcon className="h-4 w-4" />
+          Unsubscribe
         </Button>
       )}
       {error && <p className="text-red-700">{error}</p>}
-      <Link href="/settings/notifications" className="text-orange-600 hover:underline">
-        All notification settings
+      <Link href="/notifications" className="text-orange-600 hover:underline">
+        Your notifications
       </Link>
     </div>
   )

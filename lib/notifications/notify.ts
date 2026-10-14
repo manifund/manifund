@@ -3,16 +3,16 @@
 // service-role key, which the browser never has.
 import { createAdminClient } from '@/db/supabase-admin'
 import { log } from '@/lib/log'
-import { emailModeFor, groupOf, type NotificationReason } from './groups'
-import { emailLinks, loadOverrides, unsubscribeHeaders, type EmailLinks } from './settings'
+import { emailModeFor, isEssential, type NotificationReason } from './kinds'
+import { emailLinks, loadEmailChoice, unsubscribeHeaders, type EmailLinks } from './settings'
 import { getUserEmail, sendEmail, sendTemplateEmail } from '@/utils/email'
 import { emailFooter } from './footer'
 
 export type { EmailLinks }
 
-// Records one in-app notification for an event that isn't a comment (N1), and sends its email
-// right away if the person's setting for that group is "instant" (N2-N3); "weekly" leaves it for
-// the weekly summary (N6), "off" (unsubscribed, N7) sends nothing. Never throws: the event that caused it (a donation,
+// Records one in-app notification for an event that isn't a comment (N1), and sends its email right away when
+// the reason is essential or the person's choice is "immediate" (N3, N4); "daily" leaves it for the daily summary
+// (N5), "never" sends nothing. Never throws: the event that caused it (a donation,
 // a withdrawal...) has already happened, and a failed notification is only logged (N8).
 export async function notify(input: {
   to: string | null | undefined // profile id
@@ -30,12 +30,13 @@ export async function notify(input: {
   const { to, reason } = input
   if (!to) return
   try {
-    const mode = emailModeFor(reason, await loadOverrides(to))
+    const essential = isEssential(reason)
+    const mode = emailModeFor(reason, essential ? null : await loadEmailChoice(to))
     const status = !input.email
       ? 'skipped'
-      : mode === 'off'
+      : mode === 'never'
         ? 'skipped'
-        : mode === 'instant'
+        : mode === 'immediate'
           ? 'sending'
           : 'digest'
     const admin = createAdminClient() as any
@@ -54,8 +55,8 @@ export async function notify(input: {
         email_status: status,
         last_error: !input.email
           ? 'no email for this event'
-          : mode === 'off'
-            ? 'email off in settings'
+          : mode === 'never'
+            ? 'email set to never'
             : null,
       })
       .select('id')
@@ -63,7 +64,7 @@ export async function notify(input: {
     if (error) log.error('notifications.notify_record_failed', { reason, recipient_id: to, error })
     if (status !== 'sending' || !input.email) return
     try {
-      const result = await input.email(await emailLinks(to, [groupOf(reason).key]))
+      const result = await input.email(await emailLinks(to, essential))
       // The email helpers answer { ok: false, message } when Postmark refuses (utils/email.ts).
       if ((result as { ok?: boolean } | undefined)?.ok === false)
         throw new Error((result as { message?: string }).message ?? 'email refused')
@@ -103,8 +104,8 @@ export async function notifyAddressOnly(send: () => Promise<unknown>) {
   }
 }
 
-// An email we write ourselves (no Postmark template): the body, then the footer (unsubscribe button or settings link,
-// N7), with the one-click unsubscribe headers for optional kinds.
+// An email we write ourselves (no Postmark template): the body, then the footer (unsubscribe and "change how often",
+// N6), with the one-click unsubscribe headers for optional kinds.
 export function ownEmail(toId: string, subject: string, body: { html: string; text: string }) {
   return async (links: EmailLinks) => {
     const address = await getUserEmail(createAdminClient() as any, toId)
@@ -125,7 +126,7 @@ export function ownEmail(toId: string, subject: string, body: { html: string; te
 
 // Today's Postmark template email, plus the footer links as template variables ({{stopUrl}},
 // {{settingsUrl}}: the templates on Postmark must be edited to show them, and to show nothing when
-// they're empty, as for always-sent kinds) and the one-click unsubscribe headers (optional kinds only).
+// they're empty, as for essential kinds) and the one-click unsubscribe headers (optional kinds only).
 export function templateEmail(templateId: number, model: object, toId: string, toEmail?: string) {
   return (links: EmailLinks) =>
     sendTemplateEmail(

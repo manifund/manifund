@@ -1,5 +1,5 @@
 // Pure: turns a notification row (with its joined sources) into one line for the inbox and the
-// weekly summary email (N5, N6). No server-only imports.
+// daily summary email (N5). No server-only imports.
 import { formatMoney } from '@/utils/formatting'
 
 export type NotificationRow = {
@@ -233,7 +233,7 @@ export function describe(n: NotificationRow, me: { username: string }): Describe
   }
 }
 
-// One plain line, for the weekly summary email.
+// One plain line, for the daily summary email.
 export function plainLine(d: Described) {
   return [d.who, d.text, d.subject].filter(Boolean).join(' ')
 }

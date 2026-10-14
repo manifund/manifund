@@ -55,10 +55,8 @@ describe('C21 C22 one notification per person, for the strongest reason', () => 
 
 describe('C24 emails go out after the response (skipped locally)', () => {
   standard('each notification ends up sent or skipped, not left pending', async () => {
-    // activity emails default to weekly (N3): ask for them right away here, then put the defaults back
-    const groups = ['direct_activity', 'followed_activity']
-    for (const who of [alice, rita])
-      for (const group of groups) await who.post('/api/notifications/settings', { group, mode: 'instant' })
+    // optional emails default to daily (N4): ask for them right away here, then put the default back
+    for (const who of [alice, rita]) await who.post('/api/notifications/settings', { choice: 'immediate' })
     const c = await bob.post('/api/comments', { target: { project: w.project.id }, content: doc(`Email me ${RUN}`) })
     let statuses: string[] = []
     for (let i = 0; i < 20; i++) {
@@ -70,8 +68,7 @@ describe('C24 emails go out after the response (skipped locally)', () => {
     }
     expect(statuses.length).toBeGreaterThan(0)
     expect(statuses.every((s) => s === 'sent' || s === 'skipped')).toBe(true)
-    for (const who of [alice, rita])
-      for (const group of groups) await who.post('/api/notifications/settings', { group, mode: 'weekly' })
+    for (const who of [alice, rita]) await who.post('/api/notifications/settings', { choice: 'daily' })
   })
 })
 
