@@ -75,15 +75,6 @@ export async function saveSearch(ownerId: string, query: string) {
   return { search: data }
 }
 
-export async function updateSearch(ownerId: string, id: string, change: { paused: boolean }) {
-  const { error } = await admin()
-    .from('saved_searches')
-    .update({ paused_at: change.paused ? new Date().toISOString() : null })
-    .eq('id', id)
-    .eq('owner_id', ownerId)
-  return error ? { error: 'Could not save' } : {}
-}
-
 export async function deleteSearch(ownerId: string, id: string) {
   const { error } = await admin()
     .from('saved_searches')
@@ -158,10 +149,7 @@ export async function onProjectPublished(projectId: string) {
 // project once at most (F7).
 export async function matchSavedSearches(projectId: string) {
   try {
-    const { data: all } = await admin()
-      .from('saved_searches')
-      .select('id, owner_id, name, query')
-      .is('paused_at', null)
+    const { data: all } = await admin().from('saved_searches').select('id, owner_id, name, query')
     if (!all?.length) return 0
     const p = await projectForMatching(projectId)
     if (!p || p.stage === 'draft' || p.stage === 'hidden') return 0
@@ -171,7 +159,7 @@ export async function matchSavedSearches(projectId: string) {
     if (!matching.length) return 0
     // F7: one notification per person per project. Someone already notified about it (for any reason: a person
     // they follow posted it or commented on it, another saved search) hears nothing more. A notification counts
-    // whether its email went out right away or waits for the weekly summary.
+    // whether its email went out right away, waits for the daily summary or isn't sent (the owner's email choice).
     const owners = Array.from(new Set(matching.map((s) => s.owner_id)))
     const [{ data: notified }, { data: aboutComments }] = await Promise.all([
       admin()

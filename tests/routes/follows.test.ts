@@ -119,13 +119,33 @@ describe('F5 F6 F7 a saved search notifies you of new matching projects, once ea
     })
     expect(e.status).toBe(200)
     expect(await notified(project.id, 'saved_search_match')).toHaveLength(1)
-    expect(
-      (await alice.patch('/api/saved-searches', { id: r.body.search.id, paused: true })).status
-    ).toBe(200)
-    const paused = await bobCreates(`While paused ${words}`)
-    expect(await notified(paused.id, 'saved_search_match')).toHaveLength(0)
+    // a removed search announces nothing (there's no pausing: a search exists or it doesn't)
     expect((await alice.del('/api/saved-searches', { id: r.body.search.id })).status).toBe(200)
+    const after = await bobCreates(`After removal ${words}`)
+    expect(await notified(after.id, 'saved_search_match')).toHaveLength(0)
   })
+  standard(
+    'a match is always in the list; its email follows the one email choice (N4)',
+    async () => {
+      const words = `Choice${RUN}`
+      const r = await alice.post('/api/saved-searches', { query: `q=${encodeURIComponent(words)}` })
+      expect(r.status).toBe(201)
+      const status = async (projectId: string) =>
+        (
+          await sql`select email_status from notifications where recipient_id = ${alice.id} and project_id = ${projectId} and reason = 'saved_search_match'`
+        ).map((x: any) => x.email_status)
+      // no choice stored: daily, so the email waits for the daily summary
+      const daily = await bobCreates(`Daily ${words}`)
+      expect(await status(daily.id)).toEqual(['digest'])
+      // never: still in the list, no email
+      await sql`insert into notification_email (profile_id, choice) values (${alice.id}, 'never')
+              on conflict (profile_id) do update set choice = 'never'`
+      const never = await bobCreates(`Never ${words}`)
+      expect(await status(never.id)).toEqual(['skipped'])
+      await sql`delete from notification_email where profile_id = ${alice.id}`
+      await alice.del('/api/saved-searches', { id: r.body.search.id })
+    }
+  )
 })
 
 describe('F6 a saved search with categories matches projects with one of them', () => {

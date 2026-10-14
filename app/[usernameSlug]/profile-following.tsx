@@ -7,8 +7,6 @@ import {
   BookmarkSlashIcon,
   ChevronDownIcon,
   MagnifyingGlassIcon,
-  PauseIcon,
-  PlayIcon,
   TrashIcon,
 } from '@heroicons/react/20/solid'
 import { Avatar } from '@/components/avatar'
@@ -119,25 +117,10 @@ export function ProfileFollowing(props: {
 
   return (
     <section id="following" className="scroll-mt-6">
-      <h1 className="mb-1 text-xl font-medium sm:text-2xl">Following</h1>
-      <p className="mb-4 text-sm text-gray-500">
-        {isOwnProfile ? (
-          <>
-            You hear about what these people do and how these projects go. Choose how often emails
-            come on your{' '}
-            <Link href="/notifications" className="text-orange-600 hover:underline">
-              notifications page
-            </Link>
-            .
-          </>
-        ) : (
-          `People, projects and searches ${firstName} follows.`
-        )}
-      </p>
+      <h1 className="mb-4 text-xl font-medium sm:text-2xl">Following</h1>
       {nothing ? (
         <p className="rounded-md bg-white p-4 text-sm text-gray-500 shadow">
-          You don&apos;t follow anyone yet. Follow people from their profile, projects from their
-          page, and searches from the home page.
+          You don&apos;t follow anyone yet.
         </p>
       ) : (
         <div className="flex flex-col gap-5">
@@ -214,28 +197,6 @@ export function ProfileFollowing(props: {
                   >
                     {s.name}
                   </Link>
-                  {s.paused_at && !s.gone && (
-                    <span className="flex-none rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
-                      Paused
-                    </span>
-                  )}
-                  {isOwnProfile && !s.gone && (
-                    <Action
-                      icon={s.paused_at ? PlayIcon : PauseIcon}
-                      label={s.paused_at ? 'Resume' : 'Pause'}
-                      onClick={async () => {
-                        const paused = !s.paused_at
-                        if (await send('/api/saved-searches', 'PATCH', { id: s.id, paused }))
-                          setSearches((all) =>
-                            all.map((x) =>
-                              x.id === s.id
-                                ? { ...x, paused_at: paused ? new Date().toISOString() : null }
-                                : x
-                            )
-                          )
-                      }}
-                    />
-                  )}
                   {isOwnProfile && (
                     <Action
                       icon={s.gone ? ArrowUturnLeftIcon : TrashIcon}
@@ -249,12 +210,10 @@ export function ProfileFollowing(props: {
                             )
                           return
                         }
-                        // Undo saves the same search again (a new row, unpaused)
+                        // Undo saves the same search again (a new row)
                         const r = await send('/api/saved-searches', 'POST', { query: s.query })
                         if (r?.search)
-                          setSearches((all) =>
-                            all.map((x) => (x.id === s.id ? { ...r.search, paused_at: null } : x))
-                          )
+                          setSearches((all) => all.map((x) => (x.id === s.id ? r.search : x)))
                       }}
                     />
                   )}

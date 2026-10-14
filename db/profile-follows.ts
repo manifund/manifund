@@ -22,10 +22,10 @@ export async function isFollowing(supabase: SupabaseClient, me: string, followed
 export async function listMySavedSearches(supabase: SupabaseClient, me: string) {
   const { data } = await (supabase as any)
     .from('saved_searches')
-    .select('id, name, query, paused_at, created_at')
+    .select('id, name, query')
     .eq('owner_id', me)
     .order('created_at', { ascending: false })
-  return (data ?? []) as { id: string; name: string; query: string; paused_at: string | null }[]
+  return (data ?? []) as { id: string; name: string; query: string }[]
 }
 
 // The people the viewer follows (F2: read with their own client). Everything they do is in the viewer's network

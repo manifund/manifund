@@ -14,8 +14,8 @@ email settings: `../notifications/README.md`.
 ## How it's built
 
 - **`profile_follows`** (follower, followed: following someone covers everything they do) and
-  **`saved_searches`** (owner, a name, a query string, paused or not). Both private: people read only their own
-  rows; only server code (`lib/follows`) writes them.
+  **`saved_searches`** (owner, a name, a query string; no pausing: a search exists or is removed). Both private:
+  people read only their own rows; only server code (`lib/follows`) writes them.
 - **A saved search is home's search text and categories** as the address keeps them (`?q=...&cause=...`), matched
   against new projects the way home's search box and category picker would (`lib/follows/match.ts`).
 - **Notifications** go through the notifications table with four reasons in two settings rows ("People you follow"
@@ -49,8 +49,9 @@ email settings: `../notifications/README.md`.
   text is in its title, subtitle or creator's name.
 - **F7** Saved searches tell each person about a project once at most: not again when it changes, not once per
   matching search, and not at all if they were already notified about it for another reason (someone they follow
-  posted it or commented on it). A notification counts whether its email went out or waits for the weekly summary.
-  A paused search announces nothing.
+  posted it or commented on it). A notification counts whether its email went out, waits for the daily summary or
+  isn't sent. A match always lands in the notification list; its email follows the one email choice (immediately,
+  daily or never: docs/product/notifications N4), like other optional notifications.
 - **F8** When people you follow donated, offered or commented on a project, at any time, a line says so above its
   home card, outside the card, the way social feeds put "reposted by" above a post (Vals, 2026-10-14), and above
   the title on the project page: "Maya donated and commented, Sam offered", up to two people, each named once,
@@ -58,8 +59,8 @@ email settings: `../notifications/README.md`.
   whether or not they have a line. Drafts and hidden projects never count. No "From your network" label (Vals,
   2026-10-12); screen readers and the hover text say "People you follow". On a card the line stays on one line.
 - **F9** A profile's Following section lists the people, projects and saved searches that person follows, for
-  anyone (drafts and hidden projects only for the owner). On your own profile it lets you unfollow, pause, resume
-  or remove, each button with an icon; what you remove stays, faded, with Undo until you leave the page. Long lists
+  anyone (drafts and hidden projects only for the owner). On your own profile it lets you unfollow or remove, each
+  button with an icon (no pausing a search: Vals, 2026-10-14); what you remove stays, faded, with Undo until you leave the page. Long lists
   show five rows and "Show all". There's no separate Following page
   (Vals, 2026-10-14).
 - **F12** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,

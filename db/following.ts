@@ -13,7 +13,7 @@ export type FollowedPerson = {
   avatar_url: string | null
 }
 export type FollowedProject = { id: string; title: string; slug: string }
-export type SavedSearch = { id: string; name: string; query: string; paused_at: string | null }
+export type SavedSearch = { id: string; name: string; query: string }
 export type Following = {
   people: FollowedPerson[]
   projects: FollowedProject[]
@@ -39,7 +39,7 @@ export async function getFollowing(profileId: string, isOwnProfile: boolean): Pr
       .eq('follower_id', profileId),
     admin
       .from('saved_searches')
-      .select('id, name, query, paused_at')
+      .select('id, name, query')
       .eq('owner_id', profileId)
       .order('created_at', { ascending: false }),
   ])

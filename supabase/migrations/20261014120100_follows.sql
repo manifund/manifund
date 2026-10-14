@@ -16,13 +16,14 @@ drop policy if exists "read own follows" on public.profile_follows;
 create policy "read own follows" on public.profile_follows for select using (follower_id = auth.uid());
 -- (A local database built before 2026-10-12 keeps unused new_projects, comments and donations columns, default true.)
 
--- 2. Saved searches: the home page's filter query string, matched against new projects.
+-- 2. Saved searches: home's search text and categories as a query string, matched against new projects. A search
+-- exists or is removed: no pausing, no per-search frequency (the one email choice applies, N4).
+-- (A local database built before 2026-10-14 keeps an unused paused_at column.)
 create table if not exists public.saved_searches (
   id uuid primary key default gen_random_uuid(),
   owner_id uuid not null references public.profiles(id) on delete cascade,
   name text not null,
   query text not null,
-  paused_at timestamptz,
   created_at timestamptz not null default now()
 );
 create index if not exists saved_searches_owner_idx on public.saved_searches (owner_id);
