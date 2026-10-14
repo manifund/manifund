@@ -6,6 +6,7 @@ import { NextApiRequest, NextApiResponse } from 'next'
 import { Readable } from 'node:stream'
 import uuid from 'react-uuid'
 import { SupabaseClient } from '@supabase/supabase-js'
+import { Database } from '@/db/database.types'
 
 export const config = {
   api: {
@@ -76,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 const issueMoneys = async (
   session: Stripe.Checkout.Session,
   txnId: string,
-  supabase: SupabaseClient
+  supabase: SupabaseClient<Database>
 ) => {
   const { id: sessionId } = session
   const { userId, dollarQuantity, passFundsToId } = session.metadata ?? {}
@@ -90,54 +91,20 @@ const issueMoneys = async (
       `checkout session ${sessionId}: metadata says $${dollarQuantity}, charged $${dollarQuantityNum}`
     )
   }
-  // Stripe may deliver the same event more than once: credit each checkout session once.
-  const { data: existing } = await supabase
-    .from('stripe_txns')
-    .select('id')
-    .eq('session_id', sessionId)
-    .limit(1)
-    .throwOnError()
-  if (existing && existing.length > 0) {
-    console.log(`checkout session ${sessionId} already credited`)
-    return false
-  }
-  // TODO: make this an RPC
-  await supabase
-    .from('txns')
-    .insert({
-      id: txnId,
-      amount: dollarQuantityNum,
-      from_id: process.env.NEXT_PUBLIC_PROD_BANK_ID,
-      to_id: userId,
-      token: 'USD',
-      type: 'deposit',
+  // One transaction: the deposit, its stripe_txns record and the optional donation onward. Returns false when
+  // this session was already credited (Stripe may deliver the same event more than once).
+  const { data: credited } = await supabase
+    .rpc('credit_stripe_checkout', {
+      p_session_id: sessionId,
+      p_user_id: userId,
+      p_amount: dollarQuantityNum,
+      p_bank_id: process.env.NEXT_PUBLIC_PROD_BANK_ID!,
+      p_txn_id: txnId,
+      p_pass_funds_to: passFundsToId || undefined,
     })
     .throwOnError()
-  const { error: recordError } = await supabase.from('stripe_txns').insert({
-    session_id: sessionId,
-    customer_id: userId,
-    txn_id: txnId,
-    amount: dollarQuantityNum,
-  })
-  if (recordError) {
-    // Unique session_id: a concurrent delivery recorded this session first, so undo this credit
-    await supabase.from('txns').delete().eq('id', txnId).throwOnError()
-    if (recordError.code === '23505') {
-      console.log(`checkout session ${sessionId} credited by a concurrent delivery`)
-      return false
-    }
-    throw recordError
-  }
-  if (passFundsToId) {
-    await supabase.from('txns').insert({
-      amount: dollarQuantityNum,
-      from_id: userId,
-      to_id: passFundsToId,
-      token: 'USD',
-      type: 'profile donation',
-    })
-  }
-  return true
+  if (!credited) console.log(`checkout session ${sessionId} already credited`)
+  return credited === true
 }
 
 async function getProfileNameById(id: string, supabase: SupabaseClient) {
