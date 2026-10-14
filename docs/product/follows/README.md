@@ -26,7 +26,8 @@ email settings: `../notifications/README.md`.
 ## Rules
 
 - **F1** Following someone covers everything they do: new projects, comments, donations and offers. One button
-  on their profile follows or unfollows them; the Following page unfollows too. How often the emails come is a
+  on their profile follows or unfollows them, the same small bookmark button as a project's Follow (grey and
+  outlined to follow, orange and filled while following); the Following page unfollows too. How often the emails come is a
   notification setting. Nobody follows themselves.
 - **F2** Who follows whom is public: anyone can see the people and projects someone follows on their profile
   (F9). Saved searches are private: only their owner sees them. Browsers can't write follows or saved searches.
@@ -35,12 +36,13 @@ email settings: `../notifications/README.md`.
   donates or makes an offer on a project, you're notified. One notification per person per comment: a stronger
   reason, like a comment on your own project, wins. A project's creator isn't notified twice about money to their
   own project.
-- **F5** On the home page, a bell next to the search box and category picker saves the current search text and
-  categories as a search, named from them ('"probe" in Technical AI safety'). The search and categories are kept
-  in the address, so a search can be shared and comes back after signing in. The bell carries a small plus when
-  there is something to save, and is filled, on an orange tint, while it's saved; it can stop it too. How often the
-  emails come is the "saved searches" notification setting (weekly by default), not a choice on the bell. Signed
-  out, the bell shows the same panel with "Sign up or sign in", which comes back to the same search.
+- **F5** On the home page, once there is a search (search text, or categories picked), a line appears under the
+  search box: how many projects match, and "Notify me of new matches", which saves the search text and categories
+  as a search, named from them ('"probe" in Technical AI safety'). It appears a moment after typing stops, and
+  goes when the search is cleared ("just in time", Vals, 2026-10-14). While the search is saved the line says
+  "Notifying you of new matches", with Stop. The search and categories are kept in the address, so a search can be
+  shared and comes back after signing in. How often the emails come is the notification setting, not a choice
+  here. Signed out, the button opens sign-up or sign-in, which comes back to the same search.
 - **F6** A project that is published, or whose categories change, notifies the owners of the saved searches it
   matches (not its own creator): it has one of the search's categories (any, when none was picked), and the search
   text is in its title, subtitle or creator's name.
@@ -48,9 +50,11 @@ email settings: `../notifications/README.md`.
   matching search, and not at all if they were already notified about it for another reason (someone they follow
   posted it or commented on it). A notification counts whether its email went out or waits for the weekly summary.
   A paused search announces nothing.
-- **F8** Home cards and the project page show a line with a people icon, "Maya donated and commented, Sam
-  offered", when people you follow donated, offered or commented on that project, at any time: up to two people,
-  each named once, then "and N more". Drafts and hidden projects never count. No "From your network" label (Vals,
+- **F8** When people you follow donated, offered or commented on a project, at any time, a line says so above its
+  home card, outside the card, the way social feeds put "reposted by" above a post (Vals, 2026-10-14), and above
+  the title on the project page: "Maya donated and commented, Sam offered", up to two people, each named once,
+  then "and N more", after an icon for what they did (a people icon for a mix). Cards side by side stay aligned
+  whether or not they have a line. Drafts and hidden projects never count. No "From your network" label (Vals,
   2026-10-12); screen readers and the hover text say "People you follow". On a card the line stays on one line.
 - **F9** A profile's Following section lists the people and projects that person follows, for anyone (drafts and
   hidden projects only for the owner). On your own profile it also lists your saved searches ("Only you see
@@ -69,6 +73,9 @@ Newest first.
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
 | 2026-10-13 | Vals (asked; kept meanwhile) | The Network tab stays, in its own commit so it can be dropped (F12) | Q25: "Network first" and the Hot boost go; the tab was the open part |
+| 2026-10-14 | Vals | Save a search from a line that appears under the search box once there is a search, not an always-visible bell (F5) | "just in time ... simple, elegant" |
+| 2026-10-14 | Vals | The network line sits above the card, not in it (F8) | "like twitter 'reposted by' is not in tweet but surrounding" |
+| 2026-10-14 | Vals | Following people and projects share one bookmark button (F1) | "standardize ... change icon from eye to bookmark" |
 | 2026-10-13 | Vals | The bell has no frequency choice: saved searches follow their settings row (F5) | Q22: fewer choices in more places |
 | 2026-10-12 | Austin (team meeting), Vals | Keep following people and saved searches; the home filter panel (amount, status, AI, network filter), "Network first" and seen marks are left out, so a saved search is the search text and categories home already has (F5, F6) | Fewer database changes and a smaller change to the most-visited page |
 | 2026-10-12 | Vals | Following someone covers everything they do: no per-follow switches (F1, F3, F4, F9) | "remove the switches, have it follow all, simpler less complexity" |
@@ -92,4 +99,4 @@ Newest first.
 
 Each test names the rule it checks: unit `tests/unit/follows-match.test.ts` (F5, F6, F8); database
 `tests/db/profile-follows.test.ts` (F2, F8); routes `tests/routes/follows.test.ts` (F1, F3, F4, F5, F6, F7) and
-`tests/routes/network.test.ts` (F12). No tests yet for F9 and the bell's looks.
+`tests/routes/network.test.ts` (F12). No tests yet for F9 and the search line's looks.

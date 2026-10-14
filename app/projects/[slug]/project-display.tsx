@@ -27,6 +27,7 @@ import { ProjectTimeline } from './project-timeline'
 import { Vote } from './vote'
 import { CauseTag, StageIcon } from '@/components/tags'
 import { NetworkLine } from '@/components/follows/network-tag'
+import type { NetworkItem } from '@/lib/follows/network'
 import { Trade } from './trade'
 import { AssuranceBuyBox } from './assurance-buy-box'
 import { calculateTradePoints } from '@/utils/amm'
@@ -55,7 +56,7 @@ type ProjectDisplayProps = {
   userProfile?: Profile
   creatorEmail?: string
   userIsAdmin?: boolean
-  networkText?: string | null // what people the viewer follows did here (F8)
+  network?: NetworkItem[] // what people the viewer follows did here (F8)
   // The tabs (comments, offers, similar projects), rendered by the page and streamed in later.
   tabs: React.ReactNode
 }
@@ -146,6 +147,8 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
       )}
       <Col className="gap-2">
         <ProjectScoreFlags aiFraction={project.ai_fraction} qualityScore={project.quality_score} />
+        {/* above the title, the way feeds put "reposted by" above a post (F8) */}
+        <NetworkLine items={props.network} size="sm" />
         <Col className="gap-1">
           <Row className="flex-2 items-center gap-3">
             <Karma
@@ -170,7 +173,6 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
               <span className="text-sm text-gray-400">{netVotes}</span>
             </Vote>
           </Row>
-          <NetworkLine text={props.networkText ?? null} size="sm" className="mb-1" />
           <Row className="mb-1 flex-wrap gap-1">
             {project.causes?.map((cause) => (
               <CauseTag key={cause.slug} causeTitle={cause.title} causeSlug={cause.slug} />

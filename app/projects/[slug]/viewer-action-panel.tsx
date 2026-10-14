@@ -2,7 +2,8 @@
 
 import { Button } from '@/components/button'
 import { Row } from '@/components/layout/row'
-import { LinkIcon, EyeIcon } from '@heroicons/react/20/solid'
+import { LinkIcon } from '@heroicons/react/20/solid'
+import { FollowToggle } from '@/components/follows/follow-button'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
@@ -27,10 +28,8 @@ export function ViewerActionPanel(props: {
         <LinkIcon className="relative right-0.5 h-4 w-4 stroke-2" />
         Share
       </Button>
-      <Button
-        className="flex gap-0.5"
-        color={displayAsFollowing ? 'light-orange' : 'gray'}
-        size="2xs"
+      <FollowToggle
+        following={displayAsFollowing}
         disabled={displayAsFollowing !== currentlyFollowing}
         onClick={async () => {
           setDisplayAsFollowing(!currentlyFollowing)
@@ -40,10 +39,7 @@ export function ViewerActionPanel(props: {
           })
           router.refresh()
         }}
-      >
-        <EyeIcon className="relative right-0.5 h-4 w-4 stroke-2" />
-        {displayAsFollowing ? 'Following' : 'Follow'}
-      </Button>
+      />
     </Row>
   )
 }

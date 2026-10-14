@@ -17,7 +17,7 @@ import { sortBy } from 'es-toolkit'
 import { karmaHotScore } from '@/utils/sort'
 import { Checkbox } from './input'
 import { isSlopProject } from '@/utils/slop'
-import { NotifyBell, type NotifyState } from './follows/notify-bell'
+import { SaveSearch, type NotifyState } from './follows/save-search'
 import { parseSearch, searchName, searchQuery } from '@/lib/follows/match'
 
 type SortOption =
@@ -40,7 +40,7 @@ export function ProjectsDisplay(props: {
   defaultSort?: SortOption
   hideRound?: boolean
   noFilter?: boolean
-  // home: the search text and categories live in the URL, and the bell saves them as a search (F5)
+  // home: the search text and categories live in the URL, and the line under the search box saves them (F5)
   savedSearches?: { account: NotifyState | null; initialQuery: string }
 }) {
   const { projects, defaultSort, causesList, noFilter, savedSearches } = props
@@ -71,18 +71,25 @@ export function ProjectsDisplay(props: {
   const sortedProjects = sortProjects(noFilter ? visibleProjects : filteredProjects, prices, sortBy)
   const CLIENT_PAGE_SIZE = 20
   const [numToShow, setNumToShow] = useState<number>(CLIENT_PAGE_SIZE)
-  const selectedProjects = sortedProjects
-    .filter((project) => {
-      return searchInAny(
-        search,
-        project.title,
-        project.blurb ?? '',
-        project.profiles.full_name,
-        project.profiles.username,
-        project.project_transfers?.[0]?.recipient_name ?? ''
-      )
-    })
-    .slice(0, numToShow)
+  const matchingProjects = sortedProjects.filter((project) => {
+    return searchInAny(
+      search,
+      project.title,
+      project.blurb ?? '',
+      project.profiles.full_name,
+      project.profiles.username,
+      project.project_transfers?.[0]?.recipient_name ?? ''
+    )
+  })
+  const selectedProjects = matchingProjects.slice(0, numToShow)
+  // Just in time (Vals, 2026-10-14): the line under the search box appears once there is a search, a moment after
+  // typing stops so it doesn't flicker mid-word; picked categories show it at once.
+  const [settledSearch, setSettledSearch] = useState(search.trim())
+  useEffect(() => {
+    const t = setTimeout(() => setSettledSearch(search.trim()), search.trim() ? 450 : 0)
+    return () => clearTimeout(t)
+  }, [search])
+  const showSearchLine = includedCauses.length > 0 || settledSearch !== ''
 
   const fundableProjects = selectedProjects.filter(
     (project) => project.stage == 'proposal' || project.stage == 'active'
@@ -113,40 +120,69 @@ export function ProjectsDisplay(props: {
             setHideSlop={setHideSlop}
           />
         )}
-        {savedSearches && (
-          <NotifyBell
-            account={savedSearches.account}
-            query={query}
-            summary={searchName(
-              query,
-              Object.fromEntries(causesList.map((c) => [c.slug, c.title]))
-            )}
-          />
-        )}
       </Row>
-      {includedCauses.length > 0 && (
-        <Row className="flex-wrap items-center gap-1.5">
-          {includedCauses.map((cause) => (
-            <button
-              key={cause.slug}
-              onClick={() => setIncludedCauses(includedCauses.filter((c) => c.slug !== cause.slug))}
-              className="group flex items-center gap-0.5 whitespace-nowrap rounded-full bg-orange-100 py-0.5 pl-2.5 pr-1.5 text-xs text-orange-900 transition-colors hover:bg-orange-200"
-            >
-              {cause.title}
-              <XMarkIcon
-                className="h-3.5 w-3.5 text-orange-400 transition-colors group-hover:text-orange-700"
-                aria-hidden="true"
-              />
-            </button>
-          ))}
-          <button
-            onClick={() => setIncludedCauses([])}
-            className="px-1 text-xs text-gray-400 transition-colors hover:text-gray-600"
-          >
-            Clear
-          </button>
+      <Transition
+        show={showSearchLine}
+        enter="transition duration-150 ease-out motion-reduce:transition-none"
+        enterFrom="opacity-0 -translate-y-1"
+        enterTo="opacity-100 translate-y-0"
+        leave="transition duration-100 ease-in motion-reduce:transition-none"
+        leaveFrom="opacity-100"
+        leaveTo="opacity-0"
+      >
+        <Row className="flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+          <Row className="min-w-0 flex-wrap items-center gap-1.5 text-sm">
+            {includedCauses.map((cause) => (
+              <button
+                key={cause.slug}
+                onClick={() =>
+                  setIncludedCauses(includedCauses.filter((c) => c.slug !== cause.slug))
+                }
+                aria-label={`Remove ${cause.title}`}
+                className="group flex items-center gap-0.5 whitespace-nowrap rounded-full bg-orange-100 py-0.5 pl-2.5 pr-1.5 text-xs text-orange-900 transition-colors hover:bg-orange-200"
+              >
+                {cause.title}
+                <XMarkIcon
+                  className="h-3.5 w-3.5 text-orange-400 transition-colors group-hover:text-orange-700"
+                  aria-hidden="true"
+                />
+              </button>
+            ))}
+            <span className="text-gray-500">
+              {matchingProjects.length === 0
+                ? 'No projects'
+                : `${matchingProjects.length} ${matchingProjects.length === 1 ? 'project' : 'projects'}`}
+              {search.trim() && (
+                <>
+                  {' '}
+                  {matchingProjects.length === 1 ? 'matches' : 'match'}{' '}
+                  <span className="text-gray-900">“{search.trim()}”</span>
+                  {matchingProjects.length === 0 && ' yet'}
+                </>
+              )}
+            </span>
+            {includedCauses.length > 0 && (
+              <button
+                onClick={() => setIncludedCauses([])}
+                className="flex items-center gap-0.5 rounded px-1 text-xs text-gray-400 transition-colors hover:text-gray-600"
+              >
+                <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                Clear
+              </button>
+            )}
+          </Row>
+          {savedSearches && (
+            <SaveSearch
+              account={savedSearches.account}
+              query={query}
+              summary={searchName(
+                query,
+                Object.fromEntries(causesList.map((c) => [c.slug, c.title]))
+              )}
+            />
+          )}
         </Row>
-      )}
+      </Transition>
       <div className="mt-2 flex flex-col gap-5 sm:mt-5 sm:gap-10">
         {fundableProjects.length > 0 && (
           <div>
@@ -335,8 +371,9 @@ function FilterPopover(props: {
                 {includedCauses.length > 0 && (
                   <button
                     onClick={() => setIncludedCauses([])}
-                    className="text-xs text-gray-400 transition-colors hover:text-gray-600"
+                    className="flex items-center gap-0.5 text-xs text-gray-400 transition-colors hover:text-gray-600"
                   >
+                    <XMarkIcon className="h-3.5 w-3.5" aria-hidden="true" />
                     Clear
                   </button>
                 )}

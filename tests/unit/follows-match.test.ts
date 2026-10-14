@@ -8,7 +8,7 @@ import {
   searchQuery,
   type MatchableProject,
 } from '@/lib/follows/match'
-import { networkText } from '@/lib/follows/network'
+import { networkPeople, networkText } from '@/lib/follows/network'
 
 const project = (over: Partial<MatchableProject> = {}): MatchableProject => ({
   title: 'Probe kit for small labs',
@@ -77,5 +77,19 @@ describe('F8 the network line names up to two people, without a label', () => {
         { name: 'Ruth', kind: 'offered' },
       ])
     ).toBe('Maya donated, Sam commented and 1 more')
+  })
+  test("the icon: one kind for everyone gets that kind's icon, a mix gets the people icon", () => {
+    expect(
+      networkPeople([
+        { name: 'Maya', kind: 'commented' },
+        { name: 'Sam', kind: 'commented' },
+      ])?.kind
+    ).toBe('commented')
+    expect(
+      networkPeople([
+        { name: 'Maya', kind: 'commented' },
+        { name: 'Sam', kind: 'donated' },
+      ])?.kind
+    ).toBeNull()
   })
 })

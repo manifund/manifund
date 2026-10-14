@@ -14,7 +14,6 @@ import { getBidsByUser } from '@/db/bid'
 import NoAccess from '@/app/no-access'
 import { notFound } from 'next/navigation'
 import { networkFor } from '@/db/profile-follows'
-import { networkText } from '@/lib/follows/network'
 
 export const revalidate = 0
 
@@ -99,7 +98,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
           causesList={causesList}
           prizeCause={prizeCause}
           userIsAdmin={userIsAdmin}
-          networkText={networkText(network?.[project.id])}
+          network={network?.[project.id]}
           tabs={
             <Suspense fallback={<ProjectTabsSkeleton />}>
               <ProjectTabsSection

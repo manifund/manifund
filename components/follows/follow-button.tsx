@@ -1,11 +1,34 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { CheckIcon } from '@heroicons/react/20/solid'
-import clsx from 'clsx'
+import { BookmarkIcon as BookmarkOutline } from '@heroicons/react/24/outline'
+import { BookmarkIcon as BookmarkSolid } from '@heroicons/react/20/solid'
+import { Button } from '@/components/button'
 
-// F1, F2: one button that follows or unfollows. Following covers everything the person does. Private: only you
-// see who you follow.
+// One look for following a person and following a project (Vals, 2026-10-14): a small button with a bookmark,
+// outlined and grey to follow, filled and orange while following. Clicking again unfollows.
+export function FollowToggle(props: {
+  following: boolean
+  onClick: () => void
+  disabled?: boolean
+}) {
+  const { following, onClick, disabled } = props
+  const Icon = following ? BookmarkSolid : BookmarkOutline
+  return (
+    <Button
+      className="flex gap-1"
+      color={following ? 'light-orange' : 'gray'}
+      size="2xs"
+      disabled={disabled}
+      onClick={onClick}
+    >
+      <Icon className="h-4 w-4" aria-hidden="true" />
+      {following ? 'Following' : 'Follow'}
+    </Button>
+  )
+}
+
+// F1: follows or unfollows a person. Following covers everything they do.
 export function FollowButton(props: { followedId: string; following: boolean }) {
   const { followedId } = props
   const [following, setFollowing] = useState(props.following)
@@ -21,32 +44,11 @@ export function FollowButton(props: { followedId: string; following: boolean }) 
     })
     setBusy(false)
     if (res.status === 401) router.push('/login')
-    if (res.ok) setFollowing(!following)
+    if (res.ok) {
+      setFollowing(!following)
+      router.refresh() // the profile's follower list follows
+    }
   }
 
-  return (
-    <button
-      type="button"
-      disabled={busy}
-      onClick={toggle}
-      aria-pressed={following}
-      title="Only you see who you follow"
-      className={clsx(
-        'group flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:opacity-60',
-        following
-          ? 'border border-gray-300 bg-white text-gray-700 hover:border-red-300 hover:text-red-600'
-          : 'bg-orange-500 text-white hover:bg-orange-600'
-      )}
-    >
-      {following ? (
-        <>
-          <CheckIcon className="h-4 w-4 text-orange-500 group-hover:hidden" aria-hidden="true" />
-          <span className="group-hover:hidden">Following</span>
-          <span className="hidden group-hover:inline">Unfollow</span>
-        </>
-      ) : (
-        'Follow'
-      )}
-    </button>
-  )
+  return <FollowToggle following={following} onClick={toggle} disabled={busy} />
 }

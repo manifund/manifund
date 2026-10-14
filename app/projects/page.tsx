@@ -12,7 +12,7 @@ import { getHotProjectsCached } from '@/db/project-cached'
 import { LandingSection } from './landing-section'
 import { listMySavedSearches, networkFor } from '@/db/profile-follows'
 import type { NetworkActivity } from '@/components/follows/network-tag'
-import type { NotifyState } from '@/components/follows/notify-bell'
+import type { NotifyState } from '@/components/follows/save-search'
 
 // Page is dynamic due to cookies(), but listProjects is cached for 30s
 
