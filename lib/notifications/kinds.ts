@@ -57,7 +57,6 @@ export const ESSENTIAL_REASONS: readonly NotificationReason[] = [
   // money to you
   'donation_to_your_project',
   'donation_to_your_budget',
-  'tip_on_your_comment',
   'new_offer',
   'grant_to_you',
   'trade_accepted',
@@ -80,6 +79,7 @@ export const ESSENTIAL_REASONS: readonly NotificationReason[] = [
   'agreement_record',
   // needs you
   'unfinished_withdrawal',
+  'idle_balance',
   'moderated_your_comment',
 ]
 

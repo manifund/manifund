@@ -20,6 +20,7 @@ describe('N3 essential notifications are always emailed right away', () => {
       'agreement_reminder',
       'withdrawal_update',
       'unfinished_withdrawal',
+      'idle_balance',
       'moderated_your_comment',
     ] as const) {
       expect(isEssential(r)).toBe(true)
@@ -33,7 +34,7 @@ describe('N3 essential notifications are always emailed right away', () => {
 
 describe('N4 everything else follows the one choice: immediately, daily (the default) or never', () => {
   const optional = NOTIFICATION_REASONS.filter((r) => !isEssential(r))
-  test('comments, replies, follows, saved searches and the idle-balance nudge are optional', () => {
+  test('comments, replies, follows, saved searches and tips are optional', () => {
     for (const r of [
       'reply_to_you',
       'mention',
@@ -41,7 +42,7 @@ describe('N4 everything else follows the one choice: immediately, daily (the def
       'progress_update',
       'followed_person_project',
       'saved_search_match',
-      'idle_balance',
+      'tip_on_your_comment',
     ] as const)
       expect(optional).toContain(r)
   })
