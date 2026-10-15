@@ -83,9 +83,12 @@ describe('C24 emails go out after the response (skipped locally)', () => {
     })
     let statuses: string[] = []
     for (let i = 0; i < 20; i++) {
-      statuses = (
-        await sql`select email_status from notifications where comment_id = ${c.body.comment.id}`
-      ).map((r: any) => r.email_status)
+      statuses =
+        // alice and rita only: a local follower of the shared persona bob may be on Daily (F4)
+        (
+          await sql`select email_status from notifications where comment_id = ${c.body.comment.id}
+                  and recipient_id in (${alice.id}, ${rita.id})`
+        ).map((r: any) => r.email_status)
       if (statuses.length && statuses.every((s) => s === 'sent' || s === 'skipped')) break
       await Bun.sleep(250)
     }

@@ -28,6 +28,7 @@ export type Described = {
   subject?: string // shown bold, after the text (a project title)
   detail?: string // the second line
   href: string
+  // 'avatar' for what other people did; the others are about your money and projects, except 'search'
   icon: 'avatar' | 'money-in' | 'money-out' | 'check' | 'alert' | 'clock' | 'doc' | 'search'
 }
 
@@ -62,14 +63,14 @@ export function describe(n: NotificationRow, me: { username: string }): Describe
   }
   switch (n.reason) {
     case 'followed_person_project':
-      return { who, text: 'posted a new project:', subject, href: projectHref, icon: 'doc' }
+      return { who, text: 'posted a new project:', subject, href: projectHref, icon: 'avatar' }
     case 'followed_person_donation':
       return {
         who,
         text: money ? `gave ${money} to` : 'gave to',
         subject,
         href: projectHref,
-        icon: 'money-out',
+        icon: 'avatar',
       }
     case 'saved_search_match':
       return {

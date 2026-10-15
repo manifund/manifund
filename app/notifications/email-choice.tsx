@@ -2,17 +2,37 @@
 import { useState } from 'react'
 import clsx from 'clsx'
 import { BellSlashIcon, BoltIcon, CalendarDaysIcon } from '@heroicons/react/20/solid'
+import { EnvelopeIcon } from '@heroicons/react/24/outline'
 import type { EmailChoice } from '@/lib/notifications/kinds'
 
-const OPTIONS: { choice: EmailChoice; label: string; Icon: typeof BoltIcon }[] = [
+const OPTIONS: { choice: EmailChoice; label: string; hint: string; Icon: typeof BoltIcon }[] = [
   // 'Instant' reads as a frequency next to Daily and Never, at about their length (Vals, 2026-10-15); the stored
-  // value stays 'immediate'.
-  { choice: 'immediate', label: 'Instant', Icon: BoltIcon },
-  { choice: 'daily', label: 'Daily', Icon: CalendarDaysIcon },
-  { choice: 'never', label: 'Never', Icon: BellSlashIcon },
+  // value stays 'immediate'. Each choice explains itself in one sentence on a long hover (Vals, 2026-10-15).
+  {
+    choice: 'immediate',
+    label: 'Instant',
+    hint: 'An email for each notification, as it happens',
+    Icon: BoltIcon,
+  },
+  {
+    choice: 'daily',
+    label: 'Daily',
+    hint: 'One email a day with your new notifications',
+    Icon: CalendarDaysIcon,
+  },
+  {
+    choice: 'never',
+    label: 'Never',
+    hint: 'No emails, except about your money and your projects',
+    Icon: BellSlashIcon,
+  },
 ]
 
-// The one email setting (N4), on the notifications page itself: how often optional notifications are also emailed.
+const SCOPE =
+  'Emails about replies, comments and what you follow. Money and your projects are always emailed right away.'
+
+// The one email setting (N4), in the notifications page's title row (Vals, 2026-10-15): how often optional
+// notifications are also emailed. On a phone it wraps under the title.
 export function EmailChoicePicker(props: { initial: EmailChoice }) {
   const [choice, setChoice] = useState(props.initial)
   const [error, setError] = useState(false)
@@ -31,27 +51,25 @@ export function EmailChoicePicker(props: { initial: EmailChoice }) {
     }
   }
   return (
-    <section
-      id="email"
-      aria-labelledby="email-choice-label"
-      className="mb-5 flex flex-wrap items-center gap-x-2 gap-y-2 rounded-lg border border-gray-200 bg-white px-3 py-2"
-    >
-      <p id="email-choice-label" className="min-w-0 text-balance text-sm text-gray-700">
-        Email me about replies, comments and what I follow
-      </p>
+    <section id="email" aria-label={SCOPE} className="flex flex-wrap items-center gap-2">
+      <span title={SCOPE} className="flex items-center gap-1.5 text-xs text-gray-500">
+        <EnvelopeIcon className="h-4 w-4" aria-hidden="true" />
+        Email
+      </span>
       <div
         role="radiogroup"
-        aria-labelledby="email-choice-label"
+        aria-label="Email"
         className="inline-flex flex-none rounded-md border border-gray-200 bg-gray-50 p-0.5"
       >
-        {OPTIONS.map(({ choice: c, label, Icon }) => (
+        {OPTIONS.map(({ choice: c, label, hint, Icon }) => (
           <button
             key={c}
             role="radio"
             aria-checked={choice === c}
+            title={hint}
             onClick={() => choice !== c && save(c)}
             className={clsx(
-              'flex items-center gap-1 rounded px-1.5 py-1 text-xs',
+              'flex items-center gap-1 rounded px-2 py-1 text-xs',
               choice === c
                 ? 'bg-white font-medium text-orange-700 shadow-sm ring-1 ring-orange-200'
                 : 'text-gray-600 hover:text-gray-900'

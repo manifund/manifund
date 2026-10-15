@@ -17,8 +17,8 @@ export const NetworkContext = createContext<NetworkActivity | null>(null)
 // A home card's context line, from the list's context (F8). It sits above the card, outside it, the way social
 // feeds put "reposted by" above a post (Vals, 2026-10-14), on a square orange band joined to the card's top-left
 // edge, in the style of the project box above comments in the Comments feed (team meeting, 2026-10-15). The text
-// keeps its greys, so it doesn't read as a link. Its padding matches the card's, so the icon lines up with the
-// card's avatar. Always renders a row, so cards side by side stay aligned (ProjectGroup gives each card a two-row
+// keeps its greys, so it doesn't read as a link. The text starts 8px in, like the Comments box (Vals, 2026-10-15).
+// Always renders a row, so cards side by side stay aligned (ProjectGroup gives each card a two-row
 // subgrid, and squares the card's top-left corner under a band).
 export function NetworkTag(props: { projectId: string; className?: string }) {
   const network = useContext(NetworkContext)
@@ -26,7 +26,7 @@ export function NetworkTag(props: { projectId: string; className?: string }) {
   return (
     <div className={clsx('flex min-w-0 items-end', props.className)}>
       {networkPeople(items) && (
-        <div className="network-band min-w-0 max-w-full bg-orange-100 px-4 py-1">
+        <div className="network-band min-w-0 max-w-full bg-orange-100 px-2 py-1">
           <NetworkLine items={items} />
         </div>
       )}
