@@ -83,7 +83,6 @@ Newest first.
 
 ## Open questions
 
-- **The default** for the optional choice (built: daily).
 - **Postmark templates**: most emails use templates stored in Postmark. They receive `stopUrl` and `settingsUrl`
   but only show them once the templates are edited there (live configuration, not done).
 

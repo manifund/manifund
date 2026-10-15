@@ -10,7 +10,7 @@ import {
   TrashIcon,
 } from '@heroicons/react/20/solid'
 import { Avatar } from '@/components/avatar'
-import type { Following, SavedSearch } from '@/db/following'
+import type { Following, SavedSearch } from '@/db/profile-follows'
 
 // The Following tab of a profile (F9): the people, projects and saved searches someone follows, for everyone
 // to see, and on your own profile the buttons to change them. Something you remove stays

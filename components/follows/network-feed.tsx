@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Avatar } from '@/components/avatar'
 import { RelativeTime } from '@/components/relative-time'
-import type { NetworkFeedItem } from '@/db/profile-follows'
+import type { NetworkFeedItem } from '@/db/network'
 import { formatMoney } from '@/utils/formatting'
 
 // F12: the home page's Network tab, what people you follow did lately. Loaded when the tab opens (home renders

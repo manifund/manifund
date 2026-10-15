@@ -7,7 +7,7 @@ import type { Profile } from '@/db/profile'
 import { isListed } from '@/lib/comments/links'
 import { ProfileComments } from './profile-comments'
 import { ProfileFollowing, followingCount } from './profile-following'
-import type { Following } from '@/db/following'
+import type { Following } from '@/db/profile-follows'
 
 // The tabs of a profile: what people say about this person (C8), what they wrote elsewhere (C30), and what
 // they follow (F9, a tab since Vals, 2026-10-15). Their replies on their own profile stay in the first tab, in

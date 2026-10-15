@@ -13,7 +13,7 @@ import { getPrizeCause, listSimpleCauses } from '@/db/cause'
 import { getBidsByUser } from '@/db/bid'
 import NoAccess from '@/app/no-access'
 import { notFound } from 'next/navigation'
-import { networkFor } from '@/db/profile-follows'
+import { networkFor } from '@/db/network'
 
 export const revalidate = 0
 

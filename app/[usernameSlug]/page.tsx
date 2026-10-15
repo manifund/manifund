@@ -9,8 +9,7 @@ import { getCommentsByTarget, getCommentsByUser } from '@/db/comment'
 import FundPage from '../funds/[fundSlug]/page'
 import { notFound } from 'next/navigation'
 import { getResponseByProfileId } from '@/db/donor-survey'
-import { isFollowing } from '@/db/profile-follows'
-import { getFollowing } from '@/db/following'
+import { getFollowing, isFollowing } from '@/db/profile-follows'
 
 export const revalidate = 60
 
