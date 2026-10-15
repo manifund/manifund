@@ -1,8 +1,10 @@
 // No 'server-only' marker, like lib/notifications/notify.ts: pages/api routes import it. It only works with the
 // service-role key, which the browser never has.
-// Following people and saved searches (docs/product/follows/README.md, rules F1-F9). The only writer of
-// profile_follows and saved_searches (server-only, F2). Notifying never throws: the event that caused it (a new
-// project, a comment, a donation) already happened; failures are logged (N8).
+// Following people and saved searches (docs/product/follows/README.md, rules F1-F9). Follows and searches are
+// written with the signed-in person's own client, so row-level security allows only their own rows (F2), as for
+// project follows. Notifying other people uses the admin client. Notifying never throws: the event that caused it
+// (a new project, a comment, a donation) already happened; failures are logged (N8).
+import type { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/db/supabase-admin'
 import { escapeHtml } from '@/utils/email'
 import { getURL } from '@/utils/constants'
@@ -14,9 +16,9 @@ const admin = () => createAdminClient() as any
 const base = () => getURL().replace(/\/$/, '')
 
 // F1: following someone covers everything they do. Following again changes nothing.
-export async function follow(followerId: string, followedId: string) {
+export async function follow(supabase: SupabaseClient, followerId: string, followedId: string) {
   if (followerId === followedId) return { error: "You can't follow yourself" }
-  const { error } = await admin()
+  const { error } = await (supabase as any)
     .from('profile_follows')
     .upsert(
       { follower_id: followerId, followed_id: followedId },
@@ -29,8 +31,8 @@ export async function follow(followerId: string, followedId: string) {
   return {}
 }
 
-export async function unfollow(followerId: string, followedId: string) {
-  const { error } = await admin()
+export async function unfollow(supabase: SupabaseClient, followerId: string, followedId: string) {
+  const { error } = await (supabase as any)
     .from('profile_follows')
     .delete()
     .eq('follower_id', followerId)
@@ -46,11 +48,12 @@ export async function unfollow(followerId: string, followedId: string) {
 
 // F5: a saved search is home's search text and categories (lib/follows/match); its name is generated from them.
 // Saving the same search twice keeps one.
-export async function saveSearch(ownerId: string, query: string) {
+export async function saveSearch(supabase: SupabaseClient, ownerId: string, query: string) {
+  const db = supabase as any
   const search = parseSearch(query)
   const clean = searchQuery(search)
   if (!clean) return { error: 'Type a search or pick a category first' }
-  const { data: existing } = await admin()
+  const { data: existing } = await db
     .from('saved_searches')
     .select('id, name, query')
     .eq('owner_id', ownerId)
@@ -58,12 +61,12 @@ export async function saveSearch(ownerId: string, query: string) {
     .maybeSingle()
   if (existing) return { search: existing }
   const { data: causes } = search.causes.length
-    ? await admin().from('causes').select('slug, title').in('slug', search.causes)
+    ? await db.from('causes').select('slug, title').in('slug', search.causes)
     : { data: [] }
   const titles = Object.fromEntries(
     ((causes ?? []) as { slug: string; title: string }[]).map((c) => [c.slug, c.title])
   )
-  const { data, error } = await admin()
+  const { data, error } = await db
     .from('saved_searches')
     .insert({ owner_id: ownerId, query: clean, name: searchName(clean, titles) })
     .select('id, name, query')
@@ -75,8 +78,8 @@ export async function saveSearch(ownerId: string, query: string) {
   return { search: data }
 }
 
-export async function deleteSearch(ownerId: string, id: string) {
-  const { error } = await admin()
+export async function deleteSearch(supabase: SupabaseClient, ownerId: string, id: string) {
+  const { error } = await (supabase as any)
     .from('saved_searches')
     .delete()
     .eq('id', id)

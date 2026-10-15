@@ -2,7 +2,10 @@
 -- donates, and when a new project matches a saved search. Rules: docs/product/follows/README.md.
 -- Additive only and idempotent: new tables, a new nullable column, a wider check.
 
--- 1. Following a person: everything they do (private: only the follower reads their rows; server code writes).
+-- Row-level security as for project_follows: anyone reads (follows and saved searches are public, F2), people
+-- insert and delete only their own rows; no updates.
+
+-- 1. Following a person: everything they do.
 create table if not exists public.profile_follows (
   follower_id uuid not null references public.profiles(id) on delete cascade,
   followed_id uuid not null references public.profiles(id) on delete cascade,
@@ -13,7 +16,14 @@ create table if not exists public.profile_follows (
 create index if not exists profile_follows_followed_idx on public.profile_follows (followed_id);
 alter table public.profile_follows enable row level security;
 drop policy if exists "read own follows" on public.profile_follows;
-create policy "read own follows" on public.profile_follows for select using (follower_id = auth.uid());
+drop policy if exists "Enable read access for all users" on public.profile_follows;
+create policy "Enable read access for all users" on public.profile_follows for select using (true);
+drop policy if exists "Insert own follows" on public.profile_follows;
+create policy "Insert own follows" on public.profile_follows for insert to authenticated
+  with check (follower_id = auth.uid());
+drop policy if exists "Delete own follows" on public.profile_follows;
+create policy "Delete own follows" on public.profile_follows for delete to authenticated
+  using (follower_id = auth.uid());
 
 -- 2. Saved searches: home's search text and categories as a query string, matched against new projects. A search
 -- exists or is removed: no pausing, no per-search frequency (the one email choice applies, N4).
@@ -27,7 +37,14 @@ create table if not exists public.saved_searches (
 create index if not exists saved_searches_owner_idx on public.saved_searches (owner_id);
 alter table public.saved_searches enable row level security;
 drop policy if exists "read own saved searches" on public.saved_searches;
-create policy "read own saved searches" on public.saved_searches for select using (owner_id = auth.uid());
+drop policy if exists "Enable read access for all users" on public.saved_searches;
+create policy "Enable read access for all users" on public.saved_searches for select using (true);
+drop policy if exists "Insert own saved searches" on public.saved_searches;
+create policy "Insert own saved searches" on public.saved_searches for insert to authenticated
+  with check (owner_id = auth.uid());
+drop policy if exists "Delete own saved searches" on public.saved_searches;
+create policy "Delete own saved searches" on public.saved_searches for delete to authenticated
+  using (owner_id = auth.uid());
 
 -- 3. Notifications about them.
 alter table public.notifications

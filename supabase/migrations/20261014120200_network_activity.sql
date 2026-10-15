@@ -1,6 +1,6 @@
 -- Your network on home (docs/product/follows/README.md, F8, F10-F11): by project, who you follow did what there,
--- one row per project, person and kind, newest first. Runs as the caller (security invoker), so it sees exactly
--- what their own queries would: their own follows (F2) and public projects, donations, offers and comments.
+-- one row per project, person and kind, newest first. Runs as the caller (security invoker): their own follows
+-- (follower_id = auth.uid()) and public projects, donations, offers and comments.
 -- Replaces four queries that fetched every row (comment texts included) for the browser to group. Additive only.
 create or replace function public.network_activity()
 returns table (project_id uuid, name text, kind text, at timestamptz)

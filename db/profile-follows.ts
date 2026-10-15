@@ -5,8 +5,7 @@ import { log } from '@/lib/log'
 import { TARGET_EMBEDS, commentHref, isListed, targetTitle } from '@/lib/comments/links'
 import { toPlaintext } from '@/utils/tiptap-parsing'
 
-// Reads with the signed-in person's client: RLS returns only their own follows and saved searches (F2).
-// profile_follows and saved_searches aren't in the generated types yet.
+// Reads with the signed-in person's client. profile_follows and saved_searches aren't in the generated types yet.
 
 // Whether the viewer follows this person (F1).
 export async function isFollowing(supabase: SupabaseClient, me: string, followedId: string) {
@@ -28,7 +27,7 @@ export async function listMySavedSearches(supabase: SupabaseClient, me: string) 
   return (data ?? []) as { id: string; name: string; query: string }[]
 }
 
-// The people the viewer follows (F2: read with their own client). Everything they do is in the viewer's network
+// The people the viewer follows. Everything they do is in the viewer's network
 // (F8, F10-F12).
 export async function myFollowedIds(supabase: SupabaseClient, me: string) {
   const { data } = await (supabase as any)
@@ -164,7 +163,7 @@ export async function networkFor(
   me: string
 ): Promise<NetworkActivity | undefined> {
   if (!(await myFollowedIds(supabase, me)).length) return undefined
-  // network_activity() reads the signed-in person's follows (auth.uid()), so `supabase` must be theirs (F2)
+  // network_activity() reads the signed-in person's follows (auth.uid()), so `supabase` must be theirs
   const { data, error } = await supabase.rpc('network_activity' as any)
   if (error) log.error('follows.network_activity_failed', { error })
   const out: NetworkActivity = {}

@@ -1,5 +1,5 @@
-// F2 at the database: each person's browser reads only their own follows and saved searches, and writes none; the
-// profile shows everyone's through server code (db/following.ts).
+// F2 at the database, as for project_follows: anyone reads follows and saved searches, people add and remove only
+// their own, nobody edits them.
 // The network line's data (F8) comes from network_activity(), which reads the caller's own follows.
 import { beforeAll, describe, expect, test } from 'bun:test'
 import { actAs, inRollback, insertComment } from '../helpers/db'
@@ -21,27 +21,62 @@ async function refused(query: PromiseLike<unknown>, message: string) {
   expect(error instanceof Error ? error.message : String(error)).toContain(message)
 }
 
-describe('F2 browsers read only their own follows and saved searches; only server code writes them', () => {
-  test('a follow is visible to the follower only', () =>
+describe('F2 follows and saved searches are public; people write only their own', () => {
+  test('anyone reads them', () =>
     inRollback(async (tx) => {
       await tx`insert into profile_follows (follower_id, followed_id) values (${p.alice.id}, ${p.bob.id})`
       await tx`insert into saved_searches (owner_id, name, query) values (${p.alice.id}, 'AI safety', 'cause=x')`
-      await actAs(tx, p.bob.id)
+      await actAs(tx, p.rita.id)
       expect(
-        await tx`select 1 from profile_follows where follower_id = ${p.alice.id}`
-      ).toHaveLength(0)
-      expect(await tx`select 1 from saved_searches where owner_id = ${p.alice.id}`).toHaveLength(0)
-      await actAs(tx, p.alice.id)
-      expect(await tx`select followed_id from profile_follows`).toEqual([{ followed_id: p.bob.id }])
-      expect(await tx`select name from saved_searches`).toHaveLength(1)
+        await tx`select followed_id from profile_follows where follower_id = ${p.alice.id}`
+      ).toEqual([{ followed_id: p.bob.id }])
+      expect(await tx`select name from saved_searches where owner_id = ${p.alice.id}`).toEqual([
+        { name: 'AI safety' },
+      ])
     }))
-  test('signed-in people cannot write follows or saved searches directly', () =>
+  test('people add and remove their own', () =>
     inRollback(async (tx) => {
       await actAs(tx, p.alice.id)
+      await tx`insert into profile_follows (follower_id, followed_id) values (${p.alice.id}, ${p.bob.id})`
+      await tx`insert into saved_searches (owner_id, name, query) values (${p.alice.id}, 'Mine', 'q=mine')`
+      expect(
+        await tx`delete from profile_follows where follower_id = ${p.alice.id} and followed_id = ${p.bob.id} returning 1`
+      ).toHaveLength(1)
+      expect(
+        await tx`delete from saved_searches where owner_id = ${p.alice.id} and name = 'Mine' returning 1`
+      ).toHaveLength(1)
+    }))
+  // one refused write per transaction: an error aborts the rest of it
+  test('nobody adds a follow for someone else', () =>
+    inRollback(async (tx) => {
+      await actAs(tx, p.rita.id)
       await refused(
-        tx`insert into profile_follows (follower_id, followed_id) values (${p.alice.id}, ${p.bob.id})`,
+        tx`insert into profile_follows (follower_id, followed_id) values (${p.alice.id}, ${p.rita.id})`,
         'row-level security'
       )
+    }))
+  test('nobody saves a search for someone else', () =>
+    inRollback(async (tx) => {
+      await actAs(tx, p.rita.id)
+      await refused(
+        tx`insert into saved_searches (owner_id, name, query) values (${p.alice.id}, 'X', 'q=x')`,
+        'row-level security'
+      )
+    }))
+  test("nobody removes or edits someone else's", () =>
+    inRollback(async (tx) => {
+      await tx`insert into profile_follows (follower_id, followed_id) values (${p.alice.id}, ${p.bob.id})`
+      await tx`insert into saved_searches (owner_id, name, query) values (${p.alice.id}, 'Theirs', 'q=theirs')`
+      await actAs(tx, p.rita.id)
+      expect(
+        await tx`delete from profile_follows where follower_id = ${p.alice.id} returning 1`
+      ).toHaveLength(0)
+      expect(
+        await tx`delete from saved_searches where owner_id = ${p.alice.id} returning 1`
+      ).toHaveLength(0)
+      expect(
+        await tx`update saved_searches set name = 'Edited' where owner_id = ${p.alice.id} returning 1`
+      ).toHaveLength(0)
     }))
   test('nobody follows themselves', () =>
     inRollback(async (tx) => {
