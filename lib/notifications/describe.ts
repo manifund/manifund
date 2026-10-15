@@ -36,7 +36,7 @@ const COMMENT_WHAT: Record<string, string> = {
   reply_to_you: 'replied to you on',
   mention: 'mentioned you on',
   comment_on_your_project: 'commented on your project',
-  comment_on_your_profile: 'commented on your profile',
+  comment_on_your_profile: 'commented on',
   progress_update: 'posted a progress update on',
   final_report: 'posted a final report on',
   followed_project_comment: 'commented on',
@@ -55,7 +55,7 @@ export function describe(n: NotificationRow, me: { username: string }): Describe
     return {
       who,
       text: COMMENT_WHAT[n.reason],
-      subject: n.reason === 'comment_on_your_profile' ? undefined : n.commentTitle,
+      subject: n.reason === 'comment_on_your_profile' ? 'your profile' : n.commentTitle,
       detail: n.excerpt,
       href: n.commentHref ?? '#',
       icon: 'avatar',

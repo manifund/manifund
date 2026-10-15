@@ -26,7 +26,7 @@ export function notificationModel(c: NotificationContent) {
 
 type Item = { who?: string; text: string; subject?: string; detail?: string; href: string }
 
-// The daily summary's list: one row per notification, its subject linked (or its text, when it has none).
+// The daily summary's list: one row per notification, its subject linked in bold (or its text, when it has none).
 export function summaryItems(items: Item[]): { html: string; text: string } {
   const link = (href: string, html: string, bold = false) =>
     `<a href="${escapeHtml(href)}" target="_blank" style="color: #ea580c; text-decoration: none;${bold ? ' font-weight: bold;' : ''}">${html}</a>`
@@ -39,7 +39,7 @@ export function summaryItems(items: Item[]): { html: string; text: string } {
           (i.who ? `<strong>${escapeHtml(i.who)}</strong> ` : '') +
           (i.subject
             ? `${escapeHtml(i.text)} ${link(i.href, escapeHtml(i.subject), true)}`
-            : link(i.href, escapeHtml(i.text))) +
+            : link(i.href, escapeHtml(i.text), true)) +
           (i.detail
             ? `<div style="color: #777; font-size: 14px; margin-top: 2px;">${escapeHtml(i.detail)}</div>`
             : '') +
