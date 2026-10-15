@@ -14,20 +14,24 @@ email settings: `../notifications/README.md`.
 ## How it's built
 
 - **`profile_follows`** (follower, followed: following someone covers everything they do) and
-  **`saved_searches`** (owner, a name, a query string; no pausing: a search exists or is removed). Both private:
-  people read only their own rows; only server code (`lib/follows`) writes them.
+  **`saved_searches`** (owner, a name, a query string; no pausing: a search exists or is removed). Both public, with
+  the same database rules as `project_follows`: anyone reads them, people add and remove only their own rows (the
+  routes write with the signed-in person's session). Reads are in `db/profile-follows.ts`; notifying followers and
+  matching searches is in `lib/follows`.
 - **A saved search is home's search text and categories** as the address keeps them (`?q=...&cause=...`), matched
   against new projects the way home's search box and category picker would (`lib/follows/match.ts`).
-- **Notifications** go through the notifications table with four reasons in two settings rows ("People you follow"
-  and "New projects matching your saved searches"), each right away or weekly (N3, N6).
-- **The network line** (F8): `network_activity()` (a database function that runs as the viewer, so it reads only
-  their own follows) gives, by project, who they follow did what; `lib/follows/network.ts` words it.
+- **Notifications** go through the notifications table with four reasons (someone you follow posted a project,
+  commented, or donated or offered; a saved search matched). They're optional, so their emails follow the one email
+  choice: instant, daily or never (`../notifications/README.md` N4).
+- **The network line** (F8): `network_activity()` (a database function that reads the signed-in person's follows,
+  `follower_id = auth.uid()`) gives, by project, who they follow did what; `lib/follows/network.ts` words it. The
+  Network tab (F10) is `db/network.ts`.
 
 ## Rules
 
 - **F1** Following someone covers everything they do: new projects, comments, donations and offers. One button
   on their profile follows or unfollows them, the same small bookmark button as a project's Follow (grey and
-  outlined to follow, orange and filled while following); the Following page unfollows too. How often the emails come is a
+  outlined to follow, orange and filled while following); the Following tab unfollows too. How often the emails come is a
   notification setting. Nobody follows themselves.
 - **F2** Follows and saved searches are public: anyone can see on someone's profile the people, projects and
   searches they follow (F9; Vals, 2026-10-14: "it's interesting to be able to see a regranter's search"). As for
@@ -41,7 +45,7 @@ email settings: `../notifications/README.md`.
   search box: how many projects match, and "Notify me of new matches", which saves the search text and categories
   as a search, named from them ('"probe" in Technical AI safety'). It appears a moment after typing stops, and
   goes when the search is cleared ("just in time", Vals, 2026-10-14). While the search is saved the line says
-  "Notifying you of new matches", with Stop. The search and categories are kept in the address, so a search can be
+  "Notifying you of new matches", with Remove (the same word and trash icon as the Following tab). The search and categories are kept in the address, so a search can be
   shared and comes back after signing in. How often the emails come is the notification setting, not a choice
   here. Signed out, the button opens sign-up or sign-in, which comes back to the same search.
 - **F6** A project that is published, or whose categories change, notifies the owners of the saved searches it
@@ -66,10 +70,11 @@ email settings: `../notifications/README.md`.
   it lets you unfollow or remove, each button with an icon (no pausing a search: Vals, 2026-10-14); what you
   remove stays, faded, with Undo until you leave the page. Long lists show five rows and "Show all". There's no
   separate Following page (Vals, 2026-10-14).
-- **F12** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,
+- **F10** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,
   comments anywhere with a short excerpt, donations and offers with their amounts), each linking to the project or
-  comment. Comments on hidden projects or hidden org pages, and drafts or hidden projects, stay out. With nothing
-  to show, it explains how to follow people. It loads when the tab opens (`/api/network`).
+  comment, in the same words as notifications ("posted a new project:", "donated $X to", "offered $X on"). Comments
+  on hidden projects or hidden org pages, and drafts or hidden projects, stay out. With nothing to show, it explains
+  how to follow people. It loads when the tab opens (`/api/network`).
 
 ## Decisions
 
@@ -77,22 +82,25 @@ Newest first.
 
 | Date       | Decided by                                 | Decision                                                                                                                                                                                                                         | Why                                                                                                                 |
 | ---------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-15 | Claude (QA pass)                           | One word and icon for removing a saved search, "Remove" with a trash icon, on home and the Following tab; the Network tab uses the notifications' verbs (F5, F10)                                                                | The same action looked different in two places                                                                      |
+| 2026-10-15 | Vals                                       | Following is a profile tab after About and By, with the same lists (F9)                                                                                                                                                          | A tab fits the profile better than a section                                                                        |
+| 2026-10-15 | Team meeting, Vals                         | The network line sits on a square orange band joined to the card's top-left edge, like the Comments feed's project box, text 8px in, grey text (F8)                                                                              | Ties the line to its card without reading as a link                                                                 |
 | 2026-10-15 | Vals (Austin's question)                   | Follows and saved searches have the same database rules as project follows: anyone reads them, people add and remove only their own, with their own session (F2)                                                                 | Austin asked how others' follows are read when only owners could read them; matching the existing tables answers it |
-| 2026-10-14 | Vals                                       | The Network tab stays: "it's like twitter" (F12)                                                                                                                                                                                 | Q25 cut "Network first" and the Hot boost; Q29 kept the tab                                                         |
+| 2026-10-14 | Vals                                       | The Network tab stays: "it's like twitter" (F10)                                                                                                                                                                                 | Q25 cut "Network first" and the Hot boost; Q29 kept the tab                                                         |
 | 2026-10-14 | Vals                                       | Save a search from a line that appears under the search box once there is a search, not an always-visible bell (F5)                                                                                                              | "just in time ... simple, elegant"                                                                                  |
 | 2026-10-14 | Vals                                       | The network line sits above the card, not in it (F8)                                                                                                                                                                             | "like twitter 'reposted by' is not in tweet but surrounding"                                                        |
 | 2026-10-14 | Vals                                       | Following people and projects share one bookmark button (F1)                                                                                                                                                                     | "standardize ... change icon from eye to bookmark"                                                                  |
-| 2026-10-13 | Vals                                       | The bell has no frequency choice: saved searches follow their settings row (F5)                                                                                                                                                  | Q22: fewer choices in more places                                                                                   |
+| 2026-10-13 | Vals                                       | The bell has no frequency choice: saved searches follow their settings row (F5; the bell and settings rows replaced 2026-10-14 by the search line and one email choice)                                                          | Q22: fewer choices in more places                                                                                   |
 | 2026-10-12 | Austin (team meeting), Vals                | Keep following people and saved searches; the home filter panel (amount, status, AI, network filter), "Network first" and seen marks are left out, so a saved search is the search text and categories home already has (F5, F6) | Fewer database changes and a smaller change to the most-visited page                                                |
 | 2026-10-12 | Vals                                       | Following someone covers everything they do: no per-follow switches (F1, F3, F4, F9)                                                                                                                                             | "remove the switches, have it follow all, simpler less complexity"                                                  |
 | 2026-10-12 | Vals                                       | The network line shows just the actions, without "From your network" (F8)                                                                                                                                                        | "it shouldn't show 'from your network' part, just the actions"                                                      |
-| 2026-10-09 | Vals                                       | "People you follow" and saved-search emails weekly by default                                                                                                                                                                    | "I'd have all emails default to weekly"                                                                             |
+| 2026-10-09 | Vals                                       | "People you follow" and saved-search emails weekly by default (superseded: one email choice, daily by default)                                                                                                                   | "I'd have all emails default to weekly"                                                                             |
 | 2026-10-09 | Vals                                       | One notification per person per project from saved searches (F7)                                                                                                                                                                 | "okay for 'one notification per project' rule"                                                                      |
 | 2026-10-09 | Vals                                       | Your network is everything people you follow did, at any time (F8)                                                                                                                                                               | "simpler system here, no cutoff on how long it counts for"                                                          |
 | 2026-10-09 | Vals                                       | The bell shows to signed-out visitors too, with "Sign up or sign in" (F5)                                                                                                                                                        | "as an incentive to get them to signup"                                                                             |
 | 2026-10-08 | Vals                                       | Following someone covers their comments everywhere: on projects, profiles and org pages, reviews included (F4)                                                                                                                   | "yes to both"                                                                                                       |
 | 2026-10-07 | Claude, tentative (Vals: fine, 2026-10-09) | Saved searches share one email setting instead of a frequency per search                                                                                                                                                         | Fewer choices                                                                                                       |
-| 2026-10-07 | Vals                                       | Follows are private; no cap on saved searches (F2)                                                                                                                                                                               | "private ig"; "no cap ig"                                                                                           |
+| 2026-10-07 | Vals                                       | Follows are private (superseded 2026-10-14: public); no cap on saved searches (F2)                                                                                                                                               | "private ig"; "no cap ig"                                                                                           |
 | 2026-10-07 | Vals                                       | A line on projects that got attention from people you follow (F8)                                                                                                                                                                | Surfaces taste through people                                                                                       |
 | 2026-10-05 | Vals                                       | Subscriptions to projects, people and saved searches                                                                                                                                                                             | Funders keep up without browsing                                                                                    |
 
@@ -105,4 +113,4 @@ Newest first.
 
 Each test names the rule it checks: unit `tests/unit/follows-match.test.ts` (F5, F6, F8); database
 `tests/db/profile-follows.test.ts` (F2, F8); routes `tests/routes/follows.test.ts` (F1, F3, F4, F5, F6, F7, F9) and
-`tests/routes/network.test.ts` (F12). No tests yet for the search line's looks.
+`tests/routes/network.test.ts` (F10). No tests yet for the search line's looks.
