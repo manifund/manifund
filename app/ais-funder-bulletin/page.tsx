@@ -79,11 +79,22 @@ const AT_A_GLANCE: Row[] = [
     donations: false,
   },
   {
+    name: 'Astralis Foundation',
+    href: 'https://astralisfoundation.org/',
+    donated2025: { v: '—' },
+    grants2025: { v: '—' },
+    expected2026: { v: '$100M', n: 9 },
+    fte: '12',
+    generalApps: false,
+    openRfps: true,
+    donations: true,
+  },
+  {
     name: 'SFF',
     href: 'https://survivalandflourishing.fund/',
-    donated2025: { v: '$35M', n: 9 },
-    grants2025: { v: '88', n: 10 },
-    expected2026: { v: '$64M', n: 11 },
+    donated2025: { v: '$35M', n: 10 },
+    grants2025: { v: '88', n: 11 },
+    expected2026: { v: '$64M', n: 12 },
     fte: '10',
     generalApps: true,
     openRfps: true,
@@ -94,7 +105,7 @@ const AT_A_GLANCE: Row[] = [
     href: 'https://www.lightconecommons.com/',
     donated2025: { v: '$0' },
     grants2025: { v: '0' },
-    expected2026: { v: '$50M', n: 12 },
+    expected2026: { v: '$50M', n: 13 },
     fte: '2',
     generalApps: true,
     openRfps: false,
@@ -102,9 +113,9 @@ const AT_A_GLANCE: Row[] = [
   },
   {
     name: 'AISTOF',
-    donated2025: { v: '~$15M', n: 13 },
+    donated2025: { v: '~$15M', n: 14 },
     grants2025: { v: '—' },
-    expected2026: { v: '$40M', n: 14 },
+    expected2026: { v: '$40M', n: 15 },
     fte: '1',
     generalApps: false,
     openRfps: false,
@@ -113,9 +124,9 @@ const AT_A_GLANCE: Row[] = [
   {
     name: 'Schmidt Sciences',
     href: 'https://www.schmidtsciences.org/',
-    donated2025: { v: '$10M', n: 15 },
-    grants2025: { v: '27', n: 16 },
-    expected2026: { v: '$20M', n: 17 },
+    donated2025: { v: '$10M', n: 16 },
+    grants2025: { v: '27', n: 17 },
+    expected2026: { v: '$20M', n: 18 },
     fte: '2',
     generalApps: false,
     openRfps: false,
@@ -124,20 +135,31 @@ const AT_A_GLANCE: Row[] = [
   {
     name: 'BlueDot Impact',
     href: 'https://bluedot.org/',
-    donated2025: { v: '$0', n: 18 },
-    grants2025: { v: '0', n: 18 },
-    expected2026: { v: '$10.1M', n: 19 },
+    donated2025: { v: '$0', n: 19 },
+    grants2025: { v: '0', n: 19 },
+    expected2026: { v: '$10.1M', n: 20 },
     fte: '1',
     generalApps: true,
     openRfps: false,
     donations: false,
   },
   {
+    name: 'GTR AI Safety Fund',
+    href: 'https://www.gtr-foundation.org/gtr-ai-safety-fund',
+    donated2025: { v: '—' },
+    grants2025: { v: '—' },
+    expected2026: { v: '~$10M', n: 21 },
+    fte: '2',
+    generalApps: true,
+    openRfps: false,
+    donations: true,
+  },
+  {
     name: 'Manifund',
     href: 'https://manifund.org/',
-    donated2025: { v: '$6M', n: 20 },
-    grants2025: { v: '144', n: 21 },
-    expected2026: { v: '$8.8M', n: 22 },
+    donated2025: { v: '$6M', n: 22 },
+    grants2025: { v: '144', n: 23 },
+    expected2026: { v: '$8.8M', n: 24 },
     fte: '2',
     generalApps: true,
     openRfps: false,
@@ -146,9 +168,9 @@ const AT_A_GLANCE: Row[] = [
   {
     name: 'Transformative AI Fund (formerly LTFF)',
     href: 'https://funds.effectivealtruism.org/funds/transformative-ai',
-    donated2025: { v: '$1.2M', n: 23 },
-    grants2025: { v: '20', n: 23 },
-    expected2026: { v: '$4M', n: 24 },
+    donated2025: { v: '$1.2M', n: 25 },
+    grants2025: { v: '20', n: 25 },
+    expected2026: { v: '$4M', n: 26 },
     fte: '1',
     generalApps: true,
     openRfps: false,
@@ -274,6 +296,18 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
           job posting
         </A>{' '}
         says they are deploying &ldquo;up to $100+ million this year.&rdquo;
+      </>
+    ),
+  },
+  {
+    text: 'An Astralis job posting dated August 2026, archived on a third-party job board, says: "In 2026 alone, we have already mobilized >$60M, and we plan to mobilize a total of ~$100M by the end of the year." The same posting says they raised and deployed more than $30M to more than 15 grantees in their first 18 months, and that their goal for 2027 is to make $100M in grants. Their own site publishes no totals.',
+    node: (
+      <>
+        An Astralis job posting dated August 2026, archived on a third-party job board, says:
+        &ldquo;In 2026 alone, we have already mobilized &gt;$60M, and we plan to mobilize a total of
+        ~$100M by the end of the year.&rdquo; The same posting says they raised and deployed more
+        than $30M to more than 15 grantees in their first 18 months, and that their goal for 2027 is
+        to make $100M in grants. Their own site publishes no totals.
       </>
     ),
   },
@@ -410,6 +444,19 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         program publishes no running total, so it is not in this figure. Note also that the
         browsable grantee list is incomplete: it held 772 entries totalling $1.74M against the
         1,077-grant headline.
+      </>
+    ),
+  },
+  {
+    text: 'Estimate: Jan Beckers committed €50M over three to seven years in September 2026, or roughly €7–17M a year. They publish no annual budget, grant totals, or grant counts.',
+    node: (
+      <>
+        Estimate: Jan Beckers{' '}
+        <A href="https://www.gtr-foundation.org/press/german-tech-investor-jan-beckers-commits-eur-50-million-to-reducing-the-risks-of-advanced-ai">
+          committed &euro;50M over three to seven years
+        </A>{' '}
+        in September 2026, or roughly &euro;7&ndash;17M a year. They publish no annual budget, grant
+        totals, or grant counts.
       </>
     ),
   },
@@ -754,118 +801,6 @@ export default function AisFunderBulletinPage() {
               </ul>
             </Funder>
 
-            <Funder title="Longview Philanthropy">
-              <ul>
-                <li>
-                  <A href="https://www.longview.org/">Website</A>
-                </li>
-                <li>
-                  Background:
-                  <ul>
-                    <li>
-                      Founded in 2018 by barrister Natalie Cargill, who is now listed simply as
-                      Founder; Simran Dhaliwal is CEO. Katie Hearsum, previously COO, is listed as
-                      President as of October 2026 and &ldquo;oversees operations at Longview&rdquo;
-                      &mdash; apparently how their COO search was resolved.
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  Thesis:
-                  <ul>
-                    <li>
-                      Primarily a donor advisor: they design giving strategies for major
-                      philanthropists and move most money via grant recommendations, alongside their
-                      own funds (Frontier AI Fund, Digital Minds Fund, Nuclear Weapons Policy Fund,
-                      and the Emerging Challenges Fund, which they are now closing).
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  By the numbers:
-                  <ul>
-                    <li>
-                      donations: they directed over $75m in 2025 and say they expect 2026 to be
-                      &ldquo;substantially bigger&rdquo;; their (now removed) hiring materials
-                      earlier said they aimed to move $200m in 2026. The only per-fund figure they
-                      publish is for the{' '}
-                      <A href="https://www.longview.org/fund/frontier-ai-fund/">Frontier AI Fund</A>
-                      , which &ldquo;supported 18 organizations&rdquo; in its first nine months,
-                      December 2024 to September 2025.
-                    </li>
-                    <li>
-                      staff: 34 listed as of October 15, 2026, 10 of them in the AI program and 8 of
-                      those with AI in the title; around half the org working on AIS gets 17. Ajay
-                      Karpur, who dropped off the team listing in late September 2026, is listed
-                      again as an AI Program Officer; Aidan O&apos;Gara is not listed and his
-                      profile page now returns a 404, though no departure has been announced. They
-                      have also added a Head of Talent. Their now-delisted COO posting described
-                      them as &ldquo;~35 people&rdquo; including accepted offers.
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  Recent updates:
-                  <ul>
-                    <li>
-                      They ran two RFPs in 2026 that have now closed: one on{' '}
-                      <A href="https://www.longview.org/request-for-proposals-on-extreme-power-concentration/">
-                        extreme power concentration
-                      </A>{' '}
-                      ($100k–$2m/yr grants plus career funding, closed July 2) and one on{' '}
-                      <A href="https://forum.effectivealtruism.org/posts/ToC8jpgdwFJGtfw7C/new-round-of-digital-minds-funding-opportunities-at-longview">
-                        digital minds
-                      </A>{' '}
-                      (closed July 24). No grantees have been announced for either, and the digital
-                      minds RFP page has since been removed from Longview&apos;s site, so the link
-                      above goes to their co-posted announcement instead.
-                    </li>
-                    <li>
-                      In August 2026 they announced they are{' '}
-                      <A href="https://www.longview.org/fund/emerging-challenges-fund/">
-                        closing the Emerging Challenges Fund
-                      </A>
-                      , their public fund, and are no longer accepting new donations to it.
-                      Donations received through Giving What We Can by September 30, 2026 went into
-                      a final grant round; that deadline has now passed, was not extended, and
-                      Giving What We Can&apos;s own Emerging Challenges Fund page now redirects to
-                      Longview&apos;s. They plan to publish a final grant report later in 2026. The
-                      fund granted more than $3.5m from over 2,000 donors since launching in 2022.
-                      They now point public donors to Giving What We Can&apos;s Risks and Resilience
-                      Fund, though their{' '}
-                      <A href="https://www.longview.org/fund/nuclear-weapons-policy-fund/">
-                        Nuclear Weapons Policy Fund
-                      </A>{' '}
-                      also takes public donations.
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  Get involved:
-                  <ul>
-                    <li>
-                      Apply for funding: they post periodic RFPs{' '}
-                      <A href="https://www.longview.org/grantmaking/#funding-opportunities">here</A>
-                      , though none are open right now; otherwise opportunities are sourced via
-                      proactive research
-                    </li>
-                    <li>
-                      Donate: <A href="https://www.longview.org/contact/">contact form</A>;
-                      they&apos;re interested in donors giving at least $1m/year for advisory
-                      services, and their private funds are open to donors giving over $100k
-                    </li>
-                    <li>
-                      Apply for a job: their{' '}
-                      <A href="https://www.longview.org/careers/">careers page</A> lists no open
-                      roles and takes general applications only. Their COO / Director of Operations
-                      search closed on September 6, 2026, and the posting has since been taken down
-                      — its URL now redirects to the careers page.
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </Funder>
-
             <Funder title="OpenAI Foundation">
               <ul>
                 <li>
@@ -968,15 +903,74 @@ export default function AisFunderBulletinPage() {
                     </li>
                     <li>
                       Apply for funding: the Foundation itself has no application route, and has not
-                      published one. Note that a separate{' '}
-                      <A href="https://openai.smapply.org/prog/openais_ai_and_teen_development_research_grant_program/">
-                        AI and Teen Development Research Grant Program
-                      </A>{' '}
-                      — individual grants up to $1m, up to $5m in total — closed on October 6, 2026
-                      without being extended, with decisions due by November 13, 2026. It was
-                      topically adjacent to the Foundation&apos;s work on AI and young people but
-                      was &ldquo;funded and administered by OpenAI Group PBC,&rdquo; not the
-                      Foundation.
+                      published one.
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </Funder>
+
+            <Funder title="Longview Philanthropy">
+              <ul>
+                <li>
+                  <A href="https://www.longview.org/">Website</A>
+                </li>
+                <li>
+                  Background:
+                  <ul>
+                    <li>
+                      Founded in 2018 by barrister Natalie Cargill, who is now listed simply as
+                      Founder; Simran Dhaliwal is CEO.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Thesis:
+                  <ul>
+                    <li>
+                      Primarily a donor advisor: they design giving strategies for major
+                      philanthropists and move most money via grant recommendations, alongside their
+                      own funds (Frontier AI Fund, Digital Minds Fund, Nuclear Weapons Policy Fund,
+                      and the Emerging Challenges Fund, which they are now closing).
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  By the numbers:
+                  <ul>
+                    <li>
+                      donations: they directed over $75m in 2025 and say they expect 2026 to be
+                      &ldquo;substantially bigger&rdquo;; their (now removed) hiring materials
+                      earlier said they aimed to move $200m in 2026. The only per-fund figure they
+                      publish is for the{' '}
+                      <A href="https://www.longview.org/fund/frontier-ai-fund/">Frontier AI Fund</A>
+                      , which &ldquo;supported 18 organizations&rdquo; in its first nine months,
+                      December 2024 to September 2025.
+                    </li>
+                    <li>
+                      staff: 34 listed as of October 15, 2026, 10 of them in the AI program and 8 of
+                      those with AI in the title; around half the org working on AIS gets 17.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Get involved:
+                  <ul>
+                    <li>
+                      Apply for funding: they post periodic RFPs{' '}
+                      <A href="https://www.longview.org/grantmaking/#funding-opportunities">here</A>
+                      , though none are open right now; otherwise opportunities are sourced via
+                      proactive research
+                    </li>
+                    <li>
+                      Donate: <A href="https://www.longview.org/contact/">contact form</A>;
+                      they&apos;re interested in donors giving at least $1m/year for advisory
+                      services, and their private funds are open to donors giving over $100k
+                    </li>
+                    <li>
+                      Apply for a job: their{' '}
+                      <A href="https://www.longview.org/careers/">careers page</A> lists no open
+                      roles and takes general applications only.
                     </li>
                   </ul>
                 </li>
@@ -1032,19 +1026,9 @@ export default function AisFunderBulletinPage() {
                       , run by Astralis in collaboration with Macroscopic. It will allocate around
                       $10m, mostly in grants of $100k to $2m over 6 to 24 months, for work that
                       helps middle powers gain and use leverage over frontier AI development so that
-                      it is safer and more broadly beneficial. They say they have in mind
-                      &ldquo;countries like the UK, France, Germany, the Netherlands, Switzerland,
-                      Canada, Australia, Japan, South Korea and Singapore, and blocs like the
-                      EU,&rdquo; with no fixed list. The RFP groups 16 fundable project categories
-                      under five headings: recognizing the stakes, building leverage, using leverage
-                      to make AI safer, helping the great powers coordinate, and growing the field.
-                      Explicitly out of scope: the great powers&apos; own domestic AI policy, bio or
-                      cyber resilience work, work that doesn&apos;t engage seriously with
-                      transformative AI, AI safety work without a middle-power angle, career
-                      transition funding, student groups, electoral or partisan political activity,
-                      and commercial work without a safety rationale. Deadline October 23, 2026,
-                      reviewed on a rolling basis, with a substantive response aimed at within 4
-                      weeks and a final decision within 8 weeks of applying.
+                      it is safer and more broadly beneficial. Deadline October 23, 2026, reviewed
+                      on a rolling basis, with a substantive response aimed at within 4 weeks and a
+                      final decision within 8 weeks of applying.
                     </li>
                   </ul>
                 </li>
@@ -1072,6 +1056,78 @@ export default function AisFunderBulletinPage() {
                       <A href="https://jobs.ashbyhq.com/macroscopic/0d80e3a8-2ffd-4bef-8485-03f764732a6e">
                         here
                       </A>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </Funder>
+
+            <Funder title="Astralis Foundation">
+              <ul>
+                <li>
+                  <A href="https://astralisfoundation.org/">Website</A>
+                </li>
+                <li>
+                  Background:
+                  <ul>
+                    <li>
+                      A UK not-for-profit with a Swedish sister foundation, Stiftelsen Astralis; the
+                      team works remotely across the UK, US, and Sweden. They pool money from
+                      &ldquo;well over a dozen donors across several countries,&rdquo; with no
+                      single donor dominating, and take no money from major AI companies or their
+                      employees, governments, or political parties active in AI policy. Their main
+                      vehicle is a pooled fund called Shared Horizons.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Thesis:
+                  <ul>
+                    <li>
+                      They fund neglected work to make advanced AI secure and beneficial, focused on
+                      AI safety capacity and international cooperation in Asia, including China, and
+                      AI progress, safety and governance capacity in Europe. They are also scoping
+                      AI company oversight. Named grantees include the Institute for Law &amp;
+                      AI&apos;s EU team, the Singapore AI Safety Hub, and the Simon Institute for
+                      Longterm Governance.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  By the numbers:
+                  <ul>
+                    <li>
+                      donations: an August 2026 job posting said they had mobilized more than $60m
+                      in 2026 and planned to reach around $100m by year end, after raising and
+                      deploying more than $30m to more than 15 grantees in their first 18 months;
+                      their own site publishes no totals
+                    </li>
+                    <li>
+                      staff: 12 listed on their{' '}
+                      <A href="https://astralisfoundation.org/our-people">team page</A>, plus 6
+                      board members across the UK and Swedish entities
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Get involved:
+                  <ul>
+                    <li>
+                      Apply for funding: they don&apos;t take unsolicited requests, but the{' '}
+                      <A href="https://middlepowers.ai/">Middle Powers and Transformative AI RFP</A>
+                      , which they run with Macroscopic (details above), is open until October 23,
+                      2026. You can also email{' '}
+                      <A href="mailto:ops@astralisfoundation.org">ops@astralisfoundation.org</A>{' '}
+                      about funding, partnering, or ideas.
+                    </li>
+                    <li>
+                      Donate: they take donations from qualifying donors under their gift acceptance
+                      policy; get in touch at the same address.
+                    </li>
+                    <li>
+                      Apply for a job: no open roles listed, but you can submit an expression of
+                      interest via their{' '}
+                      <A href="https://astralisfoundation.org/careers">careers page</A>.
                     </li>
                   </ul>
                 </li>
@@ -1372,6 +1428,64 @@ export default function AisFunderBulletinPage() {
               </ul>
             </Funder>
 
+            <Funder title="AI Safety Tactical Opportunities Fund (AISTOF)">
+              <ul>
+                <li>
+                  Background:
+                  <ul>
+                    <li>Founded by JueYan Zhang (former BlackRock PM) in 2023</li>
+                  </ul>
+                </li>
+                <li>
+                  Thesis:
+                  <ul>
+                    <li>A multi-donor fund focused on moving fast to fill time-sensitive gaps.</li>
+                  </ul>
+                </li>
+                <li>
+                  By the numbers:
+                  <ul>
+                    <li>funds raised: &gt; $30m, per their own description</li>
+                    <li>grants made: &gt; 150 since September 2023</li>
+                    <li>
+                      their <A href="https://manifund.org/JueYan">Manifund account</A>, which is
+                      only one of their channels, shows $1.75m across 17 grants in 2025 and $2.77m
+                      across 28 grants in 2026 through October 15; their most recent grant there was
+                      on October 4, 2026
+                    </li>
+                    <li>
+                      Manifund&apos;s <A href="https://trace.manifund.org/orgs/aistof">Trace</A>{' '}
+                      database estimates their overall giving at $15.0m in 2025 and $25.0m in 2026,
+                      most of it as a lump estimate rather than itemised grants ($47m all-time
+                      across 49 records, of which it itemises 9%)
+                    </li>
+                    <li>
+                      they are one of the named backers of the UK AI Security Institute&apos;s{' '}
+                      <A href="https://alignmentproject.aisi.gov.uk/about">Alignment Project</A>, a
+                      pooled fund of over &pound;27m, alongside Schmidt Sciences, Halcyon Futures,
+                      Anthropic, OpenAI and others; no per-funder amount is published
+                    </li>
+                    <li>staff: ~1 FTE</li>
+                  </ul>
+                </li>
+                <li>
+                  Get involved:
+                  <ul>
+                    <li>
+                      Apply for funding: there&apos;s no open application, but consider posting a
+                      proposal on <A href="https://manifund.org/">Manifund</A>. A site has appeared
+                      at aistof.org but as of October 15, 2026 it serves only a &ldquo;Coming
+                      Soon&rdquo; placeholder
+                    </li>
+                    <li>
+                      Donate: there&apos;s no formal way to do so, but you could reach out to JueYan
+                      on <A href="https://www.linkedin.com/in/jueyan/">LinkedIn</A>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </Funder>
+
             <Funder title="Schmidt Sciences">
               <ul>
                 <li>
@@ -1413,7 +1527,7 @@ export default function AisFunderBulletinPage() {
                       their AI safety work now runs under the &ldquo;Science of Trustworthy
                       AI&rdquo; name; the old AI Safety Science page redirects there. That program
                       now also lists an advisory board: Percy Liang, Yonadav Shavit, Ajeya Cotra,
-                      JueYan Zhang (who runs AISTOF, below), and Mark Greaves.
+                      JueYan Zhang (who runs AISTOF, above), and Mark Greaves.
                     </li>
                   </ul>
                 </li>
@@ -1473,126 +1587,6 @@ export default function AisFunderBulletinPage() {
                     <li>
                       Apply for a job: They are hiring for scientists, program staff, and fellows in
                       AI <A href="https://jobs.lever.co/schmidt-entities">here</A>.
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </Funder>
-
-            <Funder title="AI Safety Tactical Opportunities Fund (AISTOF)">
-              <ul>
-                <li>
-                  Background:
-                  <ul>
-                    <li>Founded by JueYan Zhang (former BlackRock PM) in 2023</li>
-                  </ul>
-                </li>
-                <li>
-                  Thesis:
-                  <ul>
-                    <li>A multi-donor fund focused on moving fast to fill time-sensitive gaps.</li>
-                  </ul>
-                </li>
-                <li>
-                  By the numbers:
-                  <ul>
-                    <li>funds raised: &gt; $30m, per their own description</li>
-                    <li>grants made: &gt; 150 since September 2023</li>
-                    <li>
-                      their <A href="https://manifund.org/JueYan">Manifund account</A>, which is
-                      only one of their channels, shows $1.75m across 17 grants in 2025 and $2.77m
-                      across 28 grants in 2026 through October 15; their most recent grant there was
-                      on October 4, 2026
-                    </li>
-                    <li>
-                      Manifund&apos;s <A href="https://trace.manifund.org/orgs/aistof">Trace</A>{' '}
-                      database estimates their overall giving at $15.0m in 2025 and $25.0m in 2026,
-                      most of it as a lump estimate rather than itemised grants ($47m all-time
-                      across 49 records, of which it itemises 9%)
-                    </li>
-                    <li>
-                      they are one of the named backers of the UK AI Security Institute&apos;s{' '}
-                      <A href="https://alignmentproject.aisi.gov.uk/about">Alignment Project</A>, a
-                      pooled fund of over &pound;27m, alongside Schmidt Sciences, Halcyon Futures,
-                      Anthropic, OpenAI and others; no per-funder amount is published
-                    </li>
-                    <li>staff: ~1 FTE</li>
-                  </ul>
-                </li>
-                <li>
-                  Get involved:
-                  <ul>
-                    <li>
-                      Apply for funding: there&apos;s no open application, but consider posting a
-                      proposal on <A href="https://manifund.org/">Manifund</A>. A site has appeared
-                      at aistof.org but as of October 15, 2026 it serves only a &ldquo;Coming
-                      Soon&rdquo; placeholder
-                    </li>
-                    <li>
-                      Donate: there&apos;s no formal way to do so, but you could reach out to JueYan
-                      on <A href="https://www.linkedin.com/in/jueyan/">LinkedIn</A>
-                    </li>
-                  </ul>
-                </li>
-              </ul>
-            </Funder>
-
-            <Funder title="Manifund">
-              <ul>
-                <li>
-                  <A href="https://manifund.org/">Website</A>
-                </li>
-                <li>
-                  Background:
-                  <ul>
-                    <li>Founded in 2023 by Austin Chen (formerly Manifold Markets).</li>
-                  </ul>
-                </li>
-                <li>
-                  Thesis:
-                  <ul>
-                    <li>
-                      Manifund is an open platform where everything is public, grants can be turned
-                      around in days, and regrantors make independent calls.
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  By the numbers:
-                  <ul>
-                    <li>
-                      in 2026 so far (through October 14):
-                      <ul>
-                        <li>$6.91m donated</li>
-                        <li>~162 projects funded</li>
-                      </ul>
-                    </li>
-                    <li>grant sizes between $0-$500k</li>
-                    <li>staff: ~2 FTE</li>
-                  </ul>
-                </li>
-                <li>
-                  Get involved:
-                  <ul>
-                    <li>
-                      Apply for funding: make a public project proposal at{' '}
-                      <A href="https://manifund.org/">manifund.org</A>. They also run the{' '}
-                      <A href="https://manifund.substack.com/p/manifunds-falcon-fund">
-                        Falcon Fund
-                      </A>
-                      , launched on April 24, 2026 and led by regrantor Marcus Abramovitch, which{' '}
-                      <A href="https://manifund.substack.com/p/fast-grants-for-ai-x-animals">
-                        renewed its call for proposals
-                      </A>{' '}
-                      on September 29, 2026 — $500k, grants primarily $25k-$150k, rolling with no
-                      deadline, decisions on a one-week timescale, and $140k given away across 5
-                      grants as of that post — but it funds the intersection of animal welfare and
-                      transformative AI rather than AI safety as such, so it is not counted as an
-                      open RFP in the table above.
-                    </li>
-                    <li>
-                      Donate: you can donate to projects yourself, or donate to regrantors{' '}
-                      <A href="https://manifund.org/about/regranting">here</A>
                     </li>
                   </ul>
                 </li>
@@ -1721,6 +1715,136 @@ export default function AisFunderBulletinPage() {
               </ul>
             </Funder>
 
+            <Funder title="GTR AI Safety Fund">
+              <ul>
+                <li>
+                  <A href="https://www.gtr-foundation.org/gtr-ai-safety-fund">Website</A>
+                </li>
+                <li>
+                  Background:
+                  <ul>
+                    <li>
+                      The grant program of the Berlin-based Global Technology Risk Foundation gGmbH,
+                      which German tech investor Jan Beckers (founder of BIT Capital) cofounded with
+                      his sister Lisa Beckers, its Managing Director, in 2023. On September 14, 2026
+                      Beckers{' '}
+                      <A href="https://www.gtr-foundation.org/press/german-tech-investor-jan-beckers-commits-eur-50-million-to-reducing-the-risks-of-advanced-ai">
+                        committed &euro;50m over three to seven years
+                      </A>{' '}
+                      and launched the fund. He is also quoted on Astralis&apos;s homepage.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Thesis:
+                  <ul>
+                    <li>
+                      They fund people rather than set projects: individuals and early-stage
+                      organizations at any career stage, with no geographic focus, working on loss
+                      of control, cybersecurity, CBRN, power concentration, international agreements
+                      and verification, and AI&apos;s gradual effects on human development and
+                      social behavior. They offer strategic, operational and network support
+                      alongside money. Grantees since 2023 include Apollo Research, the KIRA Center,
+                      The AI Whistleblower Initiative, and Safe AI Germany.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  By the numbers:
+                  <ul>
+                    <li>donations: &euro;50m over three to seven years</li>
+                    <li>
+                      grant sizes: not published; from initial research or compute to multi-year
+                      organization building
+                    </li>
+                    <li>
+                      staff: 4 listed — Jan Beckers, Lisa Beckers, an advisor, and a chief of staff
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  Get involved:
+                  <ul>
+                    <li>
+                      Apply for funding:{' '}
+                      <A href="https://www.gtr-foundation.org/gtr-ai-safety-fund#ai-apply">
+                        rolling applications
+                      </A>
+                      , a 1–3 page proposal plus CV, with initial feedback targeted within 7 days.
+                      Nominations go to{' '}
+                      <A href="mailto:grants@gtr-foundation.org">grants@gtr-foundation.org</A>.
+                    </li>
+                    <li>
+                      Donate: they welcome &ldquo;additional funding from like minded
+                      individuals.&rdquo;
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </Funder>
+
+            <Funder title="Manifund">
+              <ul>
+                <li>
+                  <A href="https://manifund.org/">Website</A>
+                </li>
+                <li>
+                  Background:
+                  <ul>
+                    <li>Founded in 2023 by Austin Chen (formerly Manifold Markets).</li>
+                  </ul>
+                </li>
+                <li>
+                  Thesis:
+                  <ul>
+                    <li>
+                      Manifund is an open platform where everything is public, grants can be turned
+                      around in days, and regrantors make independent calls.
+                    </li>
+                  </ul>
+                </li>
+                <li>
+                  By the numbers:
+                  <ul>
+                    <li>
+                      in 2026 so far (through October 14):
+                      <ul>
+                        <li>$6.91m donated</li>
+                        <li>~162 projects funded</li>
+                      </ul>
+                    </li>
+                    <li>grant sizes between $0-$500k</li>
+                    <li>staff: ~2 FTE</li>
+                  </ul>
+                </li>
+                <li>
+                  Get involved:
+                  <ul>
+                    <li>
+                      Apply for funding: make a public project proposal at{' '}
+                      <A href="https://manifund.org/">manifund.org</A>. They also run the{' '}
+                      <A href="https://manifund.substack.com/p/manifunds-falcon-fund">
+                        Falcon Fund
+                      </A>
+                      , launched on April 24, 2026 and led by regrantor Marcus Abramovitch, which{' '}
+                      <A href="https://manifund.substack.com/p/fast-grants-for-ai-x-animals">
+                        renewed its call for proposals
+                      </A>{' '}
+                      on September 29, 2026 — $500k, grants primarily $25k-$150k, rolling with no
+                      deadline, decisions on a one-week timescale, and $140k given away across 5
+                      grants as of that post — but it funds the intersection of animal welfare and
+                      transformative AI rather than AI safety as such, so it is not counted as an
+                      open RFP in the table above.
+                    </li>
+                    <li>
+                      Donate: you can donate to projects yourself, or donate to regrantors{' '}
+                      <A href="https://manifund.org/about/regranting">here</A>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </Funder>
+
             <Funder title="Transformative AI Fund (TAIF), formerly the Long-Term Future Fund (LTFF)">
               <ul>
                 <li>
@@ -1840,64 +1964,13 @@ export default function AisFunderBulletinPage() {
         <CollapsibleSection title="Not included">
           <ul className="space-y-3 text-sm text-gray-600 [&_a]:text-orange-600">
             <li>
-              <A href="https://www.gtr-foundation.org/gtr-ai-safety-fund">GTR AI Safety Fund</A>:
-              German tech investor Jan Beckers{' '}
-              <A href="https://www.gtr-foundation.org/press/german-tech-investor-jan-beckers-commits-eur-50-million-to-reducing-the-risks-of-advanced-ai">
-                committed &euro;50m over three to seven years
-              </A>{' '}
-              on September 14, 2026, granted through the Berlin-based Global Technology Risk
-              Foundation gGmbH. It funds people rather than set projects — individuals and
-              early-stage organizations at any career stage, with no geographic focus and no need
-              for a specific project yet — across loss of control, cybersecurity, CBRN, power
-              concentration, and international agreements, and offers strategic, operational and
-              network support alongside money. Applications are open and rolling, with initial
-              feedback targeted within 7 days. Grantees since 2023 include Apollo Research, the KIRA
-              Center, The AI Whistleblower Initiative, and Safe AI Germany. Beckers is also the
-              anchor donor quoted on Astralis&apos;s homepage. Not in the main table only because
-              they publish no annual grant totals or counts; on size and openness this is a stronger
-              candidate for promotion than most of this section.
-            </li>
-            <li>
               <A href="https://nvidianews.nvidia.com/news/nvidia-commits-250-million-to-advance-uk-agentic-safety-and-security-research-over-the-next-five-years">
                 NVIDIA
               </A>
               : On October 13, 2026 they committed compute &ldquo;valued at $250 million&rdquo; over
               five years to UK agentic AI safety and security research, delivered through UK-based
               NVIDIA Cloud Partners, with a portion going to the Oxford-led BOLD, the UCL-led
-              SOFAIR, and Imperial College London and the rest to the wider UK community. It is
-              in-kind compute rather than grantmaking, there is no published application route, and
-              the announcement says provider selection and commercial terms are still to be agreed,
-              so it is not in the main table.
-            </li>
-            <li>
-              <A href="https://astralisfoundation.org/">Astralis Foundation</A>: They now have a
-              fair bit of public info — named focus areas, named grantees, and{' '}
-              <A href="https://astralisfoundation.org/our-people">a team page</A> listing 12 staff
-              plus 6 board members across their UK and Swedish entities — but they&apos;re still not
-              taking unsolicited funding requests, and they publish no giving totals on their own
-              site. Their homepage now says they &ldquo;pool money from well over a dozen donors
-              across several countries,&rdquo; and their main vehicle is a pooled fund called Shared
-              Horizons. The strongest case in this section for promotion to the main list next
-              refresh. Based on{' '}
-              <A href="https://web.archive.org/web/20260121035945/https://effectivealtruism.nz/job-board/ai-governance-fund-lead-astralis-foundation">
-                this job posting
-              </A>{' '}
-              from late 2025 (now removed from the live job board), they have a fund focused on
-              international AI governance, the Shared Horizons fund, aiming to deploy $15m in 2026;
-              the same posting says Astralis has raised over $20m for AI safety from 15 donors and
-              deployed it to 14 organizations. A later Astralis posting dated August 2026 gives much
-              bigger numbers: &ldquo;In our first 18 months, we raised and deployed &gt;$30M to
-              &gt;15 grantees&rdquo;; &ldquo;In 2026 alone, we have already mobilized &gt;$60M, and
-              we plan to mobilize a total of ~$100M by the end of the year&rdquo;; &ldquo;We are
-              supported by over 20 donors&rdquo;; and &ldquo;Our goal for 2027 is to make $100M in
-              grants.&rdquo; That posting is only archived on a third-party job board, and nothing
-              of the kind appears on astralisfoundation.org, which is the reason they are still here
-              rather than in the main table. Their homepage says they are also &ldquo;currently
-              scoping AI company oversight&rdquo; alongside their Asia and Europe programs. On
-              September 23, 2026 they launched the{' '}
-              <A href="https://middlepowers.ai/">Middle Powers and Transformative AI RFP</A>, run by
-              Astralis in collaboration with Macroscopic, allocating around $10m in grants of $100k
-              to $2m with a deadline of October 23, 2026 (details under Macroscopic above).
+              SOFAIR, and Imperial College London and the rest to the wider UK community.
             </li>
             <li>
               <A href="https://www.mercor.com/careers/1d59ce50-4207-4d95-b7fd-5a01e90b0897/">
@@ -1917,10 +1990,7 @@ export default function AisFunderBulletinPage() {
               gets early access plus &ldquo;the exclusive right to build and host a private held-out
               test set&rdquo;; and grantees agree not to work with specified Mercor competitors on
               substantially similar benchmarks during the award and for 12 months afterward.
-              Grantees are expected to publish under an open licence permitting commercial use. Not
-              in the main table because it is a single $5m commitment rather than an annual
-              programme, and no giving figures have been published yet — but it is open now and a
-              candidate for promotion.
+              Grantees are expected to publish under an open licence permitting commercial use.
             </li>
             <li>
               <A href="https://www.halcyonfutures.org/">Halcyon Futures</A>: An incubator-grantmaker
@@ -1931,9 +2001,8 @@ export default function AisFunderBulletinPage() {
               &ldquo;apply on a rolling basis&rdquo; language and the request for founders are no
               longer on the site; the only route given is email. They now publish three cumulative
               stats — 30 new orgs and companies launched, $500m in follow-on funding raised, and 200
-              career transitions supported — but still no annual totals or grant counts, which is
-              why they are not in the main table. They also appear as a cofunder of the UK AI
-              Security Institute&apos;s Alignment Project.
+              career transitions supported. They also appear as a cofunder of the UK AI Security
+              Institute&apos;s Alignment Project.
             </li>
             <li>
               <A href="https://www.navigation.org/">Navigation Fund</A>: Jed McCaleb&apos;s
@@ -1953,12 +2022,10 @@ export default function AisFunderBulletinPage() {
               for opening applications and currently fund only opportunities they source themselves.
             </li>
             <li>
-              <A href="https://futureoflife.org/">FLI</A>: They were previously more active in open
-              application programs and seem to be less focused on those these days, though they are
-              still a sizeable grantmaker — their 2025 grants page, published in July 2026, lists
-              eight grants totalling $7.08m, led by $2.3m to the Center for AI Risk Management &amp;
-              Alignment and $1.95m to IASEAI, with $1m to HITRECORD and around $0.5m each to several
-              others. Their{' '}
+              <A href="https://futureoflife.org/">FLI</A>: Their 2025 grants page, published in July
+              2026, lists eight grants totalling $7.08m, led by $2.3m to the Center for AI Risk
+              Management &amp; Alignment and $1.95m to IASEAI, with $1m to HITRECORD and around
+              $0.5m each to several others. Their{' '}
               <A href="https://futureoflife.org/grant-program/phd-fellowships/">PhD fellowship</A>{' '}
               is now paused — they aren&apos;t accepting applications in fall 2026 while they
               reassess the program. Their one open program is the{' '}
@@ -1989,15 +2056,14 @@ export default function AisFunderBulletinPage() {
                 Foresight AI for Science &amp; Safety Nodes RFP
               </A>
               : Their standalone AI for Safety and Science program page now redirects here, so the
-              Nodes RFP is the whole of their current AI offering, and they publish no annual
-              budget. The RFP (deadline October 31, 2026, 23:59 PDT) funds work on local compute,
-              coordination and accountability, and AI-first science, &ldquo;typically $30,000 –
-              $100,000 for this RFP but larger amounts are possible for the right project&rdquo;,
-              with overhead capped at 10% and review about three months after the deadline. All
-              funded work must be open-sourced. They strongly prefer applicants who will be
-              in-person members of their SF or Berlin hubs; they have also added a community xNode
-              in Cape Town. Applicants can opt in to having their application shared with Lightcone
-              Commons for additional funding consideration.
+              Nodes RFP is the whole of their current AI offering. The RFP (deadline October 31,
+              2026, 23:59 PDT) funds work on local compute, coordination and accountability, and
+              AI-first science, &ldquo;typically $30,000 – $100,000 for this RFP but larger amounts
+              are possible for the right project&rdquo;, with overhead capped at 10% and review
+              about three months after the deadline. All funded work must be open-sourced. They
+              strongly prefer applicants who will be in-person members of their SF or Berlin hubs;
+              they have also added a community xNode in Cape Town. Applicants can opt in to having
+              their application shared with Lightcone Commons for additional funding consideration.
             </li>
             <li>
               <A href="https://astera.org/ai-safety/">Astera</A>: Their webpage mentions that

@@ -17,8 +17,10 @@ file, open a PR, and merging deploys it.
   Number them in order of first appearance in the table; renumber after a re-sort.
 - `<Funder title="...">` sections — one collapsible profile per funder, each
   with the same nested-list structure: Website / Background / Thesis /
-  By the numbers / Recent updates / Get involved.
-- "Not included" section — funders deliberately excluded, with rationale.
+  By the numbers / Recent updates / Get involved. Keep profiles in the same
+  order as the table rows.
+- "Not included" section — funders deliberately excluded. Describe them; don't
+  explain why they are excluded.
 - "Other resources" — external links.
 
 ## Gotchas
