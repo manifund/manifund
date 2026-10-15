@@ -236,7 +236,7 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Estimate: as of June 2026 they said they were working to finalize more than $130M in grants through their AI resilience program, "to be shared publicly soon and with more to come," and planning to invest more than $1B across several programs over the next year. The Foundation has still not published an AI resilience grantee list. Inside Philanthropy reported on September 29, 2026 that the Foundation had announced seven commitments totalling $815M across all programs and had "disbursed nearly $200 million" in grants, with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved grant agreements rather than cash disbursed. Two further commitments have been announced since: $50M to 163 nonprofits through the second People-First AI Fund on October 1, 2026, and $50M for Cities Deliver with The Rockefeller Foundation on October 14, 2026. Neither is AI safety work.',
+    text: 'Estimate: as of June 2026 they said they were working to finalize more than $130M in grants through their AI resilience program, "to be shared publicly soon and with more to come," and planning to invest more than $1B across several programs over the next year. The Foundation has still not published an AI resilience grantee list. Inside Philanthropy reported on September 29, 2026 that the Foundation had announced seven commitments totalling $815M across all programs and had "disbursed nearly $200 million" in grants, with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved grant agreements rather than cash disbursed.',
     node: (
       <>
         Estimate: as of June 2026 they{' '}
@@ -251,16 +251,7 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         reported on September 29, 2026 that the Foundation had announced seven commitments totalling
         $815M across all programs and had &ldquo;disbursed nearly $200 million&rdquo; in grants,
         with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved
-        grant agreements rather than cash disbursed. Two further commitments have been announced
-        since: $50M to 163 nonprofits through the{' '}
-        <A href="https://openaifoundation.org/news/2026-people-first-ai-fund-grantees">
-          second People-First AI Fund
-        </A>{' '}
-        on October 1, 2026, and $50M for{' '}
-        <A href="https://openaifoundation.org/news/helping-cities-deliver-more-for-their-residents">
-          Cities Deliver
-        </A>{' '}
-        with The Rockefeller Foundation on October 14, 2026. Neither is AI safety work.
+        grant agreements rather than cash disbursed.
       </>
     ),
   },
@@ -1020,45 +1011,6 @@ export default function AisFunderBulletinPage() {
                       Board, and to the Foundation Board&apos;s Safety and Security Committee
                       chaired by Zico Kolter. He recuses himself from all OpenAI-related matters and
                       model evaluations.
-                    </li>
-                    <li>
-                      On October 14, 2026 they launched{' '}
-                      <A href="https://openaifoundation.org/news/helping-cities-deliver-more-for-their-residents">
-                        Cities Deliver
-                      </A>
-                      , a $50m initiative with The Rockefeller Foundation funding AI projects in
-                      city public services, with grants of $500k-$2m over 24 months and proposals
-                      due November 29, 2026. It is civil society work rather than AI safety, and
-                      applications go through The Rockefeller Foundation rather than the Foundation
-                      itself.
-                    </li>
-                    <li>
-                      On October 1, 2026 they named the{' '}
-                      <A href="https://openaifoundation.org/news/2026-people-first-ai-fund-grantees">
-                        second People-First AI Fund grantees
-                      </A>
-                      , &ldquo;deploying $50 million to 163 nonprofits&rdquo; across 35 states and
-                      DC for community support services, community arts, and community journalism.
-                      No AI safety or AI resilience grantees.
-                    </li>
-                    <li>
-                      Their other 2026 announcements have been in other programs — $250m for
-                      economic futures in May, $50m for the first 2026 People-First AI Fund round in
-                      June, $100m to the Common Health Coalition on August 13 (the first partnership
-                      under a new{' '}
-                      <A href="https://openaifoundation.org/news/civil-society-and-philanthropy">
-                        civil society and philanthropy
-                      </A>{' '}
-                      program), $60m over three years for{' '}
-                      <A href="https://openaifoundation.org/news/ai-forecasting-for-smallholder-farmers">
-                        AI weather forecasting for smallholder farmers
-                      </A>{' '}
-                      on September 10, more than $125m in initial grants for{' '}
-                      <A href="https://openaifoundation.org/news/public-data-for-health">
-                        Public Data for Health
-                      </A>{' '}
-                      on September 15, and a voice and low-resource-language commitment with the
-                      Gates Foundation on September 21 with no figure attached.
                     </li>
                     <li>
                       In{' '}
