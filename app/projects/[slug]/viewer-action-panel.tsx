@@ -14,6 +14,8 @@ export function ViewerActionPanel(props: {
 }) {
   const { projectId, projectSlug, currentlyFollowing } = props
   const [displayAsFollowing, setDisplayAsFollowing] = useState(currentlyFollowing)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(false)
   const router = useRouter()
   return (
     <Row className="flex items-center justify-end gap-2">
@@ -30,14 +32,26 @@ export function ViewerActionPanel(props: {
       </Button>
       <FollowToggle
         following={displayAsFollowing}
-        disabled={displayAsFollowing !== currentlyFollowing}
+        busy={busy}
+        error={error}
         onClick={async () => {
-          setDisplayAsFollowing(!currentlyFollowing)
-          await fetch('/api/toggle-follow', {
-            method: 'POST',
-            body: JSON.stringify({ projectId: projectId }),
-          })
-          router.refresh()
+          const before = displayAsFollowing
+          setDisplayAsFollowing(!before)
+          setBusy(true)
+          setError(false)
+          try {
+            const res = await fetch('/api/toggle-follow', {
+              method: 'POST',
+              body: JSON.stringify({ projectId: projectId }),
+            })
+            if (!res.ok) throw new Error(String(res.status))
+            router.refresh()
+          } catch {
+            setDisplayAsFollowing(before)
+            setError(true)
+          } finally {
+            setBusy(false)
+          }
         }}
       />
     </Row>

@@ -12,7 +12,7 @@ import { useState } from 'react'
 import { ProjectsDisplay } from '@/components/projects-display'
 import { NetworkFeed } from '@/components/follows/network-feed'
 import { NetworkContext, type NetworkActivity } from '@/components/follows/network-tag'
-import type { NotifyState } from '@/components/follows/save-search'
+import type { MySavedSearches } from '@/components/follows/save-search'
 import { FullProject } from '@/db/project'
 import { SimpleCause } from '@/db/cause'
 import { Tag } from '@/components/tags'
@@ -36,7 +36,7 @@ export function FeedTabs(props: {
   causesList: SimpleCause[]
   userId?: string
   network?: NetworkActivity
-  savedSearches?: { account: NotifyState | null; initialQuery: string }
+  savedSearches?: { mine: MySavedSearches | null; initialQuery: string }
 }) {
   const {
     recentComments,
@@ -176,7 +176,7 @@ export function FeedTabs(props: {
             id: 'donations',
             display: DonationsTab,
           },
-          // F12: what people you follow did, for signed-in people (loaded when the tab opens)
+          // F10: what people you follow did, for signed-in people (loaded when the tab opens)
           ...(userId
             ? [{ name: 'Network', id: 'network', display: <NetworkFeed key="network" /> }]
             : []),

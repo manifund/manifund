@@ -14,8 +14,7 @@ export type MatchableProject = {
   creatorUsername?: string | null
 }
 
-// URL query -> search. Other parameters (the tab, or the filters of saved searches from before 2026-10-13) are
-// ignored, so such a search matches more widely rather than not at all.
+// URL query -> search. Other parameters (e.g. the tab) are ignored.
 export function parseSearch(query: string | URLSearchParams): SavedSearch {
   const params = typeof query === 'string' ? new URLSearchParams(query) : query
   const causes = params
@@ -25,7 +24,7 @@ export function parseSearch(query: string | URLSearchParams): SavedSearch {
   return { q: (params.get('q') ?? '').trim(), causes: Array.from(new Set(causes)).sort() }
 }
 
-// Search -> URL query, the same for the same search whatever order the categories were picked in, so the bell can
+// Search -> URL query, the same for the same search whatever order the categories were picked in, so the save-search line can
 // tell a search is already saved. Empty when nothing is searched.
 export function searchQuery(s: SavedSearch): string {
   const params = new URLSearchParams()

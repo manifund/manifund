@@ -124,7 +124,12 @@ export function ProfileFollowing(props: {
     <section id="following">
       {nothing ? (
         <p className="rounded-md bg-white p-4 text-sm text-gray-500 shadow">
-          You don&apos;t follow anyone yet.
+          You don&apos;t follow anyone or any search yet. Follow people with the Follow button on
+          their profile, or save a search from{' '}
+          <Link href="/" className="text-orange-600 hover:underline">
+            home
+          </Link>
+          .
         </p>
       ) : (
         <div className="flex flex-col gap-5">

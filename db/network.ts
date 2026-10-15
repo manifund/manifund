@@ -6,7 +6,7 @@ import { TARGET_EMBEDS, commentHref, isListed, targetTitle } from '@/lib/comment
 import { toPlaintext } from '@/utils/tiptap-parsing'
 import { LISTED_STAGES, myFollowedIds } from './profile-follows'
 
-// What people the viewer follows did (docs/product/follows, F8, F10-F12): home's band above cards and the Network
+// What people the viewer follows did (docs/product/follows, F8, F10): home's band above cards and the Network
 // tab, read with the viewer's own client. The shared types and wording are in lib/follows/network.ts, which browser
 // code imports too, so the queries live here.
 
@@ -29,7 +29,7 @@ export type NetworkFeedItem =
       label: string | null
     })
 
-// F12: what people you follow did, newest first, with the details the Network tab shows: the newest `limit` of each
+// F10: what people you follow did, newest first, with the details the Network tab shows: the newest `limit` of each
 // kind (their projects, donations, offers, comments anywhere). Comments on hidden projects or org pages, drafts and
 // hidden projects stay out. (Home's line uses network_activity() instead: one row per project, person and kind.)
 async function networkEvents(
@@ -128,7 +128,7 @@ async function networkEvents(
 }
 
 // For a page: by project, what people you follow did there, as a plain object a client component can take;
-// undefined when they follow nobody, so home stays exactly as for everyone else (F10).
+// undefined when they follow nobody, so home stays exactly as for everyone else (F8).
 export async function networkFor(
   supabase: SupabaseClient,
   me: string
@@ -143,7 +143,7 @@ export async function networkFor(
   return out
 }
 
-// F12: the Network tab, newest first.
+// F10: the Network tab, newest first.
 export async function networkFeed(supabase: SupabaseClient, me: string, limit = 50) {
   const followed = await myFollowedIds(supabase, me)
   return (await networkEvents(supabase, followed, limit)).slice(0, limit)

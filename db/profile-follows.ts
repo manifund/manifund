@@ -26,8 +26,7 @@ export async function listMySavedSearches(supabase: SupabaseClient, me: string) 
   return (data ?? []) as { id: string; name: string; query: string }[]
 }
 
-// The people the viewer follows. Everything they do is in the viewer's network
-// (F8, F10-F12).
+// The people the viewer follows. Everything they do is in the viewer's network (F8, F10).
 export async function myFollowedIds(supabase: SupabaseClient, me: string) {
   const { data } = await (supabase as any)
     .from('profile_follows')
@@ -36,10 +35,8 @@ export async function myFollowedIds(supabase: SupabaseClient, me: string) {
   return ((data ?? []) as { followed_id: string }[]).map((r) => r.followed_id)
 }
 
-// Projects nobody else can open stay out of everything the network shows.
-
-// What a person follows, for the Following tab of their profile (F9). It's all public (F2; Vals, 2026-10-14: "it's
-// interesting to be able to see a regranter's search"), so it's read with the visitor's own client.
+// What a person follows, for the Following tab of their profile (F9). It's all public (F2), so it's read with the
+// visitor's own client.
 
 export type FollowedPerson = {
   id: string

@@ -4,9 +4,9 @@ export type NetworkKind = 'created' | 'donated' | 'offered' | 'commented'
 export type NetworkItem = { name: string; kind: NetworkKind }
 export type NetworkActivity = Record<string, NetworkItem[]>
 
-// F8: the context line above a home card and a project's title (TENTATIVE): up to two people, each named once with
-// what they did ("Maya donated and commented, Sam offered"), then how many more. No "From your network" label (Vals,
-// 2026-10-12): the two-people icon says it, whatever they did (Vals, 2026-10-14). Creating isn't mentioned: the card already shows the creator.
+// F8: the context line above a home card and a project's title: up to two people, each named once with what they did
+// ("Maya donated and commented, Sam offered"), then how many more. No "From your network" label: the two-people icon
+// says it. Posting the project isn't mentioned: the card already shows its creator.
 export type NetworkPerson = { name: string; kinds: NetworkKind[] }
 export function networkPeople(items: NetworkItem[] | undefined) {
   const byPerson = new Map<string, NetworkKind[]>()
@@ -21,12 +21,16 @@ export function networkPeople(items: NetworkItem[] | undefined) {
   return { shown: people.slice(0, 2), more: Math.max(0, people.length - 2) }
 }
 
+// The line as plain text (its hover text, and what the unit tests check); the band renders the same parts with the
+// names emphasised.
 export function networkText(items: NetworkItem[] | undefined) {
   const n = networkPeople(items)
   if (!n) return null
   const first = n.shown.map((p) => `${p.name} ${andList(p.kinds)}`)
-  return `${first.join(', ')}${n.more ? ` and ${n.more} more` : ''}`
+  return `${first.join(', ')}${moreText(n.more)}`
 }
+
+export const moreText = (more: number) => (more ? ` and ${more} more` : '')
 
 export const andList = (words: string[]) =>
   words.length < 2

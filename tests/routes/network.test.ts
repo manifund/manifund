@@ -1,4 +1,4 @@
-// The Network tab through /api/network (docs/product/follows, F12): what people you follow did, newest first.
+// The Network tab through /api/network (docs/product/follows, F10): what people you follow did, newest first.
 // Throwaway accounts (the follower follows the maker); the maker's projects carry the run marker, so the run's
 // cleanup deletes them.
 import { beforeAll, describe, expect } from 'bun:test'
@@ -56,7 +56,7 @@ async function create(who: Client, title: string) {
   return r.body as { id: string; slug: string }
 }
 
-describe('F12 the Network tab: what people you follow did, newest first', () => {
+describe('F10 the Network tab: what people you follow did, newest first', () => {
   smoke('their new project, comment and donation, with links', async () => {
     const r = await follower.get('/api/network')
     expect(r.status).toBe(200)

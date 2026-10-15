@@ -10,7 +10,7 @@ import { ProfileFollowing, followingCount } from './profile-following'
 import type { Following } from '@/db/profile-follows'
 
 // The tabs of a profile: what people say about this person (C8), what they wrote elsewhere (C30), and what
-// they follow (F9, a tab since Vals, 2026-10-15). Their replies on their own profile stay in the first tab, in
+// they follow (F9). Their replies on their own profile stay in the first tab, in
 // their threads, and aren't repeated in the second. Others see the Following tab only when it isn't empty.
 export function ProfileCommentTabs(props: {
   profile: Profile

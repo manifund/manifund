@@ -6,7 +6,7 @@ import { RelativeTime } from '@/components/relative-time'
 import type { NetworkFeedItem } from '@/db/network'
 import { formatMoney } from '@/utils/formatting'
 
-// F12: the home page's Network tab, what people you follow did lately. Loaded when the tab opens (home renders
+// F10: the home page's Network tab, what people you follow did lately. Loaded when the tab opens (home renders
 // every tab up front, so this keeps the other tabs' page as it was).
 export function NetworkFeed() {
   const [items, setItems] = useState<NetworkFeedItem[] | null>(null)
@@ -33,8 +33,8 @@ export function NetworkFeed() {
       <div className="mx-auto max-w-md rounded-lg bg-gray-50 p-6 text-center text-sm text-gray-600">
         <p className="font-medium text-gray-900">Nothing from your network yet</p>
         <p className="mt-2">
-          Follow people from their profile (the Follow button next to their name) to see their new
-          projects, comments and donations here.
+          Follow people with the Follow button on their profile to see their new projects, comments,
+          donations and offers here.
         </p>
         <p className="mt-2">
           <Link href="/people" className="text-orange-600 hover:underline">
@@ -91,11 +91,18 @@ function Action(props: { item: NetworkFeedItem }) {
       {p.title}
     </Link>
   )
-  if (item.kind === 'created') return <>created {projectLink(item.project)}</>
-  if (item.kind === 'donated' || item.kind === 'offered')
+  // The same words as notifications: "posted a new project:", "donated $X to", "offered $X on".
+  if (item.kind === 'created') return <>posted a new project: {projectLink(item.project)}</>
+  if (item.kind === 'donated')
     return (
       <>
-        {item.kind} {formatMoney(item.amount)} to {projectLink(item.project)}
+        donated {formatMoney(item.amount)} to {projectLink(item.project)}
+      </>
+    )
+  if (item.kind === 'offered')
+    return (
+      <>
+        offered {formatMoney(item.amount)} on {projectLink(item.project)}
       </>
     )
   return (

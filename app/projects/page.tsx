@@ -13,7 +13,7 @@ import { LandingSection } from './landing-section'
 import { listMySavedSearches } from '@/db/profile-follows'
 import { networkFor } from '@/db/network'
 import type { NetworkActivity } from '@/components/follows/network-tag'
-import type { NotifyState } from '@/components/follows/save-search'
+import type { MySavedSearches } from '@/components/follows/save-search'
 
 // Page is dynamic due to cookies(), but listProjects is cached for 30s
 
@@ -22,13 +22,13 @@ export default async function Projects(props: {
 }) {
   const supabase = await createServerSupabaseClient()
   const user = await getUser(supabase)
-  // what people the viewer follows did lately, for the network line on cards (F8), and their saved searches for
-  // the bell (F5)
-  const [network, notify] = user
+  // what people the viewer follows did, for the band above cards (F8), and their saved searches for the
+  // save-search line (F5)
+  const [network, mySearches] = user
     ? await Promise.all([
         networkFor(supabase, user.id),
         listMySavedSearches(supabase, user.id).then(
-          (searches): NotifyState => ({
+          (searches): MySavedSearches => ({
             searches: searches.map((s) => ({ id: s.id, query: s.query })),
           })
         ),
@@ -52,7 +52,7 @@ export default async function Projects(props: {
               searchParams={await props.searchParams}
               userId={user?.id}
               network={network}
-              notify={notify}
+              mySearches={mySearches}
               useHotProjects={true}
             />
           </Suspense>
@@ -62,7 +62,7 @@ export default async function Projects(props: {
           searchParams={await props.searchParams}
           userId={user?.id}
           network={network}
-          notify={notify}
+          mySearches={mySearches}
           useHotProjects={false}
         />
       </Suspense>
@@ -75,13 +75,13 @@ async function AsyncFeedTabs({
   searchParams,
   userId,
   network,
-  notify,
+  mySearches,
   useHotProjects,
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
   userId?: string
   network?: NetworkActivity
-  notify: NotifyState | null
+  mySearches: MySavedSearches | null
   useHotProjects: boolean
 }) {
   const PAGE_SIZE = 20
@@ -123,7 +123,7 @@ async function AsyncFeedTabs({
       causesList={causesList}
       userId={userId}
       network={network}
-      savedSearches={{ account: notify, initialQuery: toQueryString(searchParams) }}
+      savedSearches={{ mine: mySearches, initialQuery: toQueryString(searchParams) }}
     />
   )
 }

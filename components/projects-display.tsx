@@ -17,7 +17,7 @@ import { sortBy } from 'es-toolkit'
 import { karmaHotScore } from '@/utils/sort'
 import { Checkbox } from './input'
 import { isSlopProject } from '@/utils/slop'
-import { SaveSearch, type NotifyState } from './follows/save-search'
+import { SaveSearch, type MySavedSearches } from './follows/save-search'
 import { parseSearch, searchName, searchQuery } from '@/lib/follows/match'
 
 type SortOption =
@@ -41,7 +41,7 @@ export function ProjectsDisplay(props: {
   hideRound?: boolean
   noFilter?: boolean
   // home: the search text and categories live in the URL, and the line under the search box saves them (F5)
-  savedSearches?: { account: NotifyState | null; initialQuery: string }
+  savedSearches?: { mine: MySavedSearches | null; initialQuery: string }
 }) {
   const { projects, defaultSort, causesList, noFilter, savedSearches } = props
   const prices = getPrices(projects)
@@ -54,7 +54,7 @@ export function ProjectsDisplay(props: {
   const query = searchQuery({ q: search, causes: includedCauses.map((c) => c.slug) })
   useEffect(() => {
     if (!savedSearches) return
-    // keep the search in the URL, so it can be shared and the bell's sign-in comes back to it
+    // keep the search in the URL, so it can be shared and signing in from the save-search line comes back to it
     const url = new URL(window.location.href)
     url.searchParams.delete('q')
     url.searchParams.delete('cause')
@@ -82,7 +82,7 @@ export function ProjectsDisplay(props: {
     )
   })
   const selectedProjects = matchingProjects.slice(0, numToShow)
-  // Just in time (Vals, 2026-10-14): the line under the search box appears once there is a search, a moment after
+  // Just in time: the line under the search box appears once there is a search, a moment after
   // typing stops so it doesn't flicker mid-word; picked categories show it at once.
   const [settledSearch, setSettledSearch] = useState(search.trim())
   useEffect(() => {
@@ -173,7 +173,7 @@ export function ProjectsDisplay(props: {
           </Row>
           {savedSearches && (
             <SaveSearch
-              account={savedSearches.account}
+              mine={savedSearches.mine}
               query={query}
               summary={searchName(
                 query,
