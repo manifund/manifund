@@ -4,17 +4,13 @@
 import { createAdminClient } from '@/db/supabase-admin'
 import { log } from '@/lib/log'
 import { emailModeFor, isEssential, type NotificationReason } from './kinds'
-import { emailLinks, loadEmailChoice, unsubscribeHeaders, type EmailLinks } from './settings'
+import { emailLinks, loadEmailChoices, unsubscribeHeaders, type EmailLinks } from './settings'
 import { getUserEmail, sendEmail, sendTemplateEmail } from '@/utils/email'
-import { emailFooter } from './footer'
+import { layoutEmail, layoutText, type LayoutInput } from './email-layout'
 
 export type { EmailLinks }
 
-// Records one in-app notification for an event that isn't a comment (N1), and sends its email right away when
-// the reason is essential or the person's choice is "immediate" (N3, N4); "daily" leaves it for the daily summary
-// (N5), "never" sends nothing. Never throws: the event that caused it (a donation,
-// a withdrawal...) has already happened, and a failed notification is only logged (N8).
-export async function notify(input: {
+type NotifyInput = {
   to: string | null | undefined // profile id
   reason: NotificationReason
   actorId?: string | null
@@ -26,71 +22,112 @@ export async function notify(input: {
   amount?: number | null
   // Sends today's email for this event; gets the footer links to pass on (stop, settings).
   email?: (links: EmailLinks) => Promise<unknown>
-}) {
-  const { to, reason } = input
-  if (!to) return
+}
+
+// Records one in-app notification for an event that isn't a comment (N1), and sends its email right away when
+// the reason is essential or the person's choice is "immediate" (N3, N4); "daily" leaves it for the daily summary
+// (N5), "never" sends nothing. Never throws: the event that caused it (a donation,
+// a withdrawal...) has already happened, and a failed notification is only logged (N8).
+export async function notify(input: NotifyInput) {
+  await notifyMany([input])
+}
+
+// The same for many people at once (e.g. everyone who follows a donor, F4): one query for their email choices, one
+// insert for all the rows, and the right-away emails sent in parallel. One notification per person: a repeated
+// recipient keeps the first.
+export async function notifyMany(inputs: NotifyInput[]) {
+  const seen = new Set<string>()
+  const list = inputs.filter((i): i is NotifyInput & { to: string } => {
+    if (!i.to || seen.has(i.to)) return false
+    seen.add(i.to)
+    return true
+  })
+  if (!list.length) return
   try {
-    const essential = isEssential(reason)
-    const mode = emailModeFor(reason, essential ? null : await loadEmailChoice(to))
-    const status = !input.email
-      ? 'skipped'
-      : mode === 'never'
+    const optional = list.filter((i) => !isEssential(i.reason)).map((i) => i.to)
+    const choices = await loadEmailChoices(optional)
+    const planned = list.map((input) => {
+      const mode = emailModeFor(input.reason, choices.get(input.to))
+      const status = !input.email
         ? 'skipped'
-        : mode === 'immediate'
-          ? 'sending'
-          : 'digest'
+        : mode === 'never'
+          ? 'skipped'
+          : mode === 'immediate'
+            ? 'sending'
+            : 'digest'
+      return { input, status }
+    })
     const admin = createAdminClient() as any
     const { data, error } = await admin
       .from('notifications')
-      .insert({
-        recipient_id: to,
-        reason,
-        actor_id: input.actorId ?? null,
-        project_id: input.projectId ?? null,
-        bid_id: input.bidId ?? null,
-        txn_id: input.txnId ?? null,
-        withdrawal_request_id: input.withdrawalRequestId ?? null,
-        saved_search_id: input.savedSearchId ?? null,
-        amount: input.amount ?? null,
-        email_status: status,
-        last_error: !input.email
-          ? 'no email for this event'
-          : mode === 'never'
-            ? 'email set to never'
-            : null,
+      .insert(
+        planned.map(({ input, status }) => ({
+          recipient_id: input.to,
+          reason: input.reason,
+          actor_id: input.actorId ?? null,
+          project_id: input.projectId ?? null,
+          bid_id: input.bidId ?? null,
+          txn_id: input.txnId ?? null,
+          withdrawal_request_id: input.withdrawalRequestId ?? null,
+          saved_search_id: input.savedSearchId ?? null,
+          amount: input.amount ?? null,
+          email_status: status,
+          last_error: !input.email
+            ? 'no email for this event'
+            : status === 'skipped'
+              ? 'email set to never'
+              : null,
+        }))
+      )
+      .select('id, recipient_id')
+    if (error)
+      log.error('notifications.notify_record_failed', {
+        reason: list[0].reason,
+        count: list.length,
+        error,
       })
-      .select('id')
-      .single()
-    if (error) log.error('notifications.notify_record_failed', { reason, recipient_id: to, error })
-    if (status !== 'sending' || !input.email) return
-    try {
-      const result = await input.email(await emailLinks(to, essential))
-      // The email helpers answer { ok: false, message } when Postmark refuses (utils/email.ts).
-      if ((result as { ok?: boolean } | undefined)?.ok === false)
-        throw new Error((result as { message?: string }).message ?? 'email refused')
-      if (data?.id)
-        await admin
-          .from('notifications')
-          .update({ email_status: 'sent', emailed_at: new Date().toISOString(), email_attempts: 1 })
-          .eq('id', data.id)
-    } catch (e) {
-      log.error('notifications.notify_email_failed', {
-        reason,
-        notification_id: data?.id,
-        error: e,
-      })
-      if (data?.id)
-        await admin
-          .from('notifications')
-          .update({
-            email_status: 'failed',
-            email_attempts: 1,
-            last_error: String(e).slice(0, 300),
+    const idOf = new Map(
+      ((data ?? []) as { id: string; recipient_id: string }[]).map((r) => [r.recipient_id, r.id])
+    )
+    const sending = planned.filter((p) => p.status === 'sending' && p.input.email)
+    const results = await Promise.all(
+      sending.map(async ({ input }) => {
+        const id = idOf.get(input.to)
+        try {
+          const result = await input.email!(await emailLinks(input.to, isEssential(input.reason)))
+          // The email helpers answer { ok: false, message } when Postmark refuses (utils/email.ts).
+          if ((result as { ok?: boolean } | undefined)?.ok === false)
+            throw new Error((result as { message?: string }).message ?? 'email refused')
+          return { id, ok: true as const }
+        } catch (e) {
+          log.error('notifications.notify_email_failed', {
+            reason: input.reason,
+            notification_id: id,
+            error: e,
           })
-          .eq('id', data.id)
-    }
+          return { id, ok: false as const, error: String(e).slice(0, 300) }
+        }
+      })
+    )
+    const sent = results.filter((r) => r.ok && r.id).map((r) => r.id)
+    if (sent.length)
+      await admin
+        .from('notifications')
+        .update({ email_status: 'sent', emailed_at: new Date().toISOString(), email_attempts: 1 })
+        .in('id', sent)
+    for (const r of results)
+      if (!r.ok && r.id)
+        await admin
+          .from('notifications')
+          .update({ email_status: 'failed', email_attempts: 1, last_error: r.error })
+          .eq('id', r.id)
   } catch (e) {
-    log.error('notifications.notify_failed', { reason, recipient_id: to, error: e })
+    log.error('notifications.notify_failed', {
+      reason: list[0].reason,
+      recipient_id: list.length === 1 ? list[0].to : undefined,
+      count: list.length,
+      error: e,
+    })
   }
 }
 
@@ -104,18 +141,23 @@ export async function notifyAddressOnly(send: () => Promise<unknown>) {
   }
 }
 
-// An email we write ourselves (no Postmark template): the body, then the footer (unsubscribe and "change how often",
-// N6), with the one-click unsubscribe headers for optional kinds.
-export function ownEmail(toId: string, subject: string, body: { html: string; text: string }) {
+// An email we write ourselves, in the look of the Postmark templates (email-layout.ts): a bold first line, the body,
+// an orange button, and the footer with unsubscribe and "change how often" for optional kinds (N6), plus the
+// one-click unsubscribe headers.
+export function ownEmail(
+  toId: string,
+  subject: string,
+  content: Omit<LayoutInput, 'title' | 'links'> & { text: string[] }
+) {
   return async (links: EmailLinks) => {
     const address = await getUserEmail(createAdminClient() as any, toId)
     if (!address) return
-    const footer = emailFooter(links)
+    const { text, ...look } = content
     return sendEmail(
       address,
       subject,
-      body.html + footer.html,
-      body.text + footer.text,
+      layoutEmail({ ...look, title: subject, links }),
+      layoutText(text, links),
       undefined,
       undefined,
       { user_id: toId },

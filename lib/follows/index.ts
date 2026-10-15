@@ -9,7 +9,8 @@ import { createAdminClient } from '@/db/supabase-admin'
 import { escapeHtml } from '@/utils/email'
 import { getURL } from '@/utils/constants'
 import { log } from '@/lib/log'
-import { notify, ownEmail } from '@/lib/notifications/notify'
+import { notifyMany, ownEmail } from '@/lib/notifications/notify'
+import { formatMoney } from '@/utils/formatting'
 import { parseSearch, searchMatches, searchName, searchQuery, type MatchableProject } from './match'
 
 const admin = () => createAdminClient() as any
@@ -130,18 +131,25 @@ export async function onProjectPublished(projectId: string) {
     if (!p || p.stage === 'draft' || p.stage === 'hidden') return
     const who = p.creatorName || p.creatorUsername || 'Someone you follow'
     const href = `${base()}/projects/${p.slug}`
-    for (const followerId of await followersOf(p.creator)) {
-      await notify({
+    const followers = await followersOf(p.creator)
+    await notifyMany(
+      followers.map((followerId) => ({
         to: followerId,
-        reason: 'followed_person_project',
+        reason: 'followed_person_project' as const,
         actorId: p.creator,
         projectId: p.id,
         email: ownEmail(followerId, `Manifund: ${who} posted a new project`, {
-          html: `<p>${escapeHtml(who)}, who you follow, posted a new project: <a href="${href}">${escapeHtml(p.title)}</a></p>`,
-          text: `${who}, who you follow, posted a new project: ${p.title}\n${href}\n`,
+          heading: `${escapeHtml(who)}, who you follow, posted a new project: "${escapeHtml(p.title)}".`,
+          body: blurbHtml(p.blurb),
+          button: { url: href, text: 'View project' },
+          text: [
+            `${who}, who you follow, posted a new project: "${p.title}".`,
+            ...(p.blurb ? [p.blurb] : []),
+            href,
+          ],
         }),
-      })
-    }
+      }))
+    )
     await matchSavedSearches(projectId)
   } catch (e) {
     log.error('follows.on_published_failed', { project_id: projectId, error: e })
@@ -183,23 +191,30 @@ export async function matchSavedSearches(projectId: string) {
       )
     )
     const href = `${base()}/projects/${p.slug}`
-    let count = 0
-    for (const s of matching) {
-      if (done.has(s.owner_id)) continue
+    const first = matching.filter((s) => {
+      if (done.has(s.owner_id)) return false
       done.add(s.owner_id) // their first matching search announces it
-      await notify({
+      return true
+    })
+    await notifyMany(
+      first.map((s) => ({
         to: s.owner_id,
-        reason: 'saved_search_match',
+        reason: 'saved_search_match' as const,
         projectId: p.id,
         savedSearchId: s.id,
         email: ownEmail(s.owner_id, `Manifund: a new project matches "${s.name}"`, {
-          html: `<p>A new project matches your saved search "${escapeHtml(s.name)}": <a href="${href}">${escapeHtml(p.title)}</a></p>`,
-          text: `A new project matches your saved search "${s.name}": ${p.title}\n${href}\n`,
+          heading: `A new project matches your saved search "${escapeHtml(s.name)}": "${escapeHtml(p.title)}".`,
+          body: blurbHtml(p.blurb),
+          button: { url: href, text: 'View project' },
+          text: [
+            `A new project matches your saved search "${s.name}": "${p.title}".`,
+            ...(p.blurb ? [p.blurb] : []),
+            href,
+          ],
         }),
-      })
-      count++
-    }
-    return count
+      }))
+    )
+    return first.length
   } catch (e) {
     log.error('follows.match_failed', { project_id: projectId, error: e })
     return 0
@@ -230,7 +245,7 @@ async function notifyDonationFollowers(input: Parameters<typeof onDonation>[0]) 
   if (!followers.length) return
   const { data: p } = await admin()
     .from('projects')
-    .select('title, slug, creator')
+    .select('title, slug, creator, blurb')
     .eq('id', input.projectId)
     .single()
   const { data: donor } = await admin()
@@ -241,20 +256,33 @@ async function notifyDonationFollowers(input: Parameters<typeof onDonation>[0]) 
   if (!p || !donor) return
   const who = donor.full_name || donor.username
   const href = `${base()}/projects/${p.slug}`
-  for (const followerId of followers) {
-    if (followerId === p.creator) continue // the creator already hears about money to their project
-    await notify({
-      to: followerId,
-      reason: 'followed_person_donation',
-      actorId: input.donorId,
-      projectId: input.projectId,
-      txnId: input.txnId ?? null,
-      bidId: input.bidId ?? null,
-      amount: input.amount,
-      email: ownEmail(followerId, `Manifund: ${who} gave to "${p.title}"`, {
-        html: `<p>${escapeHtml(who)}, who you follow, gave to <a href="${href}">${escapeHtml(p.title)}</a>.</p>`,
-        text: `${who}, who you follow, gave to ${p.title}\n${href}\n`,
-      }),
-    })
-  }
+  const gave = `gave ${formatMoney(input.amount)} to`
+  await notifyMany(
+    followers
+      .filter((followerId) => followerId !== p.creator) // the creator already hears about money to their project
+      .map((followerId) => ({
+        to: followerId,
+        reason: 'followed_person_donation' as const,
+        actorId: input.donorId,
+        projectId: input.projectId,
+        txnId: input.txnId ?? null,
+        bidId: input.bidId ?? null,
+        amount: input.amount,
+        email: ownEmail(followerId, `Manifund: ${who} gave to "${p.title}"`, {
+          heading: `${escapeHtml(who)}, who you follow, ${gave} "${escapeHtml(p.title)}".`,
+          body: blurbHtml(p.blurb),
+          button: { url: href, text: 'View project' },
+          text: [
+            `${who}, who you follow, ${gave} "${p.title}".`,
+            ...(p.blurb ? [p.blurb] : []),
+            href,
+          ],
+        }),
+      }))
+  )
+}
+
+// The project's one-line summary under the email's first line, when it has one.
+function blurbHtml(blurb: string | null | undefined) {
+  return blurb ? `<p style="margin:0;">${escapeHtml(blurb)}</p>` : undefined
 }

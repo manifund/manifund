@@ -1,12 +1,12 @@
 import { createAdminClient } from '@/db/supabase-admin'
-import { escapeHtml, getUserEmail, sendEmail } from '@/utils/email'
+import { getUserEmail, sendEmail } from '@/utils/email'
 import { getURL } from '@/utils/constants'
 import { log } from '@/lib/log'
 import { loadNotifications } from '@/lib/notifications/load'
 import { describe, plainLine } from '@/lib/notifications/describe'
 import { emailModeFor, type NotificationReason } from '@/lib/notifications/kinds'
 import { emailLinks, loadEmailChoices, unsubscribeHeaders } from '@/lib/notifications/settings'
-import { emailFooter } from '@/lib/notifications/footer'
+import { itemList, layoutEmail, layoutText } from '@/lib/notifications/email-layout'
 
 // The daily summary (cron, N5): one email per person listing every notification waiting for it (email_status
 // 'digest'), then marks them sent. If the person has switched to never since, what waits is marked skipped without
@@ -44,21 +44,32 @@ export async function sendDailySummary() {
         .eq('id', recipientId)
         .single()
       if (email && me) {
-        const lines = items.map((n) => {
+        const described = items.map((n) => {
           const d = describe(n, me)
-          return { text: plainLine(d), href: `${base}${d.href}` }
+          return { ...d, href: `${base}${d.href}` }
         })
         const links = await emailLinks(recipientId, false)
-        const footer = emailFooter(links)
-        const html =
-          `<p>What happened on Manifund since yesterday:</p><ul>` +
-          lines.map((l) => `<li><a href="${l.href}">${escapeHtml(l.text)}</a></li>`).join('') +
-          `</ul><p><a href="${base}/notifications">All your notifications</a></p>` +
-          footer.html
-        const text = lines.map((l) => `- ${l.text}: ${l.href}`).join('\n') + footer.text
+        const subject = `Manifund: ${items.length} new since yesterday`
+        const html = layoutEmail({
+          title: subject,
+          heading: 'Here’s what happened on Manifund since yesterday.',
+          body: itemList(described),
+          button: { url: `${base}/notifications`, text: 'View all notifications' },
+          links,
+        })
+        const text = layoutText(
+          [
+            'Here’s what happened on Manifund since yesterday:',
+            '',
+            ...described.map((d) => `- ${plainLine(d)}: ${d.href}`),
+            '',
+            `All your notifications: ${base}/notifications`,
+          ],
+          links
+        )
         await sendEmail(
           email,
-          `Manifund: ${items.length} new since yesterday`,
+          subject,
           html,
           text,
           undefined,
