@@ -27,7 +27,7 @@ type NotifyInput = {
 // Records one in-app notification for an event that isn't a comment (N1), and sends its email right away when
 // the reason is essential or the person's choice is "immediate" (N3, N4); "daily" leaves it for the daily summary
 // (N5), "never" sends nothing. Never throws: the event that caused it (a donation,
-// a withdrawal...) has already happened, and a failed notification is only logged (N8).
+// a withdrawal...) has already happened, and a failed notification is only logged (N7).
 export async function notify(input: NotifyInput) {
   await notifyMany([input])
 }

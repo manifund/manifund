@@ -10,7 +10,7 @@ import { notificationModel, summaryItems } from '@/lib/notifications/notificatio
 import { templateEmail } from '@/lib/notifications/notify'
 
 // The daily summary (cron, N5): one email per person listing every notification waiting for it (email_status
-// 'digest'), then marks them sent. If the person has switched to never since, what waits is marked skipped without
+// 'digest'), then marks them sent, or failed with Postmark's answer when it refuses the email. If the person has switched to never since, what waits is marked skipped without
 // an email; if they switched to immediate, it still goes out here, so nothing waits forever. Locally email is off.
 export async function sendDailySummary() {
   const now = new Date().toISOString()
@@ -44,6 +44,7 @@ export async function sendDailySummary() {
         .select('username')
         .eq('id', recipientId)
         .single()
+      let error: string | null = null
       if (email && me) {
         const list = summaryItems(
           items.map((n) => {
@@ -52,7 +53,7 @@ export async function sendDailySummary() {
           })
         )
         const links = await emailLinks(recipientId, false)
-        await templateEmail(
+        const result = await templateEmail(
           TEMPLATE_IDS.NOTIFICATION,
           notificationModel({
             subject: `Manifund: ${items.length} new since yesterday`,
@@ -64,10 +65,17 @@ export async function sendDailySummary() {
           recipientId,
           email
         )(links)
+        if (!result.ok) error = result.message
       }
       await admin
         .from('notifications')
-        .update({ email_status: email ? 'sent' : 'skipped', emailed_at: new Date().toISOString() })
+        .update(
+          !email
+            ? { email_status: 'skipped', last_error: 'no email address' }
+            : error
+              ? { email_status: 'failed', last_error: error.slice(0, 300) }
+              : { email_status: 'sent', emailed_at: new Date().toISOString() }
+        )
         .in(
           'id',
           items.map((i) => i.id)

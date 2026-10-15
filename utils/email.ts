@@ -109,7 +109,7 @@ export async function sendTemplateEmail(
   fromEmail?: string,
   // Ids to log with a failure (e.g. { project_id }): never addresses.
   logFields: Record<string, unknown> = {},
-  // Extra headers, e.g. one-click unsubscribe (notifications N7).
+  // Extra headers, e.g. one-click unsubscribe (notifications N6).
   headers?: { Name: string; Value: string }[]
 ): Promise<EmailResult> {
   if (!toEmail && !toId) {
@@ -154,7 +154,7 @@ export async function sendEmail(
   messageStream?: string,
   // Ids to log with a failure: never addresses.
   logFields: Record<string, unknown> = {},
-  // Extra headers, e.g. one-click unsubscribe (notifications N7).
+  // Extra headers, e.g. one-click unsubscribe (notifications N6).
   headers?: { Name: string; Value: string }[]
 ): Promise<EmailResult> {
   const answer = await postToPostmark('/email', {

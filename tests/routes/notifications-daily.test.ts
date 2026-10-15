@@ -45,3 +45,25 @@ describe('N5 the daily summary sends what waits for it, once', () => {
     expect((await row()).emailed_at?.toISOString()).toBe(after.emailed_at?.toISOString())
   })
 })
+
+describe('C24 the sweep alerts only on emails it can resend', () => {
+  smoke('a non-comment notification stuck in sending is not counted', async () => {
+    const runSweep = async () =>
+      (
+        await (
+          await fetch(`${env.baseUrl}/api/notifications/sweep`, {
+            headers: { authorization: `Bearer ${env.cronSecret}` },
+          })
+        ).json()
+      ).stale as number
+    const before = await runSweep()
+    const [stuck] =
+      await sql`insert into notifications (recipient_id, reason, email_status, created_at)
+      values (${bob.id}, 'donation_to_your_project', 'sending', now() - interval '1 hour') returning id`
+    try {
+      expect(await runSweep()).toBe(before)
+    } finally {
+      await sql`delete from notifications where id = ${stuck.id}`
+    }
+  })
+})
