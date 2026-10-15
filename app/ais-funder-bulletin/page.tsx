@@ -94,7 +94,7 @@ const AT_A_GLANCE: Row[] = [
     href: 'https://www.lightconecommons.com/',
     donated2025: { v: '$0' },
     grants2025: { v: '0' },
-    expected2026: { v: '$35M', n: 12 },
+    expected2026: { v: '$50M', n: 12 },
     fte: '2',
     generalApps: true,
     openRfps: false,
@@ -323,8 +323,18 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Private communications',
-    node: <>Private communications</>,
+    text: 'Nathan Young, posting on October 12, 2026: "Lightcone Commons looks set to advise on $50m this round. We are having a second round before Christmas." This is money funders are expected to distribute on Lightcone Commons\' recommendations, not money Lightcone holds.',
+    node: (
+      <>
+        Nathan Young,{' '}
+        <A href="https://x.com/NathanpmYoung/status/2109700584693768321">
+          posting on October 12, 2026
+        </A>
+        : &ldquo;Lightcone Commons looks set to advise on $50m this round. We are having a second
+        round before Christmas.&rdquo; This is money funders are expected to distribute on Lightcone
+        Commons&apos; recommendations, not money Lightcone holds.
+      </>
+    ),
   },
   {
     text: 'schmidtsciences.org new $10M AI safety science program (foundational research)',
@@ -1392,7 +1402,13 @@ export default function AisFunderBulletinPage() {
                 <li>
                   By the numbers:
                   <ul>
-                    <li>expecting funders to disburse around $15-25m in the first round</li>
+                    <li>
+                      first round: originally expected to be around $15-25m, but as of October 12,
+                      2026 Lightcone Commons{' '}
+                      <A href="https://x.com/NathanpmYoung/status/2109700584693768321">
+                        looks set to advise on around $50m
+                      </A>
+                    </li>
                     <li>
                       fees: 5% on top of grants — 3% to Lightcone Commons and 2% to evaluators,
                       lowered for funders moving large amounts
@@ -1412,10 +1428,14 @@ export default function AisFunderBulletinPage() {
                       recommendations are expected around October 23, 2026; as of October 15, 2026
                       none had been published, and the site still describes the round in the future
                       tense. Applications are still open on a rolling basis: anything submitted now
-                      rolls into the second round, with a response expected around January 23, 2027.
-                      No deadline for that round has been published yet. Oliver Habryka said in
-                      September 2026 that he hopes to move to monthly rounds, probably in Q1 2027,
-                      cutting average decision time to 2-3 weeks.
+                      rolls into the second round, which Nathan Young{' '}
+                      <A href="https://x.com/NathanpmYoung/status/2109700584693768321">
+                        says will run before Christmas
+                      </A>
+                      , earlier than the site&apos;s stated response date of around January 23,
+                      2027. No deadline for that round has been published yet. Oliver Habryka said
+                      in September 2026 that he hopes to move to monthly rounds, probably in Q1
+                      2027, cutting average decision time to 2-3 weeks.
                     </li>
                     <li>
                       The{' '}
