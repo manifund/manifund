@@ -46,26 +46,26 @@ const AT_A_GLANCE: Row[] = [
     donations: true,
   },
   {
-    name: 'Longview Philanthropy',
-    href: 'https://www.longview.org/',
-    donated2025: { v: '$60M', n: 4 },
-    grants2025: { v: '—' },
-    expected2026: { v: '$200M', n: 5 },
-    fte: '17',
-    generalApps: false,
-    openRfps: false,
-    donations: true,
-  },
-  {
     name: 'OpenAI Foundation',
     href: 'https://openaifoundation.org/',
     donated2025: { v: '$0' },
     grants2025: { v: '0' },
-    expected2026: { v: '$250M', n: 6 },
+    expected2026: { v: '$250M', n: 4 },
     fte: '3',
     generalApps: false,
     openRfps: false,
     donations: false,
+  },
+  {
+    name: 'Longview Philanthropy',
+    href: 'https://www.longview.org/',
+    donated2025: { v: '$60M', n: 5 },
+    grants2025: { v: '—' },
+    expected2026: { v: '$200M', n: 6 },
+    fte: '17',
+    generalApps: false,
+    openRfps: false,
+    donations: true,
   },
   {
     name: 'Macroscopic',
@@ -101,47 +101,47 @@ const AT_A_GLANCE: Row[] = [
     donations: true,
   },
   {
+    name: 'AISTOF',
+    donated2025: { v: '~$15M', n: 13 },
+    grants2025: { v: '—' },
+    expected2026: { v: '$40M', n: 14 },
+    fte: '1',
+    generalApps: false,
+    openRfps: false,
+    donations: false,
+  },
+  {
     name: 'Schmidt Sciences',
     href: 'https://www.schmidtsciences.org/',
-    donated2025: { v: '$10M', n: 13 },
-    grants2025: { v: '27', n: 14 },
-    expected2026: { v: '$20M', n: 15 },
+    donated2025: { v: '$10M', n: 15 },
+    grants2025: { v: '27', n: 16 },
+    expected2026: { v: '$20M', n: 17 },
     fte: '2',
     generalApps: false,
     openRfps: false,
     donations: false,
   },
   {
-    name: 'AISTOF',
-    donated2025: { v: '~$15M', n: 16 },
-    grants2025: { v: '—' },
-    expected2026: { v: '$40M', n: 17 },
+    name: 'BlueDot Impact',
+    href: 'https://bluedot.org/',
+    donated2025: { v: '$0', n: 18 },
+    grants2025: { v: '0', n: 18 },
+    expected2026: { v: '$10.1M', n: 19 },
     fte: '1',
-    generalApps: false,
+    generalApps: true,
     openRfps: false,
     donations: false,
   },
   {
     name: 'Manifund',
     href: 'https://manifund.org/',
-    donated2025: { v: '$6M', n: 18 },
-    grants2025: { v: '144', n: 19 },
-    expected2026: { v: '$8.8M', n: 20 },
+    donated2025: { v: '$6M', n: 20 },
+    grants2025: { v: '144', n: 21 },
+    expected2026: { v: '$8.8M', n: 22 },
     fte: '2',
     generalApps: true,
     openRfps: false,
     donations: true,
-  },
-  {
-    name: 'BlueDot Impact',
-    href: 'https://bluedot.org/',
-    donated2025: { v: '$0', n: 21 },
-    grants2025: { v: '0', n: 21 },
-    expected2026: { v: '$10.1M', n: 22 },
-    fte: '1',
-    generalApps: true,
-    openRfps: false,
-    donations: false,
   },
   {
     name: 'Transformative AI Fund (formerly LTFF)',
@@ -203,6 +203,26 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
+    text: 'Estimate: as of June 2026 they said they were working to finalize more than $130M in grants through their AI resilience program, "to be shared publicly soon and with more to come," and planning to invest more than $1B across several programs over the next year. The Foundation has still not published an AI resilience grantee list. Inside Philanthropy reported on September 29, 2026 that the Foundation had announced seven commitments totalling $815M across all programs and had "disbursed nearly $200 million" in grants, with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved grant agreements rather than cash disbursed.',
+    node: (
+      <>
+        Estimate: as of June 2026 they{' '}
+        <A href="https://openaifoundation.org/news/resilience-in-the-age-of-ai">said</A>
+        &nbsp;they were working to finalize more than $130M in grants through their AI resilience
+        program, &ldquo;to be shared publicly soon and with more to come,&rdquo; and planning to
+        invest more than $1B across several programs over the next year. The Foundation has still
+        not published an AI resilience grantee list.{' '}
+        <A href="https://www.insidephilanthropy.com/home/the-openai-foundation-pledged-1-billion-in-a-year-hows-that-going-six-months-in">
+          Inside Philanthropy
+        </A>{' '}
+        reported on September 29, 2026 that the Foundation had announced seven commitments totalling
+        $815M across all programs and had &ldquo;disbursed nearly $200 million&rdquo; in grants,
+        with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved
+        grant agreements rather than cash disbursed.
+      </>
+    ),
+  },
+  {
     text: 'Per this post from a Longview team member, they directed over $60M in 2025, more than 2x their 2024 figure. Their August 2026 COO job posting said "We directed over $75 million to high-impact organizations in 2025, and expect 2026 will be substantially bigger," but that figure covers all of Longview\'s giving rather than AI safety specifically. That posting has since been delisted and its URL now redirects to their careers page.',
     node: (
       <>
@@ -232,26 +252,6 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         Re-checked across their sitemaps on October 15, 2026: no live Longview page states a 2026
         target. Their now-delisted COO posting said only that they expect 2026 to be
         &ldquo;substantially bigger&rdquo; than 2025.
-      </>
-    ),
-  },
-  {
-    text: 'Estimate: as of June 2026 they said they were working to finalize more than $130M in grants through their AI resilience program, "to be shared publicly soon and with more to come," and planning to invest more than $1B across several programs over the next year. The Foundation has still not published an AI resilience grantee list. Inside Philanthropy reported on September 29, 2026 that the Foundation had announced seven commitments totalling $815M across all programs and had "disbursed nearly $200 million" in grants, with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved grant agreements rather than cash disbursed.',
-    node: (
-      <>
-        Estimate: as of June 2026 they{' '}
-        <A href="https://openaifoundation.org/news/resilience-in-the-age-of-ai">said</A>
-        &nbsp;they were working to finalize more than $130M in grants through their AI resilience
-        program, &ldquo;to be shared publicly soon and with more to come,&rdquo; and planning to
-        invest more than $1B across several programs over the next year. The Foundation has still
-        not published an AI resilience grantee list.{' '}
-        <A href="https://www.insidephilanthropy.com/home/the-openai-foundation-pledged-1-billion-in-a-year-hows-that-going-six-months-in">
-          Inside Philanthropy
-        </A>{' '}
-        reported on September 29, 2026 that the Foundation had announced seven commitments totalling
-        $815M across all programs and had &ldquo;disbursed nearly $200 million&rdquo; in grants,
-        with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved
-        grant agreements rather than cash disbursed.
       </>
     ),
   },
@@ -328,6 +328,24 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
+    text: "Estimate from Manifund's Trace database, which as of October 15, 2026 puts AISTOF's 2025 giving at $15.0M across 14 recorded grants ($13.5M of it an explicit estimate rather than itemised grants) and its 2026 giving at $25.0M across 30 ($22.2M of it an estimate). Trace's year totals are fixed lump sums, so publishing another itemised grant moves money out of the estimate line and raises the record count without changing the year total. AISTOF publishes no figures of its own.",
+    node: (
+      <>
+        Estimate from Manifund&apos;s <A href="https://trace.manifund.org/orgs/aistof">Trace</A>
+        &nbsp;database, which as of October 15, 2026 puts AISTOF&apos;s 2025 giving at $15.0M across
+        14 recorded grants ($13.5M of it an explicit estimate rather than itemised grants) and its
+        2026 giving at $25.0M across 30 ($22.2M of it an estimate). Trace&apos;s year totals are
+        fixed lump sums, so publishing another itemised grant moves money out of the estimate line
+        and raises the record count without changing the year total. AISTOF publishes no figures of
+        its own.
+      </>
+    ),
+  },
+  {
+    text: 'Private communications',
+    node: <>Private communications</>,
+  },
+  {
     text: 'schmidtsciences.org new $10M AI safety science program (foundational research)',
     node: (
       <A href="https://www.schmidtsciences.org/new-10-million-ai-safety-science-program-launched-for-foundational-research/">
@@ -367,49 +385,6 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: "Estimate from Manifund's Trace database, which as of October 15, 2026 puts AISTOF's 2025 giving at $15.0M across 14 recorded grants ($13.5M of it an explicit estimate rather than itemised grants) and its 2026 giving at $25.0M across 30 ($22.2M of it an estimate). Trace's year totals are fixed lump sums, so publishing another itemised grant moves money out of the estimate line and raises the record count without changing the year total. AISTOF publishes no figures of its own.",
-    node: (
-      <>
-        Estimate from Manifund&apos;s <A href="https://trace.manifund.org/orgs/aistof">Trace</A>
-        &nbsp;database, which as of October 15, 2026 puts AISTOF&apos;s 2025 giving at $15.0M across
-        14 recorded grants ($13.5M of it an explicit estimate rather than itemised grants) and its
-        2026 giving at $25.0M across 30 ($22.2M of it an estimate). Trace&apos;s year totals are
-        fixed lump sums, so publishing another itemised grant moves money out of the estimate line
-        and raises the record count without changing the year total. AISTOF publishes no figures of
-        its own.
-      </>
-    ),
-  },
-  {
-    text: 'Private communications',
-    node: <>Private communications</>,
-  },
-  {
-    text: 'Around $5.9M donated in calendar 2025, per the data behind manifund.org/about (the page itself displays only all-time totals).',
-    node: (
-      <>
-        Around $5.9M donated in calendar 2025, per the data behind{' '}
-        <A href="https://manifund.org/about">manifund.org/about</A> (the page itself displays only
-        all-time totals).
-      </>
-    ),
-  },
-  {
-    text: 'Distinct projects that received funding in 2025, per the data behind manifund.org/about.',
-    node: (
-      <>Distinct projects that received funding in 2025, per the data behind manifund.org/about.</>
-    ),
-  },
-  {
-    text: 'Around $6.91M donated between January 1 and October 14, 2026, per the data behind manifund.org/about, extrapolated to a full year.',
-    node: (
-      <>
-        Around $6.91M donated between January 1 and October 14, 2026, per the data behind{' '}
-        <A href="https://manifund.org/about">manifund.org/about</A>, extrapolated to a full year.
-      </>
-    ),
-  },
-  {
     text: 'Treated as zero: their published list of rapid grants runs from April 2024 and shows only 17 grants totalling $9,516 in 2025, plus 10 grants totalling $2,496 in 2024, negligible at the scale of this table. They began granting at scale in 2026, and Career Transition Grants only launched in May 2026.',
     node: (
       <>
@@ -435,6 +410,31 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         program publishes no running total, so it is not in this figure. Note also that the
         browsable grantee list is incomplete: it held 772 entries totalling $1.74M against the
         1,077-grant headline.
+      </>
+    ),
+  },
+  {
+    text: 'Around $5.9M donated in calendar 2025, per the data behind manifund.org/about (the page itself displays only all-time totals).',
+    node: (
+      <>
+        Around $5.9M donated in calendar 2025, per the data behind{' '}
+        <A href="https://manifund.org/about">manifund.org/about</A> (the page itself displays only
+        all-time totals).
+      </>
+    ),
+  },
+  {
+    text: 'Distinct projects that received funding in 2025, per the data behind manifund.org/about.',
+    node: (
+      <>Distinct projects that received funding in 2025, per the data behind manifund.org/about.</>
+    ),
+  },
+  {
+    text: 'Around $6.91M donated between January 1 and October 14, 2026, per the data behind manifund.org/about, extrapolated to a full year.',
+    node: (
+      <>
+        Around $6.91M donated between January 1 and October 14, 2026, per the data behind{' '}
+        <A href="https://manifund.org/about">manifund.org/about</A>, extrapolated to a full year.
       </>
     ),
   },
@@ -673,73 +673,8 @@ export default function AisFunderBulletinPage() {
                     </li>
                     <li>
                       staff: 217 total. 43 of the 119 staff working on grants are on AI-focused
-                      teams (technical AI safety, AI governance and international policy, US AI
-                      policy, short timelines special projects, plus GCR capacity building and GCR
-                      leadership), and I estimated 75 total by amortizing the staff working on
-                      operations, communications, and partnerships.
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  Recent updates:
-                  <ul>
-                    <li>
-                      On September 30, 2026 Joe Huston joined as their first{' '}
-                      <A href="https://coefficientgiving.org/research/introducing-our-managing-director-of-philanthropic-advisory/">
-                        Managing Director of Philanthropic Advisory
-                      </A>
-                      , leading the Partnerships team and their strategy for working with donors,
-                      including the multi-donor funds and the advisory practice for major
-                      philanthropists. He spent ten years at GiveDirectly, latterly as CFO and
-                      Managing Director.
-                    </li>
-                    <li>
-                      On September 9, 2026 they launched{' '}
-                      <A href="https://coefficientgiving.org/tailwind/">Project Tailwind</A>, a call
-                      for founders to launch new AI safety organizations — see Get involved below.
-                      The same{' '}
-                      <A href="https://coefficientgiving.org/research/were-urgently-scaling-our-work-on-ai-and-biosecurity/">
-                        post
-                      </A>{' '}
-                      said their technical AI safety, security, and fieldbuilding commitments went
-                      from $168m in 2024 to $351m in 2025 and are on track to pass $1b in 2026, with
-                      $352m committed in August 2026 alone.
-                    </li>
-                    <li>
-                      On September 4, 2026 they{' '}
-                      <A href="https://coefficientgiving.org/funds/global-catastrophic-risks-opportunities/career-development-and-transition-funding/">
-                        handed their career development and transition funding program to BlueDot
-                        Impact
-                      </A>
-                      , along with a grant to support the work; applicants now go to BlueDot
-                      instead. They will still process applications submitted on or before that
-                      date.
-                    </li>
-                    <li>
-                      In July 2026 they made a{' '}
-                      <A href="https://www.alignmentforum.org/posts/HDKQNqiR2gtfMiWsn/announcing-our-usd160m-grant-from-coefficient-giving">
-                        $160m grant to Resolution
-                      </A>
-                      , Geoffrey Irving&apos;s alignment research organization — $108m base plus
-                      $52m conditional on hiring and compute needs. Coefficient is Resolution&apos;s
-                      sole funder to start.
-                    </li>
-                    <li>
-                      Their 2026 AI hiring rounds have closed, including the{' '}
-                      <A href="https://coefficientgiving.org/about-us/careers/public-policy-hiring/">
-                        DC-based roles in US AI policy
-                      </A>{' '}
-                      that were due August 2 and whose page is now titled &ldquo;[Closed].&rdquo;
-                      The three non-grantmaking roles that were open at the start of October all
-                      closed on October 4, leaving no open roles at all as of October 15, 2026.
-                    </li>
-                    <li>
-                      Caleb Watney, a cofounder of the Institute for Progress, joined in July 2026
-                      as their first{' '}
-                      <A href="https://coefficientgiving.org/research/introducing-our-new-managing-director-of-public-policy/">
-                        Managing Director of Public Policy
-                      </A>
-                      , overseeing US AI policy among other areas.
+                      teams, and I estimated 75 total by amortizing the staff working on operations,
+                      communications, and partnerships.
                     </li>
                   </ul>
                 </li>
@@ -807,10 +742,8 @@ export default function AisFunderBulletinPage() {
                     <li>
                       Apply for a job: as of October 15, 2026 their{' '}
                       <A href="https://coefficientgiving.org/about-us/careers/">careers page</A>{' '}
-                      says &ldquo;There are no open roles at this time&rdquo; — the three roles open
-                      at the start of the month (two Salesforce roles and multiple roles in AI x
-                      Global Health and Wellbeing, none in grantmaking or AI safety) all closed on
-                      October 4. You can still submit a general{' '}
+                      says &ldquo;There are no open roles at this time.&rdquo; You can still submit
+                      a general{' '}
                       <A href="https://jobs.ashbyhq.com/coefficientgiving/2cc48fa8-97aa-47d8-b367-bf3b66cdba3f">
                         expression of interest
                       </A>
