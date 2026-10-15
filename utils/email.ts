@@ -19,8 +19,9 @@ export const TEMPLATE_IDS = {
   TRADE_ACCEPTED: 31316920,
   OFFER_RESOLVED: 31316141,
   AUCTION_RESOLVED: 31316142,
-  // The emails #318 adds: people you follow, saved searches, the daily summary (lib/notifications/notification-email.ts).
-  NOTIFICATION: 0, // TODO(set after creating in Postmark)
+  // Postmark template "notification": people you follow, saved searches, the daily summary
+  // (lib/notifications/notification-email.ts).
+  NOTIFICATION: 48342587,
 }
 
 // For interpolating user-supplied values into hand-built htmlContent strings.

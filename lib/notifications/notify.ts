@@ -141,7 +141,7 @@ export async function notifyAddressOnly(send: () => Promise<unknown>) {
   }
 }
 
-// The emails #318 adds (people you follow, saved searches): the "notification" Postmark template, with the content
+// Emails about people you follow and saved searches: the "notification" Postmark template, with the content
 // built in code (notification-email.ts).
 export function notificationEmail(toId: string, content: NotificationContent) {
   return templateEmail(TEMPLATE_IDS.NOTIFICATION, notificationModel(content), toId)

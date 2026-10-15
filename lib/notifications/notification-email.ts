@@ -1,4 +1,4 @@
-// What goes into the "notification" Postmark template (TEMPLATE_IDS.NOTIFICATION), used by the emails #318 adds:
+// What goes into the "notification" Postmark template (TEMPLATE_IDS.NOTIFICATION), used for
 // people you follow, saved searches, and the daily summary. The template holds the look (Manifund's grey page, white
 // card, bold first line, orange button, footer); code only builds the content, as for "Generic notif (html)".
 // Template variables: subject, heading (plain text), htmlContent, textContent, buttonUrl, buttonText, and footer
