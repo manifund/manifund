@@ -4,7 +4,7 @@ import { toPlaintext } from '@/utils/tiptap-parsing'
 import { commentHref, targetTitle, TARGET_EMBEDS } from '@/lib/comments/links'
 import type { NotificationRow } from './describe'
 
-const SELECT = `id, recipient_id, reason, created_at, read_at, amount,
+const SELECT = `id, recipient_id, reason, created_at, read_at, amount, bid_id,
   actor:profiles!notifications_actor_id_fkey(id, username, full_name, avatar_url),
   project:projects(title, slug, approved),
   withdrawal:withdrawal_requests(status),

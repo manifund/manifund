@@ -250,7 +250,10 @@ async function notifyDonationFollowers(input: Parameters<typeof onDonation>[0]) 
   if (!p || !donor) return
   const who = donor.full_name || donor.username
   const href = `${base()}/projects/${p.slug}`
-  const gave = `gave ${formatMoney(input.amount)} to`
+  // an offer (a bid) may still be withdrawn or come back, so it's worded as one; money moved is a donation
+  const offered = !!input.bidId && !input.txnId
+  const money = formatMoney(input.amount)
+  const what = offered ? `offered ${money} on` : `donated ${money} to`
   await notifyMany(
     followers
       .filter((followerId) => followerId !== p.creator) // the creator already hears about money to their project
@@ -264,8 +267,8 @@ async function notifyDonationFollowers(input: Parameters<typeof onDonation>[0]) 
         amount: input.amount,
         email: projectEmail(
           followerId,
-          `Manifund: ${who} gave to "${p.title}"`,
-          `${who}, who you follow, ${gave} "${p.title}".`,
+          `Manifund: ${who} ${offered ? 'made an offer on' : 'donated to'} "${p.title}"`,
+          `${who}, who you follow, ${what} "${p.title}".`,
           p.blurb,
           href
         ),

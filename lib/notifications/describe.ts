@@ -8,6 +8,7 @@ export type NotificationRow = {
   created_at: string
   read_at: string | null
   amount: number | null
+  bid_id?: string | null // set for offers (bids), as opposed to money moved (txns)
   actor: {
     id: string
     username: string
@@ -67,7 +68,13 @@ export function describe(n: NotificationRow, me: { username: string }): Describe
     case 'followed_person_donation':
       return {
         who,
-        text: money ? `gave ${money} to` : 'gave to',
+        text: n.bid_id
+          ? money
+            ? `offered ${money} on`
+            : 'made an offer on'
+          : money
+            ? `donated ${money} to`
+            : 'donated to',
         subject,
         href: projectHref,
         icon: 'avatar',
@@ -83,9 +90,21 @@ export function describe(n: NotificationRow, me: { username: string }): Describe
     case 'donation_to_your_project':
       return { who, text: `donated ${money} to`, subject, href: projectHref, icon: 'money-in' }
     case 'donation_to_your_budget':
-      return { who, text: `gave ${money} to your regranting budget`, href: mine, icon: 'money-in' }
+      return {
+        who,
+        text: `donated ${money} to`,
+        subject: 'your regranting budget',
+        href: mine,
+        icon: 'money-in',
+      }
     case 'tip_on_your_comment':
-      return { who, text: `tipped you ${money} for a comment`, href: mine, icon: 'money-in' }
+      return {
+        who,
+        text: `tipped you ${money} for`,
+        subject: 'your comment',
+        href: mine,
+        icon: 'money-in',
+      }
     case 'new_offer':
       return {
         who,

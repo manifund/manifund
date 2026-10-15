@@ -25,18 +25,23 @@ describe('notificationModel', () => {
 })
 
 describe('summaryItems', () => {
-  test('a row links its subject, or its text when it has none; everything is escaped', () => {
+  test('each row has one bold link, on what it is about; everything is escaped', () => {
     const { html, text } = summaryItems([
       { who: 'A<b>', text: 'commented on', subject: 'P & Q', detail: 'Hi', href: 'https://x/p' },
-      { who: 'B', text: 'tipped you $5 for a comment', href: 'https://x/b' },
+      { who: 'Open eval harness', text: 'is active', href: 'https://x/o' },
+      { text: 'Payment received: $5', href: 'https://x/m' },
     ])
-    expect(html).toContain('<strong>A&lt;b&gt;</strong>')
-    expect(html).toMatch(/<a href="https:\/\/x\/p"[^>]*>P &amp; Q<\/a>/)
-    expect(html).toMatch(
-      /<a href="https:\/\/x\/b"[^>]*font-weight: bold;[^>]*>tipped you \$5 for a comment<\/a>/
-    )
+    const bold = (href: string, label: string) =>
+      new RegExp(
+        `<a href="${href.replace(/[/.]/g, '\\$&')}"[^>]*font-weight: bold;[^>]*>${label}</a>`
+      )
+    expect(html).toContain('<strong>A&lt;b&gt;</strong> commented on')
+    expect(html).toMatch(bold('https://x/p', 'P &amp; Q'))
+    expect(html).toMatch(bold('https://x/o', 'Open eval harness'))
+    expect(html).toContain('</a> is active')
+    expect(html).toMatch(bold('https://x/m', 'Payment received: \\$5'))
     expect(text).toBe(
-      '- A<b> commented on P & Q: https://x/p\n- B tipped you $5 for a comment: https://x/b'
+      '- A<b> commented on P & Q: https://x/p\n- Open eval harness is active: https://x/o\n- Payment received: $5: https://x/m'
     )
   })
 })
