@@ -24,6 +24,13 @@ else, one choice: instant, daily or never. Comments' own rules for who is notifi
   sends its email right away when it's due now. Notification failures never fail the event that caused them.
 - **Daily summary**: rows waiting for it have `email_status = 'digest'`; a daily cron (`/api/notifications/daily`,
   14:00 UTC) sends one email per person and marks them sent.
+- **How emails are built**: every email is a Postmark template; the templates (and so the look) live in Postmark,
+  and code only fills their variables (`TEMPLATE_IDS` in `utils/email.ts`). The emails for people you follow, saved
+  searches and the daily summary share one template, "notification" (`TEMPLATE_IDS.NOTIFICATION`): a bold first line
+  (`heading`), `htmlContent`/`textContent` built in `lib/notifications/notification-email.ts`, a button
+  (`buttonUrl`, `buttonText`), and, for optional emails only, a footer with Unsubscribe and "change how often"
+  (`{{#footer}}`, filled by `templateEmail` in `notify.ts`). It copies the structure of "received project donation"
+  (Vals, 2026-10-15: "better keep the current design all in postmark").
 
 ## Rules
 
@@ -83,8 +90,9 @@ Newest first.
 
 ## Open questions
 
-- **Postmark templates**: most emails use templates stored in Postmark. They receive `stopUrl` and `settingsUrl`
-  but only show them once the templates are edited there (live configuration, not done).
+- **Older Postmark templates**: they receive `stopUrl` and `settingsUrl` but only show them once edited there (live
+  configuration, not done); their footer link is Postmark's own unsubscribe, which stops all mail to that address on
+  the stream. The "notification" template already uses Manifund's links.
 
 ## Later
 

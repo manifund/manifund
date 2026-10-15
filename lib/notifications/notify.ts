@@ -5,8 +5,8 @@ import { createAdminClient } from '@/db/supabase-admin'
 import { log } from '@/lib/log'
 import { emailModeFor, isEssential, type NotificationReason } from './kinds'
 import { emailLinks, loadEmailChoices, unsubscribeHeaders, type EmailLinks } from './settings'
-import { getUserEmail, sendEmail, sendTemplateEmail } from '@/utils/email'
-import { layoutEmail, layoutText, type LayoutInput } from './email-layout'
+import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { notificationModel, type NotificationContent } from './notification-email'
 
 export type { EmailLinks }
 
@@ -141,39 +141,25 @@ export async function notifyAddressOnly(send: () => Promise<unknown>) {
   }
 }
 
-// An email we write ourselves, in the look of the Postmark templates (email-layout.ts): a bold first line, the body,
-// an orange button, and the footer with unsubscribe and "change how often" for optional kinds (N6), plus the
-// one-click unsubscribe headers.
-export function ownEmail(
-  toId: string,
-  subject: string,
-  content: Omit<LayoutInput, 'title' | 'links'> & { text: string[] }
-) {
-  return async (links: EmailLinks) => {
-    const address = await getUserEmail(createAdminClient() as any, toId)
-    if (!address) return
-    const { text, ...look } = content
-    return sendEmail(
-      address,
-      subject,
-      layoutEmail({ ...look, title: subject, links }),
-      layoutText(text, links),
-      undefined,
-      undefined,
-      { user_id: toId },
-      unsubscribeHeaders(links)
-    )
-  }
+// The emails #318 adds (people you follow, saved searches): the "notification" Postmark template, with the content
+// built in code (notification-email.ts).
+export function notificationEmail(toId: string, content: NotificationContent) {
+  return templateEmail(TEMPLATE_IDS.NOTIFICATION, notificationModel(content), toId)
 }
 
-// Today's Postmark template email, plus the footer links as template variables ({{stopUrl}},
-// {{settingsUrl}}: the templates on Postmark must be edited to show them, and to show nothing when
-// they're empty, as for essential kinds) and the one-click unsubscribe headers (optional kinds only).
+// A Postmark template email, plus the footer links as template variables (optional kinds only, N6): {{stopUrl}} and
+// {{settingsUrl}}, and the same inside {{#footer}} for templates that show the footer only when it's there (the
+// "notification" template). Older templates show them only once edited on Postmark. Also the one-click unsubscribe
+// headers.
 export function templateEmail(templateId: number, model: object, toId: string, toEmail?: string) {
   return (links: EmailLinks) =>
     sendTemplateEmail(
       templateId,
-      { ...model, ...links },
+      {
+        ...model,
+        ...links,
+        footer: links.stopUrl ? { stopUrl: links.stopUrl, settingsUrl: links.settingsUrl } : null,
+      },
       toId,
       toEmail,
       undefined,

@@ -9,7 +9,7 @@ import { createAdminClient } from '@/db/supabase-admin'
 import { escapeHtml } from '@/utils/email'
 import { getURL } from '@/utils/constants'
 import { log } from '@/lib/log'
-import { notifyMany, ownEmail } from '@/lib/notifications/notify'
+import { notificationEmail, notifyMany } from '@/lib/notifications/notify'
 import { formatMoney } from '@/utils/formatting'
 import { parseSearch, searchMatches, searchName, searchQuery, type MatchableProject } from './match'
 
@@ -138,16 +138,13 @@ export async function onProjectPublished(projectId: string) {
         reason: 'followed_person_project' as const,
         actorId: p.creator,
         projectId: p.id,
-        email: ownEmail(followerId, `Manifund: ${who} posted a new project`, {
-          heading: `${escapeHtml(who)}, who you follow, posted a new project: "${escapeHtml(p.title)}".`,
-          body: blurbHtml(p.blurb),
-          button: { url: href, text: 'View project' },
-          text: [
-            `${who}, who you follow, posted a new project: "${p.title}".`,
-            ...(p.blurb ? [p.blurb] : []),
-            href,
-          ],
-        }),
+        email: projectEmail(
+          followerId,
+          `Manifund: ${who} posted a new project`,
+          `${who}, who you follow, posted a new project: "${p.title}".`,
+          p.blurb,
+          href
+        ),
       }))
     )
     await matchSavedSearches(projectId)
@@ -202,16 +199,13 @@ export async function matchSavedSearches(projectId: string) {
         reason: 'saved_search_match' as const,
         projectId: p.id,
         savedSearchId: s.id,
-        email: ownEmail(s.owner_id, `Manifund: a new project matches "${s.name}"`, {
-          heading: `A new project matches your saved search "${escapeHtml(s.name)}": "${escapeHtml(p.title)}".`,
-          body: blurbHtml(p.blurb),
-          button: { url: href, text: 'View project' },
-          text: [
-            `A new project matches your saved search "${s.name}": "${p.title}".`,
-            ...(p.blurb ? [p.blurb] : []),
-            href,
-          ],
-        }),
+        email: projectEmail(
+          s.owner_id,
+          `Manifund: a new project matches "${s.name}"`,
+          `A new project matches your saved search "${s.name}": "${p.title}".`,
+          p.blurb,
+          href
+        ),
       }))
     )
     return first.length
@@ -268,21 +262,31 @@ async function notifyDonationFollowers(input: Parameters<typeof onDonation>[0]) 
         txnId: input.txnId ?? null,
         bidId: input.bidId ?? null,
         amount: input.amount,
-        email: ownEmail(followerId, `Manifund: ${who} gave to "${p.title}"`, {
-          heading: `${escapeHtml(who)}, who you follow, ${gave} "${escapeHtml(p.title)}".`,
-          body: blurbHtml(p.blurb),
-          button: { url: href, text: 'View project' },
-          text: [
-            `${who}, who you follow, ${gave} "${p.title}".`,
-            ...(p.blurb ? [p.blurb] : []),
-            href,
-          ],
-        }),
+        email: projectEmail(
+          followerId,
+          `Manifund: ${who} gave to "${p.title}"`,
+          `${who}, who you follow, ${gave} "${p.title}".`,
+          p.blurb,
+          href
+        ),
       }))
   )
 }
 
-// The project's one-line summary under the email's first line, when it has one.
-function blurbHtml(blurb: string | null | undefined) {
-  return blurb ? `<p style="margin:0;">${escapeHtml(blurb)}</p>` : undefined
+// An email about a project (the "notification" Postmark template): the first line, the project's one-line summary
+// when it has one, and a "View project" button.
+function projectEmail(
+  toId: string,
+  subject: string,
+  heading: string,
+  blurb: string | null | undefined,
+  href: string
+) {
+  return notificationEmail(toId, {
+    subject,
+    heading,
+    htmlContent: blurb ? `<p style="margin: 0;">${escapeHtml(blurb)}</p>` : '',
+    textContent: blurb ?? '',
+    button: { url: href, text: 'View project' },
+  })
 }
