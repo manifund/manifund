@@ -9,8 +9,8 @@ import { EmailChoicePicker } from './email-choice'
 import { loadEmailChoice } from '@/lib/notifications/settings'
 import { emailChoice } from '@/lib/notifications/kinds'
 
-// Everything that happened to you, newest first, grouped by Today, This week and Earlier; no tabs or filters
-// (N2; Vals 2026-10-05, grouping 2026-10-15). Opening the page marks everything read (Vals, 2026-10-12). The one
+// Everything that happened to you, newest first, in one list: no tabs, filters or grouping (N2; Vals 2026-10-05,
+// day groups tried and dropped 2026-10-15). Opening the page marks everything read (Vals, 2026-10-12). The one
 // email setting sits in the title row (N4, Vals 2026-10-14/15): no separate settings page.
 export default async function NotificationsPage() {
   const supabase = await createServerSupabaseClient()
@@ -35,7 +35,7 @@ export default async function NotificationsPage() {
         <EmailChoicePicker initial={emailChoice(stored)} />
       </div>
       {items.some((i) => i.unread) && <MarkRead />}
-      <NotificationList items={items} now={Date.now()} />
+      <NotificationList items={items} />
     </div>
   )
 }

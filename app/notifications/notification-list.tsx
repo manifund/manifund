@@ -33,40 +33,18 @@ const ICONS = {
   search: { Icon: MagnifyingGlassIcon, className: 'bg-gray-100 text-gray-500' },
 } as const
 
-const DAY = 86_400_000
-// By age rather than calendar day, since the server renders the list and doesn't know the reader's time zone: "Today"
-// means the last 24 hours.
-const GROUPS = [
-  { label: 'Today', within: DAY },
-  { label: 'This week', within: 7 * DAY },
-  { label: 'Earlier', within: Infinity },
-]
-const groupOf = (createdAt: string, now: number) =>
-  GROUPS.find((g) => now - new Date(createdAt).getTime() < g.within)!.label
-
 // What was new when the page opened keeps a thin orange rule until the next visit (opening it marks everything read,
-// N2).
-export function NotificationList(props: { items: Item[]; now: number }) {
-  const { items, now } = props
+// N2). One list, newest first: no day groups (Vals, 2026-10-15: "not simple, not necessary").
+export function NotificationList(props: { items: Item[] }) {
+  const { items } = props
   if (items.length === 0)
     return <p className="text-sm italic text-gray-500">No notifications yet.</p>
-  const groups = GROUPS.map((g) => ({
-    label: g.label,
-    items: items.filter((i) => groupOf(i.createdAt, now) === g.label),
-  })).filter((g) => g.items.length)
   return (
-    <div className="space-y-5">
-      {groups.map((g) => (
-        <section key={g.label} aria-label={g.label}>
-          <h2 className="mb-1 px-1 text-xs font-medium text-gray-500">{g.label}</h2>
-          <ul className="divide-y divide-gray-100 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200/60">
-            {g.items.map((n) => (
-              <Row key={n.id} n={n} />
-            ))}
-          </ul>
-        </section>
+    <ul className="divide-y divide-gray-100 overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-gray-200/60">
+      {items.map((n) => (
+        <Row key={n.id} n={n} />
       ))}
-    </div>
+    </ul>
   )
 }
 
