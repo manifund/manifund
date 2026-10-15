@@ -41,7 +41,7 @@ describe('N4 one choice: instant, daily or never; daily is the default and store
   standard('the choice shows on /notifications', async () => {
     const page = await bob.get('/notifications')
     expect(page.status).toBe(200)
-    expect(page.text).toContain('Emails about replies, comments and what you follow')
+    expect(page.text).toContain('Emails about replies, mentions, comments')
     expect(page.text).toContain('One email a day with your new notifications')
   })
 })

@@ -3,11 +3,11 @@ import { useState } from 'react'
 import clsx from 'clsx'
 import { BellSlashIcon, BoltIcon, CalendarDaysIcon } from '@heroicons/react/20/solid'
 import { EnvelopeIcon } from '@heroicons/react/24/outline'
-import type { EmailChoice } from '@/lib/notifications/kinds'
+import { OPTIONAL_ABOUT, type EmailChoice } from '@/lib/notifications/kinds'
 
 const OPTIONS: { choice: EmailChoice; label: string; hint: string; Icon: typeof BoltIcon }[] = [
-  // 'Instant' reads as a frequency next to Daily and Never, at about their length (Vals, 2026-10-15); the stored
-  // value stays 'immediate'. Each choice explains itself in one sentence on a long hover (Vals, 2026-10-15).
+  // 'Instant' reads as a frequency next to Daily and Never, at about their length; the stored value stays
+  // 'immediate'. Each choice explains itself in one sentence on hover.
   {
     choice: 'immediate',
     label: 'Instant',
@@ -28,10 +28,9 @@ const OPTIONS: { choice: EmailChoice; label: string; hint: string; Icon: typeof 
   },
 ]
 
-const SCOPE =
-  'Emails about replies, comments and what you follow. Money and your projects are always emailed right away.'
+const SCOPE = `Emails about ${OPTIONAL_ABOUT}. Money and your projects are always emailed right away.`
 
-// The one email setting (N4), in the notifications page's title row (Vals, 2026-10-15): how often optional
+// The one email setting (N4), in the notifications page's title row: how often optional
 // notifications are also emailed. On a phone it wraps under the title.
 export function EmailChoicePicker(props: { initial: EmailChoice }) {
   const [choice, setChoice] = useState(props.initial)

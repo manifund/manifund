@@ -22,13 +22,10 @@ export function StopConfirm(props: { token: string }) {
   }
   return (
     <div className="flex flex-col gap-3 text-sm text-gray-700">
-      <p>
-        Stop emails about {OPTIONAL_ABOUT}? They still show in your notifications, and Manifund
-        still emails you about money and your projects.
-      </p>
       {previous ? (
+        // the result replaces the question
         <p>
-          Done: no more of these emails.{' '}
+          You won't get these emails anymore. They still show in your notifications.{' '}
           <button
             onClick={() => send(previous)}
             className="inline-flex items-center gap-1 text-orange-600 hover:underline"
@@ -38,10 +35,16 @@ export function StopConfirm(props: { token: string }) {
           </button>
         </p>
       ) : (
-        <Button onClick={() => send()} className="flex items-center gap-1.5 self-start">
-          <BellSlashIcon className="h-4 w-4" />
-          Unsubscribe
-        </Button>
+        <>
+          <p>
+            Stop emails about {OPTIONAL_ABOUT}? They still show in your notifications, and Manifund
+            still emails you about money and your projects.
+          </p>
+          <Button onClick={() => send()} className="flex items-center gap-1.5 self-start">
+            <BellSlashIcon className="h-4 w-4" />
+            Unsubscribe
+          </Button>
+        </>
       )}
       {error && <p className="text-red-700">{error}</p>}
       <Link href="/notifications" className="text-orange-600 hover:underline">

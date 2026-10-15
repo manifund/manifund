@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { readStopToken } from '@/lib/notifications/settings'
 import { StopConfirm } from './stop-confirm'
 
@@ -7,14 +8,21 @@ export default async function StopPage(props: { searchParams: Promise<{ t?: stri
   const { t = '' } = await props.searchParams
   const valid = !!(await readStopToken(t))
   return (
-    <div className="mx-auto max-w-md p-6">
-      {valid ? (
-        <StopConfirm token={t} />
-      ) : (
-        <p className="text-sm text-gray-700">
-          This link isn't valid. You can choose how often you get emails on your notifications page.
-        </p>
-      )}
+    <div className="mx-auto w-full max-w-md p-6">
+      <h1 className="mb-4 text-2xl font-medium">Unsubscribe</h1>
+      <div className="rounded-lg bg-white p-4 shadow">
+        {valid ? (
+          <StopConfirm token={t} />
+        ) : (
+          <p className="text-sm text-gray-700">
+            This link isn't valid. You can choose how often you get emails on your{' '}
+            <Link href="/notifications" className="text-orange-600 hover:underline">
+              notifications page
+            </Link>
+            .
+          </p>
+        )}
+      </div>
     </div>
   )
 }

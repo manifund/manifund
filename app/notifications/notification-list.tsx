@@ -21,7 +21,7 @@ type Item = Described & {
 }
 
 // Money and your projects' timeline get an orange icon; saved-search matches stay grey, and what other people did
-// shows their avatar (Vals, 2026-10-15, option A of design-core-notifications-page).
+// shows their avatar, so orange stays for what concerns you.
 const ORANGE = 'bg-orange-50 text-orange-600'
 const ICONS = {
   'money-in': { Icon: ArrowDownTrayIcon, className: ORANGE },
@@ -34,7 +34,7 @@ const ICONS = {
 } as const
 
 // What was new when the page opened keeps a thin orange rule until the next visit (opening it marks everything read,
-// N2). One list, newest first: no day groups (Vals, 2026-10-15: "not simple, not necessary").
+// N2). One list, newest first, no grouping.
 export function NotificationList(props: { items: Item[] }) {
   const { items } = props
   if (items.length === 0)
