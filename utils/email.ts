@@ -19,6 +19,9 @@ export const TEMPLATE_IDS = {
   TRADE_ACCEPTED: 31316920,
   OFFER_RESOLVED: 31316141,
   AUCTION_RESOLVED: 31316142,
+  // Postmark template "notification": people you follow, saved searches, the daily summary
+  // (lib/notifications/notification-email.ts).
+  NOTIFICATION: 48342587,
 }
 
 // For interpolating user-supplied values into hand-built htmlContent strings.
@@ -105,7 +108,9 @@ export async function sendTemplateEmail(
   toEmail?: string,
   fromEmail?: string,
   // Ids to log with a failure (e.g. { project_id }): never addresses.
-  logFields: Record<string, unknown> = {}
+  logFields: Record<string, unknown> = {},
+  // Extra headers, e.g. one-click unsubscribe (notifications N6).
+  headers?: { Name: string; Value: string }[]
 ): Promise<EmailResult> {
   if (!toEmail && !toId) {
     console.log('No email or user id provided')
@@ -123,6 +128,7 @@ export async function sendTemplateEmail(
     To: sendToEmail,
     TemplateId: templateId,
     TemplateModel: templateModel,
+    ...(headers?.length ? { Headers: headers } : {}),
   })
   const result =
     'error' in answer
@@ -147,7 +153,9 @@ export async function sendEmail(
   // 'outbound' for transactional emails, 'broadcast' for marketing emails
   messageStream?: string,
   // Ids to log with a failure: never addresses.
-  logFields: Record<string, unknown> = {}
+  logFields: Record<string, unknown> = {},
+  // Extra headers, e.g. one-click unsubscribe (notifications N6).
+  headers?: { Name: string; Value: string }[]
 ): Promise<EmailResult> {
   const answer = await postToPostmark('/email', {
     From: fromEmail ?? 'info@manifund.org',
@@ -156,6 +164,7 @@ export async function sendEmail(
     HtmlBody: htmlBody,
     TextBody: textBody,
     MessageStream: messageStream ?? '',
+    ...(headers?.length ? { Headers: headers } : {}),
   })
   const result =
     'error' in answer

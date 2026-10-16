@@ -13,6 +13,7 @@ import { getPrizeCause, listSimpleCauses } from '@/db/cause'
 import { getBidsByUser } from '@/db/bid'
 import NoAccess from '@/app/no-access'
 import { notFound } from 'next/navigation'
+import { networkFor } from '@/db/network'
 
 export const revalidate = 0
 
@@ -52,19 +53,29 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
   }
   // What the top of the page needs, in one round. Comments and similar projects load in
   // ProjectTabsSection, streamed in below once the top is on screen.
-  const [userProfile, userTxns, userBids, projectBids, projectTxns, causesList, prizeCause] =
-    await Promise.all([
-      user ? getProfileAndBidsById(supabase, user.id) : null,
-      user ? getTxnAndProjectsByUser(supabase, user.id) : [],
-      user ? getBidsByUser(supabase, user.id) : [],
-      getBidsByProject(supabase, project.id),
-      getTxnsByProject(supabase, project.id),
-      listSimpleCauses(supabase),
-      getPrizeCause(
-        project.causes.map((c) => c.slug),
-        supabase
-      ),
-    ])
+  const [
+    userProfile,
+    userTxns,
+    userBids,
+    projectBids,
+    projectTxns,
+    causesList,
+    prizeCause,
+    network,
+  ] = await Promise.all([
+    user ? getProfileAndBidsById(supabase, user.id) : null,
+    user ? getTxnAndProjectsByUser(supabase, user.id) : [],
+    user ? getBidsByUser(supabase, user.id) : [],
+    getBidsByProject(supabase, project.id),
+    getTxnsByProject(supabase, project.id),
+    listSimpleCauses(supabase),
+    getPrizeCause(
+      project.causes.map((c) => c.slug),
+      supabase
+    ),
+    // what people the viewer follows did on this project (F8)
+    user ? networkFor(supabase, user.id) : undefined,
+  ])
   const creatorEmail = userProfile?.regranter_status
     ? await getUserEmail(createAdminClient(), project.creator)
     : undefined
@@ -87,6 +98,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
           causesList={causesList}
           prizeCause={prizeCause}
           userIsAdmin={userIsAdmin}
+          network={network?.[project.id]}
           tabs={
             <Suspense fallback={<ProjectTabsSkeleton />}>
               <ProjectTabsSection

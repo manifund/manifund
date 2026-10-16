@@ -9,6 +9,7 @@ import { addHttpToUrl } from '@/utils/formatting'
 import { Row } from '@/components/layout/row'
 import { Col } from '@/components/layout/col'
 import { SignOutButton } from './sign-out-button'
+import { FollowButton } from '@/components/follows/follow-button'
 import { SuperBanButton } from './superban-dialog'
 import { FullProject } from '@/db/project'
 import { CommentAndProjectAndRxns } from '@/db/comment'
@@ -23,8 +24,9 @@ export function ProfileHeader(props: {
   projects?: FullProject[]
   comments?: CommentAndProjectAndRxns[]
   donorPage?: boolean
+  follow?: { signedIn: boolean; following: boolean }
 }) {
-  const { profile, isOwnProfile, email, isAdmin, projects, comments, donorPage } = props
+  const { profile, isOwnProfile, email, isAdmin, projects, comments, donorPage, follow } = props
   const website = addHttpToUrl(profile.website ?? '')
   return (
     <div className="flex flex-col gap-3">
@@ -83,6 +85,9 @@ export function ProfileHeader(props: {
         <Row className="gap-2">
           {isAdmin && !isOwnProfile && projects && comments && (
             <SuperBanButton profile={profile} projects={projects} comments={comments} />
+          )}
+          {!isOwnProfile && follow?.signedIn && (
+            <FollowButton followedId={profile.id} following={follow.following} />
           )}
           {isOwnProfile && <SignOutButton />}
         </Row>

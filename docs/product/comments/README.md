@@ -127,7 +127,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   a grant" email, and when an admin approves or rejects a proposal, its creator gets a verdict email. The rationale
   and the admin's note posted with them are comments too, so they would also trigger a "new comment on your project"
   email; instead, the creator gets only the in-app notification for them.
-- **C24** Emails go out right after the comment is saved; failures are retried, and a check every 10 minutes sends
+- **C24** Emails go out right after the comment is saved, or in the daily summary, depending on each person's email
+  choice (`../notifications/README.md` N4, N5); failures are retried, and a check every 10 minutes sends
   what was missed and raises an alert when something has waited over 30 minutes. If notifications fail, the comment
   still stands (and the failure is logged).
 - **C25** `/notifications` lists a person's notifications, newest first, and marks them read; the sidebar's bell

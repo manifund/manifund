@@ -1,7 +1,8 @@
 import { getProjectAndProfileById } from '@/db/project'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { CURRENT_AGREEMENT_VERSION, CURRENT_ORG_AGREEMENT_VERSION } from '@/utils/constants'
 import { clientIp, commitSignature } from '@/utils/grant-agreement-write'
 import {
@@ -135,20 +136,25 @@ export default async function handler(req: NextRequest) {
   // The signature is committed; a failed records-copy email must not surface as
   // a signing failure (a retry would just hit the already-signed 409).
   try {
-    await sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF_HTML,
-      {
-        subject: 'Your Manifund grant agreement',
-        htmlContent: agreementEmailHtml({
-          greetingName: parsed ? parsed.signatory_name : project.profiles.full_name,
-          documentHtml,
-          attestation,
-        }),
-        buttonUrl: `manifund.org/projects/${project.slug}`,
-        buttonText: 'View your project',
-      },
-      user.id
-    )
+    await notify({
+      to: user.id,
+      reason: 'agreement_record',
+      projectId: project.id,
+      email: templateEmail(
+        TEMPLATE_IDS.GENERIC_NOTIF_HTML,
+        {
+          subject: 'Your Manifund grant agreement',
+          htmlContent: agreementEmailHtml({
+            greetingName: parsed ? parsed.signatory_name : project.profiles.full_name,
+            documentHtml,
+            attestation,
+          }),
+          buttonUrl: `manifund.org/projects/${project.slug}`,
+          buttonText: 'View your project',
+        },
+        user.id
+      ),
+    })
   } catch (e) {
     console.error('Failed to email signed agreement copy:', e)
   }

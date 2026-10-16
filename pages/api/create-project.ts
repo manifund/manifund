@@ -1,3 +1,4 @@
+import { onProjectPublished } from '@/lib/follows'
 import { Project, TOTAL_SHARES } from '@/db/project'
 import { NextRequest, NextResponse } from 'next/server'
 import uuid from 'react-uuid'
@@ -161,6 +162,8 @@ export default async function handler(req: NextRequest) {
 
   invalidateProjectsCache()
   await triggerProjectScoring(projectId)
+  // followers of the creator and matching saved searches (F3, F6; drafts are skipped; never throws)
+  await onProjectPublished(projectId)
 
   return NextResponse.json(project)
 }

@@ -2,6 +2,7 @@ import { getProjectAndProfileById } from '@/db/project'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/db/edge'
 import { escapeHtml, sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { getURL, CURRENT_ORG_AGREEMENT_VERSION } from '@/utils/constants'
 import { clientIp, commitSignature } from '@/utils/grant-agreement-write'
 import { agreementEmailHtml, renderOrgAgreementHtml } from '@/utils/render-agreement'
@@ -119,21 +120,26 @@ export default async function handler(req: NextRequest) {
     }
   }
   try {
-    await sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF_HTML,
-      {
-        subject: `Your grant agreement for "${project.title}" has been signed`,
-        htmlContent: `<p>Dear ${escapeHtml(project.profiles.full_name)},</p>
+    await notify({
+      to: project.creator,
+      reason: 'agreement_record',
+      projectId: project.id,
+      email: templateEmail(
+        TEMPLATE_IDS.GENERIC_NOTIF_HTML,
+        {
+          subject: `Your grant agreement for "${project.title}" has been signed`,
+          htmlContent: `<p>Dear ${escapeHtml(project.profiles.full_name)},</p>
         <p><strong>${escapeHtml(parsed.signatory_name)}</strong> has signed the grant agreement for
         &quot;${escapeHtml(project.title)}&quot; on behalf of
         <strong>${escapeHtml(parsed.recipient_name)}</strong>. A copy is below for your records.</p>
         <hr style="border-top: 3px solid #bbb" />
         ${documentHtml}`,
-        buttonUrl: `${getURL()}projects/${project.slug}`,
-        buttonText: 'View your project',
-      },
-      project.creator
-    )
+          buttonUrl: `${getURL()}projects/${project.slug}`,
+          buttonText: 'View your project',
+        },
+        project.creator
+      ),
+    })
   } catch (e) {
     console.error('Failed to email signed-agreement notice to creator:', e)
   }
