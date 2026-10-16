@@ -82,6 +82,7 @@ docs/
 ```
 
 Areas so far: `comments/`, `notifications/` and `follows/` (full), `projects/` and `people/` (stubs).
+Agent-written, unreviewed descriptions of other areas, optional: `ai-reference/` (see its README).
 
 ## Writing product docs
 
