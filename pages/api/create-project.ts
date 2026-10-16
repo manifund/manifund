@@ -6,7 +6,7 @@ import { newProjectKarma } from '@/utils/karma'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { projectSlugify, toTitleCase } from '@/utils/formatting'
 import { ProjectParams } from '@/utils/upsert-project'
-import { getPrizeCause, updateProjectCauses } from '@/db/cause'
+import { getOpenPrize, updateProjectCauses } from '@/db/cause'
 import { getProposalValuation, getMinIncludingAmm } from '@/utils/math'
 import { insertBid } from '@/db/bid'
 import { invalidateProjectsCache } from '@/db/project-cached'
@@ -34,13 +34,17 @@ export default async function handler(req: NextRequest) {
     description,
     location,
     selectedCauses,
-    selectedPrize,
+    selectedPrize: requestedPrize,
     founderPercent,
     agreedToTerms,
     lobbying,
   } = (await req.json()) as ProjectParams
   const { supabase, user } = await getUserAndClient(req)
   if (!user) return NextResponse.error()
+  const selectedPrize = requestedPrize ? await getOpenPrize(supabase, requestedPrize.slug) : null
+  if (requestedPrize && !selectedPrize) {
+    return NextResponse.json({ error: 'This program is not open' }, { status: 400 })
+  }
 
   // Check for existing project with same title by this user (prevents duplicates from double-submit)
   const { data: existingProjects } = await supabase
@@ -135,9 +139,8 @@ export default async function handler(req: NextRequest) {
   await upvoteOwnProject(supabase, projectId, user.id)
   await updateProjectCauses(supabase, causeSlugs, project.id)
   await giveCreatorShares(supabase, projectId, user.id)
-  const prizeCause = await getPrizeCause(causeSlugs, supabase)
-  if (project.type === 'cert' && prizeCause) {
-    const certParams = prizeCause.cert_params
+  if (project.type === 'cert' && selectedPrize) {
+    const certParams = selectedPrize.cert_params
     if (certParams?.proposalPhase) {
       await insertBid(supabase, {
         project: projectId,
