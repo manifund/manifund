@@ -44,3 +44,6 @@ tools/recon/data/
 
 # Scratch files that stay on this machine (design handoffs, exports)
 /temp/
+
+# proposal-eval run outputs
+tools/proposal-eval/results/
