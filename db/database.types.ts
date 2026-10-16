@@ -1759,6 +1759,10 @@ export type Database = {
         Args: { project_creator: string; project_id: string }
         Returns: undefined
       }
+      activate_proposal: {
+        Args: { offers: Json; project_id: string }
+        Returns: undefined
+      }
       add_tags: { Args: never; Returns: undefined }
       add_topics: { Args: never; Returns: undefined }
       adjust_karma: {
@@ -1819,6 +1823,17 @@ export type Database = {
           public_benefit?: string
         }
         Returns: undefined
+      }
+      credit_stripe_checkout: {
+        Args: {
+          p_amount: number
+          p_bank_id: string
+          p_pass_funds_to?: string
+          p_session_id: string
+          p_txn_id: string
+          p_user_id: string
+        }
+        Returns: boolean
       }
       execute_readonly_sql: {
         Args: { max_rows?: number; query: string }
