@@ -10,7 +10,7 @@ import { getOpenPrize, updateProjectCauses } from '@/db/cause'
 import { getProposalValuation, getMinIncludingAmm } from '@/utils/math'
 import { insertBid } from '@/db/bid'
 import { invalidateProjectsCache } from '@/db/project-cached'
-import { seedAmm } from '@/utils/activate-project'
+import { programStartsActive, seedAmm } from '@/utils/activate-project'
 import { upvoteOwnProject, giveCreatorShares } from '@/utils/upsert-project'
 import { triggerProjectScoring } from '@/app/utils/trigger-scoring'
 import { DISABLE_NEW_SIGNUPS_AND_PROJECTS, SIGNUP_DISABLED_MESSAGE } from '@/utils/constants'
@@ -129,12 +129,20 @@ export default async function handler(req: NextRequest) {
       founder_shares: (founderPercent / 100) * TOTAL_SHARES,
       amm_shares: seedingAmm ? (selectedPrize.cert_params?.ammShares ?? null) : null,
       round: toTitleCase(selectedPrize.title),
-      stage: selectedPrize.cert_params?.proposalPhase ? 'proposal' : 'active',
       type: 'cert',
     }
   }
 
   await supabase.from('projects').insert(project).throwOnError()
+  if (project.type === 'cert' && programStartsActive(selectedPrize ?? undefined)) {
+    // Only the server moves a project to active (the project was inserted as a proposal).
+    await createAdminClient()
+      .from('projects')
+      .update({ stage: 'active' })
+      .eq('id', projectId)
+      .throwOnError()
+    project = { ...project, stage: 'active' }
+  }
   await seedProjectKarma(projectId, user.id)
   await upvoteOwnProject(supabase, projectId, user.id)
   await updateProjectCauses(supabase, causeSlugs, project.id)

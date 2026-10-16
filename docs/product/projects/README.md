@@ -27,3 +27,11 @@ pages, the homepage or the weekly digest comes later. The prompt was chosen by t
 - **P5** Evaluations are public, like the rest of a project's data.
 - **P6** When the model declines to evaluate a project (some biosecurity proposals), that is recorded and not
   retried for the same text.
+
+## Stage
+
+- **P7** Only the server moves a project into a stage that follows a decision or a funding outcome: active, not
+  funded, or back to proposal. People publish their draft as a proposal, close their active project (complete) and
+  hide their project; a project they create starts as a draft or a proposal. A certificate program without a
+  proposal phase starts its projects active only while it's open, as stored in the database. Regrants always create a
+  grant proposal. Enforced by the trigger `protect_project_stage`; test: `tests/db/project-stage.test.ts`.
