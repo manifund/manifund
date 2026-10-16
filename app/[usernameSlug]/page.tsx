@@ -9,6 +9,7 @@ import { getCommentsByTarget, getCommentsByUser } from '@/db/comment'
 import FundPage from '../funds/[fundSlug]/page'
 import { notFound } from 'next/navigation'
 import { getResponseByProfileId } from '@/db/donor-survey'
+import { getFollowing, isFollowing } from '@/db/profile-follows'
 
 export const revalidate = 60
 
@@ -34,12 +35,16 @@ export default async function UserProfilePage(props: {
     getUser(supabase),
     getResponseByProfileId(profile.id),
   ])
-  const [userTxns, userProfile, userBids] = await Promise.all([
+  const isOwnProfile = user?.id === profile?.id
+  const [userTxns, userProfile, userBids, following, followingLists] = await Promise.all([
     user ? getTxnsByUser(supabase, user.id) : undefined,
     user ? getProfileById(supabase, user.id) : undefined,
     user ? getBidsByUser(supabase, user.id) : undefined,
+    // whether you follow this person (F1)
+    user && user.id !== profile.id ? isFollowing(supabase, user.id, profile.id) : false,
+    // what this person follows (F9): people, projects and saved searches, public
+    getFollowing(supabase, profile.id, isOwnProfile),
   ])
-  const isOwnProfile = user?.id === profile?.id
   const userIsAdmin = isAdmin(user)
   // Link the donor survey answers when they're public, and for the donor
   // themself so they can find the page.
@@ -54,6 +59,7 @@ export default async function UserProfilePage(props: {
         projects={projects}
         comments={comments}
         donorPage={showDonorPage}
+        follow={{ signedIn: !!user, following }}
       />
       <ProfileContent
         profile={profile}
@@ -65,6 +71,7 @@ export default async function UserProfilePage(props: {
         userProfile={userProfile}
         userTxns={userTxns}
         userBids={userBids}
+        following={followingLists}
       />
     </div>
   )

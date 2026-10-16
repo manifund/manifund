@@ -3,7 +3,8 @@ import { isAuthorizedCron } from '@/utils/cron-auth'
 import { createAdminClient } from '@/db/supabase-admin'
 import { isProd } from '@/db/env'
 import { WithdrawalRequest } from '@/db/withdrawal-request'
-import { getUserEmail, sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { getUserEmail, TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 
 export const maxDuration = 300
 
@@ -42,20 +43,26 @@ export async function GET(req: NextRequest) {
   for (const request of due) {
     const email = await getUserEmail(supabaseAdmin, request.profile_id)
     if (!email) continue
-    await sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF,
-      {
-        notifText:
-          `You asked to withdraw $${Number(request.amount).toLocaleString()} from Manifund, but we still ` +
-          `need your bank details before we can send it. Your money is safe and being held in the ` +
-          `meantime — it only takes a minute to finish.`,
-        buttonUrl: 'https://manifund.org/withdraw/request',
-        buttonText: 'Finish your withdrawal',
-        subject: 'Manifund: finish your withdrawal',
-      },
-      undefined,
-      email
-    )
+    await notify({
+      to: request.profile_id,
+      reason: 'unfinished_withdrawal',
+      withdrawalRequestId: request.id,
+      amount: Number(request.amount),
+      email: templateEmail(
+        TEMPLATE_IDS.GENERIC_NOTIF,
+        {
+          notifText:
+            `You asked to withdraw $${Number(request.amount).toLocaleString()} from Manifund, but we still ` +
+            `need your bank details before we can send it. Your money is safe and being held in the ` +
+            `meantime — it only takes a minute to finish.`,
+          buttonUrl: 'https://manifund.org/withdraw/request',
+          buttonText: 'Finish your withdrawal',
+          subject: 'Manifund: finish your withdrawal',
+        },
+        request.profile_id,
+        email
+      ),
+    })
     await supabaseAdmin
       .from('withdrawal_requests')
       .update({ last_nudged_at: new Date().toISOString() })

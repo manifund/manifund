@@ -77,6 +77,12 @@ export function emailFor({ reason, content, commenter, target, moderation }: Ema
         'View comment',
         `Manifund: ${commenter.username} commented on your profile`
       )
+    case 'followed_person_comment':
+      return generic(
+        `${escapeHtml(commenter.username)}, who you follow, commented on "${title}":`,
+        'View comment',
+        `Manifund: ${commenter.username} commented on "${target.title}"`
+      )
     default: // reply_to_you, comment_on_your_project, followed_project_comment
       return { templateId: TEMPLATE_IDS.NEW_COMMENT, model: commentVars }
   }

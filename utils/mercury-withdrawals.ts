@@ -4,7 +4,8 @@
 
 import { SupabaseClient } from '@supabase/supabase-js'
 import { WithdrawalRequest } from '@/db/withdrawal-request'
-import { getUserEmail, sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { getUserEmail, TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { sendDiscordAlert } from '@/utils/discord'
 import {
   getRecipient,
@@ -29,19 +30,25 @@ async function sendQueuedEmail(admin: SupabaseClient, request: WithdrawalRequest
   try {
     const email = await getUserEmail(admin, request.profile_id)
     if (!email) return
-    await sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF,
-      {
-        notifText:
-          `Your withdrawal of $${Number(request.amount).toLocaleString()} is queued and waiting on ` +
-          `approval from the Manifund team. We'll email you as soon as the money is on its way.`,
-        buttonUrl: REQUEST_URL,
-        buttonText: 'View status',
-        subject: 'Manifund: your withdrawal is queued',
-      },
-      undefined,
-      email
-    )
+    await notify({
+      to: request.profile_id,
+      reason: 'withdrawal_update',
+      withdrawalRequestId: request.id,
+      amount: Number(request.amount),
+      email: templateEmail(
+        TEMPLATE_IDS.GENERIC_NOTIF,
+        {
+          notifText:
+            `Your withdrawal of $${Number(request.amount).toLocaleString()} is queued and waiting on ` +
+            `approval from the Manifund team. We'll email you as soon as the money is on its way.`,
+          buttonUrl: REQUEST_URL,
+          buttonText: 'View status',
+          subject: 'Manifund: your withdrawal is queued',
+        },
+        request.profile_id,
+        email
+      ),
+    })
   } catch (e) {
     console.error('queued email failed for', request.id, e)
   }
@@ -167,19 +174,25 @@ export async function reverseWithdrawalRequest(
 
   const email = await getUserEmail(admin, request.profile_id)
   if (email) {
-    await sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF,
-      {
-        notifText:
-          `Your withdrawal of $${Number(request.amount).toLocaleString()} didn't go through (${reason}). ` +
-          `The money is back in your Manifund account and you can request it again whenever you like.`,
-        buttonUrl: REQUEST_URL,
-        buttonText: 'Try again',
-        subject: 'Manifund: your withdrawal was not completed',
-      },
-      undefined,
-      email
-    )
+    await notify({
+      to: request.profile_id,
+      reason: 'withdrawal_update',
+      withdrawalRequestId: request.id,
+      amount: Number(request.amount),
+      email: templateEmail(
+        TEMPLATE_IDS.GENERIC_NOTIF,
+        {
+          notifText:
+            `Your withdrawal of $${Number(request.amount).toLocaleString()} didn't go through (${reason}). ` +
+            `The money is back in your Manifund account and you can request it again whenever you like.`,
+          buttonUrl: REQUEST_URL,
+          buttonText: 'Try again',
+          subject: 'Manifund: your withdrawal was not completed',
+        },
+        request.profile_id,
+        email
+      ),
+    })
   }
   await sendDiscordAlert(
     `⚠️ Withdrawal reversed for ${request.profile_id}: $${request.amount}, ${reason} (request ${request.id})`
@@ -212,18 +225,24 @@ export async function markSent(
   }
   const email = await getUserEmail(admin, request.profile_id)
   if (email) {
-    await sendTemplateEmail(
-      TEMPLATE_IDS.CONFIRM_WITHDRAWAL,
-      {
-        amount: Number(request.amount),
-        id: request.id,
-        methodText: methodLabel(request.payment_method),
-        fullName: '',
-        email,
-      },
-      undefined,
-      email
-    )
+    await notify({
+      to: request.profile_id,
+      reason: 'withdrawal_update',
+      withdrawalRequestId: request.id,
+      amount: Number(request.amount),
+      email: templateEmail(
+        TEMPLATE_IDS.CONFIRM_WITHDRAWAL,
+        {
+          amount: Number(request.amount),
+          id: request.id,
+          methodText: methodLabel(request.payment_method),
+          fullName: '',
+          email,
+        },
+        request.profile_id,
+        email
+      ),
+    })
   }
 }
 

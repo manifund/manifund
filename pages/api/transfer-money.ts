@@ -1,4 +1,5 @@
 import { getProjectAndBidsById, getProjectById } from '@/db/project'
+import { onDonation } from '@/lib/follows'
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { getProfileById } from '@/db/profile'
@@ -6,7 +7,8 @@ import { getTxnAndProjectsByUser, getTxnsByProject } from '@/db/txn'
 import { getPendingBidsByUser } from '@/db/bid'
 import { calculateCharityBalance, getAmountRaised } from '@/utils/math'
 import { donationLimitError, fundingLeft } from '@/utils/donation-limits'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { getURL } from '@/utils/constants'
 import { isAdmin } from '@/db/profile'
 
@@ -65,14 +67,18 @@ export default async function handler(req: NextRequest) {
     }
   }
   const supabaseAdmin = createAdminClient()
-  const { error } = await supabaseAdmin.from('txns').insert({
-    from_id: fromId,
-    to_id: toId,
-    amount: amount,
-    token: 'USD',
-    project: projectId ?? null,
-    type: projectId ? 'project donation' : 'profile donation',
-  })
+  const { data: txn, error } = await supabaseAdmin
+    .from('txns')
+    .insert({
+      from_id: fromId,
+      to_id: toId,
+      amount: amount,
+      token: 'USD',
+      project: projectId ?? null,
+      type: projectId ? 'project donation' : 'profile donation',
+    })
+    .select('id')
+    .single()
   if (error) {
     console.error(error)
     return NextResponse.error()
@@ -85,7 +91,17 @@ export default async function handler(req: NextRequest) {
       projectTitle: project.title,
       projectUrl: `https://manifund.org/projects/${project.slug}`,
     }
-    await sendTemplateEmail(TEMPLATE_IDS.PROJECT_DONATION, postmarkVars, toId)
+    await notify({
+      to: toId,
+      reason: 'donation_to_your_project',
+      actorId: donor.id,
+      projectId,
+      txnId: txn?.id,
+      amount,
+      email: templateEmail(TEMPLATE_IDS.PROJECT_DONATION, postmarkVars, toId),
+    })
+    // people who follow the donor (F4; never throws)
+    await onDonation({ donorId: donor.id, projectId, amount, txnId: txn?.id })
     const { error } = await supabase.rpc('follow_project', {
       project_id: projectId,
       follower_id: donor.id,
@@ -104,7 +120,23 @@ export default async function handler(req: NextRequest) {
         donorName: donor.full_name,
         profileUrl: `${getURL()}/${regranterProfile.username}`,
       }
-      await sendTemplateEmail(TEMPLATE_IDS.REGRANTER_DONATION, postmarkVars, toId)
+      await notify({
+        to: toId,
+        reason: 'donation_to_your_budget',
+        actorId: donor.id,
+        txnId: txn?.id,
+        amount,
+        email: templateEmail(TEMPLATE_IDS.REGRANTER_DONATION, postmarkVars, toId),
+      })
+    } else {
+      // An organization's profile: no email today, but the donation still shows in-app (N1).
+      await notify({
+        to: toId,
+        reason: 'donation_to_your_budget',
+        actorId: donor.id,
+        txnId: txn?.id,
+        amount,
+      })
     }
   }
 

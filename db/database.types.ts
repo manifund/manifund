@@ -606,9 +606,37 @@ export type Database = {
           },
         ]
       }
+      notification_email: {
+        Row: {
+          choice: string
+          profile_id: string
+          updated_at: string
+        }
+        Insert: {
+          choice: string
+          profile_id: string
+          updated_at?: string
+        }
+        Update: {
+          choice?: string
+          profile_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'notification_email_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: true
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string | null
+          amount: number | null
+          bid_id: string | null
           comment_id: string | null
           created_at: string
           email_attempts: number
@@ -617,12 +645,18 @@ export type Database = {
           emailed_at: string | null
           id: string
           last_error: string | null
+          project_id: string | null
           read_at: string | null
           reason: string
           recipient_id: string
+          saved_search_id: string | null
+          txn_id: string | null
+          withdrawal_request_id: string | null
         }
         Insert: {
           actor_id?: string | null
+          amount?: number | null
+          bid_id?: string | null
           comment_id?: string | null
           created_at?: string
           email_attempts?: number
@@ -631,12 +665,18 @@ export type Database = {
           emailed_at?: string | null
           id?: string
           last_error?: string | null
+          project_id?: string | null
           read_at?: string | null
           reason: string
           recipient_id: string
+          saved_search_id?: string | null
+          txn_id?: string | null
+          withdrawal_request_id?: string | null
         }
         Update: {
           actor_id?: string | null
+          amount?: number | null
+          bid_id?: string | null
           comment_id?: string | null
           created_at?: string
           email_attempts?: number
@@ -645,9 +685,13 @@ export type Database = {
           emailed_at?: string | null
           id?: string
           last_error?: string | null
+          project_id?: string | null
           read_at?: string | null
           reason?: string
           recipient_id?: string
+          saved_search_id?: string | null
+          txn_id?: string | null
+          withdrawal_request_id?: string | null
         }
         Relationships: [
           {
@@ -658,6 +702,13 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'notifications_bid_id_fkey'
+            columns: ['bid_id']
+            isOneToOne: false
+            referencedRelation: 'bids'
+            referencedColumns: ['id']
+          },
+          {
             foreignKeyName: 'notifications_comment_id_fkey'
             columns: ['comment_id']
             isOneToOne: false
@@ -665,10 +716,38 @@ export type Database = {
             referencedColumns: ['id']
           },
           {
+            foreignKeyName: 'notifications_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+          {
             foreignKeyName: 'notifications_recipient_id_fkey'
             columns: ['recipient_id']
             isOneToOne: false
             referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_saved_search_id_fkey'
+            columns: ['saved_search_id']
+            isOneToOne: false
+            referencedRelation: 'saved_searches'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_txn_id_fkey'
+            columns: ['txn_id']
+            isOneToOne: false
+            referencedRelation: 'txns'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'notifications_withdrawal_request_id_fkey'
+            columns: ['withdrawal_request_id']
+            isOneToOne: false
+            referencedRelation: 'withdrawal_requests'
             referencedColumns: ['id']
           },
         ]
@@ -780,6 +859,39 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      profile_follows: {
+        Row: {
+          created_at: string
+          followed_id: string
+          follower_id: string
+        }
+        Insert: {
+          created_at?: string
+          followed_id: string
+          follower_id: string
+        }
+        Update: {
+          created_at?: string
+          followed_id?: string
+          follower_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'profile_follows_followed_id_fkey'
+            columns: ['followed_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'profile_follows_follower_id_fkey'
+            columns: ['follower_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       profile_roles: {
         Row: {
@@ -1321,6 +1433,38 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_searches: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          query: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          query: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          query?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'saved_searches_owner_id_fkey'
+            columns: ['owner_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       stripe_txns: {
         Row: {
           amount: number
@@ -1579,6 +1723,8 @@ export type Database = {
         Args: { p_comment_id?: string; p_limit?: number; p_min_age?: string }
         Returns: {
           actor_id: string | null
+          amount: number | null
+          bid_id: string | null
           comment_id: string | null
           created_at: string
           email_attempts: number
@@ -1587,9 +1733,13 @@ export type Database = {
           emailed_at: string | null
           id: string
           last_error: string | null
+          project_id: string | null
           read_at: string | null
           reason: string
           recipient_id: string
+          saved_search_id: string | null
+          txn_id: string | null
+          withdrawal_request_id: string | null
         }[]
         SetofOptions: {
           from: '*'
@@ -1645,6 +1795,15 @@ export type Database = {
         Returns: {
           error: true
         } & 'the function public.id_text with parameter or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache'
+      }
+      network_activity: {
+        Args: never
+        Returns: {
+          at: string
+          kind: string
+          name: string
+          project_id: string
+        }[]
       }
       reject_grant: { Args: { project_id: string }; Returns: undefined }
       reject_proposal: { Args: { project_id: string }; Returns: undefined }

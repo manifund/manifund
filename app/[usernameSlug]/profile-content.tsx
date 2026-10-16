@@ -14,6 +14,7 @@ import { DonateBox } from '@/components/donate-box'
 import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
 import { ProfileCommentTabs } from './profile-comment-tabs'
+import type { Following } from '@/db/profile-follows'
 import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
@@ -42,6 +43,7 @@ export function ProfileContent(props: {
   userProfile?: Profile
   userTxns?: TxnAndProject[]
   userBids?: BidAndProject[]
+  following: Following
 }) {
   const {
     profile,
@@ -53,6 +55,7 @@ export function ProfileContent(props: {
     userProfile,
     userTxns,
     userBids,
+    following,
   } = props
   const isOwnProfile = userProfile?.id === profile.id
   const proposalBids = bids.filter(
@@ -126,6 +129,7 @@ export function ProfileContent(props: {
         comments={comments}
         userProfile={userProfile}
         userCharityBalance={userCharityBalance}
+        following={following}
       />
       <Col className="gap-4">
         <UserTxns txns={sortedTxns.filter((t) => t.token === 'USD')} profile={profile} />

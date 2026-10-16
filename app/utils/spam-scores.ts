@@ -3,6 +3,7 @@ import { JSONContent } from '@tiptap/core'
 import OpenAI from 'openai'
 import { toMarkdown } from '@/utils/tiptap-parsing'
 import { getUserEmail, sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { notify, notifyAddressOnly, templateEmail } from '@/lib/notifications/notify'
 import { superbanUser } from '@/db/superban'
 
 // Spam gate that runs BEFORE the expensive Pangram + quality scoring. It only
@@ -165,17 +166,25 @@ async function emailSpamNotice(
     action === 'removed'
       ? 'automatically flagged as spam, and your account has been removed'
       : 'automatically flagged as spam and hidden from the site'
-  await sendTemplateEmail(
-    TEMPLATE_IDS.GENERIC_NOTIF,
-    {
-      notifText: `Your Manifund project "${project.title}" was ${actionText}. If you believe this was a mistake, reply to this email and we'll take a look.\n\nFor your reference, here is what you submitted:\n\n${proposalText}`,
-      buttonUrl: SITE_URL,
-      buttonText: 'Go to Manifund',
-      subject: 'Your Manifund project was flagged by our spam filter',
-    },
-    undefined,
-    email
-  )
+  const model = {
+    notifText: `Your Manifund project "${project.title}" was ${actionText}. If you believe this was a mistake, reply to this email and we'll take a look.\n\nFor your reference, here is what you submitted:\n\n${proposalText}`,
+    buttonUrl: SITE_URL,
+    buttonText: 'Go to Manifund',
+    subject: 'Your Manifund project was flagged by our spam filter',
+  }
+  if (action === 'removed') {
+    // The account is being removed: no profile to show an in-app notification to.
+    await notifyAddressOnly(() =>
+      sendTemplateEmail(TEMPLATE_IDS.GENERIC_NOTIF, model, undefined, email)
+    )
+  } else {
+    await notify({
+      to: project.creator,
+      reason: 'project_flagged',
+      projectId: project.id,
+      email: templateEmail(TEMPLATE_IDS.GENERIC_NOTIF, model, project.creator, email),
+    })
+  }
 }
 
 // Records a spam verdict to project_scores for the admin audit trail / shadow

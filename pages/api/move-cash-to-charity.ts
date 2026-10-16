@@ -4,7 +4,8 @@ import { getProfileById } from '@/db/profile'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { getPendingBidsByUser } from '@/db/bid'
 import { calculateCashBalance } from '@/utils/math'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import uuid from 'react-uuid'
 
 export const config = {
@@ -52,6 +53,16 @@ export default async function handler(req: NextRequest) {
     email: user.email,
     txnId: txnId,
   }
-  await sendTemplateEmail(TEMPLATE_IDS.CASH_TO_CHARITY, postmarkVars, undefined, user.email)
+  await notify({
+    to: user.id,
+    reason: 'cash_to_charity',
+    amount,
+    email: templateEmail(
+      TEMPLATE_IDS.CASH_TO_CHARITY,
+      postmarkVars,
+      user.id,
+      user.email ?? undefined
+    ),
+  })
   return NextResponse.json('success')
 }

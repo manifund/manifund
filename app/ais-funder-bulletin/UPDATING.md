@@ -11,12 +11,16 @@ file, open a PR, and merging deploys it.
   Bump it whenever you change any content.
 - `AT_A_GLANCE: Row[]` — the summary table. Each row: `name`, `href`,
   `donated2025`, `grants2025`, `expected2026` (each a `Cell`), `fte`, and
-  booleans `generalApps` / `openRfps` / `donations`.
+  booleans `generalApps` / `openRfps` / `donations`. Keep rows sorted by
+  `expected2026`, largest first; re-sort if a figure changes.
 - `NOTES` — the footnotes, rendered as an ordered list in the "Notes" section.
+  Number them in order of first appearance in the table; renumber after a re-sort.
 - `<Funder title="...">` sections — one collapsible profile per funder, each
   with the same nested-list structure: Website / Background / Thesis /
-  By the numbers / Recent updates / Get involved.
-- "Not included" section — funders deliberately excluded, with rationale.
+  By the numbers / Recent updates / Get involved. Keep profiles in the same
+  order as the table rows.
+- "Not included" section — funders deliberately excluded. Describe them; don't
+  explain why they are excluded.
 - "Other resources" — external links.
 
 ## Gotchas
@@ -63,7 +67,11 @@ For each funder:
 - **Make changes consistently in both the At-a-glance table and the funder
   profiles** whenever both apply.
 - Refresh "Recent updates" bullets with notable grants or announcements, and
-  "Get involved" with current job openings.
+  "Get involved" with current job openings. Keep only updates from roughly the
+  last month; delete older bullets, and drop the "Recent updates" section
+  entirely when a funder has nothing new. Keep it short: skip details that
+  aren't relevant to AI safety, such as roles closed or programs outside AI
+  safety.
 
 Also consider whether significant new information has come out about anything
 in the "Not included" section.

@@ -5,7 +5,8 @@ import { createAdminClient } from '@/db/supabase-admin'
 import { getProfileById, isAdmin } from '@/db/profile'
 import { getProjectById } from '@/db/project'
 import { getURL } from '@/utils/constants'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { maybeActivateProject } from '@/utils/activate-project'
 import { post } from '@/lib/comments'
 import { log } from '@/lib/log'
@@ -83,17 +84,22 @@ export async function POST(req: Request) {
   const recipientMessage = approved
     ? `We've approved your project, "${project.title}"! Once you've reached your minimum funding goals and signed your grant agreement, you'll be able to withdraw your funds via your profile page.`
     : `We regret to inform you that we've decided not to approve your project, "${project.title}." We've left a comment on your project with a short explanation as to why. Please let us know on our discord or by replying to that comments if you have any questions or feedback about the process.`
-  await sendTemplateEmail(
-    TEMPLATE_IDS.VERDICT,
-    {
-      recipientFullName: creator.full_name,
-      verdictMessage: recipientMessage,
-      projectUrl: `${getURL()}/projects/${project.slug}`,
-      subject: recipientSubject,
-      adminName,
-    },
-    creator.id
-  )
+  await notify({
+    to: creator.id,
+    reason: 'project_verdict',
+    projectId: project.id,
+    email: templateEmail(
+      TEMPLATE_IDS.VERDICT,
+      {
+        recipientFullName: creator.full_name,
+        verdictMessage: recipientMessage,
+        projectUrl: `${getURL()}/projects/${project.slug}`,
+        subject: recipientSubject,
+        adminName,
+      },
+      creator.id
+    ),
+  })
   await maybeActivateProject(supabase, projectId)
   return NextResponse.json({ ok: true, noteError })
 }
