@@ -237,6 +237,3 @@ Run locally: see `tests/ai-reference/README.md`. Each test names the rules it ch
 - **Database** (`tests/ai-reference/db/agreements.test.ts`): A2 and A9 (the tables' own checks), A16 (one agreement
   per token hash), A20, A21 (who can write the two tables, who can read the private one), A22 (the countersignature
   on its own agreement only).
-- **Routes** (`tests/ai-reference/routes/agreements.test.ts`): A1, A5-A19 (the signing flows end to end, including
-  activation on signing, B10), A22-A28. Signing-link tests send a link
-  through the route, then store the hash of a token the test knows.

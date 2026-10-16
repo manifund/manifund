@@ -4,6 +4,9 @@ Tests check the rules in the product docs (`docs/product/<area>/README.md`): eac
 checks (e.g. `C11`), and `bun run test:rules` lists rules that no test names yet. They run **locally**, against the
 local Supabase and a dev server; they're not set up for CI yet.
 
+`tests/ai-reference/` holds optional tests for the agent-written docs in `docs/ai-reference/`; the commands below
+don't run them (`bun run test:ai-reference`, see `docs/ai-reference/README.md`).
+
 ## Running them
 
 | Command | What | Needs | Time |

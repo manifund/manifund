@@ -214,10 +214,7 @@ called: keys are blank locally, and the in-process tests below answer for them.
   the Stripe webhook and Mercury's code run in a child process against the local database, with Stripe's signature made
   locally and Mercury's answers faked; the test checks the txns and requests recorded. W2, W3, W5, W10, W17 (the
   known method), W19-W22, W25.
-- **Routes** (`tests/ai-reference/routes/deposits-withdrawals.test.ts`): W1, W2, W4, W8, W11, W12, W14, W18,
-  W23-W26, up to where Stripe or Mercury would be called, checking that nothing is recorded until then; moving cash
-  to charity (W26) end to end.
-- **Still to test** (`test.todo`, each with its reason): W9 and W13 (both payout routes stop before recording
+- **Not tested**: W9 and W13 (both payout routes stop before recording
   locally: Stripe's account lookup is blocked, Mercury refuses outside production), the success paths of W1, W11,
   W12 and W14, the crons' production behaviour (W23, W24), and what the deposit box asks in the browser (W1, W4,
   W6).

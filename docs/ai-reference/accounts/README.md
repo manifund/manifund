@@ -158,8 +158,7 @@ necessarily who decided. Newest first.
 
 ## Tests
 
-Run locally (not in CI yet): `bun run test:ai-reference` and
-`bun run test:ai-reference:routes` (`../README.md`). Each test names the rules it checks.
+Run locally (not in CI yet): `bun run test:ai-reference` (`../README.md`). Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/accounts.test.ts`): where people land after signing in (S3), `/sso` refusing
   other sites (S21), the order of a ban's steps (S17), the spam filter's ban-or-hide choice (S19).
@@ -168,8 +167,5 @@ Run locally (not in CI yet): `bun run test:ai-reference` and
   S12), the sign-up switch (S11).
 - **Database** (`tests/ai-reference/db/accounts.test.ts`): the profile made at sign-up (S7, S8), no profiles created
   or deleted from browsers (S9), what a ban deletes (S17).
-- **Routes** (`tests/ai-reference/routes/accounts.test.ts`): email links at `/auth/callback`, including a reset link
-  used without the browser that asked (S3, S13); bans by admins only, and an admin's ban of a throwaway person (S16,
-  S17); `/sso` signed in and signed out (S20-S22). Redirects are read, never followed, so Trace isn't contacted.
 - **Not tested here**: Google itself (S6) needs Google; changing and resetting the password in the form and signing
   out (S12, S14, S15) need a browser.

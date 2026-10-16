@@ -152,11 +152,8 @@ Found while writing this doc (2026-10-08); none decided.
 
 ## Tests
 
-Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (needs
-the dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (unit, database, components); see `tests/ai-reference/README.md`. Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/dormant.test.ts`): X3 (pricing), X4 (trade checks), X8 (offer after a trade).
 - **Component** (`tests/ai-reference/components/dormant-shareholders.test.tsx`): X9 (the Shareholders tab).
 - **Database** (`tests/ai-reference/db/dormant.test.ts`): X12.
-- **Routes** (`tests/ai-reference/routes/dormant.test.ts`, on the file's own certificates and people): X1, X2, X5,
-  X6, X7, X8 (through an accepted offer), X11.

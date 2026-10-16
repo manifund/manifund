@@ -187,6 +187,4 @@ Run locally: see `tests/ai-reference/README.md`. Each test names the rules it ch
 - **Logic**: R10 (replacing a project's causes).
 - **Components**: R4 (the page's numbers), R8 (the 3-cause limit), R16 (participants), R17 (the match).
 - **Database**: R1 (public reads), R2 (others can't change them), R7 (links), R11 (rounds exist).
-- **Routes**: R3-R5, R9-R15 (pages, what creating and editing a project saves, the fund page and a donation to a
-  fund), and the not-found pages.
 - **Browser** (to write): R6 and what the create and edit forms offer (R8, R9): they render in the browser only.

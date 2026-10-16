@@ -181,7 +181,3 @@ Run locally: see `tests/ai-reference/README.md`. Each test names the rules it ch
 - **Components** (`tests/ai-reference/components/donor-survey.test.tsx`): D17, D18 (what visitors, the donor and admins see).
 - **Database** (`tests/ai-reference/db/donor-survey.test.ts`): D3 (the funds check), D5 (one response per account and per email),
   D21 (no browser writes; people read only their own), D22.
-- **Routes** (`tests/ai-reference/routes/donor-survey.test.ts`): D1-D20, except what needs the emailed edit link
-  (D9, D11). Saving is a server action, called as the form calls it (a POST to `/donor-survey` with the action's id,
-  found in the page's scripts: dev servers only). Not checked: the move to the results after saving and the hint for
-  signed-out people who tick "public" (both in the browser).

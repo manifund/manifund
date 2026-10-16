@@ -138,7 +138,3 @@ Run locally: see `tests/ai-reference/README.md`. Each test names the rules it ch
 - **Components** (`tests/ai-reference/components/karma.test.tsx`): K11 (the karma sort), K12 (the number, cards).
 - **Database** (`tests/ai-reference/db/karma.test.ts`): K1 (the stored columns), K7 (writing every row), K8 (the nudge
   function), K9 (who can write).
-- **Routes** (`tests/ai-reference/routes/karma.test.ts`): K6 (a new project's starting karma), K7 (the scheduled job
-  and the admin recompute refuse others), K8 (a vote moves karma), K12 (the project page: the number right before
-  the title heading in the rendered body), K13 (the pages; the sidebar link is checked in the menu items the server
-  sends, since the About menu renders its links only once opened).

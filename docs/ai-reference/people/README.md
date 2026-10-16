@@ -183,6 +183,3 @@ Run locally: see `tests/ai-reference/README.md`. Each test names the rules it ch
 - **Components** (`tests/ai-reference/components/people.test.tsx`): U12, U14-U16, U18 (profile header); U16, U18, U21-U24 (the
   people list); U19 (badges).
 - **Database** (`tests/ai-reference/db/people.test.ts`): U1-U5.
-- **Routes** (`tests/ai-reference/routes/people.test.ts`): U6, U9-U11, U13-U15, U17, U20, U25-U27. The leaderboard test
-  (U26) loads the whole page, about 20 s on a large database. U7 and U8 are `test.todo`: they're the form's own
-  checks in the browser (a browser test would cover them).

@@ -175,8 +175,7 @@ Newest first. Found in commits and PRs; none of these were re-confirmed during t
 
 ## Tests
 
-Run locally: `bun run test:ai-reference` and
-`bun run test:ai-reference:routes` (`../README.md`). Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (`../README.md`). Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/api.test.ts`, the MCP servers called in-process, no database): I9 (tools,
   instructions, both URLs), I11 and I14-I18 (input ranges), I20 (errors as results), I21 (the token check), I22 (admin
@@ -185,7 +184,3 @@ Run locally: `bun run test:ai-reference` and
   tool).
 - **Database** (`tests/ai-reference/db/api.test.ts`): I23, I24 (read-only SQL: role, limits, who may call it), I25 and
   I26 (the search functions), I8 (the id filter's text column).
-- **Routes** (`tests/ai-reference/routes/api.test.ts`, against the dev server; the admin server in-process on the
-  local database, since no admin token is configured locally): I1, I3-I8, I10-I19, I21, I22. Not covered: I15's
-  ranking (needs embeddings), `query_sql` end to end (the local database lacks the role membership production has; the
-  function itself is in the database tests).

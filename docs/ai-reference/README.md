@@ -43,7 +43,6 @@ test`, `test:routes` and `test:rules` don't run or count them.
 | Command | What | Needs |
 |---|---|---|
 | `bun run test:ai-reference` | unit, database and component tests | local Supabase |
-| `bun run test:ai-reference:routes` | the app's routes as test people | local Supabase + a dev server (`TEST_BASE_URL`) |
 | `bun run test:ai-reference:rules` | which rules here have tests | nothing |
 
 ## Promoting an area
@@ -53,7 +52,7 @@ When someone works on one of these areas, give it a real product doc:
 1. Move what's still true (and wanted) into `docs/product/<area>/README.md`, in the format of `../README.md`
    ("Writing product docs"); drop what isn't. Keep the rule ids or renumber them, and check they don't clash with
    another area's letter.
-2. Move the tests that still apply into the main folders (`tests/unit/`, `tests/db/`, `tests/routes/`), with main's
+2. Move the tests that still apply into the main folders (`tests/unit/`, `tests/db/`), with main's
    helpers.
 3. Delete the area's folder here, and its tests in `tests/ai-reference/`.
 

@@ -150,12 +150,8 @@ For the team:
 
 ## Tests
 
-Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (needs
-the dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (unit, database, components); see `tests/ai-reference/README.md`. Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/regrants.test.ts`): G9 (a grant offer from pending to activation).
 - **Database** (`tests/ai-reference/db/regrants.test.ts`): G5-G9 (the grant functions: what they write, who may call
   them), G13-G15 (the verdict function), G18 (roles).
-- **Routes** (`tests/ai-reference/routes/regrants.test.ts`): G1-G4, G7 (through the route), G9 and G13 (an approval
-  activates a grant at its minimum), G11, G12, G16, G17 (refusals), G19. Not tested (`test.todo`): G12's admin
-  without a name (admins come from the server's environment). G10 (the recipient's email) has no test here.
