@@ -1824,6 +1824,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      credit_stripe_checkout: {
+        Args: {
+          p_amount: number
+          p_bank_id: string
+          p_pass_funds_to?: string
+          p_session_id: string
+          p_txn_id: string
+          p_user_id: string
+        }
+        Returns: boolean
+      }
       execute_readonly_sql: {
         Args: { max_rows?: number; query: string }
         Returns: Json
