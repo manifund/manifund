@@ -86,6 +86,8 @@ rules. The overview of the code and services is in `../README.md`.
 - Every new or edited project gets an automatic spam check, an AI quality score (a short rubric: concrete plan,
   budget clarity, track record, falsifiability, grandiose claims) and an AI-text check. The score is shown, not
   used to hide projects.
+- Projects posted since July 2026 also get a public AI evaluation: a 1-5 merit score, a short opinion, and the
+  chance it reaches its minimum funding. Recorded only for now, not shown or used for ranking.
 - Votes on projects; an experimental form for rating past grants' impact.
 - **Why:** with many submissions, donors need signals beyond the pitch; automatic checks catch spam, people judge
   the rest.

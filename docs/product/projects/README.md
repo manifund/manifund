@@ -7,9 +7,28 @@ Until then: the overview is in `../intent.md` ("Grant requests", "Giving", "Regr
 the lifecycle rules live in `utils/activate-project.ts`, `pages/api/close-grants.ts` and the SQL functions
 `activate_grant`, `reject_proposal`.
 
-## Rules (first ones)
+## AI evaluation
 
-- **P1** Only the server moves a project into a stage that follows a decision or a funding outcome: active, not
+Claude reads each project as a donor would see it and records a 1-5 merit score, a 2-4 sentence opinion, and the
+probability it reaches its minimum funding. For now these are only recorded (`project_ai_evals`); showing them on
+pages, the homepage or the weekly digest comes later. The prompt was chosen by testing on closed proposals
+(`tools/proposal-eval`).
+
+- **P1** Projects posted on or after 1 July 2026 are evaluated; earlier ones aren't, since the model may have seen
+  them, outcomes included, in training.
+- **P2** The model sees the title, blurb, description, minimum, goal, posting date and creator's name; never votes,
+  comments or money raised.
+- **P3** A project is evaluated when it's created, published or edited, with a nightly run catching any missed.
+  After its first evaluation, edits are evaluated again only while it can still take money (proposal or active).
+- **P4** Evaluations are never overwritten: each new text gets its own row, with the stage it was in, so the
+  evaluation made when a proposal was posted survives later edits.
+- **P5** Evaluations are public, like the rest of a project's data.
+- **P6** When the model declines to evaluate a project (some biosecurity proposals), that is recorded and not
+  retried for the same text.
+
+## Stage
+
+- **P7** Only the server moves a project into a stage that follows a decision or a funding outcome: active, not
   funded, or back to proposal. People publish their draft as a proposal, close their active project (complete) and
   hide their project; a project they create starts as a draft or a proposal. A certificate program without a
   proposal phase starts its projects active only while it's open, as stored in the database. Regrants always create a

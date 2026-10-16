@@ -252,7 +252,6 @@ async function saveProfile(new_profile: Profile, avatar: File | null, supabase: 
       website: new_profile.website,
       full_name: new_profile.full_name,
       avatar_url: avatarUrl,
-      regranter_status: new_profile.regranter_status,
     })
     .eq('id', new_profile.id)
   if (error) {

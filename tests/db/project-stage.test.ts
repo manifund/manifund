@@ -33,7 +33,7 @@ async function creatorMoves(tx: Tx, from: string, to: string) {
   return r.stage
 }
 
-describe('P1: project stage is set by the server, apart from the moves people make themselves', () => {
+describe('P7: project stage is set by the server, apart from the moves people make themselves', () => {
   test('people publish a draft, close an active project and hide their project', () =>
     inRollback(async (tx) => {
       await tx.unsafe(migration)

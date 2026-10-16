@@ -17,6 +17,10 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/project-ai-evals/sync",
+      "schedule": "30 9 * * *"
+    },
+    {
       "path": "/api/weekly-digest",
       "schedule": "0 17 * * 1"
     },
