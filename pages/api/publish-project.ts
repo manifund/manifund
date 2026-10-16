@@ -1,3 +1,4 @@
+import { onProjectPublished } from '@/lib/follows'
 import { updateProject, getProjectById } from '@/db/project'
 import { invalidateProjectsCache } from '@/db/project-cached'
 import { NextRequest, NextResponse } from 'next/server'
@@ -70,6 +71,8 @@ export default async function handler(req: NextRequest) {
 
   invalidateProjectsCache()
   await triggerProjectScoring(projectId)
+  // followers of the creator and matching saved searches (F3, F6; never throws)
+  await onProjectPublished(projectId)
 
   return NextResponse.json('success')
 }

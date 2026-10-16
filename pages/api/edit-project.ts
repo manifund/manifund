@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { matchSavedSearches } from '@/lib/follows'
 import { invalidateProjectsCache } from '@/db/project-cached'
 import { updateProjectCauses } from '@/db/cause'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
@@ -47,6 +48,8 @@ export default async function handler(req: NextRequest) {
 
   invalidateProjectsCache()
   await triggerProjectScoring(projectId)
+  // new categories may now match saved searches; each person hears about a project once (F6, F7)
+  await matchSavedSearches(projectId)
 
   return NextResponse.json('success')
 }

@@ -1,7 +1,8 @@
 import Stripe from 'stripe'
 import { stripe } from '@/utils/stripe'
 import { createAdminClient } from '@/db/edge'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Readable } from 'node:stream'
 import uuid from 'react-uuid'
@@ -57,19 +58,25 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!credited) {
       return res.status(200).send('already credited')
     }
-    await sendTemplateEmail(
-      TEMPLATE_IDS.PAYMENT_CONFIRMATION,
-      {
-        amount: session.metadata?.dollarQuantity,
-        id: txnId,
-        fullName: session.customer_details?.name,
-        email: session.customer_details?.email,
-        destinationName: session.metadata?.passFundsToId
-          ? await getProfileNameById(session.metadata?.passFundsToId, supabase)
-          : 'your Manifund account',
-      },
-      session.metadata?.userId
-    )
+    const userId = session.metadata?.userId
+    const model = {
+      amount: session.metadata?.dollarQuantity,
+      id: txnId,
+      fullName: session.customer_details?.name,
+      email: session.customer_details?.email,
+      destinationName: session.metadata?.passFundsToId
+        ? await getProfileNameById(session.metadata?.passFundsToId, supabase)
+        : 'your Manifund account',
+    }
+    if (userId) {
+      await notify({
+        to: userId,
+        reason: 'deposit_receipt',
+        txnId,
+        amount: Number(session.metadata?.dollarQuantity ?? 0) || null,
+        email: templateEmail(TEMPLATE_IDS.PAYMENT_CONFIRMATION, model, userId),
+      })
+    }
   }
   return res.status(200).send('success')
 }

@@ -2,11 +2,13 @@
 // If Vercel Attack Challenge Mode is on, this endpoint must be bypassed in Vercel Firewall rules,
 // otherwise the webhook will be blocked by the security checkpoint.
 import { NextApiRequest, NextApiResponse } from 'next'
+import { onDonation } from '@/lib/follows'
 import { getProjectAndProfileById, ProjectAndProfile, TOTAL_SHARES } from '@/db/project'
 import { maybeActivateProject } from '@/utils/activate-project'
 import { Bid } from '@/db/bid'
 import { getShareholders } from '@/app/projects/[slug]/project-tabs'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { createAdminClient } from '@/db/edge'
 import { getTxnsByProject } from '@/db/txn'
@@ -25,6 +27,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(404).json({ error: 'Project not found' })
   }
   if (project.stage === 'proposal') {
+    // In-app only (N1): a new offer on your proposal never emailed, and still doesn't.
+    if (bid.bidder !== project.creator) {
+      await notify({
+        to: project.creator,
+        reason: 'new_offer',
+        actorId: bid.bidder,
+        projectId: project.id,
+        bidId: bid.id,
+        amount: bid.amount,
+      })
+    }
+    // people who follow the bidder (F4): an offer on a proposal is a donation to come (never throws)
+    if (bid.type === 'donate' || bid.type === 'assurance buy' || bid.type === 'buy') {
+      await onDonation({
+        donorId: bid.bidder,
+        projectId: project.id,
+        amount: bid.amount,
+        bidId: bid.id,
+      })
+    }
     await maybeActivateProject(supabase, bid.project)
   } else if (project.type === 'cert') {
     await findAndMakeTrades(bid, supabase)
@@ -55,16 +77,21 @@ async function sendShareholderEmails(
   }
   const shareholders = getShareholders(txns)
   for (const shareholder of shareholders) {
-    await sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF,
-      {
-        notifText: genBidText(bidder.full_name, bid, project),
-        buttonUrl: `manifund.org/projects/${project.slug}?tab=bids`,
-        buttonText: 'See offer',
-        subject: `New offer from ${bidder.full_name} on "${project.title}"`,
-      },
-      shareholder.profile.id
-    )
+    const model = {
+      notifText: genBidText(bidder.full_name, bid, project),
+      buttonUrl: `manifund.org/projects/${project.slug}?tab=bids`,
+      buttonText: 'See offer',
+      subject: `New offer from ${bidder.full_name} on "${project.title}"`,
+    }
+    await notify({
+      to: shareholder.profile.id,
+      reason: 'new_offer',
+      actorId: bid.bidder,
+      projectId: project.id,
+      bidId: bid.id,
+      amount: bid.amount,
+      email: templateEmail(TEMPLATE_IDS.GENERIC_NOTIF, model, shareholder.profile.id),
+    })
   }
 }
 
