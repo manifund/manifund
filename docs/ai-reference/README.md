@@ -51,7 +51,8 @@ When someone works on one of these areas, give it a real product doc:
 
 1. Move what's still true (and wanted) into `docs/product/<area>/README.md`, in the format of `../README.md`
    ("Writing product docs"); drop what isn't. Keep the rule ids or renumber them, and check they don't clash with
-   another area's letter.
+   another area's letter. The letters here avoid the ones `docs/product/` uses (C, F, N, O, P, U): people's rules
+   here are E, since the product doc for people has U.
 2. Move the tests that still apply into the main folders (`tests/unit/`, `tests/db/`), with main's
    helpers.
 3. Delete the area's folder here, and its tests in `tests/ai-reference/`.

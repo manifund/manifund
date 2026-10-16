@@ -22,7 +22,7 @@ async function signUp(tx: Tx, email: string, meta: Record<string, unknown> = {})
   return p as { username: string; full_name: string }
 }
 
-describe('U1 every profile is public', () => {
+describe('E1 every profile is public', () => {
   test('visitors and signed-in people read any profile', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
@@ -35,7 +35,7 @@ describe('U1 every profile is public', () => {
     }))
 })
 
-describe('U2 signing up creates the profile, named from the email or the Google name', () => {
+describe('E2 signing up creates the profile, named from the email or the Google name', () => {
   test('username: the email local part with only letters, digits, _ and - kept; name: the local part', () =>
     inRollback(async (tx) => {
       const t = tag()
@@ -59,7 +59,7 @@ describe('U2 signing up creates the profile, named from the email or the Google 
     }))
 })
 
-describe('U3 usernames are unique, exactly as typed', () => {
+describe('E3 usernames are unique, exactly as typed', () => {
   test('a second profile with the same username is refused', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
@@ -73,7 +73,7 @@ describe('U3 usernames are unique, exactly as typed', () => {
     }))
 })
 
-describe('U4 others don\'t change someone\'s profile; nobody adds or deletes one', () => {
+describe('E4 others don\'t change someone\'s profile; nobody adds or deletes one', () => {
   test('a person changes their own profile', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
@@ -110,7 +110,7 @@ describe('U4 others don\'t change someone\'s profile; nobody adds or deletes one
     }))
 })
 
-describe('U5 avatars are public; people upload only into their own folder', () => {
+describe('E5 avatars are public; people upload only into their own folder', () => {
   test('into their own folder: allowed, and anyone reads it', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)

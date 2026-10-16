@@ -59,7 +59,7 @@ Where each power is written down. Rules there, not repeated here.
 | Edit or remove anyone's comment, with a public note or reason | Comments | `../../product/comments/README.md`, C15-C17 |
 | Review reported comments (`/admin/comment-reports`) | Comments | C20 |
 | Ban an account and delete what it made ("Superban") | Accounts | `../accounts/README.md`, S16, S17 (comments: C18) |
-| Mark someone an accredited investor (`/admin/users`) | People | `../people/README.md`, U25 |
+| Mark someone an accredited investor (`/admin/users`) | People | `../people/README.md`, E25 |
 | Move money from any account to another ("Create txn") | Ledger | `../ledger/README.md`, L15 |
 | Credit a gift received outside the site, or record a payout, by hand | This doc (the money's meaning: `../deposits-withdrawals/README.md`, W6) | M6, M7 |
 | Edit a cause's or round's description and image | Causes | `../causes/README.md`, R6 |
@@ -87,7 +87,7 @@ Observed (code, 2026-10-08). Ids are stable once merged.
   page's data, because each page checks before it reads anything (A27 says the same of the approvals list). `/admin`
   opens the approvals list.
 - **M4** `/admin/users` lists every account: its email, its username (linking to the profile), the accreditation
-  toggle (U25), its balance with the pay box (M5, M6), and a link to its row in Supabase. A search box filters by
+  toggle (E25), its balance with the pay box (M5, M6), and a link to its row in Supabase. A search box filters by
   email or username; "Export users.csv" downloads email, name, username, id and balance for every account.
 - **M5** The balance shown there is the account's USD txns received minus those sent, with pending offers left out
   (so it can differ from the charity balance the person sees), shown to at most two decimals. Clicking it puts its

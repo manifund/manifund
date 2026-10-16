@@ -36,7 +36,10 @@ signature (notifications).
 ## How it's built
 
 - **On the project**: `projects.signed_agreement` (the flag activation, the project page and lists read) and
-  `projects.approved` (the verdict: null undecided, true approved, false rejected).
+  `projects.approved` (the verdict: null undecided, true approved, false rejected). Only the server sets them (and the
+  project's `type` and `creator`): a database trigger, `protect_project_approval_columns`, keeps them as they were
+  when anyone else updates a project, and a project a person creates starts unapproved and unsigned (#308,
+  2026-10-16; tests: `tests/db/project-approval.test.ts`).
 - **`grant_agreements`**: one row per project, created when the agreement is signed or sent for signature. What the
   page shows: the snapshot at signing (recipient name, project title and description, lobbying choice, version),
   the organization's details, `rendered_document` (the HTML as signed), `signed_at`, `approved_at` / `approved_by`

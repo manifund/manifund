@@ -37,7 +37,7 @@ Draft for the team to confirm (from `docs/product/intent.md`, the about pages an
   transaction: the recipient's email, the rationale comment (`lib/comments`), the project's causes, the projects
   cache, scoring.
 - **A grant is an offer.** The regrantor's contribution is a pending `donate` bid; it becomes a `project donation`
-  txn only when the project activates (`utils/activate-project.ts`, `activate_grant`: the offers area).
+  txn only when the project activates (`utils/activate-project.ts`, `activate_proposal`: the offers area).
 - **Verdicts**: the admin's modal (`app/admin/grant-verdict.tsx`, on `/admin/approvals` and the project page) →
   `POST /api/issue-grant-verdict` → `execute_grant_verdict_v2` (service role only), then the admin's note (a comment),
   the verdict email, and an activation check.

@@ -8,7 +8,7 @@ on their profile (`/<username>/donor`). How it changed since it shipped: `histor
 
 Backfilled 2026-10-08 from the code and its history: the rules say what the product does today ("observed"), not
 what anyone decided it should do, unless a decision is cited. Neighbouring areas: who is an admin is `../admin/`
-(M1, M2), the profile page around the donor-page link is `../people/` (U11, U12), sign-in is `../accounts/` (S).
+(M1, M2), the profile page around the donor-page link is `../people/` (E11, E12), sign-in is `../accounts/` (S).
 
 ## What it's for (draft, for the team to confirm)
 

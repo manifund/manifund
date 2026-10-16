@@ -87,9 +87,11 @@ Donations to projects in proposal are offers (B); this is the direct donation to
 account (a regrantor's budget, a fund).
 
 - **L13** A signed-in person donates from their charity balance: to a project (the money goes to its creator, as a
-  "project donation" naming the project) or to an account (a "profile donation"). Observed (code, 2026-10-08).
-- **L14** A donation can't be more than the donor's charity balance (pending offers count as spent), and can't be
-  negative. Observed (code, 2026-10-08). A person's donation to a grant project is also at least $10 and at most
+  "project donation" naming the project) or to an account (a "profile donation"). Observed (code, 2026-10-08). A
+  person's project donation goes only to an active project, and only to its creator: otherwise it's refused (400)
+  with the reason, which the donate box shows (#315, 2026-10-16; tests: `tests/routes/donations.test.ts`).
+- **L14** A donation can't be more than the donor's charity balance (pending offers count as spent), and must be a
+  positive number (#315 also refuses non-finite amounts). Observed (code, 2026-10-08). A person's donation to a grant project is also at least $10 and at most
   what's left of its funding goal, on the page and the server alike (`../offers/README.md` B21; Vals, #289). Donations to a person or a fund keep only the balance check on the server
   (the person's donate box asks for $10; the fund and cause boxes don't).
 - **L15** Only the account's owner donates from it; an admin can move money from any account (admin page, "Create

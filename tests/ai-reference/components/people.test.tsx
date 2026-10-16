@@ -45,7 +45,7 @@ const rows = (html: string) => [...html.matchAll(/<a class="flex-2[^"]*" href="\
 const REGRANTOR_TAG = 'bg-orange-500 p-0.5' // the people list's small regrantor tag
 const CREATOR_TAG = 'bg-blue-500 p-0.5'
 
-describe('U12 a profile shows the name, @username, bio and website', () => {
+describe('E12 a profile shows the name, @username, bio and website', () => {
   test('name, username, bio, and the website as a link', () => {
     const html = header(profile({ full_name: 'Ann Lee', username: 'annlee', bio: 'Works on evals', website: 'ann.example' }), false)
     for (const text of ['Ann Lee', '@annlee', 'Works on evals', 'href="https://ann.example"']) expect(html).toContain(text)
@@ -55,7 +55,7 @@ describe('U12 a profile shows the name, @username, bio and website', () => {
   })
 })
 
-describe('U14 the email address shows only on your own profile', () => {
+describe('E14 the email address shows only on your own profile', () => {
   test('own profile: shown', () => {
     expect(header(profile(), true, 'me@example.test')).toContain('me@example.test')
   })
@@ -64,7 +64,7 @@ describe('U14 the email address shows only on your own profile', () => {
   })
 })
 
-describe('U15 your own profile has an edit link and a sign-out button', () => {
+describe('E15 your own profile has an edit link and a sign-out button', () => {
   test('own profile', () => {
     const html = header(profile(), true, 'me@example.test')
     expect(html).toContain('href="/edit-profile"')
@@ -77,7 +77,7 @@ describe('U15 your own profile has an edit link and a sign-out button', () => {
   })
 })
 
-describe('U16 accreditation is shown neither on profiles nor on /people', () => {
+describe('E16 accreditation is shown neither on profiles nor on /people', () => {
   test('profile header', () => {
     const p = profile({ accreditation_status: true, regranter_status: false })
     expect(header(p, false)).toBe(header({ ...p, accreditation_status: false }, false))
@@ -88,7 +88,7 @@ describe('U16 accreditation is shown neither on profiles nor on /people', () => 
   })
 })
 
-describe('U18 regrantors are tagged on their profile and on /people', () => {
+describe('E18 regrantors are tagged on their profile and on /people', () => {
   test('profile header', () => {
     expect(header(profile({ regranter_status: true }), false)).toContain('>regrantor<')
     expect(header(profile(), false)).not.toContain('>regrantor<')
@@ -99,7 +99,7 @@ describe('U18 regrantors are tagged on their profile and on /people', () => {
   })
 })
 
-describe('U19 badges next to names come from lists of usernames', () => {
+describe('E19 badges next to names come from lists of usernames', () => {
   test('a username on the 2025 regrantor list gets a badge; the team gets their own; others none', () => {
     const regrantor = renderToStaticMarkup(<UserBadge username="NeelNanda" />)
     const team = renderToStaticMarkup(<UserBadge username="Austin" />)
@@ -110,10 +110,10 @@ describe('U19 badges next to names come from lists of usernames', () => {
   })
   // Open question (people doc, "Two sources for regrantor"): the badge doesn't follow regranter_status, and
   // UserBadge only knows the username, so this can't be written until it does.
-  test.todo('U19 any current regrantor gets the badge next to their name', () => {})
+  test.todo('E19 any current regrantor gets the badge next to their name', () => {})
 })
 
-describe('U21 /people lists individuals with a complete profile', () => {
+describe('E21 /people lists individuals with a complete profile', () => {
   test('a username other than the id, and a full name', () => {
     const ok = profile()
     const noUsername = profile()
@@ -128,7 +128,7 @@ describe('U21 /people lists individuals with a complete profile', () => {
   })
 })
 
-describe('U22 /people order: regrantors, people with a project, with a bio, accredited, the rest', () => {
+describe('E22 /people order: regrantors, people with a project, with a bio, accredited, the rest', () => {
   test('groups in that order', () => {
     const rest = profile()
     const accredited = profile({ accreditation_status: true })
@@ -141,7 +141,7 @@ describe('U22 /people order: regrantors, people with a project, with a bio, accr
   })
 })
 
-describe('U23 a row: avatar, name, bio, tags, link to the profile', () => {
+describe('E23 a row: avatar, name, bio, tags, link to the profile', () => {
   test('name, bio and link', () => {
     const p = profile({ full_name: 'Ann Lee', bio: 'Works on evals' })
     const html = people([p])
@@ -153,7 +153,7 @@ describe('U23 a row: avatar, name, bio, tags, link to the profile', () => {
   })
 })
 
-describe('U24 /people loads 50 rows at a time', () => {
+describe('E24 /people loads 50 rows at a time', () => {
   test('60 people: 50 rows at first', () => {
     expect(rows(people(Array.from({ length: 60 }, () => profile())))).toHaveLength(50)
   })

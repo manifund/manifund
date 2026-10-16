@@ -10,7 +10,7 @@ past their deadline and restoring them are part of the project lifecycle.
 
 **Status of this doc.** Written from the code on 2026-10-08 (backfill), not yet read by the team. Every rule below is
 **observed (code, 2026-10-08)**: what the product does today, not a decision, except B20-B22, **decided (Vals,
-2026-10-09; shipped in #289)**. "What offers are for" is a draft of the
+2026-10-09; shipped in #289)**. B4, B8, B11-B14 and B23 were updated on 2026-10-17 for #312 and #319. "What offers are for" is a draft of the
 intent, for the team to confirm. Suspected bugs are under "Open questions", not rules.
 
 ## What offers are for (draft, to confirm)
@@ -40,9 +40,12 @@ intent, for the team to confirm. Suspected bugs are under "Open questions", not 
 - **Activation check**: `maybeActivateProject` in `utils/activate-project.ts`. Also called after an admin's
   approval (`app/api/issue-grant-verdict/route.ts`) and after the grant agreement is signed
   (`utils/grant-agreement-write.ts`), so whichever of the three conditions is met last activates the project.
-- **SQL functions** (one transaction each, so all-or-nothing): `activate_grant`, `activate_cert`, and
-  `reject_proposal` (also run by `execute_grant_verdict_v2` when an admin rejects). They're for the server only
-  (migration `20260911000000_secure_grant_rpcs.sql`).
+- **SQL functions** (one transaction each, so all-or-nothing): `activate_proposal` (activation, since #312, for
+  grants and certificates), `reject_proposal` (also run by `execute_grant_verdict_v2` when an admin rejects), and
+  the older `activate_grant` / `activate_cert`, which the app no longer calls. They're for the server only
+  (migrations `20260911000000_secure_grant_rpcs.sql`, `20261013170000_activate_proposal_checked_offers.sql`).
+- **Database trigger on `bids`** (`protect_bid_columns`, #319): only the server changes an offer; people can only
+  withdraw their own pending offers (B4, B8).
 - **Numbers**: `calcTotalOffered` / `calcFundingNeeded` (`utils/activate-project.ts`), `getAmountRaised`,
   `getMinIncludingAmm`, `getProposalValuation` (`utils/math.ts`).
 - **Emails** on activation (donors, creator, followers) are sent by `activateProject` after the money has moved;
@@ -61,7 +64,8 @@ Observed (code, 2026-10-08). Ids are stable once merged.
   (`../ledger/README.md`). A larger offer is refused ("Insufficient funds", status 401) and nothing is saved.
 - **B3** An offer on a project that doesn't exist is refused (404).
 - **B4** A new offer is `pending`, saved as sent (amount, valuation, type), with the bidder being the signed-in
-  person.
+  person. The database starts every offer that doesn't come from the server as `pending`, dated now (#319; tests:
+  `tests/db/bids-owner-edits.test.ts`).
 - **B5** On a grant proposal, the project page shows the donate box ("Offer to donate") while the amount offered is
   below the funding goal and no project transfer is pending; at the goal it says "Fully funded and not currently
   accepting donations." The box asks for at least $10 and at most the person's balance and what's left of the goal
@@ -95,8 +99,10 @@ past the cap"; shipped in #289). One function holds them, used by the page and t
 
 ### Withdrawing an offer
 
-- **B8** A bidder can withdraw their own offer (the Offers tab of the project, or their profile): it's marked
-  `deleted`, which releases the money it held.
+- **B8** A bidder can withdraw their own pending offer (the Offers tab of the project, or their profile): it's
+  marked `deleted`, which releases the money it held. Withdrawing is the only change people can make to an offer:
+  everything else about it (amount, valuation, type, project, status) is set by the server (#319; tests:
+  `tests/db/bids-owner-edits.test.ts`).
 
 ### Activation (grants)
 
@@ -104,15 +110,21 @@ past the cap"; shipped in #289). One function holds them, used by the page and t
   has approved it, and its creator has signed the grant agreement.
 - **B10** The check runs after each new offer on a proposal, after an admin's verdict, and after the agreement is
   signed; whichever comes last activates the project.
-- **B11** Activation (`activate_grant`) is one all-or-nothing step: the project becomes `active`, and every pending
-  `donate` offer becomes `accepted` and a `project donation` txn of the same amount, in USD, from the donor to the
-  creator, with the project set.
-- **B12** The full amount of every pending offer moves, even when together they exceed the minimum or the funding
+- **B23** Before activating, each pending offer is checked against its offerer's current charity balance (counting
+  everything but their offers on this project); offers they no longer cover are declined, with a log line
+  (`project.offers_declined_uncovered`) and no email. If the rest no longer reaches the minimum, the project stays a
+  proposal (#312; tests: `tests/unit/activation-offers.test.ts`).
+- **B11** Activation (`activate_proposal`) is one all-or-nothing step on exactly the offers just checked: the project
+  becomes `active`, and each checked `donate` offer becomes `accepted` and a `project donation` txn of the same
+  amount, in USD, from the donor to the creator, with the project set. If an offer appeared, changed or stopped
+  being pending since the check, nothing changes and the next check tries again (#312; tests:
+  `tests/db/activate-proposal.test.ts`).
+- **B12** The full amount of every checked offer moves, even when together they exceed the minimum or the funding
   goal.
-- **B13** Each offer becomes money once: two activations running at the same time (two webhooks, a verdict and a
-  signature) don't pay an offer twice.
-- **B14** Only the server activates or declines offers: `activate_grant`, `activate_cert` and `reject_proposal` can't
-  be called by signed-in people or visitors through the database API.
+- **B13** A project activates once: `activate_proposal` locks the project and acts only on a proposal, so two
+  activations running at the same time (two webhooks, a verdict and a signature) don't pay an offer twice.
+- **B14** Only the server activates or declines offers: `activate_proposal`, `activate_grant`, `activate_cert` and
+  `reject_proposal` can't be called by signed-in people or visitors through the database API.
 
 ### When a proposal isn't funded
 
@@ -135,7 +147,7 @@ past the cap"; shipped in #289). One function holds them, used by the page and t
   up to at least the creator's own `assurance sell` offer (with none, it needs nothing). Its valuation while a
   proposal is the minimum funding divided by the share investors get (all shares minus the founder's and the market
   maker's).
-- **B19** Activating a certificate (`activate_cert`): the project becomes `active`; each pending `assurance buy`
+- **B19** Activating a certificate (`activate_proposal`, as `activate_cert` did before #312): the project becomes `active`; each pending `assurance buy`
   becomes `accepted` and two txns in one bundle: its amount in USD from the buyer to the creator, and
   amount ÷ valuation × 10,000,000 shares from the creator to the buyer (`user to user trade`); the creator's pending
   `assurance sell` becomes `accepted`. The server then seeds the market maker. Auctions (`resolveAuction`) are in the
@@ -147,6 +159,7 @@ From the code's history; the "why" comes from the PRs. Newest first.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-10-16 | Vals (#312, #319) | Activation re-checks offers against balances and accepts exactly the offers checked (B11, B13, B23); people can only withdraw their own pending offers, the server sets everything else (B4, B8) | One check where money moves; offers can't change after they're placed |
 | 2026-10-09 | Vals (#289) | Offers and donations to a grant project are capped at what's left of the funding goal, pending offers counting, and the server applies the $10 minimum and the cap (B20-B22; open question 3) | "If once fully funded it doesn't accept more donations, it also shouldn't accept anything past the cap"; one set of rules, wherever the offer comes from |
 | 2026-10-08 | Vals (review) | The server applies the same limits as the donate box ($10 minimum; no offer past the funding goal), page and server aligned (open question 3). Whether a project may end up above its goal at all is for the team (B12) | One set of rules, wherever the offer comes from |
 | 2026-09-11 | Team (#243) | Offers need a finite positive amount and a non-negative valuation (B1); activation and rejection functions only for the server (B14) | Input checks and server-only money functions |
@@ -188,3 +201,5 @@ Run locally: `bun run test:ai-reference` (unit, database, components); see `test
 - **Database** (`tests/ai-reference/db/offers.test.ts`): B8 (only the bidder withdraws an offer), B11, B12, B13 (two
   activations at once), B14, B15, B19, B6 (a repeat follow).
 - **Logic** (`tests/ai-reference/unit/offers.test.ts`) also: B20-B22's limits (`utils/donation-limits.ts`).
+- **In main's tests** (`bun run test`): B4 and B8's server-only columns (`tests/db/bids-owner-edits.test.ts`), B11
+  and B13 with the checked offers (`tests/db/activate-proposal.test.ts`), B23 (`tests/unit/activation-offers.test.ts`).

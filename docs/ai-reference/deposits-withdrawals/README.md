@@ -30,7 +30,8 @@ hand), dormant features (`docs/ai-reference/dormant/`, X: mana deposits).
   themselves. Balances are computed from them (L5-L7); nothing here stores a balance.
 - **Card deposits** (`pages/api/checkout-sessions.ts`, `components/deposit-buttons.tsx`): the deposit box asks the
   server for a Stripe Checkout session and sends the person to Stripe's page. Stripe then calls
-  `pages/api/stripe-endpoints.ts` (a signed webhook), which records the deposit and emails a receipt. `stripe_txns`
+  `pages/api/stripe-endpoints.ts` (a signed webhook), which records the deposit through the SQL function
+  `credit_stripe_checkout` (W27) and emails a receipt. `stripe_txns`
   links each Stripe session (or, for Stripe payouts, transfer) to its txn.
 - **Stripe Connect payouts** (`pages/api/create-connect-account.ts`, `pages/api/stripe-connect-withdraw.ts`,
   `app/withdraw/`): a person sets up a Stripe Express account once (its id is kept on their profile,
@@ -85,6 +86,10 @@ A returning person (a Mercury recipient on file) starts at `ready_to_pay`. "Open
   from $10,000 up (lower fees). Observed (code, 2026-10-08).
 - **W7** Stripe records (`stripe_txns`) aren't readable or writable from browsers, signed in or not; only server
   code writes them. Observed (code, 2026-10-08).
+- **W27** Each Stripe checkout session is credited once. The webhook calls `credit_stripe_checkout`, which writes the
+  deposit, its `stripe_txns` row and any donation passed on (W5) in one transaction; a second delivery of the same
+  session records nothing, and the receipt goes out only for the first. If any part fails, nothing is recorded, so
+  Stripe's next delivery can credit it (#314, 2026-10-16; tests: `tests/db/stripe-checkout.test.ts`).
 
 ### Withdrawals, both ways
 
@@ -103,7 +108,9 @@ A returning person (a Mercury recipient on file) starts at `ready_to_pay`. "Open
   they're sent to Stripe's onboarding. Observed (code, 2026-10-08).
 - **W12** A Stripe withdrawal needs a signed-in person, a Stripe account with payouts enabled and details submitted,
   and an amount within their cash balance; otherwise it's refused with a message saying which. Observed (code,
-  2026-10-08).
+  2026-10-08). The amount is a whole number of cents from $1 to $10,000, checked on the server, and the withdraw page
+  shows the balance rounded to cents; larger amounts go through Mercury (#317, 2026-10-16; tests:
+  `tests/routes/withdraw.test.ts`).
 - **W13** A Stripe withdrawal sends a Stripe transfer of the amount to the person's account and records a
   `stripe_txns` row with the transfer and the txn. If the transfer fails, the txn is deleted (W10), the team is
   alerted, and the person sees an error. Observed (code, 2026-10-08).
@@ -167,6 +174,7 @@ were reviewed for this doc.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-10-16 | Vals (#314, #317) | Each checkout session is credited once, in one transaction (W27); Stripe withdrawals in whole cents, $1 to $10,000, checked on the server (W12) | Stripe redelivers events; the amount sent to Stripe must be exact |
 | 2026-09-16 | Caroline (PR #253) | Mercury transitions are compare-and-swap; reusing an idempotency key recovers the already-queued payment (W19, W22) | Two overlapping syncs could both submit one payment |
 | 2026-09-11 | Caroline (PR #243) | Checkout credits the signed-in caller; the webhook credits only paid sessions, for what Stripe charged (W1-W3) | Credit only what was paid, to the person signed in |
 | 2026-09-08 | Caroline (commit) | Mercury withdrawals turned on for everyone (W14) | After a dark launch with admins only |

@@ -77,7 +77,7 @@ observed (code, 2026-10-08) unless marked otherwise.
   URL (spaces become dashes, other characters than letters, digits, `_` and `-` are dropped), with a number added when
   it's taken (`ada`, `ada1`, `ada2`, …). Its name is the one from Google if there is one, else the email's part before
   the `@`. If either would be empty, the account's id is used. (The same rule from the profile's side:
-  `../people/`, U2.)
+  `../people/`, E2.)
 - **S8** A new profile starts plain: an individual, no bio, not a regrantor, not accredited.
 - **S9** Profiles are made only by creating an account, and nobody deletes their own: browsers, signed in or not,
   can't create or delete a profile. An account goes away only through a ban (S16).

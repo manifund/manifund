@@ -88,7 +88,10 @@ Ids are stable once merged: tests name them.
 - **R9** Programs are chosen on the create form, from a list of open programs (default: none, "grant"). Two of them
   are **link-only** (`LINK_ONLY_PRIZE_CAUSE_SLUGS`, e.g. grantmaking.ai): offered only when the page is opened with
   `/create?prize=<slug>`, and never addable by editing. `?prize=<slug>` preselects that program. The chosen program
-  is saved with the project's causes.
+  is saved with the project's causes. Creating or publishing a project checks the program on the server: it must be
+  an open program, looked up by its slug, and its terms (certificate settings, starting liquidity) come from the
+  database; a closed or unknown program is refused (400, "This program is not open"), which the form doesn't show
+  yet (#316, 2026-10-16).
 - **R10** Saving a project's causes replaces its whole list with the one sent; a cause sent twice is saved once.
 
 ### Rounds

@@ -86,7 +86,7 @@ describe('B8 offers are written only by their bidder', () => {
     }))
 })
 
-describe('B11 B12 activating a grant turns every pending donate offer into a donation, in one step', () => {
+describe('B11 B12 activating a grant turns the checked donate offers into donations, in one step', () => {
   test('stage, offers and txns', () =>
     inRollback(async (tx) => {
       const project = await proposal(tx, p.alice.id, {
@@ -112,7 +112,11 @@ describe('B11 B12 activating a grant turns every pending donate offer into a don
       })
       const buy = await offer(tx, { project: project.id, by: p.rita.id, amount: 1000, type: 'buy' })
 
-      await tx`select activate_grant(${project.id}, ${p.alice.id})`
+      const checked = [
+        { id: a, amount: 150 },
+        { id: b, amount: 100 },
+      ]
+      await tx`select activate_proposal(${project.id}, ${JSON.stringify(checked)}::text::jsonb)`
 
       const after = (await tx`select * from projects where id = ${project.id}`)[0]
       expect(after.stage).toBe('active')
@@ -150,7 +154,7 @@ describe('B11 B12 activating a grant turns every pending donate offer into a don
     inRollback(async (tx) => {
       const project = await proposal(tx, p.alice.id)
       await offer(tx, { project: project.id, by: p.bob.id, amount: 150, status: 'accepted' })
-      await tx`select activate_grant(${project.id}, ${p.alice.id})`
+      await tx`select activate_proposal(${project.id}, ${JSON.stringify([])}::text::jsonb)`
       expect(await tx`select 1 from txns where project = ${project.id}`).toHaveLength(0)
     }))
 })
@@ -161,11 +165,13 @@ describe('B13 two activations at the same time pay each offer once', () => {
   let project: { id: string }
   let creator: string
   const donors: string[] = []
+  const checked: { id: string; amount: number }[] = []
   beforeAll(async () => {
     creator = (await tempUser('offers-creator')).id
     donors.push((await tempUser('offers-donor1')).id, (await tempUser('offers-donor2')).id)
     project = await proposal(sql, creator, {}, `${RUN}-offers-race`)
-    for (const d of donors) await offer(sql, { project: project.id, by: d, amount: 60 })
+    for (const d of donors)
+      checked.push({ id: await offer(sql, { project: project.id, by: d, amount: 60 }), amount: 60 })
   })
   afterAll(async () => {
     await sql`delete from txns where project = ${project.id}`
@@ -175,28 +181,37 @@ describe('B13 two activations at the same time pay each offer once', () => {
     await deleteTempUsers()
   })
 
-  test('the second waits for the first, then finds nothing left to pay', async () => {
+  test('the second waits for the first, then finds the project already active and pays nothing', async () => {
     let releaseFirst!: () => void
     const firstMayCommit = new Promise<void>((r) => (releaseFirst = r))
     let firstDone!: () => void
     const firstHasActivated = new Promise<void>((r) => (firstDone = r))
 
     const first = sql.begin(async (tx: Tx) => {
-      await tx`select activate_grant(${project.id}, ${creator})`
+      await tx`select activate_proposal(${project.id}, ${JSON.stringify(checked)}::text::jsonb)`
       firstDone()
       await firstMayCommit // hold the locks while the second one starts
     })
     await firstHasActivated
-    const second = sql.begin((tx: Tx) => tx`select activate_grant(${project.id}, ${creator})`)
+    const second = sql
+      .begin(
+        (tx: Tx) =>
+          tx`select activate_proposal(${project.id}, ${JSON.stringify(checked)}::text::jsonb)`
+      )
+      .then(
+        () => null,
+        (e: Error) => e
+      )
     // Wait until the second is blocked on the first's locks (or give up after 3 s and let the test check anyway).
     for (let i = 0; i < 30; i++) {
       const [w] = await sql`select count(*)::int as n from pg_stat_activity
-                            where wait_event_type = 'Lock' and query ilike '%activate_grant%'`
+                            where wait_event_type = 'Lock' and query ilike '%activate_proposal%'`
       if (w.n > 0) break
       await Bun.sleep(100)
     }
     releaseFirst()
-    await Promise.all([first, second])
+    const [, secondError] = await Promise.all([first, second])
+    expect(secondError?.message).toContain('is not a proposal')
 
     const txns =
       await sql`select from_id, amount::float as amount from txns where project = ${project.id}`
@@ -294,7 +309,7 @@ describe('B19 activating a certificate trades each assurance buy for shares', ()
       })
       const donate = await offer(tx, { project: project.id, by: p.rita.id, amount: 7 })
 
-      await tx`select activate_cert(${project.id}, ${p.alice.id})`
+      await tx`select activate_proposal(${project.id}, ${JSON.stringify([{ id: buy, amount: 100 }])}::text::jsonb)`
 
       expect((await tx`select stage from projects where id = ${project.id}`)[0].stage).toBe(
         'active'

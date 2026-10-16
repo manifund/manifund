@@ -9,7 +9,7 @@ site.
 Backfilled 2026-10-08 from the code and its history: the rules say what the product does today ("observed"), not
 what anyone decided it should do, unless a decision is cited. Neighbouring areas: what the comments endpoint returns
 for each comment is `../../product/comments/` (C33); balances and what a project has raised are the ledger's rules
-(`../ledger/`, L5-L12, L17); what a profile shows and hides is `../people/` (U); causes are `../causes/` (R).
+(`../ledger/`, L5-L12, L17); what a profile shows and hides is `../people/` (E); causes are `../causes/` (R).
 
 ## What it's for (draft, for the team to confirm)
 
