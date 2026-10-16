@@ -17,7 +17,8 @@ import {
 } from '@/utils/math'
 import { Bid, getBidsByUser } from '@/db/bid'
 import { getProjectById, TOTAL_SHARES } from '@/db/project'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { makeTrade, genTradeText, updateBidFromTrade } from '@/utils/trade'
 export const config = {
   runtime: 'edge',
@@ -160,16 +161,24 @@ export default async function handler(req: NextRequest) {
           supabase
         )
         await updateBidFromTrade(mostEligibleBid, usdInUserTrade, supabase)
-        await sendTemplateEmail(
-          TEMPLATE_IDS.TRADE_ACCEPTED,
-          {
-            tradeText: genTradeText(mostEligibleBid, project.title, usdInUserTrade),
-            recipientProfileUrl: `manifund.org/${mostEligibleBid.profiles?.username}`,
-            bidType: buying ? 'sell' : 'buy',
-            projectTitle: project.title,
-          },
-          mostEligibleBid.bidder
-        )
+        await notify({
+          to: mostEligibleBid.bidder,
+          reason: 'trade_accepted',
+          actorId: user.id,
+          projectId,
+          bidId: mostEligibleBid.id,
+          amount: usdInUserTrade,
+          email: templateEmail(
+            TEMPLATE_IDS.TRADE_ACCEPTED,
+            {
+              tradeText: genTradeText(mostEligibleBid, project.title, usdInUserTrade),
+              recipientProfileUrl: `manifund.org/${mostEligibleBid.profiles?.username}`,
+              bidType: buying ? 'sell' : 'buy',
+              projectTitle: project.title,
+            },
+            mostEligibleBid.bidder
+          ),
+        })
         amountRemaining -= buying ? usdInUserTrade : sharesInUserTrade
       } else {
         await makeTrade(numShares, numDollars, projectId, projectId, user.id, buying, supabase)

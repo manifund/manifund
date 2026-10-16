@@ -9,8 +9,10 @@ export const runtime = 'nodejs'
 export const maxDuration = 300
 const STALE_MINUTES = 30
 
-// Backup sender (cron, every 10 minutes): emails notifications that the after-response send missed,
-// then alerts if anything has waited longer than 30 minutes, which means sending is failing.
+// Backup sender (cron, every 10 minutes): emails comment notifications that the after-response send missed,
+// then alerts if any has waited longer than 30 minutes, which means sending is failing. Only comment rows count:
+// they're the ones this sweep can resend (claim_notification_emails), so another kind stuck in 'sending' can't
+// raise an alert that never clears.
 export async function GET(request: NextRequest) {
   if (!isAuthorizedCron(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -21,6 +23,7 @@ export async function GET(request: NextRequest) {
     .from('notifications')
     .select('id', { count: 'exact', head: true })
     .in('email_status', ['pending', 'sending'])
+    .not('comment_id', 'is', null)
     .lt('created_at', new Date(Date.now() - STALE_MINUTES * 60_000).toISOString())
   const stale = count ?? 0
   log.info('notifications.sweep', { ...summary, stale })

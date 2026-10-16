@@ -41,6 +41,7 @@ export const REASONS = [
   'progress_update',
   'final_report',
   'followed_project_comment',
+  'followed_person_comment', // the commenter is someone you follow (docs/product/follows, F4)
   'moderated_your_comment',
 ] as const
 export type Reason = (typeof REASONS)[number]

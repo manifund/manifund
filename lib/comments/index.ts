@@ -7,6 +7,7 @@ import { checkContent, mentionIds } from './content'
 import { bucketFor, checkRate } from './limits'
 import { recordCommentNotifications } from '@/lib/notifications/record'
 import { sendPendingEmails } from '@/lib/notifications/send'
+import { commentFollowers } from '@/lib/follows'
 import { rulesFor } from './targets'
 import { denied, USER_TYPES, type CommentRow, type PostInput, type Result } from './types'
 
@@ -98,12 +99,11 @@ async function notify(
   parent?: CommentRow
 ) {
   try {
-    const recipients = await rules.recipients(
-      ctx,
-      comment,
-      mentionIds(comment.content as any),
-      parent
-    )
+    const recipients = [
+      ...(await rules.recipients(ctx, comment, mentionIds(comment.content as any), parent)),
+      // people who follow the commenter (F4); the strongest reason wins per person (C21)
+      ...(await commentFollowers(comment.commenter)),
+    ]
     await recordCommentNotifications(comment, recipients)
   } catch (e) {
     log.error('comment.notify_failed', { comment_id: comment.id, error: e })

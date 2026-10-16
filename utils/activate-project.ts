@@ -8,7 +8,8 @@ import { differenceInDays, isBefore } from 'date-fns'
 import { uniq } from 'es-toolkit'
 import uuid from 'react-uuid'
 import { getURL } from './constants'
-import { sendTemplateEmail, TEMPLATE_IDS } from './email'
+import { TEMPLATE_IDS } from './email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import { getProposalValuation } from './math'
 import { resolveAuction } from './resolve-auction'
 
@@ -111,45 +112,57 @@ async function activateProject(project: Project, followerIds: string[]) {
   const siteUrl = getURL()
   await Promise.all(
     donors.map(async (donor) => {
-      await sendTemplateEmail(
-        TEMPLATE_IDS.VERDICT,
-        {
-          recipientFullName: donor?.full_name ?? 'donor',
-          verdictMessage: donorMessage,
-          projectUrl: `${siteUrl}/projects/${project.slug}`,
-          subject: donorSubject,
-          adminName: 'The Manifund team',
-        },
-        donor?.id ?? ''
-      )
+      const model = {
+        recipientFullName: donor?.full_name ?? 'donor',
+        verdictMessage: donorMessage,
+        projectUrl: `${siteUrl}/projects/${project.slug}`,
+        subject: donorSubject,
+        adminName: 'The Manifund team',
+      }
+      await notify({
+        to: donor?.id,
+        reason: 'offered_project_active',
+        projectId: project.id,
+        email: donor?.id ? templateEmail(TEMPLATE_IDS.VERDICT, model, donor.id) : undefined,
+      })
     })
   )
   const creatorSubject = `Your project, "${project.title}" is active!`
   const creatorMessage = `Your project, "${project.title}", has completed the seed funding process and become active! You can now withdraw the funds you've received for this project anytime you want.`
-  await sendTemplateEmail(
-    TEMPLATE_IDS.GENERIC_NOTIF,
-    {
-      notifText: creatorMessage,
-      buttonUrl: `${getURL()}/withdraw`,
-      buttonText: 'Withdraw funds',
-      subject: creatorSubject,
-    },
-    project.creator
-  )
+  await notify({
+    to: project.creator,
+    reason: 'project_active',
+    projectId: project.id,
+    email: templateEmail(
+      TEMPLATE_IDS.GENERIC_NOTIF,
+      {
+        notifText: creatorMessage,
+        buttonUrl: `${getURL()}/withdraw`,
+        buttonText: 'Withdraw funds',
+        subject: creatorSubject,
+      },
+      project.creator
+    ),
+  })
   const unnotifiedFollowers = followerIds.filter(
     (id) => id !== project.creator && !donors.find((donor) => donor?.id === id)
   )
   for (const followerId of unnotifiedFollowers) {
-    await sendTemplateEmail(
-      TEMPLATE_IDS.GENERIC_NOTIF,
-      {
-        notifText: `This project has completed the seed funding process and become active!`,
-        buttonUrl: `${getURL()}/projects/${project.slug}`,
-        buttonText: 'See project',
-        subject: `Manifund: ${project.title} is active!`,
-      },
-      followerId
-    )
+    await notify({
+      to: followerId,
+      reason: 'followed_project_active',
+      projectId: project.id,
+      email: templateEmail(
+        TEMPLATE_IDS.GENERIC_NOTIF,
+        {
+          notifText: `This project has completed the seed funding process and become active!`,
+          buttonUrl: `${getURL()}/projects/${project.slug}`,
+          buttonText: 'See project',
+          subject: `Manifund: ${project.title} is active!`,
+        },
+        followerId
+      ),
+    })
   }
 }
 

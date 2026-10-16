@@ -10,6 +10,10 @@ import { listSimpleCauses } from '@/db/cause'
 import { listProjects } from '@/db/project'
 import { getHotProjectsCached } from '@/db/project-cached'
 import { LandingSection } from './landing-section'
+import { listMySavedSearches } from '@/db/profile-follows'
+import { networkFor } from '@/db/network'
+import type { NetworkActivity } from '@/components/follows/network-tag'
+import type { MySavedSearches } from '@/components/follows/save-search'
 
 // Page is dynamic due to cookies(), but listProjects is cached for 30s
 
@@ -18,6 +22,18 @@ export default async function Projects(props: {
 }) {
   const supabase = await createServerSupabaseClient()
   const user = await getUser(supabase)
+  // what people the viewer follows did, for the band above cards (F8), and their saved searches for the
+  // save-search line (F5)
+  const [network, mySearches] = user
+    ? await Promise.all([
+        networkFor(supabase, user.id),
+        listMySavedSearches(supabase, user.id).then(
+          (searches): MySavedSearches => ({
+            searches: searches.map((s) => ({ id: s.id, query: s.query })),
+          })
+        ),
+      ])
+    : [undefined, null]
 
   return (
     <Col className="gap-16 px-3 py-5 sm:px-6">
@@ -35,6 +51,8 @@ export default async function Projects(props: {
             <AsyncFeedTabs
               searchParams={await props.searchParams}
               userId={user?.id}
+              network={network}
+              mySearches={mySearches}
               useHotProjects={true}
             />
           </Suspense>
@@ -43,6 +61,8 @@ export default async function Projects(props: {
         <AsyncFeedTabs
           searchParams={await props.searchParams}
           userId={user?.id}
+          network={network}
+          mySearches={mySearches}
           useHotProjects={false}
         />
       </Suspense>
@@ -54,10 +74,14 @@ export default async function Projects(props: {
 async function AsyncFeedTabs({
   searchParams,
   userId,
+  network,
+  mySearches,
   useHotProjects,
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
   userId?: string
+  network?: NetworkActivity
+  mySearches: MySavedSearches | null
   useHotProjects: boolean
 }) {
   const PAGE_SIZE = 20
@@ -98,8 +122,17 @@ async function AsyncFeedTabs({
       projects={projects}
       causesList={causesList}
       userId={userId}
+      network={network}
+      savedSearches={{ mine: mySearches, initialQuery: toQueryString(searchParams) }}
     />
   )
+}
+
+function toQueryString(searchParams: { [key: string]: string | string[] | undefined }) {
+  const params = new URLSearchParams()
+  for (const [key, value] of Object.entries(searchParams ?? {}))
+    for (const v of Array.isArray(value) ? value : value ? [value] : []) params.append(key, v)
+  return params.toString()
 }
 
 function FeedTabsSkeleton() {

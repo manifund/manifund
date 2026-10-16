@@ -49,23 +49,35 @@ describe('C21 C22 one notification per person, for the strongest reason', () => 
   })
   standard('a profile comment notifies the person', async () => {
     const onProfile = await bob.post('/api/comments', { target: { profile_id: alice.id }, content: doc(`Great to work with ${RUN}`) })
-    expect(await reasons(onProfile.body.comment.id)).toEqual({ [alice.id]: 'comment_on_your_profile' })
+    // anyone else is notified only as a follower of bob (F4); a shared test persona may have followers locally
+    const r = await reasons(onProfile.body.comment.id)
+    expect(r[alice.id]).toBe('comment_on_your_profile')
+    for (const [who, why] of Object.entries(r))
+      if (who !== alice.id) expect(why).toBe('followed_person_comment')
   })
 })
 
 describe('C24 emails go out after the response (skipped locally)', () => {
   standard('each notification ends up sent or skipped, not left pending', async () => {
+    // optional emails default to daily (N4): ask for them right away here, then put the default back
+    for (const who of [alice, rita])
+      await who.post('/api/notifications/settings', { choice: 'immediate' })
     const c = await bob.post('/api/comments', { target: { project: w.project.id }, content: doc(`Email me ${RUN}`) })
     let statuses: string[] = []
     for (let i = 0; i < 20; i++) {
-      statuses = (await sql`select email_status from notifications where comment_id = ${c.body.comment.id}`).map(
-        (r: any) => r.email_status
-      )
+      statuses =
+        // alice and rita only: a local follower of the shared persona bob may be on Daily (F4)
+        (
+          await sql`select email_status from notifications where comment_id = ${c.body.comment.id}
+                  and recipient_id in (${alice.id}, ${rita.id})`
+        ).map((r: any) => r.email_status)
       if (statuses.length && statuses.every((s) => s === 'sent' || s === 'skipped')) break
       await Bun.sleep(250)
     }
     expect(statuses.length).toBeGreaterThan(0)
     expect(statuses.every((s) => s === 'sent' || s === 'skipped')).toBe(true)
+    for (const who of [alice, rita])
+      await who.post('/api/notifications/settings', { choice: 'daily' })
   })
 })
 

@@ -4,7 +4,8 @@ import { createAdminClient } from '@/db/edge'
 import { Project, TOTAL_SHARES, updateProjectStage } from '@/db/project'
 import { getBidsForResolution, BidAndProfile } from '@/db/bid'
 import { formatMoney, formatPercent } from '@/utils/formatting'
-import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { TEMPLATE_IDS } from '@/utils/email'
+import { notify, templateEmail } from '@/lib/notifications/notify'
 import uuid from 'react-uuid'
 
 export const runtime = 'edge'
@@ -206,7 +207,13 @@ async function sendAuctionCloseEmails(
       auctionResolutionText,
       bidResolutionText,
     }
-    await sendTemplateEmail(TEMPLATE_IDS.OFFER_RESOLVED, bidderPostmarkVars, bid.bidder)
+    await notify({
+      to: bid.bidder,
+      reason: 'offered_project_closed',
+      projectId: project.id,
+      bidId: bid.id,
+      email: templateEmail(TEMPLATE_IDS.OFFER_RESOLVED, bidderPostmarkVars, bid.bidder),
+    })
   }
   const creatorPostmarkVars = {
     projectTitle: project.title,
@@ -225,7 +232,12 @@ async function sendAuctionCloseEmails(
         : '',
     auctionResolutionText,
   }
-  await sendTemplateEmail(TEMPLATE_IDS.AUCTION_RESOLVED, creatorPostmarkVars, project.creator)
+  await notify({
+    to: project.creator,
+    reason: 'auction_resolved',
+    projectId: project.id,
+    email: templateEmail(TEMPLATE_IDS.AUCTION_RESOLVED, creatorPostmarkVars, project.creator),
+  })
 }
 
 function genAuctionResolutionText(

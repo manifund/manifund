@@ -11,6 +11,8 @@ type OrgInsert = Database['public']['Tables']['orgs']['Insert']
 // isn't in those sources, so us_state is unset throughout. Mox runs inside Manifund's own entity. BlueDot has
 // a UK company and a US 501(c)(3) with neither named as primary; the IRS has a "Kairos AI Project Inc" that
 // nothing on Kairos's site ties to it.
+// ControlAI is the UK company limited by guarantee (Companies House 15088415); a US 501(c)(4) is reported
+// elsewhere but we found no IRS record of it.
 // donation_url is the org's own donation page, or the every.org page its site links to; unset where the site
 // links to neither.
 export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
@@ -161,6 +163,77 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     founded_year: 2000,
     donation_url: 'https://intelligence.org/donate/',
     trace_slug: 'machine-intelligence-research-institute',
+    about: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'The Machine Intelligence Research Institute (MIRI) works to prevent human extinction from artificial superintelligence. Its position is that nobody knows how to build such systems safely, and that frontier AI development should stop, by international agreement, until that changes. Its communications team makes that case to policymakers and the public, most visibly through "If Anyone Builds It, Everyone Dies" (2025), a New York Times bestseller by Eliezer Yudkowsky and Nate Soares. Its Technical Governance Team researches how a halt could work in practice, such as monitoring the chips used to train AI, and has published a draft international agreement.',
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'MIRI was founded in 2000 as the Singularity Institute for Artificial Intelligence by Eliezer Yudkowsky, Brian Atkins and Sabine Atkins, and took its current name in 2013. For most of its history it did technical research on AI alignment, which it was among the first to work on. From 2020 its leadership grew pessimistic that this research would succeed in time, and in 2023 it shifted most of its effort to communications and governance. Malo Bourgon is CEO and Nate Soares is president. It spends about $7M a year; its 2025 fundraiser brought in $1.8M in donations and a $1.6M match from the Survival and Flourishing Fund.',
+            },
+          ],
+        },
+      ],
+    },
+    sources: [
+      'https://intelligence.org/about/',
+      'https://intelligence.org/2025/12/01/miris-2025-fundraiser/',
+      'https://projects.propublica.org/nonprofits/organizations/582565917',
+    ],
+  },
+  {
+    slug: 'controlai',
+    cause: 'AI safety',
+    focus: ['Policy & advocacy'],
+    legal_structure: 'non_us',
+    legal_name: 'ControlAI',
+    country: 'GB',
+    name: 'ControlAI',
+    website: 'https://controlai.org',
+    summary:
+      'Campaigns for governments to ban the development of superintelligent AI, briefing lawmakers in the UK, US and elsewhere.',
+    city: 'London',
+    founded_year: 2023,
+    trace_slug: 'controlai',
+    about: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'ControlAI is a nonprofit campaign working to prevent human extinction from superintelligent AI by getting governments to prohibit its development. It briefs lawmakers directly, and says it has met over 400 across the US, UK, Canada and Germany, including more than 200 US congressional offices. It also runs public campaigns: it says over 150,000 supporters have sent more than 200,000 messages to their representatives. Its policy paper "A Narrow Path" sets out how countries could keep superintelligence from being built.',
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Its main campaign is in the UK. Its Artificial Superintelligence Security Bill, which would ban superintelligent AI at home and set an international policy, was introduced in the House of Commons as a Ten-Minute Rule Bill in September 2026, and more than 85 MPs and peers have called on the Prime Minister to adopt it. ControlAI was founded in London in 2023 by Andrea Miotti, its CEO, who previously worked at the AI safety startup Conjecture. Conjecture co-founder Connor Leahy is its US executive director.',
+            },
+          ],
+        },
+      ],
+    },
+    sources: [
+      'https://controlai.org/about',
+      'https://controlai.org/our-work-in-uk',
+      'https://find-and-update.company-information.service.gov.uk/company/15088415',
+    ],
   },
   {
     slug: 'iaps',

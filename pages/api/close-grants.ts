@@ -7,6 +7,7 @@ import { Project } from '@/db/project'
 import { Bid } from '@/db/bid'
 import { SupabaseClient } from '@supabase/supabase-js'
 import { sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
+import { notify, notifyAddressOnly, templateEmail } from '@/lib/notifications/notify'
 import { isProd } from '@/db/env'
 import { Cause, getPrizeCause } from '@/db/cause'
 import { checkReactivateEligible } from '@/utils/activate-project'
@@ -77,29 +78,37 @@ async function closeProject(
   if (amountRaised >= minIncludingAmm) {
     if (!project.alerts_paused) {
       if (!project.signed_agreement) {
-        await sendTemplateEmail(
-          TEMPLATE_IDS.GENERIC_NOTIF,
-          {
-            notifText: `Your project "${project.title}" has enough funding to proceed but is awaiting your signature on the grant agreement. Please sign the agreement to activate your grant.`,
-            buttonUrl: `https://manifund.org/projects/${project.slug}/agreement`,
-            buttonText: 'Sign agreement',
-            subject: 'Manifund: Reminder to sign your grant agreement',
-          },
-          project.creator
-        )
+        await notify({
+          to: project.creator,
+          reason: 'agreement_reminder',
+          projectId: project.id,
+          email: templateEmail(
+            TEMPLATE_IDS.GENERIC_NOTIF,
+            {
+              notifText: `Your project "${project.title}" has enough funding to proceed but is awaiting your signature on the grant agreement. Please sign the agreement to activate your grant.`,
+              buttonUrl: `https://manifund.org/projects/${project.slug}/agreement`,
+              buttonText: 'Sign agreement',
+              subject: 'Manifund: Reminder to sign your grant agreement',
+            },
+            project.creator
+          ),
+        })
       }
       // Nothing for an admin to act on until the creator has signed.
       if (!project.approved && project.signed_agreement) {
-        await sendTemplateEmail(
-          TEMPLATE_IDS.GENERIC_NOTIF,
-          {
-            notifText: `The project "${project.title}" has enough funding but is awaiting admin approval.`,
-            buttonUrl: `https://manifund.org/projects/${project.slug}`,
-            buttonText: 'See project',
-            subject: 'Manifund: Reminder to approve project',
-          },
-          undefined,
-          'austin@manifund.org'
+        // Goes to a fixed address, not an admin's profile: no in-app row or settings (assumption).
+        await notifyAddressOnly(() =>
+          sendTemplateEmail(
+            TEMPLATE_IDS.GENERIC_NOTIF,
+            {
+              notifText: `The project "${project.title}" has enough funding but is awaiting admin approval.`,
+              buttonUrl: `https://manifund.org/projects/${project.slug}`,
+              buttonText: 'See project',
+              subject: 'Manifund: Reminder to approve project',
+            },
+            undefined,
+            'austin@manifund.org'
+          )
         )
       }
     }
@@ -133,7 +142,13 @@ async function closeProject(
         subject: `Manifund project not funded: "${project.title}"`,
         adminName: 'Manifund team',
       }
-      await sendTemplateEmail(TEMPLATE_IDS.VERDICT, creatorPostmarkVars, project.creator)
+      await notify({
+        to: project.creator,
+        reason: 'project_not_funded',
+        projectId: project.id,
+        amount: amountRaised,
+        email: templateEmail(TEMPLATE_IDS.VERDICT, creatorPostmarkVars, project.creator),
+      })
       const bidders = bids.map((bid) => bid.bidder)
       const uniqueBidders = uniq(bidders)
       uniqueBidders.forEach(async (bidder) => {
@@ -144,7 +159,12 @@ async function closeProject(
           auctionResolutionText: `This project was not funded, because it received only $${amountRaised} in funding, which is less than its minimum funding goal of $${project.min_funding}.`,
           bidResolutionText: `Your offer was declined.`,
         }
-        await sendTemplateEmail(TEMPLATE_IDS.OFFER_RESOLVED, bidderPostmarkVars, bidder)
+        await notify({
+          to: bidder,
+          reason: 'offered_project_closed',
+          projectId: project.id,
+          email: templateEmail(TEMPLATE_IDS.OFFER_RESOLVED, bidderPostmarkVars, bidder),
+        })
       })
     }
     // TODO: notify followers when project gets funded through auction
@@ -152,16 +172,21 @@ async function closeProject(
       (id) => id !== project.creator && !bids.find((bid) => bid.bidder === id)
     )
     for (const followerId of unnotifiedFollowers) {
-      await sendTemplateEmail(
-        TEMPLATE_IDS.GENERIC_NOTIF,
-        {
-          notifText: `This project was not funded, because it received only $${amountRaised} in funding, which is less than its' minimum funding goal of $${project.min_funding}.`,
-          buttonUrl: `https://manifund.org/projects/${project.slug}`,
-          buttonText: 'See project',
-          subject: `Manifund: ${project.title} was not funded`,
-        },
-        followerId
-      )
+      await notify({
+        to: followerId,
+        reason: 'followed_project_closed',
+        projectId: project.id,
+        email: templateEmail(
+          TEMPLATE_IDS.GENERIC_NOTIF,
+          {
+            notifText: `This project was not funded, because it received only $${amountRaised} in funding, which is less than its' minimum funding goal of $${project.min_funding}.`,
+            buttonUrl: `https://manifund.org/projects/${project.slug}`,
+            buttonText: 'See project',
+            subject: `Manifund: ${project.title} was not funded`,
+          },
+          followerId
+        ),
+      })
     }
   }
 }

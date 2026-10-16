@@ -10,6 +10,9 @@ import { useSearchParams } from 'next/navigation'
 import { Pagination } from '@/components/pagination'
 import { useState } from 'react'
 import { ProjectsDisplay } from '@/components/projects-display'
+import { NetworkFeed } from '@/components/follows/network-feed'
+import { NetworkContext, type NetworkActivity } from '@/components/follows/network-tag'
+import type { MySavedSearches } from '@/components/follows/save-search'
 import { FullProject } from '@/db/project'
 import { SimpleCause } from '@/db/cause'
 import { Tag } from '@/components/tags'
@@ -32,6 +35,8 @@ export function FeedTabs(props: {
   projects: FullProject[]
   causesList: SimpleCause[]
   userId?: string
+  network?: NetworkActivity
+  savedSearches?: { mine: MySavedSearches | null; initialQuery: string }
 }) {
   const {
     recentComments,
@@ -41,13 +46,23 @@ export function FeedTabs(props: {
     projects,
     causesList,
     userId,
+    network,
+    savedSearches,
   } = props
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab') ?? 'projects'
   const [page, setPage] = useState(1)
 
   const ProjectsTab = (
-    <ProjectsDisplay projects={projects} defaultSort={'hot'} causesList={causesList} />
+    // the network line on cards (F8)
+    <NetworkContext.Provider value={network ?? null}>
+      <ProjectsDisplay
+        projects={projects}
+        defaultSort={'hot'}
+        causesList={causesList}
+        savedSearches={savedSearches}
+      />
+    </NetworkContext.Provider>
   )
 
   const PaginationWrapper = (
@@ -161,10 +176,14 @@ export function FeedTabs(props: {
             id: 'donations',
             display: DonationsTab,
           },
+          // F10: what people you follow did, for signed-in people (loaded when the tab opens)
+          ...(userId
+            ? [{ name: 'Network', id: 'network', display: <NetworkFeed key="network" /> }]
+            : []),
         ]}
         currentTabId={currentTabId}
       />
-      {currentTabId !== 'projects' && PaginationWrapper}
+      {currentTabId !== 'projects' && currentTabId !== 'network' && PaginationWrapper}
     </div>
   )
 }
