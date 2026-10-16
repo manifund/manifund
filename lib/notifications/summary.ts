@@ -17,7 +17,7 @@ export async function sendDailySummary() {
   const rows = await loadNotifications({ digestBefore: now, limit: 5000 })
   const byPerson = new Map<string, typeof rows>()
   for (const r of rows) byPerson.set(r.recipient_id, [...(byPerson.get(r.recipient_id) ?? []), r])
-  const admin = createAdminClient() as any
+  const admin = createAdminClient()
   const base = getURL().replace(/\/$/, '')
   let people = 0
   let notifications = 0

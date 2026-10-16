@@ -57,7 +57,7 @@ export async function notifyMany(inputs: NotifyInput[]) {
             : 'digest'
       return { input, status }
     })
-    const admin = createAdminClient() as any
+    const admin = createAdminClient()
     const { data, error } = await admin
       .from('notifications')
       .insert(
@@ -109,7 +109,7 @@ export async function notifyMany(inputs: NotifyInput[]) {
         }
       })
     )
-    const sent = results.filter((r) => r.ok && r.id).map((r) => r.id)
+    const sent = results.flatMap((r) => (r.ok && r.id ? [r.id] : []))
     if (sent.length)
       await admin
         .from('notifications')

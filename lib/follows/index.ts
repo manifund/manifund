@@ -13,13 +13,13 @@ import { notificationEmail, notifyMany } from '@/lib/notifications/notify'
 import { formatMoney } from '@/utils/formatting'
 import { parseSearch, searchMatches, searchName, searchQuery, type MatchableProject } from './match'
 
-const admin = () => createAdminClient() as any
+const admin = () => createAdminClient()
 const base = () => getURL().replace(/\/$/, '')
 
 // F1: following someone covers everything they do. Following again changes nothing.
 export async function follow(supabase: SupabaseClient, followerId: string, followedId: string) {
   if (followerId === followedId) return { error: "You can't follow yourself" }
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('profile_follows')
     .upsert(
       { follower_id: followerId, followed_id: followedId },
@@ -33,7 +33,7 @@ export async function follow(supabase: SupabaseClient, followerId: string, follo
 }
 
 export async function unfollow(supabase: SupabaseClient, followerId: string, followedId: string) {
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('profile_follows')
     .delete()
     .eq('follower_id', followerId)
@@ -50,11 +50,10 @@ export async function unfollow(supabase: SupabaseClient, followerId: string, fol
 // F5: a saved search is home's search text and categories (lib/follows/match); its name is generated from them.
 // Saving the same search twice keeps one.
 export async function saveSearch(supabase: SupabaseClient, ownerId: string, query: string) {
-  const db = supabase as any
   const search = parseSearch(query)
   const clean = searchQuery(search)
   if (!clean) return { error: 'Type a search or pick a category first' }
-  const { data: existing } = await db
+  const { data: existing } = await supabase
     .from('saved_searches')
     .select('id, name, query')
     .eq('owner_id', ownerId)
@@ -62,12 +61,12 @@ export async function saveSearch(supabase: SupabaseClient, ownerId: string, quer
     .maybeSingle()
   if (existing) return { search: existing }
   const { data: causes } = search.causes.length
-    ? await db.from('causes').select('slug, title').in('slug', search.causes)
+    ? await supabase.from('causes').select('slug, title').in('slug', search.causes)
     : { data: [] }
   const titles = Object.fromEntries(
     ((causes ?? []) as { slug: string; title: string }[]).map((c) => [c.slug, c.title])
   )
-  const { data, error } = await db
+  const { data, error } = await supabase
     .from('saved_searches')
     .insert({ owner_id: ownerId, query: clean, name: searchName(clean, titles) })
     .select('id, name, query')
@@ -80,7 +79,7 @@ export async function saveSearch(supabase: SupabaseClient, ownerId: string, quer
 }
 
 export async function deleteSearch(supabase: SupabaseClient, ownerId: string, id: string) {
-  const { error } = await (supabase as any)
+  const { error } = await supabase
     .from('saved_searches')
     .delete()
     .eq('id', id)

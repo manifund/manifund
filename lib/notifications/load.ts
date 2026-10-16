@@ -18,7 +18,7 @@ export async function loadNotifications(filter: {
   digestBefore?: string
   limit?: number
 }): Promise<(NotificationRow & { recipient_id: string })[]> {
-  let query = (createAdminClient() as any)
+  let query = createAdminClient()
     .from('notifications')
     .select(SELECT)
     .order('created_at', { ascending: false })

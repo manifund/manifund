@@ -135,7 +135,7 @@ export async function networkFor(
 ): Promise<NetworkActivity | undefined> {
   if (!(await myFollowedIds(supabase, me)).length) return undefined
   // network_activity() reads the signed-in person's follows (auth.uid()), so `supabase` must be theirs
-  const { data, error } = await supabase.rpc('network_activity' as any)
+  const { data, error } = await supabase.rpc('network_activity')
   if (error) log.error('follows.network_activity_failed', { error })
   const out: NetworkActivity = {}
   for (const r of (data ?? []) as { project_id: string; name: string; kind: NetworkKind }[])

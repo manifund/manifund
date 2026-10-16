@@ -8,7 +8,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 
 // Whether the viewer follows this person (F1).
 export async function isFollowing(supabase: SupabaseClient, me: string, followedId: string) {
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from('profile_follows')
     .select('followed_id')
     .eq('follower_id', me)
@@ -18,7 +18,7 @@ export async function isFollowing(supabase: SupabaseClient, me: string, followed
 }
 
 export async function listMySavedSearches(supabase: SupabaseClient, me: string) {
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from('saved_searches')
     .select('id, name, query')
     .eq('owner_id', me)
@@ -28,7 +28,7 @@ export async function listMySavedSearches(supabase: SupabaseClient, me: string) 
 
 // The people the viewer follows. Everything they do is in the viewer's network (F8, F10).
 export async function myFollowedIds(supabase: SupabaseClient, me: string) {
-  const { data } = await (supabase as any)
+  const { data } = await supabase
     .from('profile_follows')
     .select('followed_id')
     .eq('follower_id', me)
@@ -60,31 +60,33 @@ export async function getFollowing(
   profileId: string,
   isOwnProfile: boolean
 ): Promise<Following> {
-  const db = supabase as any
   const [people, projects, searches] = await Promise.all([
-    db
+    supabase
       .from('profile_follows')
       .select(
         'created_at, followed:profiles!profile_follows_followed_id_fkey(id, username, full_name, avatar_url)'
       )
       .eq('follower_id', profileId)
       .order('created_at', { ascending: false }),
-    db
+    supabase
       .from('project_follows')
       .select('project_id, projects(id, title, slug, stage)')
       .eq('follower_id', profileId),
-    db
+    supabase
       .from('saved_searches')
       .select('id, name, query')
       .eq('owner_id', profileId)
       .order('created_at', { ascending: false }),
   ])
   return {
-    people: ((people.data ?? []) as { followed: FollowedPerson | null }[])
+    // the embeds are one row each; the generated types can't tell, so they type them as arrays
+    people: ((people.data ?? []) as unknown as { followed: FollowedPerson | null }[])
       .map((r) => r.followed)
       .filter((p): p is FollowedPerson => !!p),
     projects: (
-      (projects.data ?? []) as { projects: (FollowedProject & { stage: string }) | null }[]
+      (projects.data ?? []) as unknown as {
+        projects: (FollowedProject & { stage: string }) | null
+      }[]
     )
       .map((r) => r.projects)
       .filter((p): p is FollowedProject & { stage: string } => !!p)

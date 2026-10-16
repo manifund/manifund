@@ -9,7 +9,7 @@ import { DEFAULT_EMAIL_CHOICE, type EmailChoice } from './kinds'
 // People's stored email choices (N4), raw: kinds.ts's emailChoice turns a missing one into the default.
 export async function loadEmailChoices(profileIds: string[]): Promise<Map<string, string>> {
   if (!profileIds.length) return new Map()
-  const { data, error } = await (createAdminClient() as any)
+  const { data, error } = await createAdminClient()
     .from('notification_email')
     .select('profile_id, choice')
     .in('profile_id', profileIds)
@@ -24,7 +24,7 @@ export async function loadEmailChoice(profileId: string) {
 // The only writer of notification_email (server-only, N4): the choice on /notifications, and an email's
 // unsubscribe button ('never'). Choosing the default removes the row.
 export async function setEmailChoice(profileId: string, choice: EmailChoice) {
-  const table = (createAdminClient() as any).from('notification_email')
+  const table = createAdminClient().from('notification_email')
   const { error } =
     choice === DEFAULT_EMAIL_CHOICE
       ? await table.delete().eq('profile_id', profileId)
