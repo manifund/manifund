@@ -81,6 +81,15 @@ export async function emailLinks(profileId: string, essential: boolean): Promise
   }
 }
 
+// The footer links as Postmark template variables: {{stopUrl}} and {{settingsUrl}}, and the same inside {{#footer}},
+// which templates use to show the footer on optional emails only (null for essential ones, N6).
+export function footerVars(links: EmailLinks) {
+  return {
+    ...links,
+    footer: links.stopUrl ? { stopUrl: links.stopUrl, settingsUrl: links.settingsUrl } : null,
+  }
+}
+
 // One-click unsubscribe headers (RFC 8058) for mail apps; none for essential emails.
 export function unsubscribeHeaders(links: EmailLinks) {
   return links.oneClickUrl

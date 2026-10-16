@@ -7,7 +7,7 @@ import { rulesFor, targetOf } from '@/lib/comments/targets'
 import type { JSONContent } from '@tiptap/core'
 import type { Reason } from '@/lib/comments/types'
 import { emailFor } from './templates'
-import { emailLinks, unsubscribeHeaders, type EmailLinks } from './settings'
+import { emailLinks, footerVars, unsubscribeHeaders, type EmailLinks } from './settings'
 import { isEssential } from './kinds'
 
 const MAX_ATTEMPTS = 5
@@ -62,10 +62,15 @@ export async function sendPendingEmails(opts: {
         continue
       }
       const email = emailFor({ reason: row.reason as Reason, ...comment })
-      // Footer links (N6): the Postmark templates must show {{stopUrl}} and {{settingsUrl}} (empty for
-      // essential kinds) to use them.
+      // Footer links (N6), shown by the templates on optional kinds only
       const links = await emailLinks(row.recipient_id, isEssential(row.reason as Reason))
-      const error = await postmark(token, to, email.templateId, { ...email.model, ...links }, links)
+      const error = await postmark(
+        token,
+        to,
+        email.templateId,
+        { ...email.model, ...footerVars(links) },
+        links
+      )
       if (!error) {
         await mark({ email_status: 'sent', emailed_at: new Date().toISOString(), last_error: null })
         summary.sent++
