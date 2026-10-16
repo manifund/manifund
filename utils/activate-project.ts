@@ -63,6 +63,12 @@ export function calcTotalOffered(project: ProjectAndBids) {
     .reduce((acc, bid) => acc + bid.amount, 0)
 }
 
+// A certificate program without a proposal phase starts its projects active, skipping the proposal stage.
+// Read from the program's row in the database, and only while the program is open.
+export function programStartsActive(prize?: Cause) {
+  return !!prize?.open && !!prize.cert_params && !prize.cert_params.proposalPhase
+}
+
 export function checkReactivateEligible(project: Project, prizeCause?: Cause) {
   return (
     project.stage === 'not funded' &&

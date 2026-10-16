@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { invalidateProjectsCache } from '@/db/project-cached'
-import { getUserAndClient } from '@/db/edge'
+import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { getProjectWithCausesById } from '@/db/project'
 import { getPrizeCause } from '@/db/cause'
 import { checkReactivateEligible } from '@/utils/activate-project'
@@ -27,7 +27,8 @@ export default async function handler(req: NextRequest) {
     console.error('not eligible')
     return Response.error()
   }
-  await reactivateProject(supabase, projectId)
+  // Only the server moves a project to active; the checks above are what allow it here.
+  await reactivateProject(createAdminClient(), projectId)
 
   invalidateProjectsCache()
 

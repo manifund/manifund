@@ -6,7 +6,7 @@ import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { createUpdateFromParams, ProjectParams } from '@/utils/upsert-project'
 import { getPrizeCause } from '@/db/cause'
 import { getProposalValuation, getMinIncludingAmm } from '@/utils/math'
-import { seedAmm } from '@/utils/activate-project'
+import { programStartsActive, seedAmm } from '@/utils/activate-project'
 import { insertBid } from '@/db/bid'
 import { triggerProjectScoring } from '@/app/utils/trigger-scoring'
 
@@ -31,14 +31,23 @@ export default async function handler(req: NextRequest) {
   }
   const causeSlugs = projectParams.selectedCauses.map((cause) => cause.slug)
   const selectedPrize = projectParams.selectedPrize
-  const startingStage =
-    selectedPrize && !selectedPrize.cert_params?.proposalPhase ? 'active' : 'proposal'
   const type = !!selectedPrize ? 'cert' : 'grant'
+  // Like create-project: a project starts active only in an open certificate program without a proposal
+  // phase, as stored in the database. Only the server moves a project to active.
+  const program = selectedPrize ? await getPrizeCause([selectedPrize.slug], supabase) : undefined
+  const startingStage = programStartsActive(program) ? 'active' : 'proposal'
   const projectUpdate = createUpdateFromParams(projectParams)
   await updateProject(supabase, projectId, {
     ...projectUpdate,
-    stage: startingStage,
+    stage: 'proposal',
   })
+  if (startingStage === 'active') {
+    await createAdminClient()
+      .from('projects')
+      .update({ stage: 'active' })
+      .eq('id', projectId)
+      .throwOnError()
+  }
   const updatedProject = await getProjectById(supabase, projectId)
   const prizeCause = await getPrizeCause(causeSlugs, supabase)
   if (type === 'cert' && prizeCause) {
