@@ -18,12 +18,45 @@ export const config = {
   unstable_allowDynamic: ['**/node_modules/function-bind/implementation.js'],
 }
 
+// Same limits as the withdraw page. Larger withdrawals go through Mercury
+// (see MERCURY_ENABLED in utils/constants.ts).
+const STRIPE_CONNECT_MIN_WITHDRAWAL = 1
+const STRIPE_CONNECT_MAX_WITHDRAWAL = 10_000
+
 export default async function handler(req: NextRequest) {
-  const { dollarAmount } = await req.json()
+  const { dollarAmount: requestedAmount } = await req.json()
   const { supabase, user } = await getUserAndClient(req)
   if (!user) {
     console.error('withdraw failed: no user')
     return NextResponse.json({ error: 'You must be signed in to withdraw.' }, { status: 401 })
+  }
+  if (
+    typeof requestedAmount !== 'number' ||
+    !Number.isFinite(requestedAmount) ||
+    Math.abs(requestedAmount * CENTS_PER_DOLLAR - Math.round(requestedAmount * CENTS_PER_DOLLAR)) >
+      1e-6
+  ) {
+    console.error('withdraw failed: not a whole number of cents', user.id, requestedAmount)
+    return NextResponse.json({ error: 'Enter an amount in dollars and cents.' }, { status: 400 })
+  }
+  // From here on, the ledger and Stripe both get exactly this many cents.
+  const cents = Math.round(requestedAmount * CENTS_PER_DOLLAR)
+  const dollarAmount = cents / CENTS_PER_DOLLAR
+  if (dollarAmount < STRIPE_CONNECT_MIN_WITHDRAWAL) {
+    console.error('withdraw failed: below the minimum', user.id, dollarAmount)
+    return NextResponse.json(
+      { error: `The minimum withdrawal is $${STRIPE_CONNECT_MIN_WITHDRAWAL}.` },
+      { status: 400 }
+    )
+  }
+  if (dollarAmount > STRIPE_CONNECT_MAX_WITHDRAWAL) {
+    console.error('withdraw failed: above the Stripe limit', user.id, dollarAmount)
+    return NextResponse.json(
+      {
+        error: `Withdrawals through Stripe are up to $${STRIPE_CONNECT_MAX_WITHDRAWAL.toLocaleString('en-US')}. Use "Withdraw to your bank" for larger amounts.`,
+      },
+      { status: 400 }
+    )
   }
   const profile = await getProfileById(supabase, user.id)
   if (!profile?.stripe_connect_id) {
@@ -44,8 +77,10 @@ export default async function handler(req: NextRequest) {
   const txns = await getFullTxnsByUser(supabase, user.id)
   const bids = await getBidsByUser(supabase, user.id)
   const withdrawBalance = calculateCashBalance(txns, bids, user.id, profile.accreditation_status)
-  if (dollarAmount <= 0 || dollarAmount > withdrawBalance) {
-    console.error('withdraw failed: invalid amount', user.id, dollarAmount)
+  // Compared in whole cents: a balance is a sum of float amounts (e.g. 9954.519999999997), and withdrawing all of
+  // it must work. Rounding lets a request exceed the exact balance by at most half a cent.
+  if (cents > Math.round(withdrawBalance * CENTS_PER_DOLLAR)) {
+    console.error('withdraw failed: above balance', user.id, dollarAmount)
     return NextResponse.json(
       { error: 'Withdrawal amount exceeds your withdrawable balance.' },
       { status: 400 }
@@ -78,7 +113,8 @@ export default async function handler(req: NextRequest) {
     user.id,
     profile.accreditation_status
   )
-  if (balanceAfter < 0) {
+  // In whole cents, like the check above, so float error on a full withdrawal doesn't count as a concurrent one.
+  if (Math.round(balanceAfter * CENTS_PER_DOLLAR) < 0) {
     // Concurrent withdrawal detected — roll back our txn
     await supabaseAdmin.from('txns').delete().eq('id', txnId).throwOnError()
     console.error('withdraw failed: concurrent withdrawal, rolled back', user.id, dollarAmount)
@@ -91,7 +127,7 @@ export default async function handler(req: NextRequest) {
   let transfer
   try {
     transfer = await stripe.transfers.create({
-      amount: dollarAmount * CENTS_PER_DOLLAR,
+      amount: cents,
       currency: 'usd',
       destination: profile.stripe_connect_id,
     })
