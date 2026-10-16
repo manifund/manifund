@@ -1759,6 +1759,10 @@ export type Database = {
         Args: { project_creator: string; project_id: string }
         Returns: undefined
       }
+      activate_proposal: {
+        Args: { offers: Json; project_id: string }
+        Returns: undefined
+      }
       add_tags: { Args: never; Returns: undefined }
       add_topics: { Args: never; Returns: undefined }
       adjust_karma: {
