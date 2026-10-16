@@ -47,7 +47,7 @@ export default async function handler(req: NextRequest) {
     fromId,
     profile?.accreditation_status
   )
-  if (userSpendableFunds < amount || amount < 0) {
+  if (!Number.isFinite(amount) || amount <= 0 || userSpendableFunds < amount) {
     console.error('not enough funds')
     return NextResponse.error()
   }
@@ -58,6 +58,14 @@ export default async function handler(req: NextRequest) {
       getProjectAndBidsById(supabase, projectId),
       getTxnsByProject(supabase, projectId),
     ])
+    // A person's project donation goes to the project's creator
+    if (!project || project.creator !== toId) {
+      return new Response('Recipient must be the project creator', { status: 400 })
+    }
+    // Donations go to active projects; offers on a proposal go through place-bid.
+    if (project.stage !== 'active') {
+      return new Response('This project is not accepting donations right now', { status: 400 })
+    }
     if (project?.type === 'grant') {
       const raised = getAmountRaised(project, project.bids, projectTxns)
       const limitError = donationLimitError(amount, fundingLeft(project.funding_goal, raised))
