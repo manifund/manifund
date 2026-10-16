@@ -3,6 +3,7 @@ import { isAuthorizedCron } from '@/utils/cron-auth'
 import { waitUntil } from '@vercel/functions'
 import { updateProjectEmbedding } from '@/app/utils/embeddings'
 import { scoreProject } from '@/app/utils/project-scores'
+import { evaluateProject, hasAiEvalKeys } from '@/app/utils/project-ai-evals'
 import {
   classifyProjectSpam,
   handleSpamProject,
@@ -71,6 +72,13 @@ export async function POST(request: NextRequest) {
       console.error(`Failed to score project ${projectId}:`, error)
     })
   )
+  if (hasAiEvalKeys()) {
+    waitUntil(
+      evaluateProject(admin, projectId).catch((error) => {
+        console.error(`Failed to AI-evaluate project ${projectId}:`, error)
+      })
+    )
+  }
 
   return NextResponse.json({ started: true, projectId }, { status: 202 })
 }

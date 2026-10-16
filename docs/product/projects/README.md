@@ -8,3 +8,22 @@ the lifecycle rules live in `utils/activate-project.ts`, `pages/api/close-grants
 `activate_proposal`, `reject_proposal`. Before a proposal activates, each pending offer is checked against its
 offerer's current balance (offers they no longer cover are declined), and `activate_proposal` accepts exactly the
 offers that were checked.
+
+## AI evaluation
+
+Claude reads each project as a donor would see it and records a 1-5 merit score, a 2-4 sentence opinion, and the
+probability it reaches its minimum funding. For now these are only recorded (`project_ai_evals`); showing them on
+pages, the homepage or the weekly digest comes later. The prompt was chosen by testing on closed proposals
+(`tools/proposal-eval`).
+
+- **P1** Projects posted on or after 1 July 2026 are evaluated; earlier ones aren't, since the model may have seen
+  them, outcomes included, in training.
+- **P2** The model sees the title, blurb, description, minimum, goal, posting date and creator's name; never votes,
+  comments or money raised.
+- **P3** A project is evaluated when it's created, published or edited, with a nightly run catching any missed.
+  After its first evaluation, edits are evaluated again only while it can still take money (proposal or active).
+- **P4** Evaluations are never overwritten: each new text gets its own row, with the stage it was in, so the
+  evaluation made when a proposal was posted survives later edits.
+- **P5** Evaluations are public, like the rest of a project's data.
+- **P6** When the model declines to evaluate a project (some biosecurity proposals), that is recorded and not
+  retried for the same text.
