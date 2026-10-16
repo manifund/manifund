@@ -32,7 +32,13 @@ type SortOption =
   | 'karma'
   | 'closing soon'
 
-const DEFAULT_SORT_OPTIONS = ['hot', 'karma', 'newest', 'closing soon', 'funding'] as SortOption[]
+const DEFAULT_SORT_OPTIONS = [
+  'hot',
+  'karma',
+  'newest',
+  'closing soon',
+  'funding',
+] as SortOption[]
 
 export function ProjectsDisplay(props: {
   projects: FullProject[]

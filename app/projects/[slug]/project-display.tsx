@@ -10,12 +10,7 @@ import { Profile } from '@/db/profile'
 import { FullProject, Project } from '@/db/project'
 import { Cause, SimpleCause } from '@/db/cause'
 import { TxnAndProfiles, TxnAndProject } from '@/db/txn'
-import {
-  calculateCashBalance,
-  getAmountRaised,
-  getMinIncludingAmm,
-  getProjectValuation,
-} from '@/utils/math'
+import { calculateCashBalance, getAmountRaised, getMinIncludingAmm, getProjectValuation } from '@/utils/math'
 import { useState } from 'react'
 import { karmaWeight } from '@/utils/karma'
 import { countVotes } from '@/utils/sort'
