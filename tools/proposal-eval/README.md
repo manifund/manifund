@@ -33,10 +33,9 @@ bun tools/proposal-eval/run.ts --mode web --run-id v1-web --prompt v1 --provider
 #   --limit N, --project <slug>, --effort low|medium|high|xhigh|max, --dry-run (prints the exact prompt)
 
 bun tools/proposal-eval/analyze.ts [--run v2-text] [--include-leaked]
-bun tools/proposal-eval/sync-airtable.ts [--run v2-text]   # needs AIRTABLE_PAT
 ```
 
-Results are written to `results/<run_id>.jsonl` (gitignored), one row per attempt. The latest successful row for each project is the one used. Airtable base: "Manifund AI Evals" (`appvalF5dSKjOUahH`). It has a Projects table with current outcomes and an Evals table with one row per run and project.
+Results are written to `results/<run_id>.jsonl` (gitignored), one row per attempt. The latest successful row for each project is the one used. Production evaluations live in the `project_ai_evals` table instead.
 
 Prompts live in `prompts/<version>-<mode>.md`, picked with `--prompt`. `{{BASE_RATE}}` is filled from the share of closed projects that reached their minimum, over the projects being judged.
 
