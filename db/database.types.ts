@@ -1028,6 +1028,65 @@ export type Database = {
         }
         Relationships: []
       }
+      project_ai_evals: {
+        Row: {
+          content_hash: string
+          cost_usd: number | null
+          created_at: string
+          error: string | null
+          id: string
+          model: string
+          opinion: string | null
+          outcome_leaked: boolean | null
+          p_min_funding: number | null
+          project_id: string
+          project_stage: string
+          prompt_version: string
+          raw: Json | null
+          score: number | null
+        }
+        Insert: {
+          content_hash: string
+          cost_usd?: number | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          model: string
+          opinion?: string | null
+          outcome_leaked?: boolean | null
+          p_min_funding?: number | null
+          project_id: string
+          project_stage: string
+          prompt_version: string
+          raw?: Json | null
+          score?: number | null
+        }
+        Update: {
+          content_hash?: string
+          cost_usd?: number | null
+          created_at?: string
+          error?: string | null
+          id?: string
+          model?: string
+          opinion?: string | null
+          outcome_leaked?: boolean | null
+          p_min_funding?: number | null
+          project_id?: string
+          project_stage?: string
+          prompt_version?: string
+          raw?: Json | null
+          score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'project_ai_evals_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       project_causes: {
         Row: {
           application_stage: Database['public']['Enums']['project_stage'] | null
