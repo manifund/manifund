@@ -24,7 +24,10 @@
     "test:routes": "bun test --conditions react-server --preload ./tests/routes/setup.ts --timeout 60000 tests/routes",
     "test:e2e": "playwright test --config tests/e2e/playwright.config.ts",
     "test:all": "bun run test && bun run test:routes && bun run test:e2e",
-    "test:rules": "bun tests/rules.ts"
+    "test:rules": "bun tests/rules.ts",
+    "test:ai-reference": "bun test --conditions react-server tests/ai-reference/unit tests/ai-reference/db && bun test tests/ai-reference/components",
+    "test:ai-reference:routes": "bun tests/ai-reference/routes/run.ts",
+    "test:ai-reference:rules": "bun tests/ai-reference/rules.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",

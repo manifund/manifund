@@ -4,17 +4,20 @@ Tests check the rules in the product docs (`docs/product/<area>/README.md`): eac
 checks (e.g. `C11`), and `bun run test:rules` lists rules that no test names yet. They run **locally**, against the
 local Supabase and a dev server; they're not set up for CI yet.
 
+`tests/ai-reference/` holds tests for the agent-written docs in `docs/ai-reference/`, to ignore unless asked; the
+commands below don't run them (`bun run test:ai-reference`, see `docs/ai-reference/README.md`).
+
 ## Running them
 
-| Command | What | Needs | Time |
-|---|---|---|---|
-| `bun run test` | unit + database | local Supabase running | ~1 s |
-| `bun run test:unit` | pure logic only | nothing | <1 s |
-| `bun run test:db` | the database's own rules (triggers, row-level security) | local Supabase | <1 s |
-| `bun run test:routes` | the app's API and pages, as test people | local Supabase + the dev server | ~1-2 min |
-| `bun run test:e2e` | a few flows in a real browser (Playwright, Chromium) | local Supabase + the dev server | ~1 min |
-| `bun run test:all` | all of the above | both | ~3 min |
-| `bun run test:rules` | which rules have tests | nothing | <1 s |
+| Command               | What                                                    | Needs                           | Time     |
+| --------------------- | ------------------------------------------------------- | ------------------------------- | -------- |
+| `bun run test`        | unit + database                                         | local Supabase running          | ~1 s     |
+| `bun run test:unit`   | pure logic only                                         | nothing                         | <1 s     |
+| `bun run test:db`     | the database's own rules (triggers, row-level security) | local Supabase                  | <1 s     |
+| `bun run test:routes` | the app's API and pages, as test people                 | local Supabase + the dev server | ~1-2 min |
+| `bun run test:e2e`    | a few flows in a real browser (Playwright, Chromium)    | local Supabase + the dev server | ~1 min   |
+| `bun run test:all`    | all of the above                                        | both                            | ~3 min   |
+| `bun run test:rules`  | which rules have tests                                  | nothing                         | <1 s     |
 
 How much to run, for route tests: `TEST_LEVEL=smoke` (the core of each area), default `standard`, or `full` (also
 the slow ones: grants and verdicts, the daily warning). One file or test: `bun test --conditions react-server

@@ -49,6 +49,10 @@ proxy.ts          # Next.js 16 middleware (session refresh, JWT validation)
 Before changing how an area behaves, read its doc in `docs/product/<area>/README.md` (rules have ids like `C12`;
 tests name them) and update it in the same branch. How we work and write docs: `docs/README.md`.
 
+`docs/ai-reference/<area>/` describes areas that have no product doc yet. Agents wrote it from the code (October
+2026) and the team hasn't reviewed it. Ignore it unless asked: then use it or its tests (`bun run test:ai-reference`),
+and update it. When an area gets a real product doc, move what's still true into `docs/product/<area>/`.
+
 ## Code Style
 
 - **oxfmt:** 2-space indent, no semicolons, single quotes, trailing commas
