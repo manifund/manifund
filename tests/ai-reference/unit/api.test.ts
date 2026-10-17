@@ -40,7 +40,13 @@ const pub = (method: string, params: object = {}) =>
 
 const tokenCtx = (token: string) => ({ params: Promise.resolve({ token }) })
 const admin = (token: string, method: string, params: object = {}) =>
-  call(adminPost as Handler, `http://localhost/api/mcp-admin/${token}/mcp`, method, params, tokenCtx(token))
+  call(
+    adminPost as Handler,
+    `http://localhost/api/mcp-admin/${token}/mcp`,
+    method,
+    params,
+    tokenCtx(token)
+  )
 
 const savedToken = process.env.MCP_ADMIN_TOKEN
 afterEach(() => {
@@ -66,7 +72,9 @@ describe('I9 the public MCP server: its addresses, instructions and nine read to
     expect((await tools(pub('tools/list'))).map((t) => t.name).sort()).toEqual(PUBLIC_TOOLS)
   })
   test('/api/mcp/mcp lists the same tools', async () => {
-    const list = await tools(call(transportPost as Handler, 'http://localhost/api/mcp/mcp', 'tools/list'))
+    const list = await tools(
+      call(transportPost as Handler, 'http://localhost/api/mcp/mcp', 'tools/list')
+    )
     expect(list.map((t) => t.name).sort()).toEqual(PUBLIC_TOOLS)
   })
   test('initializing gives the client instructions about Manifund', async () => {
@@ -106,7 +114,12 @@ describe('I11 I14 I15 I16 I17 I18 the public tools take inputs within their rang
     expect([s.limit.minimum, s.limit.maximum, s.limit.default]).toEqual([1, 500, 100])
     expect(s.token.default).toBe('USD')
     expect(s.include_cert_txns.default).toBe(false)
-    for (const t of ['user to user trade', 'user to amm trade', 'inject amm liquidity', 'mint cert'])
+    for (const t of [
+      'user to user trade',
+      'user to amm trade',
+      'inject amm liquidity',
+      'mint cert',
+    ])
       expect(s.include_cert_txns.description).toContain(t)
   })
   test('I18 get_user_balances: 1 to 50 usernames', async () => {
@@ -117,18 +130,27 @@ describe('I11 I14 I15 I16 I17 I18 the public tools take inputs within their rang
 
 describe('I20 a tool that cannot answer returns an error result, not a server error', () => {
   test('an input out of range', async () => {
-    const { status, body } = await pub('tools/call', { name: 'search_projects', arguments: { limit: 0 } })
+    const { status, body } = await pub('tools/call', {
+      name: 'search_projects',
+      arguments: { limit: 0 },
+    })
     expect(status).toBe(200)
     expect(body.result.isError).toBe(true)
     expect(body.result.content[0].text).toContain('limit')
   })
   test('a hidden stage is not an input the public search takes', async () => {
-    const { body } = await pub('tools/call', { name: 'search_projects', arguments: { stage: 'hidden' } })
+    const { body } = await pub('tools/call', {
+      name: 'search_projects',
+      arguments: { stage: 'hidden' },
+    })
     expect(body.result.isError).toBe(true)
   })
   test('an admin tool asked nothing says what it needs', async () => {
     const token = withTestToken()
-    const { status, body } = await admin(token, 'tools/call', { name: 'lookup_users', arguments: {} })
+    const { status, body } = await admin(token, 'tools/call', {
+      name: 'lookup_users',
+      arguments: {},
+    })
     expect(status).toBe(200)
     expect(body.result).toEqual({
       isError: true,

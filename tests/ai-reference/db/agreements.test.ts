@@ -41,19 +41,27 @@ describe('A20 only the server writes the agreement', () => {
         await tx`savepoint s`
         await as()
         await expect(
-          attempt(() => tx`insert into grant_agreements (project_id, signed_at) values (${other.id}, now())`)
+          attempt(
+            () =>
+              tx`insert into grant_agreements (project_id, signed_at) values (${other.id}, now())`
+          )
         ).rejects.toThrow('row-level security')
         await tx`rollback to savepoint s`
         await as()
-        const updated = await tx`update grant_agreements set recipient_name = 'Someone else', approved_at = now()
+        const updated =
+          await tx`update grant_agreements set recipient_name = 'Someone else', approved_at = now()
                                  where project_id = ${project.id} returning 1`
         expect(updated).toHaveLength(0)
-        const deleted = await tx`delete from grant_agreements where project_id = ${project.id} returning 1`
+        const deleted =
+          await tx`delete from grant_agreements where project_id = ${project.id} returning 1`
         expect(deleted).toHaveLength(0)
         await tx`reset role`
-        const [row] = await tx`select recipient_name, approved_at from grant_agreements where project_id = ${project.id}`
+        const [row] =
+          await tx`select recipient_name, approved_at from grant_agreements where project_id = ${project.id}`
         expect(row).toEqual({ recipient_name: 'Test Recipient', approved_at: null })
-        expect(await tx`select 1 from grant_agreements where project_id = ${other.id}`).toHaveLength(0)
+        expect(
+          await tx`select 1 from grant_agreements where project_id = ${other.id}`
+        ).toHaveLength(0)
       }))
   }
 })
@@ -69,43 +77,67 @@ describe('A21 signing evidence and tax records: browsers can neither read nor wr
           else await actAs(tx, who === 'the creator' ? p.alice.id : p.bob.id)
         }
         await as()
-        expect(await tx`select * from grant_agreement_private where project_id = ${project.id}`).toHaveLength(0)
-        const updated = await tx`update grant_agreement_private set w9_received_at = now(), signing_token_hash = 'x'
+        expect(
+          await tx`select * from grant_agreement_private where project_id = ${project.id}`
+        ).toHaveLength(0)
+        const updated =
+          await tx`update grant_agreement_private set w9_received_at = now(), signing_token_hash = 'x'
                                  where project_id = ${project.id} returning 1`
         expect(updated).toHaveLength(0)
-        expect(await tx`delete from grant_agreement_private where project_id = ${project.id} returning 1`).toHaveLength(0)
+        expect(
+          await tx`delete from grant_agreement_private where project_id = ${project.id} returning 1`
+        ).toHaveLength(0)
         await tx`savepoint s`
         await expect(
-          attempt(() => tx`insert into grant_agreement_private (project_id, signing_token_hash) values (${other.id}, 'x')`)
+          attempt(
+            () =>
+              tx`insert into grant_agreement_private (project_id, signing_token_hash) values (${other.id}, 'x')`
+          )
         ).rejects.toThrow('row-level security')
         await tx`rollback to savepoint s`
         await tx`reset role`
-        const [row] = await tx`select w9_received_at, signing_token_hash, signatory_email from grant_agreement_private
+        const [row] =
+          await tx`select w9_received_at, signing_token_hash, signatory_email from grant_agreement_private
                                where project_id = ${project.id}`
-        expect(row).toEqual({ w9_received_at: null, signing_token_hash: null, signatory_email: `${RUN}-signer@example.test` })
+        expect(row).toEqual({
+          w9_received_at: null,
+          signing_token_hash: null,
+          signatory_email: `${RUN}-signer@example.test`,
+        })
       }))
   }
 })
 
-describe('A16 a signing link\'s hash belongs to one agreement', () => {
-  test('two agreements can\'t hold the same token hash', () =>
+describe("A16 a signing link's hash belongs to one agreement", () => {
+  test("two agreements can't hold the same token hash", () =>
     inRollback(async (tx) => {
       const a = await signedProposal(tx, `${RUN}-a`)
       const b = await signedProposal(tx, `${RUN}-b`)
       await tx`update grant_agreement_private set signing_token_hash = ${RUN + '-hash'} where project_id = ${a.id}`
       await expect(
-        attempt(() => tx`update grant_agreement_private set signing_token_hash = ${RUN + '-hash'} where project_id = ${b.id}`)
+        attempt(
+          () =>
+            tx`update grant_agreement_private set signing_token_hash = ${RUN + '-hash'} where project_id = ${b.id}`
+        )
       ).rejects.toThrow('grant_agreement_private_signing_token_hash_idx')
     }))
 })
 
 describe('A2 A9 the database accepts only the known kinds of recipient and entity', () => {
-  for (const [column, value] of [['recipient_type', 'company'], ['recipient_entity_class', 'individual']] as const) {
+  for (const [column, value] of [
+    ['recipient_type', 'company'],
+    ['recipient_entity_class', 'individual'],
+  ] as const) {
     test(`${column} = '${value}' is refused`, () =>
       inRollback(async (tx) => {
         const project = await signedProposal(tx)
         await expect(
-          attempt(() => tx.unsafe(`update grant_agreements set ${column} = $1 where project_id = $2`, [value, project.id]))
+          attempt(() =>
+            tx.unsafe(`update grant_agreements set ${column} = $1 where project_id = $2`, [
+              value,
+              project.id,
+            ])
+          )
         ).rejects.toThrow(`grant_agreements_${column}_check`)
       }))
   }
@@ -114,11 +146,15 @@ describe('A2 A9 the database accepts only the known kinds of recipient and entit
       const project = await makeProject(tx, p.alice.id, 'proposal', `${RUN}-default`)
       const [row] = await tx`insert into grant_agreements (project_id) values (${project.id})
                              returning recipient_type, foreign_no_tin, signatory_authority_attested`
-      expect(row).toEqual({ recipient_type: 'individual', foreign_no_tin: false, signatory_authority_attested: false })
+      expect(row).toEqual({
+        recipient_type: 'individual',
+        foreign_no_tin: false,
+        signatory_authority_attested: false,
+      })
     }))
 })
 
-describe('A22 the countersignature is the approval, on that project\'s agreement only', () => {
+describe("A22 the countersignature is the approval, on that project's agreement only", () => {
   test('approving records the admin and the date on its agreement; other agreements are untouched', () =>
     inRollback(async (tx) => {
       const project = await signedProposal(tx, `${RUN}-approved`)
@@ -127,14 +163,16 @@ describe('A22 the countersignature is the approval, on that project\'s agreement
       const [row] = await tx`select approved_by, approved_at > now() - interval '1 minute' as recent
                              from grant_agreements where project_id = ${project.id}`
       expect(row).toEqual({ approved_by: p.rita.id, recent: true })
-      const [untouched] = await tx`select approved_by, approved_at from grant_agreements where project_id = ${other.id}`
+      const [untouched] =
+        await tx`select approved_by, approved_at from grant_agreements where project_id = ${other.id}`
       expect(untouched).toEqual({ approved_by: null, approved_at: null })
     }))
   test('rejecting records no countersignature', () =>
     inRollback(async (tx) => {
       const project = await signedProposal(tx)
       await verdict(tx, false, project.id, p.rita.id)
-      const [row] = await tx`select approved_by, approved_at from grant_agreements where project_id = ${project.id}`
+      const [row] =
+        await tx`select approved_by, approved_at from grant_agreements where project_id = ${project.id}`
       expect(row).toEqual({ approved_by: null, approved_at: null })
     }))
 
@@ -151,7 +189,8 @@ describe('A22 the countersignature is the approval, on that project\'s agreement
                on conflict (project_id) do update set signed_at = excluded.signed_at,
                  recipient_name = excluded.recipient_name, project_title = excluded.project_title,
                  version = excluded.version`
-      const [row] = await tx`select approved_by, approved_at is not null as approved from grant_agreements
+      const [row] =
+        await tx`select approved_by, approved_at is not null as approved from grant_agreements
                              where project_id = ${project.id}`
       expect(row).toEqual({ approved_by: p.rita.id, approved: true })
     }))
@@ -162,7 +201,11 @@ describe('A20 A21 an agreement goes with its project', () => {
     inRollback(async (tx) => {
       const project = await signedProposal(tx)
       await tx`delete from projects where id = ${project.id}`
-      expect(await tx`select 1 from grant_agreements where project_id = ${project.id}`).toHaveLength(0)
-      expect(await tx`select 1 from grant_agreement_private where project_id = ${project.id}`).toHaveLength(0)
+      expect(
+        await tx`select 1 from grant_agreements where project_id = ${project.id}`
+      ).toHaveLength(0)
+      expect(
+        await tx`select 1 from grant_agreement_private where project_id = ${project.id}`
+      ).toHaveLength(0)
     }))
 })

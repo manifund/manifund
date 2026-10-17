@@ -1,6 +1,6 @@
 # Donor survey
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 A survey for donors at `/donor-survey`: how much they plan to give, to which causes, how they like to give, and
 whether Manifund may stay in touch. Respondents see what other donors answered, and can publish their own answers
@@ -142,22 +142,22 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 Newest first. From the PRs and the donor-survey thread's notes; the original brief is
 `docs/plans/donor-survey-2026-09-08.md`.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-05 | Vals | The profile links to the donor page (D19); the donor page shows funds vs. picking charities on the results' scale; visitors see only answered questions (D17) (#281) | Findable; same reading as the results; no empty sections for visitors |
-| 2026-10-05 | Vals | Results grouped under the survey's headings, percentages kept with empty rows dimmed, rating spread per cause (D13) (#281) | Easier to read; the average alone hid how ratings split |
-| 2026-09-28 | Vals | "Staying in touch" on results: only opportunities and events (D13); on a donor page the donor sees those two, admins all five (D18, the coordinator's default) | 1:1 calls and sharing are for the team to act on |
-| 2026-09-28 | Vals | Signed-out answers can't be published (D8); emails matched exactly, not as patterns (D5, D11); the profile's name for signed-in saves (D7) | A typed email is unverified: it mustn't publish answers on someone else's page |
-| 2026-09-28 | Austin | Cause interest rated 1 to 5 instead of split by percentage; funds vs. picking charities in steps of 5 (D3, D4) | (from the migration; reason not recorded) |
-| 2026-09-28 | Vals | Rating dots instead of stars; the results gate's wording (D12) | Testing locally |
-| 2026-09-08 | Austin | The survey, its copy, results for respondents, optional public donor pages | The brief, `docs/plans/donor-survey-2026-09-08.md` |
+| Date       | Decided by | Decision                                                                                                                                                             | Why                                                                            |
+| ---------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| 2026-10-05 | Vals       | The profile links to the donor page (D19); the donor page shows funds vs. picking charities on the results' scale; visitors see only answered questions (D17) (#281) | Findable; same reading as the results; no empty sections for visitors          |
+| 2026-10-05 | Vals       | Results grouped under the survey's headings, percentages kept with empty rows dimmed, rating spread per cause (D13) (#281)                                           | Easier to read; the average alone hid how ratings split                        |
+| 2026-09-28 | Vals       | "Staying in touch" on results: only opportunities and events (D13); on a donor page the donor sees those two, admins all five (D18, the coordinator's default)       | 1:1 calls and sharing are for the team to act on                               |
+| 2026-09-28 | Vals       | Signed-out answers can't be published (D8); emails matched exactly, not as patterns (D5, D11); the profile's name for signed-in saves (D7)                           | A typed email is unverified: it mustn't publish answers on someone else's page |
+| 2026-09-28 | Austin     | Cause interest rated 1 to 5 instead of split by percentage; funds vs. picking charities in steps of 5 (D3, D4)                                                       | (from the migration; reason not recorded)                                      |
+| 2026-09-28 | Vals       | Rating dots instead of stars; the results gate's wording (D12)                                                                                                       | Testing locally                                                                |
+| 2026-09-08 | Austin     | The survey, its copy, results for respondents, optional public donor pages                                                                                           | The brief, `docs/plans/donor-survey-2026-09-08.md`                             |
 
 ## Open questions
 
 - **The emailed results link doesn't open the results on a new device.** The edit-link email says "The same link
   also gets you to what other donors answered" and links `/donor-survey/results` without the token
-  (`app/donor-survey/actions.ts:127`). The results page only reads the cookie (`results/page.tsx:36`), and opening
-  the edit link doesn't set the cookie (only saving does, `actions.ts:196`, `:223`). So a signed-out respondent on
+  (`app/donor-survey/actions.ts:127`). The results page only reads the cookie, and opening
+  the edit link doesn't set the cookie (only saving does, `actions.ts:199`, `:226`). So a signed-out respondent on
   another browser sees the gate until they open the edit link and save again. Fix: set the cookie when the edit link
   is opened, or pass the token on to the results.
 - **Email failures aren't shown.** Since 2026-10-09 a failed edit-link email is logged (`email.failed`), but the

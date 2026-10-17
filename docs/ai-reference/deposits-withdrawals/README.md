@@ -1,11 +1,11 @@
 # Deposits and withdrawals
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 How money enters Manifund (card deposits through Stripe, larger gifts by hand) and how people take their cash out
 (Stripe Connect payouts, bank transfers through Mercury), plus moving cash to one's charity balance.
 
-**Status of this doc (2026-10-08).** Written from the code and its history by an agent, not yet reviewed. Rules
+**Status of this doc (2026-10-08, updated for #314 and #317 on 2026-10-17).** Written from the code and its history by an agent, not yet reviewed. Rules
 describe what the product does today ("observed (code, 2026-10-08)"); where a rule says why, that's the agent's
 reading of commits, PRs and code comments, a draft for the team to confirm. Nothing here was decided for this doc.
 
@@ -172,22 +172,22 @@ A returning person (a Mercury recipient on file) starts at `ready_to_pay`. "Open
 From the git history and PR descriptions; dated by commit, who made it as far as the commit shows. None of these
 were reviewed for this doc.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-16 | Vals (#314, #317) | Each checkout session is credited once, in one transaction (W27); Stripe withdrawals in whole cents, $1 to $10,000, checked on the server (W12) | Stripe redelivers events; the amount sent to Stripe must be exact |
-| 2026-09-16 | Caroline (PR #253) | Mercury transitions are compare-and-swap; reusing an idempotency key recovers the already-queued payment (W19, W22) | Two overlapping syncs could both submit one payment |
-| 2026-09-11 | Caroline (PR #243) | Checkout credits the signed-in caller; the webhook credits only paid sessions, for what Stripe charged (W1-W3) | Credit only what was paid, to the person signed in |
-| 2026-09-08 | Caroline (commit) | Mercury withdrawals turned on for everyone (W14) | After a dark launch with admins only |
-| 2026-09-07 | Caroline (PR #224, commits) | Mercury-backed withdrawals replace the Airtable manual-withdrawal form; Stripe Connect unchanged; bank details only on Mercury's page; balance reserved at request time and given back by deleting the txn (W9, W10, W14-W21) | A real status and `sent_at` for every withdrawal; Manifund never holds account numbers |
-| 2026-09-07 | Caroline (PR #224) | Minimum Mercury withdrawal $1,000, capped at the balance (W15) | An international wire costs a flat $15, and small requests linger; nobody gets locked out |
-| 2026-09-03 | Caroline (migration) | India and Philippines wires stay manual, about six a year (W20) | Mercury's API can't carry their purpose codes |
-| 2026-09-07 | Caroline (commit) | Email people when their withdrawal is queued for approval (W19) | |
-| 2026-08-13 | Caroline (PR #199) | Withdrawal errors shown to people; failed Stripe transfers alert the team (W12, W13) | Failures used to be an opaque 500 |
-| 2026-04-07 | Austin (commit) | Stripe withdrawals: insert the txn first, then re-check the balance (W9) | Two withdrawals at once could both pass the balance check |
-| 2024-09-13 | Austin (commit) | Wire/crypto/DAF instructions in the deposit box; card deposits capped at $50,000 in the box (W1, W6) | |
-| 2024-02-17 | Austin (commit) | Card deposits of $10,000+ suggest a DAF, bank transfer or crypto (W6) | Lower fees |
-| 2023-07-17 | Rachel (PR #51) | Cash can be moved to the charity balance (W26) | To give instead of withdrawing |
-| 2023-07-04 | Rachel (commit) | Warnings for withdrawals over $10,000 (W8, W12) | |
+| Date       | Decided by                  | Decision                                                                                                                                                                                                                      | Why                                                                                       |
+| ---------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 2026-10-16 | Vals (#314, #317)           | Each checkout session is credited once, in one transaction (W27); Stripe withdrawals in whole cents, $1 to $10,000, checked on the server (W12)                                                                               | Stripe redelivers events; the amount sent to Stripe must be exact                         |
+| 2026-09-16 | Caroline (PR #253)          | Mercury transitions are compare-and-swap; reusing an idempotency key recovers the already-queued payment (W19, W22)                                                                                                           | Two overlapping syncs could both submit one payment                                       |
+| 2026-09-11 | Caroline (PR #243)          | Checkout credits the signed-in caller; the webhook credits only paid sessions, for what Stripe charged (W1-W3)                                                                                                                | Credit only what was paid, to the person signed in                                        |
+| 2026-09-08 | Caroline (commit)           | Mercury withdrawals turned on for everyone (W14)                                                                                                                                                                              | After a dark launch with admins only                                                      |
+| 2026-09-07 | Caroline (PR #224, commits) | Mercury-backed withdrawals replace the Airtable manual-withdrawal form; Stripe Connect unchanged; bank details only on Mercury's page; balance reserved at request time and given back by deleting the txn (W9, W10, W14-W21) | A real status and `sent_at` for every withdrawal; Manifund never holds account numbers    |
+| 2026-09-07 | Caroline (PR #224)          | Minimum Mercury withdrawal $1,000, capped at the balance (W15)                                                                                                                                                                | An international wire costs a flat $15, and small requests linger; nobody gets locked out |
+| 2026-09-03 | Caroline (migration)        | India and Philippines wires stay manual, about six a year (W20)                                                                                                                                                               | Mercury's API can't carry their purpose codes                                             |
+| 2026-09-07 | Caroline (commit)           | Email people when their withdrawal is queued for approval (W19)                                                                                                                                                               |                                                                                           |
+| 2026-08-13 | Caroline (PR #199)          | Withdrawal errors shown to people; failed Stripe transfers alert the team (W12, W13)                                                                                                                                          | Failures used to be an opaque 500                                                         |
+| 2026-04-07 | Austin (commit)             | Stripe withdrawals: insert the txn first, then re-check the balance (W9)                                                                                                                                                      | The check counts the withdrawal being made                                                |
+| 2024-09-13 | Austin (commit)             | Wire/crypto/DAF instructions in the deposit box; card deposits capped at $50,000 in the box (W1, W6)                                                                                                                          |                                                                                           |
+| 2024-02-17 | Austin (commit)             | Card deposits of $10,000+ suggest a DAF, bank transfer or crypto (W6)                                                                                                                                                         | Lower fees                                                                                |
+| 2023-07-17 | Rachel (PR #51)             | Cash can be moved to the charity balance (W26)                                                                                                                                                                                | To give instead of withdrawing                                                            |
+| 2023-07-04 | Rachel (commit)             | Warnings for withdrawals over $10,000 (W8, W12)                                                                                                                                                                               |                                                                                           |
 
 ## Open questions
 
@@ -195,9 +195,6 @@ were reviewed for this doc.
   of floats that can carry sub-cent dust (`app/api/mercury-withdraw/route.ts`), while the form floors the balance to
   cents (`withdraw-request-form.tsx`). With a balance of, say, $500.004, the form sends $500.00 and the server
   answers "Minimum Mercury withdrawal is $500.004". Fix: compute the minimum from the balance floored to cents.
-- **A card payment "to an account" that fails to pass on** (W5): the `profile donation` insert in
-  `pages/api/stripe-endpoints.ts:112` doesn't check for errors, so if it fails the payer keeps the money as their
-  own deposit and nobody is told. Should it alert the team?
 - **Moving cash to charity fails silently** (W26): the route answers errors with `NextResponse.error()` (an
   opaque failure on the edge runtime, see PR #199) and the profile's confirm button ignores the answer, closing the
   box either way.

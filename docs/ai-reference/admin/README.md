@@ -1,6 +1,6 @@
 # Admin tools
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 What Manifund's team can do that nobody else can: who counts as an admin, the `/admin` pages (approvals, people and
 their balances, the ledger, projects, reported comments, tools), crediting and debiting accounts by hand, and the
@@ -49,25 +49,25 @@ intent, for the team to confirm. Suspected bugs are under "Open questions", not 
 
 Where each power is written down. Rules there, not repeated here.
 
-| Power | Where | Rules |
-|---|---|---|
-| Approve or reject a proposal (the verdict), from the approvals list or the project page | Regrants and verdicts | `../regrants/README.md`, G12-G16 |
-| The approvals list itself (`/admin/approvals`), and the countersignature an approval records | Grant agreements | `../agreements/README.md`, A22, A27, A28 |
-| Record an organization's tax documents on its agreement | Grant agreements | A24 |
-| Pause a proposal's reminders | This doc | M11, M12 |
-| Add a program's standing offer to one of its projects | Regrants | G17 |
-| Edit or remove anyone's comment, with a public note or reason | Comments | `../../product/comments/README.md`, C15-C17 |
-| Review reported comments (`/admin/comment-reports`) | Comments | C20 |
-| Ban an account and delete what it made ("Superban") | Accounts | `../accounts/README.md`, S16, S17 (comments: C18) |
-| Mark someone an accredited investor (`/admin/users`) | People | `../people/README.md`, E25 |
-| Move money from any account to another ("Create txn") | Ledger | `../ledger/README.md`, L15 |
-| Credit a gift received outside the site, or record a payout, by hand | This doc (the money's meaning: `../deposits-withdrawals/README.md`, W6) | M6, M7 |
-| Edit a cause's or round's description and image | Causes | `../causes/README.md`, R6 |
-| Read every donor-survey response, private ones included | Donor survey | `../donor-survey/` |
-| Bank withdrawals while they're switched off for others | Deposits and withdrawals | W14 |
-| The admin MCP server (read-only SQL and more) | Public API and MCP | `../api/README.md`, I21-I22 (its own token, not `isAdmin`) |
-| Open hidden and draft projects; edit any project's fields | This doc, until the projects doc covers them | M17, M18 |
-| Restore a project that wasn't funded | This doc | M9, M10 |
+| Power                                                                                        | Where                                                                   | Rules                                                      |
+| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Approve or reject a proposal (the verdict), from the approvals list or the project page      | Regrants and verdicts                                                   | `../regrants/README.md`, G12-G16                           |
+| The approvals list itself (`/admin/approvals`), and the countersignature an approval records | Grant agreements                                                        | `../agreements/README.md`, A22, A27, A28                   |
+| Record an organization's tax documents on its agreement                                      | Grant agreements                                                        | A24                                                        |
+| Pause a proposal's reminders                                                                 | This doc                                                                | M11, M12                                                   |
+| Add a program's standing offer to one of its projects                                        | Regrants                                                                | G17                                                        |
+| Edit or remove anyone's comment, with a public note or reason                                | Comments                                                                | `../../product/comments/README.md`, C15-C17                |
+| Review reported comments (`/admin/comment-reports`)                                          | Comments                                                                | C20                                                        |
+| Ban an account and delete what it made ("Superban")                                          | Accounts                                                                | `../accounts/README.md`, S16, S17 (comments: C18)          |
+| Mark someone an accredited investor (`/admin/users`)                                         | People                                                                  | `../people/README.md`, E25                                 |
+| Move money from any account to another ("Create txn")                                        | Ledger                                                                  | `../ledger/README.md`, L15                                 |
+| Credit a gift received outside the site, or record a payout, by hand                         | This doc (the money's meaning: `../deposits-withdrawals/README.md`, W6) | M6, M7                                                     |
+| Edit a cause's or round's description and image                                              | Causes                                                                  | `../causes/README.md`, R6                                  |
+| Read every donor-survey response, private ones included                                      | Donor survey                                                            | `../donor-survey/`                                         |
+| Bank withdrawals while they're switched off for others                                       | Deposits and withdrawals                                                | W14                                                        |
+| The admin MCP server (read-only SQL and more)                                                | Public API and MCP                                                      | `../api/README.md`, I21-I22 (its own token, not `isAdmin`) |
+| Open hidden and draft projects; edit any project's fields                                    | This doc, until the projects doc covers them                            | M17, M18                                                   |
+| Restore a project that wasn't funded                                                         | This doc                                                                | M9, M10                                                    |
 
 ## Rules
 
@@ -131,21 +131,21 @@ Until the project lifecycle doc (`../../product/projects/`) covers them.
 
 From the code's history; the "why" comes from PRs and commit messages where they give one. Newest first.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-05 | Austin (#275) | Extra local admins from `NEXT_PUBLIC_LOCAL_ADMIN_EMAILS`, development builds only (M2) | Test accounts need admin rights locally; production must ignore it |
-| 2026-09-30 | Vals (#274) | Each admin page checks the admin itself and answers 404; the pages aren't cached (M3) | Content depends on who's viewing |
-| 2026-09-08 | Caroline (#242) | Every admin route checks for an admin; one-off script routes and the admin "run script" tool removed | Not given |
-| 2026-09-01 | Caroline (#219) | A per-project pause for approval reminders on the approvals list (M11, M12) | Stalled proposals kept sending reminders |
-| 2026-07-17 | Caroline (#181) | One admin list (`isAdmin`) for every check (M1) | A second, stale list made some admins' verdicts fail silently |
-| 2026-07-08 | Austin | `/<username>/db` shortcut (M15) | Not given |
-| 2026-05-29 | Austin | Restore a project from `/admin/projects` (M9, M10) | Not given (the code calls it the inverse of closing an unfunded proposal) |
-| 2026-03-25 | Austin | `/admin/users` redesigned: compact table, search, pay box and accreditation inline (M4) | Not given ("fix perf") |
-| 2026-02-13 | Austin | `/projects/<slug>/db` shortcut (M16) | Not given |
-| 2024-03-22 | Rachel | Optional donation receipt when paying someone (M7) | Not given |
-| 2023-04-13 | Rachel | Donations per organization on the admin page (M13) | Not given |
-| 2023-03-06 | Austin | Payments come from Manifund's bank account (M6) | Not given |
-| 2023-02-20 | Austin | An admin page that can pay people (M6) | Not given |
+| Date       | Decided by      | Decision                                                                                             | Why                                                                       |
+| ---------- | --------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 2026-10-05 | Austin (#275)   | Extra local admins from `NEXT_PUBLIC_LOCAL_ADMIN_EMAILS`, development builds only (M2)               | Test accounts need admin rights locally; production must ignore it        |
+| 2026-09-30 | Vals (#274)     | Each admin page checks the admin itself and answers 404; the pages aren't cached (M3)                | Content depends on who's viewing                                          |
+| 2026-09-08 | Caroline (#242) | Every admin route checks for an admin; one-off script routes and the admin "run script" tool removed | Not given                                                                 |
+| 2026-09-01 | Caroline (#219) | A per-project pause for approval reminders on the approvals list (M11, M12)                          | Stalled proposals kept sending reminders                                  |
+| 2026-07-17 | Caroline (#181) | One admin list (`isAdmin`) for every check (M1)                                                      | A second, stale list made some admins' verdicts fail silently             |
+| 2026-07-08 | Austin          | `/<username>/db` shortcut (M15)                                                                      | Not given                                                                 |
+| 2026-05-29 | Austin          | Restore a project from `/admin/projects` (M9, M10)                                                   | Not given (the code calls it the inverse of closing an unfunded proposal) |
+| 2026-03-25 | Austin          | `/admin/users` redesigned: compact table, search, pay box and accreditation inline (M4)              | Not given ("fix perf")                                                    |
+| 2026-02-13 | Austin          | `/projects/<slug>/db` shortcut (M16)                                                                 | Not given                                                                 |
+| 2024-03-22 | Rachel          | Optional donation receipt when paying someone (M7)                                                   | Not given                                                                 |
+| 2023-04-13 | Rachel          | Donations per organization on the admin page (M13)                                                   | Not given                                                                 |
+| 2023-03-06 | Austin          | Payments come from Manifund's bank account (M6)                                                      | Not given                                                                 |
+| 2023-02-20 | Austin          | An admin page that can pay people (M6)                                                               | Not given                                                                 |
 
 ## Open questions
 
@@ -153,9 +153,9 @@ From the code's history; the "why" comes from PRs and commit messages where they
    which is also what an unfunded proposal reaching its deadline gets. Restore puts the stage back but leaves
    `approved` as it was, so a restored rejected project never shows on the approvals list (A28 lists only projects
    without a verdict) and can't be approved from its page (G16): it stays a proposal until it closes again
-   (`pages/api/restore-project.ts:29-32`). Should restore also clear the verdict, or refuse rejected projects?
-2. **The receipt's id (M7).** The email's id is a new random one, not the txn's id (`pages/api/pay-user.ts:25` makes
-   it, the insert at `:26-35` doesn't use it), so a receipt can't be matched to its txn. The route also returns
+   (`pages/api/restore-project.ts:27-31`). Should restore also clear the verdict, or refuse rejected projects?
+2. **The receipt's id (M7).** The email's id is a new random one, not the txn's id (`pages/api/pay-user.ts:26` makes
+   it, the insert at `:27-36` doesn't use it), so a receipt can't be matched to its txn. The route also returns
    nothing about the txn (the insert has no `select`). Suspected bug.
 3. **Receipts for payouts (M7).** "Receipt" can be ticked with a negative amount: the person then gets a payment
    confirmation with a negative amount "to your Manifund account". Should receipts be for deposits only?
@@ -174,9 +174,8 @@ From the code's history; the "why" comes from PRs and commit messages where they
 
 ## Later
 
-- **Whole tables in one request.** The users, transactions and projects pages read whole tables at once (the
-  ledger had about 5,700 USD txns in October 2026). The database API caps a response's rows, so a table that
-  outgrows it would be cut silently, balances included (M5).
+- **Whole tables in one request.** The users, transactions and projects pages read whole tables at once. The
+  database API caps a response's rows, so a table that outgrows it would be cut silently, balances included (M5).
 
 ## Tests
 

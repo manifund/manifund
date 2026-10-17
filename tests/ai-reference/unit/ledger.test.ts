@@ -38,10 +38,19 @@ const txn = (t: T) =>
     created_at: t.at ?? AFTER,
     project: t.projectCreator ? 'project-1' : null,
     bundle: null,
-    projects: t.projectCreator ? { creator: t.projectCreator, stage: 'active', type: 'grant' } : undefined,
+    projects: t.projectCreator
+      ? { creator: t.projectCreator, stage: 'active', type: 'grant' }
+      : undefined,
   }) as any
 
-const bid = (b: { amount: number; type?: string; status?: string; creator: string; stage?: string; bidder?: string }) =>
+const bid = (b: {
+  amount: number
+  type?: string
+  status?: string
+  creator: string
+  stage?: string
+  bidder?: string
+}) =>
   ({
     amount: b.amount,
     type: b.type ?? 'donate',
@@ -90,7 +99,7 @@ describe('L5 total balance: USD received minus USD sent', () => {
     ]
     expect(calculateUserBalance(txns, ME)).toBe(100)
   })
-  test("pending offers don't reduce the total (they show as \"in pending offers\")", () => {
+  test('pending offers don\'t reduce the total (they show as "in pending offers")', () => {
     const txns = [txn({ to: ME, amount: 100, type: 'deposit' })]
     const b = balances(txns, [bid({ amount: 30, creator: OTHER })])
     expect(b.total).toBe(100)
@@ -102,30 +111,49 @@ describe('L6 what moves the charity balance', () => {
   const up = ['deposit', 'profile donation', 'tip', 'mana deposit', 'return bank funds']
   for (const type of up) {
     test(`receiving a ${type} adds to charity, not cash`, () => {
-      expect(balances([txn({ from: OTHER, to: ME, amount: 10, type })])).toMatchObject({ charity: 10, cash: 0 })
+      expect(balances([txn({ from: OTHER, to: ME, amount: 10, type })])).toMatchObject({
+        charity: 10,
+        cash: 0,
+      })
     })
   }
   for (const type of ['project donation', 'profile donation', 'tip']) {
     test(`sending a ${type} takes from charity, not cash`, () => {
-      const t = txn({ from: ME, to: OTHER, amount: 10, type, projectCreator: type === 'project donation' ? OTHER : undefined })
+      const t = txn({
+        from: ME,
+        to: OTHER,
+        amount: 10,
+        type,
+        projectCreator: type === 'project donation' ? OTHER : undefined,
+      })
       expect(balances([t])).toMatchObject({ charity: -10, cash: 0 })
     })
   }
   test('moving cash to charity adds to charity and takes from cash', () => {
-    expect(balances([txn({ from: ME, to: ME, amount: 10, type: 'cash to charity transfer' })])).toEqual({
+    expect(
+      balances([txn({ from: ME, to: ME, amount: 10, type: 'cash to charity transfer' })])
+    ).toEqual({
       total: 0,
       charity: 10,
       cash: -10,
     })
   })
   test("withdrawals don't touch charity", () => {
-    expect(balances([txn({ from: ME, to: BANK, amount: 10, type: 'withdraw' })])).toMatchObject({ charity: 0 })
+    expect(balances([txn({ from: ME, to: BANK, amount: 10, type: 'withdraw' })])).toMatchObject({
+      charity: 0,
+    })
   })
 })
 
 describe('L7 what moves the cash balance', () => {
   test('a project donation received adds to cash, not charity', () => {
-    const t = txn({ from: OTHER, to: ME, amount: 1000, type: 'project donation', projectCreator: ME })
+    const t = txn({
+      from: OTHER,
+      to: ME,
+      amount: 1000,
+      type: 'project donation',
+      projectCreator: ME,
+    })
     expect(balances([t])).toEqual({ total: 1000, charity: 0, cash: 1000 })
   })
   test('a withdrawal takes from cash', () => {
@@ -146,7 +174,10 @@ describe('L9 pending offers set money aside', () => {
   const deposit = [txn({ to: ME, amount: 100, type: 'deposit' })]
   test("an offer on someone else's project comes off charity", () => {
     for (const type of ['donate', 'buy', 'assurance buy']) {
-      expect(balances(deposit, [bid({ amount: 30, type, creator: OTHER })])).toMatchObject({ charity: 70, cash: 0 })
+      expect(balances(deposit, [bid({ amount: 30, type, creator: OTHER })])).toMatchObject({
+        charity: 70,
+        cash: 0,
+      })
     }
   })
   test('offers to sell and offers no longer pending set nothing aside', () => {
@@ -165,10 +196,28 @@ describe('L17 what a project has raised', () => {
     ({ id: 'project-1', creator: 'creator', stage, type, funding_goal: 5000 }) as any
   test("past proposal: the USD txns on the project to its creator (not shares, not others')", () => {
     const txns = [
-      txn({ from: 'a', to: 'creator', amount: 100, type: 'project donation', projectCreator: 'creator' }),
-      txn({ from: 'b', to: 'creator', amount: 250, type: 'project donation', projectCreator: 'creator' }),
+      txn({
+        from: 'a',
+        to: 'creator',
+        amount: 100,
+        type: 'project donation',
+        projectCreator: 'creator',
+      }),
+      txn({
+        from: 'b',
+        to: 'creator',
+        amount: 250,
+        type: 'project donation',
+        projectCreator: 'creator',
+      }),
       txn({ from: null, to: 'creator', amount: 10_000_000, type: 'mint cert', token: 'project-1' }),
-      txn({ from: 'creator', to: 'c', amount: 40, type: 'user to user trade', projectCreator: 'creator' }),
+      txn({
+        from: 'creator',
+        to: 'c',
+        amount: 40,
+        type: 'user to user trade',
+        projectCreator: 'creator',
+      }),
     ]
     expect(getAmountRaised(project('active'), [], txns)).toBe(350)
     expect(getAmountRaised(project('complete'), [], txns)).toBe(350)
@@ -210,7 +259,10 @@ describe('L18 a sign-up claims the grants sent to its email', () => {
   // An in-memory stand-in for the Supabase query builder: eq is exact, ilike ignores case and, like Postgres,
   // reads _ and % as wildcards.
   const ilikeMatches = (value: string, pattern: string) => {
-    const re = pattern.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/_/g, '.').replace(/%/g, '.*')
+    const re = pattern
+      .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      .replace(/_/g, '.')
+      .replace(/%/g, '.*')
     return new RegExp(`^${re}$`, 'i').test(value)
   }
   const fakeClient = (rows: Record<string, unknown>[]) => {
@@ -223,12 +275,18 @@ describe('L18 a sign-up claims the grants sent to its email', () => {
     return { from: () => query(rows) } as any
   }
   test('a transfer is found by the email it was sent to', async () => {
-    const found = await getTransfersByEmail(fakeClient([{ recipient_email: 'new@example.org' }]), 'new@example.org')
+    const found = await getTransfersByEmail(
+      fakeClient([{ recipient_email: 'new@example.org' }]),
+      'new@example.org'
+    )
     expect(found).toHaveLength(1)
   })
   // Sign-up emails are stored in lowercase; older transfers keep the email as typed (Vals 2026-10-09: fix).
   test('a transfer sent to an email with capitals is found for the same email in lowercase', async () => {
-    const found = await getTransfersByEmail(fakeClient([{ recipient_email: 'New@Example.org' }]), 'new@example.org')
+    const found = await getTransfersByEmail(
+      fakeClient([{ recipient_email: 'New@Example.org' }]),
+      'new@example.org'
+    )
     expect(found).toHaveLength(1)
   })
   test('only the same email matches: _ in an email is not a wildcard, and no email matches nothing', async () => {

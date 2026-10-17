@@ -10,7 +10,10 @@ async function makeProfile(tx: Tx) {
   await tx`insert into profiles (id, username, full_name) values (${id}, ${tag()}, 'Test donor')`
   return id
 }
-async function makeResponse(tx: Tx, fields: { profile?: string | null; email?: string; funds?: number | null } = {}) {
+async function makeResponse(
+  tx: Tx,
+  fields: { profile?: string | null; email?: string; funds?: number | null } = {}
+) {
   const [row] = await tx`
     insert into donor_survey_responses (profile_id, full_name, email, capacity, giving_2026, giving_2027, funds_vs_direct)
     values (${fields.profile ?? null}, 'Test donor', ${fields.email ?? `${tag()}@example.test`}, '{own_money}',
@@ -45,7 +48,9 @@ describe('D5 one response per account and per email', () => {
     inRollback(async (tx) => {
       const email = `${tag()}@example.test`
       await makeResponse(tx, { email })
-      await expect(makeResponse(tx, { email: email.toUpperCase() })).rejects.toThrow(/email_idx|duplicate/)
+      await expect(makeResponse(tx, { email: email.toUpperCase() })).rejects.toThrow(
+        /email_idx|duplicate/
+      )
     }))
   test('responses without an account, under different emails, are fine', () =>
     inRollback(async (tx) => {
@@ -81,17 +86,25 @@ describe('D21 browsers write no responses and read only their own', () => {
       const ann = await makeProfile(tx)
       const id = await makeResponse(tx, { profile: ann })
       await actAs(tx, ann)
-      expect(await tx`update donor_survey_responses set is_public = true where id = ${id} returning id`).toHaveLength(0)
-      expect(await tx`delete from donor_survey_responses where id = ${id} returning id`).toHaveLength(0)
+      expect(
+        await tx`update donor_survey_responses set is_public = true where id = ${id} returning id`
+      ).toHaveLength(0)
+      expect(
+        await tx`delete from donor_survey_responses where id = ${id} returning id`
+      ).toHaveLength(0)
       await expect(
-        run(tx`insert into donor_survey_responses (profile_id, full_name, email) values (${ann}, 'x', ${`${tag()}@example.test`})`)
+        run(
+          tx`insert into donor_survey_responses (profile_id, full_name, email) values (${ann}, 'x', ${`${tag()}@example.test`})`
+        )
       ).rejects.toThrow('row-level security')
     }))
   test('visitors add nothing', () =>
     inRollback(async (tx) => {
       await actAsAnon(tx)
       await expect(
-        run(tx`insert into donor_survey_responses (full_name, email) values ('x', ${`${tag()}@example.test`})`)
+        run(
+          tx`insert into donor_survey_responses (full_name, email) values ('x', ${`${tag()}@example.test`})`
+        )
       ).rejects.toThrow('row-level security')
     }))
   test("the MCP server's read-only SQL reads none", () =>
@@ -104,13 +117,15 @@ describe('D21 browsers write no responses and read only their own', () => {
       await tx`grant mcp_readonly to service_role`
       await tx`select set_config('request.jwt.claims', ${JSON.stringify({ role: 'service_role' })}, true)`
       await tx`set local role service_role`
-      const [{ rows }] = await tx`select execute_readonly_sql(${`select id from donor_survey_responses where id = '${id}'`}, 10) as rows`
+      const [{ rows }] =
+        await tx`select execute_readonly_sql(${`select id from donor_survey_responses where id = '${id}'`}, 10) as rows`
       expect(rows).toEqual([])
       // while it does read other tables, e.g. the donor's profile (the function's role switch lasts until the
       // transaction ends, so switch back first)
       await tx`reset role`
       await tx`set local role service_role`
-      const [{ rows: profiles }] = await tx`select execute_readonly_sql(${`select id from profiles where id = '${ann}'`}, 10) as rows`
+      const [{ rows: profiles }] =
+        await tx`select execute_readonly_sql(${`select id from profiles where id = '${ann}'`}, 10) as rows`
       expect(profiles).toEqual([{ id: ann }])
     }))
 })
@@ -121,6 +136,8 @@ describe('D22 deleting a profile keeps its response, unlinked', () => {
       const ann = await makeProfile(tx)
       const id = await makeResponse(tx, { profile: ann })
       await tx`delete from profiles where id = ${ann}`
-      expect((await tx`select profile_id from donor_survey_responses where id = ${id}`) as unknown[]).toEqual([{ profile_id: null }])
+      expect(
+        (await tx`select profile_id from donor_survey_responses where id = ${id}`) as unknown[]
+      ).toEqual([{ profile_id: null }])
     }))
 })

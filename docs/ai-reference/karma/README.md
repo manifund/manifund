@@ -1,6 +1,6 @@
 # Karma
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 A reputation score for every person and project, built from money given and received, votes, comments and
 reactions. It orders the homepage and is shown on profiles, project cards and project pages.
@@ -106,13 +106,13 @@ Ids are stable once merged: tests name them.
 
 From the PR (#286) and the preview page; who decided what inside the team isn't recorded there.
 
-| Date | By | Decision | Why |
-|---|---|---|---|
-| 2026-10-09 | Caroline (PR #286) | Karma replaces the old hot score on the homepage (K10) and is shown on cards, project pages and profiles (K12); cards drop the vote count | One signal for quality and trust, harder to game than raw votes |
-| 2026-10-09 | Caroline (PR #286) | Votes move karma at once, and the hourly recompute corrects drift (K7, K8) | The number should react to a vote without waiting an hour |
-| 2026-10-09 | Caroline (PR #286) | 10 starting karma for depositors; donations at 2.5 × total^0.3; weights log10(karma) (K2, K4) | A depositor's first vote counts a little, throwaway accounts not at all; big gifts count less |
-| 2026-10-09 | Vals (backfill review) | Where the preview page and the code differ (donation formula, vote weights), the code is the intent: the page was the first plan, and the team chose a smooth weight function afterwards | The page predates later choices made in a meeting |
-| 2026-10-08 | Caroline (preview page) | No regrantor bonus; reactions ×2; projects start at 2 karma; homepage age exponent 1.7, closed projects ×0.2 (K2, K6, K10) | New projects get a short run near the top before age buries them |
+| Date       | By                      | Decision                                                                                                                                                                                 | Why                                                                                           |
+| ---------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 2026-10-09 | Caroline (PR #286)      | Karma replaces the old hot score on the homepage (K10) and is shown on cards, project pages and profiles (K12); cards drop the vote count                                                | One signal for quality and trust, harder to game than raw votes                               |
+| 2026-10-09 | Caroline (PR #286)      | Votes move karma at once, and the hourly recompute corrects drift (K7, K8)                                                                                                               | The number should react to a vote without waiting an hour                                     |
+| 2026-10-09 | Caroline (PR #286)      | 10 starting karma for depositors; donations at 2.5 × total^0.3; weights log10(karma) (K2, K4)                                                                                            | A depositor's first vote counts a little, throwaway accounts not at all; big gifts count less |
+| 2026-10-09 | Vals (backfill review)  | Where the preview page and the code differ (donation formula, vote weights), the code is the intent: the page was the first plan, and the team chose a smooth weight function afterwards | The page predates later choices made in a meeting                                             |
+| 2026-10-08 | Caroline (preview page) | No regrantor bonus; reactions ×2; projects start at 2 karma; homepage age exponent 1.7, closed projects ×0.2 (K2, K6, K10)                                                               | New projects get a short run near the top before age buries them                              |
 
 ## Open questions
 

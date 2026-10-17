@@ -25,7 +25,13 @@ describe('M4 M5 /admin/users: one row per account', () => {
     <UserTable
       users={[
         { id: ANN, email: 'ann@example.test', username: 'ann', accredited: true, balance: 10.126 },
-        { id: NONAME, email: 'noname@example.test', username: null, accredited: false, balance: -3 },
+        {
+          id: NONAME,
+          email: 'noname@example.test',
+          username: null,
+          accredited: false,
+          balance: -3,
+        },
       ]}
     />
   )
@@ -57,7 +63,9 @@ describe('M9 /admin/projects: one row per project, "Restore" only on projects th
     stage,
   })
   const html = renderToStaticMarkup(
-    <ProjectTable projects={[row('p1', 'not funded'), row('p2', 'active'), row('p3', 'proposal')]} />
+    <ProjectTable
+      projects={[row('p1', 'not funded'), row('p2', 'active'), row('p3', 'proposal')]}
+    />
   )
   test('title linking to the project, creator, stage, minimum, and a link to the row in Supabase', () => {
     expect(html).toContain('href="/projects/slug-active"')

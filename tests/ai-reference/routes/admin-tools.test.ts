@@ -42,38 +42,71 @@ const bankId = async () => {
   const file = readFileSync(`${import.meta.dir}/../../../.env.development.local`, 'utf8')
   return process.env.NEXT_PUBLIC_PROD_BANK_ID || file.match(/^NEXT_PUBLIC_PROD_BANK_ID=(.*)$/m)?.[1]
 }
-const newProject = (stage: string, name: string) => makeProject(sql, creator.id, stage, `${RUN}-${name}`)
+const newProject = (stage: string, name: string) =>
+  makeProject(sql, creator.id, stage, `${RUN}-${name}`)
 
 describe('M3 admin pages: admins only, the rest get a 404', () => {
   smoke('/admin opens the approvals list', async () => {
     // A redirect: a 307, or in development (after streaming started) Next's redirect marker in the body.
-    const res = await fetch(`${env.baseUrl}/admin`, { redirect: 'manual', headers: { cookie: ritaCookie } })
+    const res = await fetch(`${env.baseUrl}/admin`, {
+      redirect: 'manual',
+      headers: { cookie: ritaCookie },
+    })
     const text = await res.text()
-    if ([307, 308].includes(res.status)) expect(res.headers.get('location')).toEndWith('/admin/approvals')
+    if ([307, 308].includes(res.status))
+      expect(res.headers.get('location')).toEndWith('/admin/approvals')
     else expect(text).toContain('NEXT_REDIRECT;replace;/admin/approvals;')
   })
-  standard('visitors and signed-in non-admins get a 404 on every admin page; the admin gets the page', async () => {
-    for (const path of ['/admin/approvals', '/admin/users', '/admin/transactions', '/admin/projects', '/admin/tools']) {
-      expect(isNotFound(await anonymous().get(path))).toBe(true)
-      expect(isNotFound(await outsider.get(path))).toBe(true)
-      const r = await rita.get(path)
-      expect(r.status).toBe(200)
-      expect(isNotFound(r)).toBe(false)
+  standard(
+    'visitors and signed-in non-admins get a 404 on every admin page; the admin gets the page',
+    async () => {
+      for (const path of [
+        '/admin/approvals',
+        '/admin/users',
+        '/admin/transactions',
+        '/admin/projects',
+        '/admin/tools',
+      ]) {
+        expect(isNotFound(await anonymous().get(path))).toBe(true)
+        expect(isNotFound(await outsider.get(path))).toBe(true)
+        const r = await rita.get(path)
+        expect(r.status).toBe(200)
+        expect(isNotFound(r)).toBe(false)
+      }
     }
-  })
+  )
 })
 
 describe('M6 paying someone: a deposit from the bank, or a payout to it', () => {
-  smoke('a positive amount is a deposit from the bank; a negative one a withdrawal of its absolute value', async () => {
-    const bank = await bankId()
-    expect(bank).toBeTruthy()
-    expect((await admin.post('/api/pay-user', { userId: payee.id, amount: 25 })).status).toBe(200)
-    expect((await admin.post('/api/pay-user', { userId: payee.id, amount: -20 })).status).toBe(200)
-    expect(await txnsOf(payee.id)).toEqual([
-      { from_id: bank, to_id: payee.id, amount: 25, type: 'deposit', token: 'USD', project: null },
-      { from_id: payee.id, to_id: bank, amount: 20, type: 'withdraw', token: 'USD', project: null },
-    ])
-  })
+  smoke(
+    'a positive amount is a deposit from the bank; a negative one a withdrawal of its absolute value',
+    async () => {
+      const bank = await bankId()
+      expect(bank).toBeTruthy()
+      expect((await admin.post('/api/pay-user', { userId: payee.id, amount: 25 })).status).toBe(200)
+      expect((await admin.post('/api/pay-user', { userId: payee.id, amount: -20 })).status).toBe(
+        200
+      )
+      expect(await txnsOf(payee.id)).toEqual([
+        {
+          from_id: bank,
+          to_id: payee.id,
+          amount: 25,
+          type: 'deposit',
+          token: 'USD',
+          project: null,
+        },
+        {
+          from_id: payee.id,
+          to_id: bank,
+          amount: 20,
+          type: 'withdraw',
+          token: 'USD',
+          project: null,
+        },
+      ])
+    }
+  )
   standard('anyone else gets an error and no txn is written', async () => {
     const before = (await txnsOf(outsider.id)).length
     const r = await outsider.post('/api/pay-user', { userId: outsider.id, amount: 1000 })
@@ -91,7 +124,9 @@ describe('M8 M4 /admin/users and /admin/transactions', () => {
     const r = await rita.get('/admin/users')
     expect(r.text).toContain(`${listed.username}@local.test`)
     expect(r.text).toContain('email,name,username,id,balance')
-    expect(r.text).toContain(`${listed.username}@local.test,Test listed,${listed.username},${listed.id},33`)
+    expect(r.text).toContain(
+      `${listed.username}@local.test,Test listed,${listed.username},${listed.id},33`
+    )
   })
   standard('the transactions page lists the txn with both usernames', async () => {
     const shown = await person('shown')
@@ -116,10 +151,13 @@ describe('M10 restoring a project that was not funded', () => {
     const p = await newProject('not funded', 'restore')
     await declinedOffer(p.id)
     expect((await admin.post('/api/restore-project', { projectId: p.id })).status).toBe(200)
-    const [row] = await sql`select stage, auction_close::text as close from projects where id = ${p.id}`
+    const [row] =
+      await sql`select stage, auction_close::text as close from projects where id = ${p.id}`
     expect(row.stage).toBe('proposal')
     expect(in30Days()).toContain(row.close)
-    expect((await sql`select status from bids where project = ${p.id}`).map((b: any) => b.status)).toEqual(['pending'])
+    expect(
+      (await sql`select status from bids where project = ${p.id}`).map((b: any) => b.status)
+    ).toEqual(['pending'])
   })
   standard('anyone else gets 401 and nothing changes', async () => {
     const p = await newProject('not funded', 'norestore')
@@ -134,10 +172,18 @@ describe('M10 restoring a project that was not funded', () => {
 describe('M11 pausing a proposal’s reminders', () => {
   smoke('an admin pauses and unpauses', async () => {
     const p = await newProject('proposal', 'pause')
-    expect((await admin.post('/api/set-alerts-paused', { projectId: p.id, alertsPaused: true })).status).toBe(200)
-    expect((await sql`select alerts_paused from projects where id = ${p.id}`)[0].alerts_paused).toBe(true)
-    expect((await admin.post('/api/set-alerts-paused', { projectId: p.id, alertsPaused: false })).status).toBe(200)
-    expect((await sql`select alerts_paused from projects where id = ${p.id}`)[0].alerts_paused).toBe(false)
+    expect(
+      (await admin.post('/api/set-alerts-paused', { projectId: p.id, alertsPaused: true })).status
+    ).toBe(200)
+    expect(
+      (await sql`select alerts_paused from projects where id = ${p.id}`)[0].alerts_paused
+    ).toBe(true)
+    expect(
+      (await admin.post('/api/set-alerts-paused', { projectId: p.id, alertsPaused: false })).status
+    ).toBe(200)
+    expect(
+      (await sql`select alerts_paused from projects where id = ${p.id}`)[0].alerts_paused
+    ).toBe(false)
   })
   standard('anyone else, the creator included, gets 403 with a message', async () => {
     const p = await newProject('proposal', 'nopause')
@@ -146,7 +192,9 @@ describe('M11 pausing a proposal’s reminders', () => {
       expect(r.status).toBe(403)
       expect(r.body.error).toBe('Only admins can pause project alerts.')
     }
-    expect((await sql`select alerts_paused from projects where id = ${p.id}`)[0].alerts_paused).toBe(false)
+    expect(
+      (await sql`select alerts_paused from projects where id = ${p.id}`)[0].alerts_paused
+    ).toBe(false)
   })
 })
 
@@ -169,7 +217,10 @@ describe('M14 /api/list-users', () => {
 describe('M15 M16 the /db shortcuts', () => {
   const filter = (id: string) => `filter=id%3Aeq%3A${id}`
   smoke('/<username>/db redirects to the row in Supabase’s dashboard; unknown: 404', async () => {
-    const res = await fetch(`${env.baseUrl}/${payee.username}/db`, { redirect: 'manual', headers: { cookie: ritaCookie } })
+    const res = await fetch(`${env.baseUrl}/${payee.username}/db`, {
+      redirect: 'manual',
+      headers: { cookie: ritaCookie },
+    })
     expect([307, 308]).toContain(res.status)
     expect(res.headers.get('location')).toStartWith('https://supabase.com/dashboard/project/')
     expect(res.headers.get('location')).toContain(filter(payee.id))
@@ -177,7 +228,10 @@ describe('M15 M16 the /db shortcuts', () => {
   })
   standard('/projects/<slug>/db redirects to the project’s row', async () => {
     const p = await newProject('active', 'dbshortcut')
-    const res = await fetch(`${env.baseUrl}/projects/${p.slug}/db`, { redirect: 'manual', headers: { cookie: ritaCookie } })
+    const res = await fetch(`${env.baseUrl}/projects/${p.slug}/db`, {
+      redirect: 'manual',
+      headers: { cookie: ritaCookie },
+    })
     expect([307, 308]).toContain(res.status)
     expect(res.headers.get('location')).toContain(filter(p.id))
   })
@@ -201,19 +255,32 @@ describe('M17 admins open hidden and draft projects', () => {
 })
 
 describe('M18 admins change any field of any project; creators only the form’s fields; scores never', () => {
-  standard('an admin changes a field the forms don’t show; the creator’s change to it is dropped', async () => {
-    const p = await newProject('active', 'edit')
-    const edit = (who: Client, projectUpdate: Record<string, unknown>) =>
-      who.post('/api/edit-project', { projectId: p.id, projectUpdate, causeSlugs: [] })
-    expect((await edit(admin, { external_link: `https://example.test/${RUN}`, quality_score: 99 })).status).toBe(200)
-    let [row] = await sql`select external_link, quality_score from projects where id = ${p.id}`
-    expect(row.external_link).toBe(`https://example.test/${RUN}`)
-    expect(row.quality_score).not.toBe(99)
-    expect((await edit(creator, { external_link: 'https://example.test/creator', blurb: `by creator ${RUN}` })).status).toBe(200)
-    ;[row] = await sql`select external_link, blurb from projects where id = ${p.id}`
-    expect(row.external_link).toBe(`https://example.test/${RUN}`)
-    expect(row.blurb).toBe(`by creator ${RUN}`)
-  })
+  standard(
+    'an admin changes a field the forms don’t show; the creator’s change to it is dropped',
+    async () => {
+      const p = await newProject('active', 'edit')
+      const edit = (who: Client, projectUpdate: Record<string, unknown>) =>
+        who.post('/api/edit-project', { projectId: p.id, projectUpdate, causeSlugs: [] })
+      expect(
+        (await edit(admin, { external_link: `https://example.test/${RUN}`, quality_score: 99 }))
+          .status
+      ).toBe(200)
+      let [row] = await sql`select external_link, quality_score from projects where id = ${p.id}`
+      expect(row.external_link).toBe(`https://example.test/${RUN}`)
+      expect(row.quality_score).not.toBe(99)
+      expect(
+        (
+          await edit(creator, {
+            external_link: 'https://example.test/creator',
+            blurb: `by creator ${RUN}`,
+          })
+        ).status
+      ).toBe(200)
+      ;[row] = await sql`select external_link, blurb from projects where id = ${p.id}`
+      expect(row.external_link).toBe(`https://example.test/${RUN}`)
+      expect(row.blurb).toBe(`by creator ${RUN}`)
+    }
+  )
 })
 
 describe('admin open questions (docs/ai-reference/admin/README.md): suspected bugs, skipped until decided', () => {
@@ -228,8 +295,13 @@ describe('admin open questions (docs/ai-reference/admin/README.md): suspected bu
   // Open question 2: the receipt's id is a fresh random id, not the txn's, and the route returns nothing about the
   // txn. Turn on once the route returns the txn whose id the receipt carries.
   test.skip('M7 the route returns the txn, whose id the receipt carries (open question 2)', async () => {
-    const r = await admin.post('/api/pay-user', { userId: payee.id, amount: 1, sendDonationReceipt: true })
-    const [last] = await sql`select id from txns where to_id = ${payee.id} order by created_at desc limit 1`
+    const r = await admin.post('/api/pay-user', {
+      userId: payee.id,
+      amount: 1,
+      sendDonationReceipt: true,
+    })
+    const [last] =
+      await sql`select id from txns where to_id = ${payee.id} order by created_at desc limit 1`
     expect(r.body?.id).toBe(last.id)
   })
   // Open question 5: an unknown slug errors (500) instead of a 404 like the profile shortcut.

@@ -52,7 +52,7 @@ const statuses = async (tx: Tx, project: string) =>
     ])
   )
 
-describe('B8 offers are written only by their bidder', () => {
+describe('B8 nobody writes an offer in someone else’s name; the bidder withdraws theirs', () => {
   test('nobody places an offer in someone else’s name', () =>
     inRollback(async (tx) => {
       const project = await proposal(tx, p.alice.id)

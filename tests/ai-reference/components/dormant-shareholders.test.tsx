@@ -8,7 +8,14 @@ import { Shareholders } from '@/app/projects/[slug]/shareholders'
 import { AppRouterContext } from 'next/dist/shared/lib/app-router-context.shared-runtime'
 
 // Avatars use the app router; a do-nothing one is enough to render.
-const router = { push() {}, replace() {}, refresh() {}, prefetch() {}, back() {}, forward() {} } as any
+const router = {
+  push() {},
+  replace() {},
+  refresh() {},
+  prefetch() {},
+  back() {},
+  forward() {},
+} as any
 
 const PROJECT = 'project-1'
 const profile = (id: string, type = 'individual') =>

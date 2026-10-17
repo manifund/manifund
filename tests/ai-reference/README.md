@@ -1,16 +1,16 @@
 # AI reference tests
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked.
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it.
 
 Tests for the agent-written docs in `docs/ai-reference/` (see its README). Each test names the rule ids it checks
 (e.g. `L12`). They're separate from the main suites in `tests/`: `bun run test`, `test:routes` and `test:rules` don't
 run or count them, and they have their own helpers (`helpers/`, copied from and extending `tests/helpers/`).
 
-| Command | What | Needs |
-|---|---|---|
-| `bun run test:ai-reference` | `unit/`, `db/` and `components/` | local Supabase |
-| `bun run test:ai-reference:routes` | `routes/`: the app's routes as test people | local Supabase + a dev server |
-| `bun run test:ai-reference:rules` | which rules in `docs/ai-reference/` have tests | nothing |
+| Command                            | What                                           | Needs                         |
+| ---------------------------------- | ---------------------------------------------- | ----------------------------- |
+| `bun run test:ai-reference`        | `unit/`, `db/` and `components/`               | local Supabase                |
+| `bun run test:ai-reference:routes` | `routes/`: the app's routes as test people     | local Supabase + a dev server |
+| `bun run test:ai-reference:rules`  | which rules in `docs/ai-reference/` have tests | nothing                       |
 
 - **Unit** (`unit/`) and **components** (`components/`, rendered to HTML with `react-dom/server`): no services.
 - **Database** (`db/`): like `tests/db/`, every test runs in a rolled-back transaction, except a few that make

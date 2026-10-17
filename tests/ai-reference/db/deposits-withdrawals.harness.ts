@@ -22,8 +22,12 @@ let calls: Call[] = []
 
 const realFetch = globalThis.fetch
 globalThis.fetch = (async (input: any, init?: any) => {
-  const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url)
-  const method = (init?.method ?? (typeof input === 'object' && 'method' in input ? input.method : 'GET')).toUpperCase()
+  const url = new URL(
+    typeof input === 'string' ? input : input instanceof URL ? input.href : input.url
+  )
+  const method = (
+    init?.method ?? (typeof input === 'object' && 'method' in input ? input.method : 'GET')
+  ).toUpperCase()
   if (url.origin === new URL(supabaseUrl).origin) return realFetch(input, init)
   const body = typeof init?.body === 'string' ? safeJson(init.body) : init?.body
   if (url.hostname === 'api.mercury.com') {
@@ -32,7 +36,10 @@ globalThis.fetch = (async (input: any, init?: any) => {
     const route = mercuryRoutes.find((r) => r.method === method && path.startsWith(r.path))
     if (!route) return new Response(`no fake for ${method} ${path}`, { status: 599 })
     const text = typeof route.body === 'string' ? route.body : JSON.stringify(route.body)
-    return new Response(text, { status: route.status ?? 200, headers: { 'content-type': 'application/json' } })
+    return new Response(text, {
+      status: route.status ?? 200,
+      headers: { 'content-type': 'application/json' },
+    })
   }
   if (url.hostname === 'api.postmarkapp.com') {
     calls.push({ service: 'postmark', method, path: url.pathname, body })
@@ -88,7 +95,10 @@ const scenarios: Record<string, (input: any) => Promise<unknown>> = {
     const signature =
       input.sign === false
         ? 't=1,v1=forged'
-        : stripe.webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_WEBHOOKSECRET! })
+        : stripe.webhooks.generateTestHeaderString({
+            payload,
+            secret: process.env.STRIPE_WEBHOOKSECRET!,
+          })
     const { req, res } = fakeReqRes(payload, { 'stripe-signature': signature })
     await handler(req as any, res as any)
     return { status: res.statusCode, body: res.body }
@@ -102,7 +112,9 @@ const scenarios: Record<string, (input: any) => Promise<unknown>> = {
     const v1 =
       input.sign === false
         ? 'f'.repeat(64)
-        : createHmac('sha256', process.env.MERCURY_WEBHOOK_SECRET!).update(`${t}.${payload}`).digest('hex')
+        : createHmac('sha256', process.env.MERCURY_WEBHOOK_SECRET!)
+            .update(`${t}.${payload}`)
+            .digest('hex')
     const { req, res } = fakeReqRes(payload, { 'mercury-signature': `t=${t},v1=${v1}` })
     await handler(req as any, res as any)
     return { status: res.statusCode, body: res.body }
@@ -112,7 +124,12 @@ const scenarios: Record<string, (input: any) => Promise<unknown>> = {
   // caller that read the row before someone else moved it.
   async 'mercury-sync'(input: { requestId: string; stale?: Record<string, unknown> }) {
     const { syncWithdrawalRequest } = await import('@/utils/mercury-withdrawals')
-    const { data } = await admin.from('withdrawal_requests').select('*').eq('id', input.requestId).single().throwOnError()
+    const { data } = await admin
+      .from('withdrawal_requests')
+      .select('*')
+      .eq('id', input.requestId)
+      .single()
+      .throwOnError()
     await syncWithdrawalRequest(admin as any, { ...(data as any), ...(input.stale ?? {}) })
     return {}
   },

@@ -27,7 +27,8 @@ async function makeProject(tx: Tx, creator: string) {
   return row.id as string
 }
 const karmaOf = async (tx: Tx, table: 'profiles' | 'projects', id: string) => {
-  const [row] = await tx`select karma, karma_breakdown, karma_updated_at from ${tx(table)} where id = ${id}`
+  const [row] =
+    await tx`select karma, karma_breakdown, karma_updated_at from ${tx(table)} where id = ${id}`
   return row as { karma: number; karma_breakdown: unknown; karma_updated_at: Date | null }
 }
 const asServer = (tx: Tx) => tx`set local role service_role`
@@ -37,7 +38,10 @@ describe('K1 every profile and project stores karma, its parts and when it was c
     inRollback(async (tx) => {
       const creator = await makeProfile(tx)
       const project = await makeProject(tx, creator)
-      for (const [table, id] of [['profiles', creator], ['projects', project]] as const) {
+      for (const [table, id] of [
+        ['profiles', creator],
+        ['projects', project],
+      ] as const) {
         const row = await karmaOf(tx, table, id)
         expect(row.karma).toBe(0)
         expect(row.karma_breakdown).toBeNull()
@@ -65,7 +69,7 @@ describe('K7 a recompute writes every row it is given, with its parts and the ti
     }))
 })
 
-describe('K8 a vote nudges the project\'s and its creator\'s karma', () => {
+describe("K8 a vote nudges the project's and its creator's karma", () => {
   test('adjust_karma adds the deltas, as the server', () =>
     inRollback(async (tx) => {
       const creator = await makeProfile(tx)
@@ -79,15 +83,23 @@ describe('K8 a vote nudges the project\'s and its creator\'s karma', () => {
 })
 
 describe('K9 karma and scores are written by the server', () => {
-  test('visitors and signed-in people can\'t call the functions that write it', () =>
+  test("visitors and signed-in people can't call the functions that write it", () =>
     inRollback(async (tx) => {
       const me = await makeProfile(tx)
       const project = await makeProject(tx, me)
       await actAs(tx, me)
-      await refused(tx, () => tx`select adjust_karma(${project}::uuid, 100, ${me}::uuid, 100)`, /permission denied/)
+      await refused(
+        tx,
+        () => tx`select adjust_karma(${project}::uuid, 100, ${me}::uuid, 100)`,
+        /permission denied/
+      )
       await refused(tx, () => tx`select apply_karma('[]'::jsonb, '[]'::jsonb)`, /permission denied/)
       await actAsAnon(tx)
-      await refused(tx, () => tx`select adjust_karma(${project}::uuid, 100, ${me}::uuid, 100)`, /permission denied/)
+      await refused(
+        tx,
+        () => tx`select adjust_karma(${project}::uuid, 100, ${me}::uuid, 100)`,
+        /permission denied/
+      )
       await refused(tx, () => tx`select apply_karma('[]'::jsonb, '[]'::jsonb)`, /permission denied/)
     }))
   test('the server can set karma and scores when it creates a project', () =>
@@ -106,7 +118,7 @@ describe('K9 karma and scores are written by the server', () => {
       const [{ quality_score }] = await tx`select quality_score from projects where id = ${id}`
       expect(Number(quality_score)).toBe(3)
     }))
-  test('changing one\'s own profile leaves its karma, parts and time as they were', () =>
+  test("changing one's own profile leaves its karma, parts and time as they were", () =>
     inRollback(async (tx) => {
       const me = await makeProfile(tx)
       await actAs(tx, me)

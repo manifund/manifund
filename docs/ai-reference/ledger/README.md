@@ -1,6 +1,6 @@
 # Balances and the ledger
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 Where Manifund's money is recorded, and how each person's balances are worked out from it.
 
@@ -46,6 +46,8 @@ and certificates (`docs/ai-reference/dormant/`, X).
   account's total balance, under a balance sheet typed in by hand.
 
 ## Rules
+
+Ids not used: L8, L10, L11.
 
 ### The ledger
 
@@ -132,14 +134,14 @@ account (a regrantor's budget, a fund).
 From the git history; dated by commit, who made it as far as the commit shows. None of these were reviewed for this
 doc.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-09 | Vals (#290) | A grant to the email of an existing account goes to that account directly, as a grant by username (L18, regrants G7) | Only a sign-up claims a transfer, so such a grant stayed pending |
-| 2026-10-09 | Vals (#290) | Transfers match the sign-up email ignoring case, and new ones store the email in lowercase (L18) | Sign-up stores emails in lowercase, so a grant typed with capitals was never claimed |
-| 2026-10-08 | Vals (review), direction to confirm | Hiding a project is like closing it: its creator can't reopen it, and the record keeps the offers made on it (not built) | Unhiding would reopen others' committed money in a confusing way |
-| 2026-07-04 | (commit) | Drop the `get_user_balances` SQL function; balances only in `utils/math.ts` | It was broken and unused; the MCP server uses `calculateUserBalance` |
-| 2024-11-16 | Austin (commit) | Donations can't be negative (L14) | "Disallow negative amounts" |
-| 2024-07-15 | Austin (commit) | A public `/finances` page with everyone's balances and a balance sheet (L21-L23) | Transparency; linked from the about page |
+| Date       | Decided by                          | Decision                                                                                                                 | Why                                                                                  |
+| ---------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| 2026-10-09 | Vals (#290)                         | A grant to the email of an existing account goes to that account directly, as a grant by username (L18, regrants G7)     | Only a sign-up claims a transfer, so such a grant stayed pending                     |
+| 2026-10-09 | Vals (#290)                         | Transfers match the sign-up email ignoring case, and new ones store the email in lowercase (L18)                         | Sign-up stores emails in lowercase, so a grant typed with capitals was never claimed |
+| 2026-10-08 | Vals (review), direction to confirm | Hiding a project is like closing it: its creator can't reopen it, and the record keeps the offers made on it (not built) | Unhiding would reopen others' committed money in a confusing way                     |
+| 2026-07-04 | (commit)                            | Drop the `get_user_balances` SQL function; balances only in `utils/math.ts`                                              | It was broken and unused; the MCP server uses `calculateUserBalance`                 |
+| 2024-11-16 | Austin (commit)                     | Donations can't be negative (L14)                                                                                        | "Disallow negative amounts"                                                          |
+| 2024-07-15 | Austin (commit)                     | A public `/finances` page with everyone's balances and a balance sheet (L21-L23)                                         | Transparency; linked from the about page                                             |
 
 ## Open questions
 

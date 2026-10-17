@@ -13,7 +13,8 @@ import { sql } from '../helpers/db'
 import { doc, RUN } from '../helpers/content'
 import { slow, smoke, standard } from '../helpers/levels'
 
-const IMG = 'https://fkousziwzbnkdkldjper.supabase.co/storage/v1/object/public/round-header-images/test.png'
+const IMG =
+  'https://fkousziwzbnkdkldjper.supabase.co/storage/v1/object/public/round-header-images/test.png'
 const TOPIC = { slug: `${RUN}-topic`, title: `Topic ${RUN}` }
 const CLOSED_TOPIC = { slug: `${RUN}-closed`, title: `Closed topic ${RUN}` }
 const PROGRAM = { slug: `${RUN}-program`, title: `Program ${RUN}` }
@@ -33,7 +34,11 @@ const tabs = (text: string) => [...text.matchAll(/href="\?tab=([a-z]+)"/g)].map(
 
 beforeAll(async () => {
   ;[creator, fund, donor, bank, regrantor] = await Promise.all([
-    person('creator'), person('fund'), person('donor'), person('bank'), person('regrantor'),
+    person('creator'),
+    person('fund'),
+    person('donor'),
+    person('bank'),
+    person('regrantor'),
   ])
   await sql`update profiles set type = 'fund', full_name = ${'Fund ' + RUN}, bio = ${'Fund bio ' + RUN},
               long_description = ${doc('Fund long description ' + RUN)} where id = ${fund.id}`
@@ -67,30 +72,41 @@ afterAll(async () => {
 })
 
 describe('R3 /causes: active programs, past prize rounds, causes', () => {
-  smoke('each cause in its group, with its number of projects (no hidden projects or drafts)', async () => {
-    const r = await visitor.get('/causes')
-    expect(r.status).toBe(200)
-    const at = (s: string) => r.text.indexOf(s)
-    const [active, past, causes] = [at('>Active programs<'), at('>Past prize rounds<'), at('>Causes<')]
-    expect(active).toBeGreaterThan(-1)
-    expect(active).toBeLessThan(past)
-    expect(past).toBeLessThan(causes)
-    const card = (c: { title: string }) => at(`>${c.title}</p>`)
-    expect(card(PROGRAM)).toBeGreaterThan(active)
-    expect(card(PROGRAM)).toBeLessThan(past)
-    expect(card(PAST)).toBeGreaterThan(past)
-    expect(card(PAST)).toBeLessThan(causes)
-    expect(card(TOPIC)).toBeGreaterThan(causes)
-    expect(card(CLOSED_TOPIC)).toBeGreaterThan(causes) // closed topics stay listed
-    const count = r.text.slice(card(TOPIC)).match(/>(\d+)(?:<!-- -->)? projects</)
-    expect(count?.[1]).toBe('1')
-    // Open programs are outlined.
-    expect(r.text).toMatch(new RegExp(`class="[^"]*ring-orange-500[^"]*" href="/causes/${PROGRAM.slug}"`))
-    expect(r.text).not.toMatch(new RegExp(`class="[^"]*ring-orange-500[^"]*" href="/causes/${PAST.slug}"`))
-  })
+  smoke(
+    'each cause in its group, with its number of projects (no hidden projects or drafts)',
+    async () => {
+      const r = await visitor.get('/causes')
+      expect(r.status).toBe(200)
+      const at = (s: string) => r.text.indexOf(s)
+      const [active, past, causes] = [
+        at('>Active programs<'),
+        at('>Past prize rounds<'),
+        at('>Causes<'),
+      ]
+      expect(active).toBeGreaterThan(-1)
+      expect(active).toBeLessThan(past)
+      expect(past).toBeLessThan(causes)
+      const card = (c: { title: string }) => at(`>${c.title}</p>`)
+      expect(card(PROGRAM)).toBeGreaterThan(active)
+      expect(card(PROGRAM)).toBeLessThan(past)
+      expect(card(PAST)).toBeGreaterThan(past)
+      expect(card(PAST)).toBeLessThan(causes)
+      expect(card(TOPIC)).toBeGreaterThan(causes)
+      expect(card(CLOSED_TOPIC)).toBeGreaterThan(causes) // closed topics stay listed
+      const count = r.text.slice(card(TOPIC)).match(/>(\d+)(?:<!-- -->)? projects</)
+      expect(count?.[1]).toBe('1')
+      // Open programs are outlined.
+      expect(r.text).toMatch(
+        new RegExp(`class="[^"]*ring-orange-500[^"]*" href="/causes/${PROGRAM.slug}"`)
+      )
+      expect(r.text).not.toMatch(
+        new RegExp(`class="[^"]*ring-orange-500[^"]*" href="/causes/${PAST.slug}"`)
+      )
+    }
+  )
 })
 
-describe('R4 R5 a cause\'s page', () => {
+describe("R4 R5 a cause's page", () => {
   smoke('its numbers and projects leave out hidden projects and drafts', async () => {
     const r = await visitor.get(`/causes/${TOPIC.slug}`)
     expect(r.text).toContain(TOPIC.title)
@@ -100,12 +116,15 @@ describe('R4 R5 a cause\'s page', () => {
     expect(r.text).toMatch(/>0(<!-- -->)? proposals</)
     expect(r.text).toMatch(/>1(<!-- -->)? active projects</)
   })
-  smoke('tabs: Grants, and About when it has a description; no certificates or Donate without them', async () => {
-    const r = await visitor.get(`/causes/${TOPIC.slug}`)
-    expect(tabs(r.text)).toEqual(['grants', 'about'])
-    const about = await visitor.get(`/causes/${TOPIC.slug}?tab=about`)
-    expect(about.text).toContain('About the topic ' + RUN)
-  })
+  smoke(
+    'tabs: Grants, and About when it has a description; no certificates or Donate without them',
+    async () => {
+      const r = await visitor.get(`/causes/${TOPIC.slug}`)
+      expect(tabs(r.text)).toEqual(['grants', 'about'])
+      const about = await visitor.get(`/causes/${TOPIC.slug}?tab=about`)
+      expect(about.text).toContain('About the topic ' + RUN)
+    }
+  )
   standard('no projects: "Coming soon!"; no description: no About tab', async () => {
     const r = await visitor.get(`/causes/${PAST.slug}`)
     expect(r.text).toContain('Coming soon!')
@@ -115,16 +134,22 @@ describe('R4 R5 a cause\'s page', () => {
     const r = await visitor.get(`/causes/${RUN}-no-such-cause`)
     expect(isNotFound(r.text)).toBe(true)
   })
-  standard('Falcon Fund\'s About tab starts with "Apply for funding" (the real program\'s page, read only)', async () => {
-    const r = await visitor.get('/causes/falcon-fund?tab=about')
-    expect(r.text).toMatch(/href="\/create\?prize=falcon-fund"[^>]*>Apply for funding</)
-  })
-  slow('EA Community Choice adds Participants and Matching (the real program\'s page, read only)', async () => {
-    const r = await visitor.get('/causes/ea-community-choice')
-    expect(tabs(r.text)).toEqual(expect.arrayContaining(['participants', 'match']))
-    const other = await visitor.get(`/causes/${TOPIC.slug}`)
-    expect(tabs(other.text)).not.toContain('participants')
-  })
+  standard(
+    'Falcon Fund\'s About tab starts with "Apply for funding" (the real program\'s page, read only)',
+    async () => {
+      const r = await visitor.get('/causes/falcon-fund?tab=about')
+      expect(r.text).toMatch(/href="\/create\?prize=falcon-fund"[^>]*>Apply for funding</)
+    }
+  )
+  slow(
+    "EA Community Choice adds Participants and Matching (the real program's page, read only)",
+    async () => {
+      const r = await visitor.get('/causes/ea-community-choice')
+      expect(tabs(r.text)).toEqual(expect.arrayContaining(['participants', 'match']))
+      const other = await visitor.get(`/causes/${TOPIC.slug}`)
+      expect(tabs(other.text)).not.toContain('participants')
+    }
+  )
 })
 
 // "Edit cause" and "Edit round" render in the browser only (the editor reads the signed-in session there), so the
@@ -132,7 +157,7 @@ describe('R4 R5 a cause\'s page', () => {
 test.todo('R6 admins see "Edit cause" on the About tab; nobody else does: needs a browser test (the button renders client-side only)', () => {})
 
 describe('R15 R14 a cause with a fund account has a Donate tab', () => {
-  standard('the fund\'s bio, the donate box and its donations history', async () => {
+  standard("the fund's bio, the donate box and its donations history", async () => {
     const r = await visitor.get(`/causes/${FUNDED.slug}?tab=donate`)
     expect(tabs(r.text)).toContain('donate')
     expect(r.text).toContain('Fund bio ' + RUN)
@@ -150,7 +175,10 @@ test.todo('R9 open programs are offered, closed ones not; link-only ones only th
 
 // What /api/create-project saves (the form's request, as the browser sends it).
 let n = 0
-async function create(selectedPrize: { slug: string; title: string } | null, selectedCauses = [TOPIC]) {
+async function create(
+  selectedPrize: { slug: string; title: string } | null,
+  selectedCauses = [TOPIC]
+) {
   const title = `Created ${++n} ${RUN}`
   const r = await creator.post('/api/create-project', {
     title,
@@ -167,19 +195,32 @@ async function create(selectedPrize: { slug: string; title: string } | null, sel
     lobbying: false,
   })
   expect(r.status).toBe(200)
-  const [row] = await sql`select id, round, stage, type, min_funding::int as min_funding from projects where title = ${title}`
-  const causes = await sql`select cause_slug from project_causes where project_id = ${row.id} order by cause_slug`
+  const [row] =
+    await sql`select id, round, stage, type, min_funding::int as min_funding from projects where title = ${title}`
+  const causes =
+    await sql`select cause_slug from project_causes where project_id = ${row.id} order by cause_slug`
   return { ...row, causes: causes.map((c: any) => c.cause_slug) }
 }
 
 describe('R11 R9 the round and causes a new project gets', () => {
   smoke('no program: the Regrants round, a grant proposal, with the chosen topics', async () => {
     const p = await create(null)
-    expect(p).toMatchObject({ round: 'Regrants', stage: 'proposal', type: 'grant', min_funding: 1000, causes: [TOPIC.slug] })
+    expect(p).toMatchObject({
+      round: 'Regrants',
+      stage: 'proposal',
+      type: 'grant',
+      min_funding: 1000,
+      causes: [TOPIC.slug],
+    })
   })
   standard('Falcon Fund: Independent, a normal grant proposal', async () => {
     const p = await create({ slug: 'falcon-fund', title: 'Falcon Fund' })
-    expect(p).toMatchObject({ round: 'Independent', min_funding: 1000, type: 'grant', stage: 'proposal' })
+    expect(p).toMatchObject({
+      round: 'Independent',
+      min_funding: 1000,
+      type: 'grant',
+      stage: 'proposal',
+    })
   })
   standard('any other program: an impact certificate in the round named after it', async () => {
     const p = await create(PROGRAM)
@@ -197,35 +238,46 @@ describe('R10 R8 editing a project replaces its causes', () => {
       projectUpdate: { blurb: 'edited' },
     })
     expect(r.status).toBe(200)
-    const rows = await sql`select cause_slug from project_causes where project_id = ${p.id} order by cause_slug`
+    const rows =
+      await sql`select cause_slug from project_causes where project_id = ${p.id} order by cause_slug`
     expect(rows.map((c: any) => c.cause_slug)).toEqual([OTHER_TOPIC.slug])
   })
 })
 
-describe('R12 a round\'s page', () => {
-  smoke('title, pool, its projects (no hidden projects or drafts), Projects and About tabs', async () => {
-    const r = await visitor.get(`/rounds/${ROUND.slug}`)
-    expect(r.text).toContain(ROUND.title)
-    expect(r.text).toContain(titled('active'))
-    expect(r.text).not.toContain(titled('hidden'))
-    expect(r.text).not.toContain(titled('draft'))
-    expect(r.text).toMatch(/>\$5K<[\s\S]*available funding/)
-    expect(tabs(r.text)).toEqual(['projects', 'about'])
-    const about = await visitor.get(`/rounds/${ROUND.slug}?tab=about`)
-    expect(about.text).toContain('About the round ' + RUN)
-  })
+describe("R12 a round's page", () => {
+  smoke(
+    'title, pool, its projects (no hidden projects or drafts), Projects and About tabs',
+    async () => {
+      const r = await visitor.get(`/rounds/${ROUND.slug}`)
+      expect(r.text).toContain(ROUND.title)
+      expect(r.text).toContain(titled('active'))
+      expect(r.text).not.toContain(titled('hidden'))
+      expect(r.text).not.toContain(titled('draft'))
+      expect(r.text).toMatch(/>\$5K<[\s\S]*available funding/)
+      expect(tabs(r.text)).toEqual(['projects', 'about'])
+      const about = await visitor.get(`/rounds/${ROUND.slug}?tab=about`)
+      expect(about.text).toContain('About the round ' + RUN)
+    }
+  )
   standard('an unknown round is not found', async () => {
     expect(isNotFound((await visitor.get(`/rounds/${RUN}-no-such-round`)).text)).toBe(true)
   })
-  slow('Independent shows proposals, unfunded and active projects (the real round\'s labels, read only)', async () => {
-    const r = await visitor.get('/rounds/independent')
-    for (const label of ['>proposals<', '>unfunded projects<', '>active projects<']) expect(r.text).toContain(label)
-  })
-  slow('Regrants has a Regrantors tab listing regrantors (the real round\'s page, read only)', async () => {
-    const r = await visitor.get('/rounds/regrants?tab=regrants')
-    expect(tabs(r.text)).toEqual(['projects', 'regrants', 'about'])
-    expect(r.text).toContain(regrantor.username)
-  })
+  slow(
+    "Independent shows proposals, unfunded and active projects (the real round's labels, read only)",
+    async () => {
+      const r = await visitor.get('/rounds/independent')
+      for (const label of ['>proposals<', '>unfunded projects<', '>active projects<'])
+        expect(r.text).toContain(label)
+    }
+  )
+  slow(
+    "Regrants has a Regrantors tab listing regrantors (the real round's page, read only)",
+    async () => {
+      const r = await visitor.get('/rounds/regrants?tab=regrants')
+      expect(tabs(r.text)).toEqual(['projects', 'regrants', 'about'])
+      expect(r.text).toContain(regrantor.username)
+    }
+  )
 
   // Open question 2 (docs/ai-reference/causes/README.md): the countdowns count the wrong way and show for past dates.
   // Turn on once decided (fixed, or the countdowns dropped).
@@ -242,31 +294,47 @@ describe('R12 a round\'s page', () => {
   })
 })
 
-describe('R13 R14 a fund\'s page', () => {
-  smoke('at the fund\'s address: "<name> fund", its bio, the donate box, its donations and long description', async () => {
-    for (const path of [`/${fund.username}`, `/funds/${fund.username}`]) {
-      const r = await visitor.get(path)
-      expect(r.text).toMatch(new RegExp(`>Fund ${RUN}(<!-- -->)? fund<`))
-      for (const s of ['Fund bio ' + RUN, 'Donate via...', 'Donor ' + RUN, 'Fund long description ' + RUN]) {
-        expect(r.text).toContain(s)
+describe("R13 R14 a fund's page", () => {
+  smoke(
+    'at the fund\'s address: "<name> fund", its bio, the donate box, its donations and long description',
+    async () => {
+      for (const path of [`/${fund.username}`, `/funds/${fund.username}`]) {
+        const r = await visitor.get(path)
+        expect(r.text).toMatch(new RegExp(`>Fund ${RUN}(<!-- -->)? fund<`))
+        for (const s of [
+          'Fund bio ' + RUN,
+          'Donate via...',
+          'Donor ' + RUN,
+          'Fund long description ' + RUN,
+        ]) {
+          expect(r.text).toContain(s)
+        }
       }
     }
-  })
-  standard('visitors are asked to sign in and get only the wire details; signed-in people get card and balance', async () => {
-    const v = await visitor.get(`/${fund.username}`)
-    expect(v.text).toContain('Sign in to donate')
-    expect(v.text).toContain('See details')
-    expect(v.text).not.toContain('>Checkout<')
-    const d = await donor.get(`/${fund.username}`)
-    expect(d.text).not.toContain('Sign in to donate')
-    expect(d.text).toContain('>Checkout<')
-    expect(d.text).toMatch(/<button[^>]*disabled[^>]*>(?:(?!<\/button>)[\s\S])*Donate<\/button>/) // no amount yet
-  })
-  standard('donating from one\'s charity balance moves the money to the fund', async () => {
+  )
+  standard(
+    'visitors are asked to sign in and get only the wire details; signed-in people get card and balance',
+    async () => {
+      const v = await visitor.get(`/${fund.username}`)
+      expect(v.text).toContain('Sign in to donate')
+      expect(v.text).toContain('See details')
+      expect(v.text).not.toContain('>Checkout<')
+      const d = await donor.get(`/${fund.username}`)
+      expect(d.text).not.toContain('Sign in to donate')
+      expect(d.text).toContain('>Checkout<')
+      expect(d.text).toMatch(/<button[^>]*disabled[^>]*>(?:(?!<\/button>)[\s\S])*Donate<\/button>/) // no amount yet
+    }
+  )
+  standard("donating from one's charity balance moves the money to the fund", async () => {
     await sql`insert into txns (from_id, to_id, amount, token, type) values (${bank.id}, ${donor.id}, 100, 'USD', 'profile donation')`
-    const r = await donor.post('/api/transfer-money', { amount: 30, toId: fund.id, fromId: donor.id })
+    const r = await donor.post('/api/transfer-money', {
+      amount: 30,
+      toId: fund.id,
+      fromId: donor.id,
+    })
     expect(r.status).toBe(200)
-    const rows = await sql`select amount::int as amount, type from txns where from_id = ${donor.id} and to_id = ${fund.id} and amount = 30`
+    const rows =
+      await sql`select amount::int as amount, type from txns where from_id = ${donor.id} and to_id = ${fund.id} and amount = 30`
     expect(rows).toEqual([{ amount: 30, type: 'profile donation' }])
   })
 })

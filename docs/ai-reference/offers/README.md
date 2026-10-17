@@ -1,6 +1,6 @@
 # Offers and activation
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 How money reaches a project that is still raising: people make **offers** (pledges) from their balance, and when
 the project has reached its minimum, been approved and had its grant agreement signed, every offer becomes a
@@ -63,9 +63,7 @@ Observed (code, 2026-10-08). Ids are stable once merged.
 - **B2** A donation offer must fit the bidder's charity balance. Pending offers already count against the balance
   (`../ledger/README.md`). A larger offer is refused ("Insufficient funds", status 401) and nothing is saved.
 - **B3** An offer on a project that doesn't exist is refused (404).
-- **B4** A new offer is `pending`, saved as sent (amount, valuation, type), with the bidder being the signed-in
-  person. The database starts every offer that doesn't come from the server as `pending`, dated now (#319; tests:
-  `tests/db/bids-owner-edits.test.ts`).
+- **B4** A new offer is `pending`, dated when saved (#319; tests: `tests/db/bids-owner-edits.test.ts`).
 - **B5** On a grant proposal, the project page shows the donate box ("Offer to donate") while the amount offered is
   below the funding goal and no project transfer is pending; at the goal it says "Fully funded and not currently
   accepting donations." The box asks for at least $10 and at most the person's balance and what's left of the goal
@@ -129,14 +127,14 @@ past the cap"; shipped in #289). One function holds them, used by the page and t
 ### When a proposal isn't funded
 
 - **B15** `reject_proposal` declines every pending offer on the project (of any type) and sets the project to `not
-  funded`. No txn is written: the offered money never left the donors' balances, so declining it is the refund. It
+funded`. No txn is written: the offered money never left the donors' balances, so declining it is the refund. It
   runs when an admin rejects the proposal (`execute_grant_verdict_v2` with approved = false) and when a proposal
   passes its deadline below its minimum (the close-grants cron, project lifecycle).
 
 ### What the page shows
 
 - **B16** While a project is a proposal, the amount raised is the sum of its pending `donate`, `buy` and `assurance
-  buy` offers (declined, withdrawn and accepted offers don't count). Once active, it's what the creator received
+buy` offers (declined, withdrawn and accepted offers don't count). Once active, it's what the creator received
   (`../ledger/README.md`). A `dummy` project shows its funding goal.
 - **B17** The minimum shown for a grant is its minimum funding. For a certificate it also includes the share of the
   valuation reserved for the market maker (`amm_shares`).
@@ -157,23 +155,23 @@ past the cap"; shipped in #289). One function holds them, used by the page and t
 
 From the code's history; the "why" comes from the PRs. Newest first.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-16 | Vals (#312, #319) | Activation re-checks offers against balances and accepts exactly the offers checked (B11, B13, B23); people can only withdraw their own pending offers, the server sets everything else (B4, B8) | One check where money moves; offers can't change after they're placed |
-| 2026-10-09 | Vals (#289) | Offers and donations to a grant project are capped at what's left of the funding goal, pending offers counting, and the server applies the $10 minimum and the cap (B20-B22; open question 3) | "If once fully funded it doesn't accept more donations, it also shouldn't accept anything past the cap"; one set of rules, wherever the offer comes from |
-| 2026-10-08 | Vals (review) | The server applies the same limits as the donate box ($10 minimum; no offer past the funding goal), page and server aligned (open question 3). Whether a project may end up above its goal at all is for the team (B12) | One set of rules, wherever the offer comes from |
-| 2026-09-11 | Team (#243) | Offers need a finite positive amount and a non-negative valuation (B1); activation and rejection functions only for the server (B14) | Input checks and server-only money functions |
-| 2024-01-23 | Team (#78) | Donating, investing and commenting make you follow a project (B6) | Followers hear when the project moves stage |
-| 2023-12-08 | Team | Certificate offers within $1 of the amount needed are rounded to fund the project exactly (see Open questions) | "floating point errors" (code comment) |
-| 2023-10-10 | Team | New offers go through a database webhook (B10) | (No PR text; commit "new bid handler webhook") |
-| 2023-06-16 | Team (#39) | A grant proposal activates when it has its minimum, approval and a signed agreement, checked whenever one of them changes; all donate offers become txns then (B9-B11) | Donors pledge; money moves only when the project can go ahead |
+| Date       | Decided by        | Decision                                                                                                                                                                                                                | Why                                                                                                                                                      |
+| ---------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 2026-10-16 | Vals (#312, #319) | Activation re-checks offers against balances and accepts exactly the offers checked (B11, B13, B23); people can only withdraw their own pending offers, the server sets everything else (B4, B8)                        | One check where money moves; offers can't change after they're placed                                                                                    |
+| 2026-10-09 | Vals (#289)       | Offers and donations to a grant project are capped at what's left of the funding goal, pending offers counting, and the server applies the $10 minimum and the cap (B20-B22; open question 3)                           | "If once fully funded it doesn't accept more donations, it also shouldn't accept anything past the cap"; one set of rules, wherever the offer comes from |
+| 2026-10-08 | Vals (review)     | The server applies the same limits as the donate box ($10 minimum; no offer past the funding goal), page and server aligned (open question 3). Whether a project may end up above its goal at all is for the team (B12) | One set of rules, wherever the offer comes from                                                                                                          |
+| 2026-09-11 | Team (#243)       | Offers need a finite positive amount and a non-negative valuation (B1); activation and rejection functions only for the server (B14)                                                                                    | Input checks and server-only money functions                                                                                                             |
+| 2024-01-23 | Team (#78)        | Donating, investing and commenting make you follow a project (B6)                                                                                                                                                       | Followers hear when the project moves stage                                                                                                              |
+| 2023-12-08 | Team              | Certificate offers within $1 of the amount needed are rounded to fund the project exactly (see Open questions)                                                                                                          | "floating point errors" (code comment)                                                                                                                   |
+| 2023-10-10 | Team              | New offers go through a database webhook (B10)                                                                                                                                                                          | (No PR text; commit "new bid handler webhook")                                                                                                           |
+| 2023-06-16 | Team (#39)        | A grant proposal activates when it has its minimum, approval and a signed agreement, checked whenever one of them changes; all donate offers become txns then (B9-B11)                                                  | Donors pledge; money moves only when the project can go ahead                                                                                            |
 
 ## Open questions
 
 Found while writing this doc (2026-10-08). Vals reviewed them on 2026-10-08 (in brackets).
 
 1. **Rounding of certificate offers looks inverted** (`pages/api/place-bid.ts:48-57`). The code means to round an
-   `assurance buy` up when it leaves the project a few cents short, but it acts when the offer *overshoots* by less
+   `assurance buy` up when it leaves the project a few cents short, but it acts when the offer _overshoots_ by less
    than $1, and then sets the amount to the (negative) overshoot. The insert is then refused by row-level security
    (amount ≥ 0), so the person gets an error (500) instead of an offer (seen in a route test). Certificates are
    dormant, so it may not matter. (Bug, to fix.)

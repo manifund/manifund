@@ -59,8 +59,24 @@ describe('X3 the market maker prices trades with a constant product', () => {
 
 describe('X4 a trade is refused when it can’t be made', () => {
   // getTradeErrorMessage(mode, ammShares, ammUSD, spendable, sellableShares, isLimit, limitValuation, usd, equity)
-  const market = (mode: 'buy' | 'sell', usd: number, equity: number, spendable = 100, sellable = 0) =>
-    getTradeErrorMessage(mode, AMM_SHARES, AMM_USD, spendable, sellable, false, undefined, usd, equity)
+  const market = (
+    mode: 'buy' | 'sell',
+    usd: number,
+    equity: number,
+    spendable = 100,
+    sellable = 0
+  ) =>
+    getTradeErrorMessage(
+      mode,
+      AMM_SHARES,
+      AMM_USD,
+      spendable,
+      sellable,
+      false,
+      undefined,
+      usd,
+      equity
+    )
   const limit = (mode: 'buy' | 'sell', valuation: number | undefined, amm = true) =>
     getTradeErrorMessage(
       mode,
@@ -89,7 +105,9 @@ describe('X4 a trade is refused when it can’t be made', () => {
     expect(limit('buy', undefined)).toBe('Please enter a valuation')
   })
   test('with a market maker, a buy order can’t be above the current valuation, nor below the lowest', () => {
-    expect(limit('buy', 250)).toBe('For buy limit orders, valuation must be less than current valuation')
+    expect(limit('buy', 250)).toBe(
+      'For buy limit orders, valuation must be less than current valuation'
+    )
     expect(limit('buy', 1)).toMatch(/^Valuation must be greater than/)
     expect(limit('buy', 150)).toBeUndefined()
   })

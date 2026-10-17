@@ -50,25 +50,33 @@ describe('X12 evaluations and trust rows: anyone reads them, only their author w
       expect(
         await tx`delete from project_evals where project_id = ${project.id} returning 1`
       ).toHaveLength(1)
-      expect(await tx`delete from profile_trust where truster_id = ${p.alice.id} returning 1`).toHaveLength(1)
+      expect(
+        await tx`delete from profile_trust where truster_id = ${p.alice.id} returning 1`
+      ).toHaveLength(1)
     }))
 
   test('nobody adds one in someone else’s name', () =>
     inRollback(async (tx) => {
       const project = await makeProject(tx, p.rita.id)
       await actAs(tx, p.bob.id)
-      await expect(run(() => evaluation(tx, p.alice.id, project.id))).rejects.toThrow('row-level security')
+      await expect(run(() => evaluation(tx, p.alice.id, project.id))).rejects.toThrow(
+        'row-level security'
+      )
     }))
   test('nobody trusts in someone else’s name', () =>
     inRollback(async (tx) => {
       await actAs(tx, p.bob.id)
-      await expect(run(() => trust(tx, p.alice.id, p.rita.id))).rejects.toThrow('row-level security')
+      await expect(run(() => trust(tx, p.alice.id, p.rita.id))).rejects.toThrow(
+        'row-level security'
+      )
     }))
   test('visitors add nothing', () =>
     inRollback(async (tx) => {
       const project = await makeProject(tx, p.rita.id)
       await actAsAnon(tx)
-      await expect(run(() => evaluation(tx, p.alice.id, project.id))).rejects.toThrow('row-level security')
+      await expect(run(() => evaluation(tx, p.alice.id, project.id))).rejects.toThrow(
+        'row-level security'
+      )
     }))
 
   test('nobody else changes or deletes them, signed in or not', () =>

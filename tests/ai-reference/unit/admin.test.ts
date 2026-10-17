@@ -43,7 +43,10 @@ async function isAdminIn(env: { NODE_ENV: string; LOCAL?: string }, emails: (str
 function adminList(): string[] {
   const src = readFileSync(profileModule, 'utf8')
   const m = src.match(/const ADMINS = \[([^\]]*)\]/)
-  if (!m) throw new Error('the admin list moved: update M1 in docs/ai-reference/admin/README.md and this test')
+  if (!m)
+    throw new Error(
+      'the admin list moved: update M1 in docs/ai-reference/admin/README.md and this test'
+    )
   return [...m[1].matchAll(/'([^']+)'/g)].map((x) => x[1])
 }
 
@@ -65,7 +68,10 @@ describe('M1 an admin is a signed-in person whose email is on the list in db/pro
   test('signed out, or an account without an email, is never an admin', async () => {
     expect(await isAdminIn({ NODE_ENV: 'production' }, [null, ''])).toEqual([false, false])
     // Even with blank entries in the local list, in development.
-    expect(await isAdminIn({ NODE_ENV: 'development', LOCAL: ' , ,' }, [null, ''])).toEqual([false, false])
+    expect(await isAdminIn({ NODE_ENV: 'development', LOCAL: ' , ,' }, [null, ''])).toEqual([
+      false,
+      false,
+    ])
   })
 })
 
@@ -86,7 +92,8 @@ describe('M2 local admins from NEXT_PUBLIC_LOCAL_ADMIN_EMAILS, in development bu
   })
 })
 
-const txn = (from_id: string | null, to_id: string, amount: number) => ({ from_id, to_id, amount }) as Txn
+const txn = (from_id: string | null, to_id: string, amount: number) =>
+  ({ from_id, to_id, amount }) as Txn
 
 describe('M5 the balance on /admin/users: USD txns received minus sent', () => {
   test('received minus sent, per account; an account with no txns has none', () => {

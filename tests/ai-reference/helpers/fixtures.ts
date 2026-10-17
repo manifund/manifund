@@ -8,7 +8,12 @@ import type { Client } from './http'
 export { getPeople, type People, type Persona } from './people'
 
 // A project owned by `creator`, in `stage` (inside a transaction or committed).
-export async function makeProject(db: Tx | typeof sql, creator: string, stage = 'active', slug = `${RUN}-p`) {
+export async function makeProject(
+  db: Tx | typeof sql,
+  creator: string,
+  stage = 'active',
+  slug = `${RUN}-p`
+) {
   const [row] = await db`
     insert into projects (title, blurb, creator, slug, stage, type, min_funding, funding_goal, founder_shares, round, description)
     values (${'Test project ' + RUN}, 'test', ${creator}, ${slug}, ${stage}, 'grant', 100, 1000, 10000000, 'Regrants', ${doc('A test project.')})
@@ -17,7 +22,11 @@ export async function makeProject(db: Tx | typeof sql, creator: string, stage = 
 }
 
 // An org page (public.orgs) for this file, slug `<run>-<name>`.
-export async function makeOrg(db: Tx | typeof sql, name: string, fields: Record<string, unknown> = {}) {
+export async function makeOrg(
+  db: Tx | typeof sql,
+  name: string,
+  fields: Record<string, unknown> = {}
+) {
   const [row] = await db`
     insert into orgs ${sql({ slug: `${RUN}-${name}`, name: `Org ${name} ${RUN}`, ...fields })}
     returning id, slug, name`
@@ -44,7 +53,8 @@ export async function getWorld(): Promise<World> {
 // Delete everything this file created: its org pages, its projects (with their comments, which cascade to replies, revisions,
 // reports and notifications), then its people and the rest of their rows.
 export async function cleanWorld() {
-  const made = await sql`select id from projects where slug like ${RUN + '%'} or title like ${'%' + RUN + '%'}`
+  const made =
+    await sql`select id from projects where slug like ${RUN + '%'} or title like ${'%' + RUN + '%'}`
   const ids = made.map((r: any) => r.id)
   if (ids.length) {
     await sql`delete from comments where project in ${sql(ids)}`

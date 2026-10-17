@@ -31,9 +31,11 @@ describe('M11 a project’s approval reminders: on unless an admin pauses them',
     inRollback(async (tx) => {
       const project = await makeProposal(tx, await makeProfile(tx))
       await tx`update projects set alerts_paused = true where id = ${project.id}`
-      expect((await tx`select alerts_paused from projects where id = ${project.id}`)[0].alerts_paused).toBe(true)
-      await expect(run(tx`update projects set alerts_paused = null where id = ${project.id}`)).rejects.toThrow(
-        /null value|not-null/
-      )
+      expect(
+        (await tx`select alerts_paused from projects where id = ${project.id}`)[0].alerts_paused
+      ).toBe(true)
+      await expect(
+        run(tx`update projects set alerts_paused = null where id = ${project.id}`)
+      ).rejects.toThrow(/null value|not-null/)
     }))
 })

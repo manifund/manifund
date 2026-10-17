@@ -1,6 +1,6 @@
 # Grant agreements and admin approvals
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 The contract every grant recipient signs before money moves, the Charity's countersignature (an admin's approval),
 the private records kept around a signature (signing evidence, tax documents), and the admins' list of proposals
@@ -52,9 +52,9 @@ signature (notifications).
   - `send-agreement-for-signature`: the creator sends a signing link to the organization's signatory;
   - `sign-grant-agreement-external`: the signatory signs with the link (no account);
   - `update-agreement-tax-flags`: admins record tax documents.
-  The two signing routes share `commitSignature` (`utils/grant-agreement-write.ts`), so the order can't drift:
-  agreement row, then `projects.signed_agreement`, then the private row, then the activation check
-  (`maybeActivateProject`).
+    The two signing routes share `commitSignature` (`utils/grant-agreement-write.ts`), so the order can't drift:
+    agreement row, then `projects.signed_agreement`, then the private row, then the activation check
+    (`maybeActivateProject`).
 - **Documents**: `app/projects/[slug]/agreement/grant-agreement.tsx` (individual, versions 1-3) and
   `org-grant-agreement.tsx` (organization, version 1); `utils/constants.ts` holds the current versions.
   `utils/render-agreement.tsx` renders the same components to HTML for the stored document and the emailed copy.
@@ -177,20 +177,20 @@ Observed (code, 2026-10-08). Ids are stable once merged.
 
 From the code's history; the "why" comes from the PRs and code comments. Newest first.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-14 | Caroline (#309) | Hidden and draft projects' agreement pages show "404", except to their creator and admins (A1) | Not given |
-| 2026-10-01 | Caroline (#277) | The approvals list counts only pending offers toward the minimum (A28) | Withdrawn offers listed projects that hadn't reached it |
-| 2026-09-30 | Vals (#274) | Admin pages check the admin themselves, not only in the layout (A27) | Each page decides on its own what it shows |
-| 2026-09-01 | Caroline (#219) | Approval reminders only once the creator has signed; a per-project pause on the approvals list (A28) | Nothing for an admin to act on before the signature; stalled proposals kept reminding |
-| 2026-08-17 | Caroline (#200) | An organization's signature mark and date appear only once signed | An agreement waiting for its signatory looked executed |
+| Date                           | Decided by                                                       | Decision                                                                                                                                                                                                                                                         | Why                                                                                                      |
+| ------------------------------ | ---------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| 2026-10-14                     | Caroline (#309)                                                  | Hidden and draft projects' agreement pages show "404", except to their creator and admins (A1)                                                                                                                                                                   | Not given                                                                                                |
+| 2026-10-01                     | Caroline (#277)                                                  | The approvals list counts only pending offers toward the minimum (A28)                                                                                                                                                                                           | Withdrawn offers listed projects that hadn't reached it                                                  |
+| 2026-09-30                     | Vals (#274)                                                      | Admin pages check the admin themselves, not only in the layout (A27)                                                                                                                                                                                             | Each page decides on its own what it shows                                                               |
+| 2026-09-01                     | Caroline (#219)                                                  | Approval reminders only once the creator has signed; a per-project pause on the approvals list (A28)                                                                                                                                                             | Nothing for an admin to act on before the signature; stalled proposals kept reminding                    |
+| 2026-08-17                     | Caroline (#200)                                                  | An organization's signature mark and date appear only once signed                                                                                                                                                                                                | An agreement waiting for its signatory looked executed                                                   |
 | 2026-07-25, shipped 2026-08-17 | Austin (#196, plan in `docs/plans/org-grant-agreements-plan.md`) | Organizations as recipients, with a separate document; a third-party signatory signs through an emailed link; the stored rendered document is the record; signing evidence and tax flags in a private table; only the server writes agreements (A2, A9-A21, A24) | Fiscal sponsors must be the contracting party and sign themselves; a signature should be reconstructable |
-| 2026-06-02 | Austin | An approval stamps only its own project's agreement (A22) | A bug had restamped every agreement with the latest approval |
-| 2024-05-11 | Austin | The public benefit chosen at approval shows under the agreement (A1) | Not recorded |
-| 2024-03-26 | Rachel (#121) | A `grant_agreements` row records the signature time, the approver, the version signed and whether it was signed off-site (A2, A4, A22, A23) | The page should show the agreement actually signed, not only one reconstructable from notes |
-| 2024-02-16 | Rachel (#81) | The signer gets the agreement by email after signing (A6) | A copy for their records |
-| 2024-02-09 | Rachel | The no-lobbying clause is left out for projects that declare lobbying (A3) | Not recorded |
-| 2023-06-02 | Rachel (#38) | Every project has a public agreement page; only its creator agrees; a progress strip shows what blocks a proposal (A1, A7, A25, A26) | Fiscal sponsorship: recipients agree to the terms before receiving funds |
+| 2026-06-02                     | Austin                                                           | An approval stamps only its own project's agreement (A22)                                                                                                                                                                                                        | A bug had restamped every agreement with the latest approval                                             |
+| 2024-05-11                     | Austin                                                           | The public benefit chosen at approval shows under the agreement (A1)                                                                                                                                                                                             | Not recorded                                                                                             |
+| 2024-03-26                     | Rachel (#121)                                                    | A `grant_agreements` row records the signature time, the approver, the version signed and whether it was signed off-site (A2, A4, A22, A23)                                                                                                                      | The page should show the agreement actually signed, not only one reconstructable from notes              |
+| 2024-02-16                     | Rachel (#81)                                                     | The signer gets the agreement by email after signing (A6)                                                                                                                                                                                                        | A copy for their records                                                                                 |
+| 2024-02-09                     | Rachel                                                           | The no-lobbying clause is left out for projects that declare lobbying (A3)                                                                                                                                                                                       | Not recorded                                                                                             |
+| 2023-06-02                     | Rachel (#38)                                                     | Every project has a public agreement page; only its creator agrees; a progress strip shows what blocks a proposal (A1, A7, A25, A26)                                                                                                                             | Fiscal sponsorship: recipients agree to the terms before receiving funds                                 |
 
 ## Open questions
 
@@ -220,10 +220,9 @@ For the team:
 6. **Small answers**: a non-creator's signature, or a request for a project that doesn't exist, gets a 500
    (`Response.error()`) rather than a 403 or 404; the rejected project's agreement page shows "404" as text with a
    200 (checked locally, 2026-10-08).
-7. **Older agreements**: about 110 grant projects created 2023-04 to 2024-03 are marked signed without a recorded
-   signing time (before #121), and 840 signed agreements belong to proposals that never got a verdict (open,
-   closed unfunded or hidden). Nothing to fix, but worth knowing when reading the data (production copy of
-   2026-10-07).
+7. **Older agreements**: grant projects created 2023-04 to 2024-03 are marked signed without a recorded signing
+   time (before #121), and many signed agreements belong to proposals that never got a verdict (open, closed
+   unfunded or hidden). Nothing to fix, but worth knowing when reading the data.
 
 ## Later
 

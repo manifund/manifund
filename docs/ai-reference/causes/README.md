@@ -1,6 +1,6 @@
 # Causes, rounds, funds and programs
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 How Manifund groups projects and money: cause areas people browse by, programs and prize rounds people apply to,
 the rounds every project belongs to, and fund accounts people donate to. Project lists and the home feed (how causes
@@ -24,7 +24,7 @@ to confirm. Intent is marked as a draft where it appears.
   projects are in "Regrants" (the default) or "Independent".
 
 Draft intent (from the comments decision of 2026-10-05, Vals: "causes are keyed by slug, not id, and will be
-reworked"): causes, rounds and funds overlap (a program is a cause *and* often a round *and* sometimes a fund) and
+reworked"): causes, rounds and funds overlap (a program is a cause _and_ often a round _and_ sometimes a fund) and
 are expected to be reworked into a clearer model. This doc describes today's behaviour so the rework can keep what
 matters.
 
@@ -47,7 +47,7 @@ matters.
   `edit-round.tsx`), writing directly to the database from the browser (images go to the `round-header-images`
   storage bucket). New causes and rounds are added in the database by hand; no flow creates them.
 - **Hard-coded programs**: some behaviour names programs by slug or title in code: `LINK_ONLY_PRIZE_CAUSE_SLUGS`
-  (`db/cause.ts`), the program terms in `pages/api/create-project.ts`, Falcon Fund's apply button and EA Community
+  (`db/cause.ts`), the rounds and minimums of some programs in `pages/api/create-project.ts` (their terms come from the database since #316), Falcon Fund's apply button and EA Community
   Choice's tabs (`cause-tabs.tsx`), the Regrants round's regrantor tab and stats, round colours (`getRoundTheme`,
   `utils/constants.ts`), a program's offer button (`../regrants/`, G17).
 
@@ -134,18 +134,18 @@ Ids are stable once merged: tests name them.
 From the code's history; none of these was written down as a decision at the time, so "who" is the author of the
 change. Newest first.
 
-| Date | By | Decision | Why |
-|---|---|---|---|
-| 2026-10-05 | Vals | Causes take no comments for now (C1, `docs/product/comments/`) | Causes are keyed by slug and will be reworked |
-| 2026-09-29 | Caroline (PR #267) | Falcon Fund's About tab has an "Apply for funding" button (R5) | A direct way to apply |
-| 2026-09-21 | Caroline (PRs #254, #255) | `/causes` shows open programs first, as "Active programs", without badges or section descriptions (R3) | Surface the programs taking applications |
-| 2026-09-13 | Austin | The Matching tab only counts donations and offers inside the matching window, filtered in the query (R17) | Newer donations pushed eligible ones past the row limit |
-| 2026-07-15 | Austin | grantmaking.ai is a link-only program, $5k-$50k grants (R9, R11) | Applications only through the program's own link |
-| 2026-06-25 | Austin | A microgrants program is link-only; existing members keep it when editing (R8, R9) | Only invited applicants |
-| 2026-02-07 | Austin | At most 3 causes per project (R8) | |
-| 2024-03-13 | Rachel | Programs and topics are separated on `/causes`, renamed "Categories" in navigation (R3) | |
-| 2024-02-09 | Rachel | The edit form offers only open causes (R8) | Closed causes shouldn't get new projects |
-| 2023-12-14 | Rachel (PR #75) | Fund pages (R13, R14) | Donations to a fund rather than to a project |
+| Date       | By                        | Decision                                                                                                  | Why                                                     |
+| ---------- | ------------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| 2026-10-05 | Vals                      | Causes take no comments for now (C1, `docs/product/comments/`)                                            | Causes are keyed by slug and will be reworked           |
+| 2026-09-29 | Caroline (PR #267)        | Falcon Fund's About tab has an "Apply for funding" button (R5)                                            | A direct way to apply                                   |
+| 2026-09-21 | Caroline (PRs #254, #255) | `/causes` shows open programs first, as "Active programs", without badges or section descriptions (R3)    | Surface the programs taking applications                |
+| 2026-09-13 | Austin                    | The Matching tab only counts donations and offers inside the matching window, filtered in the query (R17) | Newer donations pushed eligible ones past the row limit |
+| 2026-07-15 | Austin                    | grantmaking.ai is a link-only program, $5k-$50k grants (R9, R11)                                          | Applications only through the program's own link        |
+| 2026-06-25 | Austin                    | A microgrants program is link-only; existing members keep it when editing (R8, R9)                        | Only invited applicants                                 |
+| 2026-02-07 | Austin                    | At most 3 causes per project (R8)                                                                         |                                                         |
+| 2024-03-13 | Rachel                    | Programs and topics are separated on `/causes`, renamed "Categories" in navigation (R3)                   |                                                         |
+| 2024-02-09 | Rachel                    | The edit form offers only open causes (R8)                                                                | Closed causes shouldn't get new projects                |
+| 2023-12-14 | Rachel (PR #75)           | Fund pages (R13, R14)                                                                                     | Donations to a fund rather than to a project            |
 
 ## Open questions
 
@@ -154,7 +154,7 @@ change. Newest first.
    console (`edit-cause.tsx:30-38`, `edit-round.tsx:30-38`). Draft intent: the app's admins edit, ideally through a
    server route.
 2. **Round countdowns count the wrong way (R12).** `components/round-data.tsx:16-21` computes
-   `differenceInDays(now, date)`, which is positive *after* the date, so the countdowns show for past dates: ACX
+   `differenceInDays(now, date)`, which is positive _after_ the date, so the countdowns show for past dates: ACX
    Mini-Grants (2023) shows "1300 days to bid" and "1320 days to submit projects". Every round with dates is past, so
    the simplest fix may be to drop the countdowns. Not a rule until decided.
 3. **The match projection (R17) counts offers that never became money, and may count some twice.** It reads every

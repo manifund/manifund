@@ -97,21 +97,51 @@ describe('D17 visitors see the answered questions, never the private ones', () =
     expect(html.indexOf('AI safety')).toBeLessThan(html.indexOf('Progress'))
   })
   test('no email, referrals, contact or sharing choices, token', () => {
-    for (const text of ['ada-private@example.test', 'REFERRALS-TEXT', 'TOKEN-HASH', 'Staying in touch', 'Monthly', 'monthly', '1:1 call', 'fundraising for top charities', 'major funders'])
+    for (const text of [
+      'ada-private@example.test',
+      'REFERRALS-TEXT',
+      'TOKEN-HASH',
+      'Staying in touch',
+      'Monthly',
+      'monthly',
+      '1:1 call',
+      'fundraising for top charities',
+      'major funders',
+    ])
       expect(html).not.toContain(text)
   })
   test('unanswered questions and empty sections are left out', () => {
     const html = view(sparse)
     expect(html).not.toContain('—')
-    for (const text of ['Going deeper', 'Wrapping up', 'Interest in each cause area', 'Where they go for advice'])
+    for (const text of [
+      'Going deeper',
+      'Wrapping up',
+      'Interest in each cause area',
+      'Where they go for advice',
+    ])
       expect(html).not.toContain(text)
     expect(html).toContain('$500k–$2m')
   })
   test('the header: name, @username, capacity and organisation, 2026 band, date of the last change', () => {
     const html = renderToStaticMarkup(
-      <DonorPageHeader profile={{ id: full.profile_id!, username: 'adawhen', full_name: 'Ada When', avatar_url: null }} response={full} />
+      <DonorPageHeader
+        profile={{
+          id: full.profile_id!,
+          username: 'adawhen',
+          full_name: 'Ada When',
+          avatar_url: null,
+        }}
+        response={full}
+      />
     )
-    for (const text of ['Ada When', '@adawhen', 'I’m giving my own money, I’m a part-time regrantor or evaluator', '(Example Fund)', 'Giving $500k–$2m in 2026', 'September 12, 2026'])
+    for (const text of [
+      'Ada When',
+      '@adawhen',
+      'I’m giving my own money, I’m a part-time regrantor or evaluator',
+      '(Example Fund)',
+      'Giving $500k–$2m in 2026',
+      'September 12, 2026',
+    ])
       expect(html).toContain(text)
   })
 })
@@ -119,14 +149,25 @@ describe('D17 visitors see the answered questions, never the private ones', () =
 describe('D18 the donor and admins see more', () => {
   test('the donor: email, referrals, opportunities and events; gaps as "—"; not the call or sharing choices', () => {
     const html = view(full, { full: true })
-    for (const text of [...PUBLIC_ANSWERS, 'ada-private@example.test', 'REFERRALS-TEXT', 'Yes, monthly', 'Come to events centered on fundraising for top charities'])
+    for (const text of [
+      ...PUBLIC_ANSWERS,
+      'ada-private@example.test',
+      'REFERRALS-TEXT',
+      'Yes, monthly',
+      'Come to events centered on fundraising for top charities',
+    ])
       expect(html).toContain(text)
-    for (const text of ['1:1 call', 'With other major funders', 'TOKEN-HASH']) expect(html).not.toContain(text)
+    for (const text of ['1:1 call', 'With other major funders', 'TOKEN-HASH'])
+      expect(html).not.toContain(text)
     expect(view(sparse, { full: true })).toContain('—')
   })
   test('admins: also the 1:1 call and the sharing choices', () => {
     const html = view(full, { full: true, admin: true })
-    for (const text of ['Meet for a 1:1 call with a member of the Manifund team', 'With other major funders', 'On their public Manifund profile'])
+    for (const text of [
+      'Meet for a 1:1 call with a member of the Manifund team',
+      'With other major funders',
+      'On their public Manifund profile',
+    ])
       expect(html).toContain(text)
     expect(html).not.toContain('TOKEN-HASH')
   })

@@ -1,6 +1,6 @@
 # Regrants and verdicts: history
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 How regranting and verdicts got to where `README.md` describes them, from the git history and PRs (written
 2026-10-08). Optional reading.

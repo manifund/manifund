@@ -18,11 +18,13 @@ export type People = Record<Persona, { id: string; email: string; username: stri
 let people: People | undefined
 export async function getPeople(): Promise<People> {
   if (people) return people
-  const rows = await sql`select p.id, u.email, p.username from profiles p join auth.users u on u.id = p.id
+  const rows =
+    await sql`select p.id, u.email, p.username from profiles p join auth.users u on u.id = p.id
                          where u.email in ('alice@local.test', 'bob@local.test', 'rita@local.test')`
   const byName = Object.fromEntries(rows.map((r: any) => [r.username, r])) as People
   for (const name of ['alice', 'bob', 'rita'] as const) {
-    if (!byName[name]) throw new Error(`test account ${name}@local.test is missing: run local-dev/reset.sh`)
+    if (!byName[name])
+      throw new Error(`test account ${name}@local.test is missing: run local-dev/reset.sh`)
   }
   people = byName
   return people
@@ -35,8 +37,12 @@ export async function applyPersonas() {
 }
 
 // What a persona may send: nothing, except rita's admin actions (moderating a comment, closing reports, a verdict).
-const ADMIN_ACTIONS = [/^PATCH \/api\/comments\/[^/]+$/, /^DELETE \/api\/comments\/[^/]+$/,
-  /^POST \/api\/comments\/[^/]+\/resolve$/, /^POST \/api\/issue-grant-verdict$/]
+const ADMIN_ACTIONS = [
+  /^PATCH \/api\/comments\/[^/]+$/,
+  /^DELETE \/api\/comments\/[^/]+$/,
+  /^POST \/api\/comments\/[^/]+\/resolve$/,
+  /^POST \/api\/issue-grant-verdict$/,
+]
 function personaGuard(who: Persona) {
   return (method: string, path: string) => {
     const action = `${method} ${path.split('?')[0]}`

@@ -25,7 +25,9 @@ const all = testFiles(here)
 
 // Which files to run: all, or those under the paths given.
 const wanted = process.argv.slice(2).map((p) => resolve(process.cwd(), p))
-const chosen = wanted.length ? all.filter((f) => wanted.some((w) => f === w || f.startsWith(w + '/'))) : all
+const chosen = wanted.length
+  ? all.filter((f) => wanted.some((w) => f === w || f.startsWith(w + '/')))
+  : all
 if (!chosen.length) {
   console.error(`No route tests under ${process.argv.slice(2).join(' ')}`)
   process.exit(1)
@@ -35,31 +37,56 @@ if (!chosen.length) {
 await requireServer()
 await applyPersonas()
 const WARM = {
-  GET: ['/', '/projects', '/causes', '/people', '/about/regranting-data', '/donor-survey', '/docs',
-    '/projects?tab=comments', '/alice', '/alice?tab=by', '/notifications', '/admin/users', '/admin/transactions',
-    '/admin/approvals', '/admin/projects', '/admin/tools', '/admin/comment-reports', '/api/v0/comments',
-    '/people/id/00000000-0000-0000-0000-000000000000', '/projects/persona-bob-notebooks?tab=comments',
-    '/orgs/no-such-org'],
-  POST: ['/api/comments', '/api/comments/00000000-0000-0000-0000-000000000000/react',
+  GET: [
+    '/',
+    '/projects',
+    '/causes',
+    '/people',
+    '/about/regranting-data',
+    '/donor-survey',
+    '/docs',
+    '/projects?tab=comments',
+    '/alice',
+    '/alice?tab=by',
+    '/notifications',
+    '/admin/users',
+    '/admin/transactions',
+    '/admin/approvals',
+    '/admin/projects',
+    '/admin/tools',
+    '/admin/comment-reports',
+    '/api/v0/comments',
+    '/people/id/00000000-0000-0000-0000-000000000000',
+    '/projects/persona-bob-notebooks?tab=comments',
+    '/orgs/no-such-org',
+  ],
+  POST: [
+    '/api/comments',
+    '/api/comments/00000000-0000-0000-0000-000000000000/react',
     '/api/comments/00000000-0000-0000-0000-000000000000/report',
-    '/api/comments/00000000-0000-0000-0000-000000000000/resolve', '/api/close-active-project',
-    '/api/issue-grant-verdict', '/api/create-grant', '/api/notifications/read'],
+    '/api/comments/00000000-0000-0000-0000-000000000000/resolve',
+    '/api/close-active-project',
+    '/api/issue-grant-verdict',
+    '/api/create-grant',
+    '/api/notifications/read',
+  ],
   PATCH: ['/api/comments/00000000-0000-0000-0000-000000000000'],
 }
 if (process.env.TEST_WARM !== '0') {
   const t = Date.now()
   await Promise.all(
     Object.entries(WARM).flatMap(([method, paths]) =>
-      paths.map((p) =>
-        fetch(`${env.baseUrl}${p}`, {
-          method,
-          redirect: 'manual',
-          headers: { 'content-type': 'application/json' },
-          body: method === 'GET' ? undefined : '{}',
-          signal: AbortSignal.timeout(240_000),
-        })
-          .then((r) => r.arrayBuffer())
-          .catch(() => {}) // a slow or failing page shows up in its test
+      paths.map(
+        (p) =>
+          fetch(`${env.baseUrl}${p}`, {
+            method,
+            redirect: 'manual',
+            headers: { 'content-type': 'application/json' },
+            body: method === 'GET' ? undefined : '{}',
+            signal: AbortSignal.timeout(240_000),
+          })
+            .then((r) => r.arrayBuffer())
+            .catch(() => {}) // a slow or failing page shows up in its test
       )
     )
   )
@@ -97,8 +124,19 @@ const bunTest = (files: string[], extra: string[]) =>
   Bun.spawn(
     // --isolate: each file gets its own copy of the helpers (its own run marker, people and projects), also when
     // files run one after another in one process.
-    ['bun', 'test', '--conditions', 'react-server', '--preload', './tests/ai-reference/routes/setup.ts', '--timeout',
-      '60000', '--isolate', ...extra, ...files.map((f) => relative(root, f))],
+    [
+      'bun',
+      'test',
+      '--conditions',
+      'react-server',
+      '--preload',
+      './tests/ai-reference/routes/setup.ts',
+      '--timeout',
+      '60000',
+      '--isolate',
+      ...extra,
+      ...files.map((f) => relative(root, f)),
+    ],
     { cwd: root, stdout: 'inherit', stderr: 'inherit', env: process.env }
   ).exited
 console.log(`${chosen.length} files, ${Math.min(parallel, chosen.length)} at a time`)

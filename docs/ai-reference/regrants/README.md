@@ -1,12 +1,12 @@
 # Regrants and verdicts
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 Regrantors giving grants from their budget, and admins' verdicts on proposals (approve or reject). How it used to
 work and how it changed: `history.md`.
 
 Written 2026-10-08 from the code and its history (a backfill: the product existed before this doc). Rules say what
-the product does today, marked *observed (code, 2026-10-08)*; nothing here was decided by the team unless a decision
+the product does today, marked _observed (code, 2026-10-08)_; nothing here was decided by the team unless a decision
 says so. Neighbouring areas: offers becoming donations when a project activates (`docs/ai-reference/offers/`), balances
 and the ledger, including claiming a grant sent to an email (`docs/ai-reference/ledger/`), grant agreements and the admin
 approvals list (`docs/ai-reference/agreements/`), the rationale and the admin's note as comments
@@ -114,18 +114,18 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
 Newest first. Only decisions found in the history; the rules above are otherwise observed, not decided.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-09 | Vals (#290) | A grant to the email of an existing account, in any case, goes to that account at once (G7) | Only a sign-up claims a transfer, so it stayed pending for good |
-| 2026-09-30 | Vals (money review) | A failed recipient email or admin note doesn't undo the grant or verdict; it's logged and the person told (G10, C27) | The money is saved by then; the rest can be redone |
-| 2026-10-09 | Vals | An email Postmark refuses counts as failed: logged (`grant.recipient_email_failed` for G10; `email.failed` from the email helpers, with the template and ids, not the address) | Refusals passed silently before: `sendTemplateEmail` didn't read Postmark's answer |
-| 2026-09-28 | Vals | Grant functions stop inserting comments (`_v2`); the rationale and note go through `lib/comments` (C26, C27) | One writer for comments; money stays atomic |
-| 2026-07-17 | Caroline (#181) | One admin list; the verdict email is signed from the admin's profile name; the route and modal report errors | Verdicts by some admins failed silently |
-| 2026-06-23 | Austin | A fixed $10k offer button for projects in one microgrants program (G17) | Not recorded (commit 1d72329a adds the button) |
-| 2024-04-12 | Rachel (#137) | Regranting 2024: last year's unspent budgets cleared with "return bank funds" txns; the form validates emails and asks about lobbying and location | New program year |
-| 2023-06-16 | Rachel (#41) | Regrantors set a minimum and a goal, so a grant can ask other donors for the rest | Regrantors needn't fund a project fully |
-| 2023-06-02/16 | Rachel (#37, #39) | Admins approve every grant; a project activates once approved, signed and at its minimum | Fiscal sponsorship: Manifund reviews before paying |
-| 2023-04-21 | Rachel (#31) | Grants to people not yet on Manifund are claimed at sign-up | Regrantors fund people where they find them |
+| Date          | Decided by          | Decision                                                                                                                                                                       | Why                                                                                |
+| ------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| 2026-10-09    | Vals (#290)         | A grant to the email of an existing account, in any case, goes to that account at once (G7)                                                                                    | Only a sign-up claims a transfer, so it stayed pending for good                    |
+| 2026-09-30    | Vals (money review) | A failed recipient email or admin note doesn't undo the grant or verdict; it's logged and the person told (G10, C27)                                                           | The money is saved by then; the rest can be redone                                 |
+| 2026-10-09    | Vals                | An email Postmark refuses counts as failed: logged (`grant.recipient_email_failed` for G10; `email.failed` from the email helpers, with the template and ids, not the address) | Refusals passed silently before: `sendTemplateEmail` didn't read Postmark's answer |
+| 2026-09-28    | Vals                | Grant functions stop inserting comments (`_v2`); the rationale and note go through `lib/comments` (C26, C27)                                                                   | One writer for comments; money stays atomic                                        |
+| 2026-07-17    | Caroline (#181)     | One admin list; the verdict email is signed from the admin's profile name; the route and modal report errors                                                                   | Verdicts by some admins failed silently                                            |
+| 2026-06-23    | Austin              | A fixed $10k offer button for projects in one microgrants program (G17)                                                                                                        | Not recorded (commit 1d72329a adds the button)                                     |
+| 2024-04-12    | Rachel (#137)       | Regranting 2024: last year's unspent budgets cleared with "return bank funds" txns; the form validates emails and asks about lobbying and location                             | New program year                                                                   |
+| 2023-06-16    | Rachel (#41)        | Regrantors set a minimum and a goal, so a grant can ask other donors for the rest                                                                                              | Regrantors needn't fund a project fully                                            |
+| 2023-06-02/16 | Rachel (#37, #39)   | Admins approve every grant; a project activates once approved, signed and at its minimum                                                                                       | Fiscal sponsorship: Manifund reviews before paying                                 |
+| 2023-04-21    | Rachel (#31)        | Grants to people not yet on Manifund are claimed at sign-up                                                                                                                    | Regrantors fund people where they find them                                        |
 
 ## Open questions
 

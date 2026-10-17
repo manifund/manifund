@@ -12,7 +12,10 @@ mock.module('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(),
 }))
 const realProvider = await import('@/db/supabase-provider')
-mock.module('@/db/supabase-provider', () => ({ ...realProvider, useSupabase: () => ({ supabase: {}, session: null }) }))
+mock.module('@/db/supabase-provider', () => ({
+  ...realProvider,
+  useSupabase: () => ({ supabase: {}, session: null }),
+}))
 
 const { ProfileHeader } = await import('@/app/[usernameSlug]/profile-header')
 const { PeopleDisplay } = await import('@/app/people/people-display')
@@ -41,14 +44,24 @@ const header = (p: any, own: boolean, email?: string) =>
   renderToStaticMarkup(<ProfileHeader profile={p} isOwnProfile={own} email={email} />)
 const people = (ps: any[]) => renderToStaticMarkup(<PeopleDisplay profiles={ps} />)
 // The people list's rows, in order: their links to profiles.
-const rows = (html: string) => [...html.matchAll(/<a class="flex-2[^"]*" href="\/([^"]+)"/g)].map((m) => m[1])
+const rows = (html: string) =>
+  [...html.matchAll(/<a class="flex-2[^"]*" href="\/([^"]+)"/g)].map((m) => m[1])
 const REGRANTOR_TAG = 'bg-orange-500 p-0.5' // the people list's small regrantor tag
 const CREATOR_TAG = 'bg-blue-500 p-0.5'
 
 describe('E12 a profile shows the name, @username, bio and website', () => {
   test('name, username, bio, and the website as a link', () => {
-    const html = header(profile({ full_name: 'Ann Lee', username: 'annlee', bio: 'Works on evals', website: 'ann.example' }), false)
-    for (const text of ['Ann Lee', '@annlee', 'Works on evals', 'href="https://ann.example"']) expect(html).toContain(text)
+    const html = header(
+      profile({
+        full_name: 'Ann Lee',
+        username: 'annlee',
+        bio: 'Works on evals',
+        website: 'ann.example',
+      }),
+      false
+    )
+    for (const text of ['Ann Lee', '@annlee', 'Works on evals', 'href="https://ann.example"'])
+      expect(html).toContain(text)
   })
   test('no website, no link', () => {
     expect(header(profile(), false)).not.toContain('href="https://')
@@ -128,15 +141,14 @@ describe('E21 /people lists individuals with a complete profile', () => {
   })
 })
 
-describe('E22 /people order: regrantors, people with a project, with a bio, accredited, the rest', () => {
+describe('E22 /people order: regrantors, people with a project, with a bio, the rest', () => {
   test('groups in that order', () => {
     const rest = profile()
-    const accredited = profile({ accreditation_status: true })
     const withBio = profile({ bio: 'hello' })
     const creator = profile({ projects: [{ title: 'A project' }] })
     const regrantor = profile({ regranter_status: true })
-    expect(rows(people([rest, accredited, withBio, creator, regrantor]))).toEqual(
-      [regrantor, creator, withBio, accredited, rest].map((p) => p.username)
+    expect(rows(people([rest, withBio, creator, regrantor]))).toEqual(
+      [regrantor, creator, withBio, rest].map((p) => p.username)
     )
   })
 })
@@ -145,7 +157,8 @@ describe('E23 a row: avatar, name, bio, tags, link to the profile', () => {
   test('name, bio and link', () => {
     const p = profile({ full_name: 'Ann Lee', bio: 'Works on evals' })
     const html = people([p])
-    for (const text of ['Ann Lee', 'Works on evals', `href="/${p.username}"`]) expect(html).toContain(text)
+    for (const text of ['Ann Lee', 'Works on evals', `href="/${p.username}"`])
+      expect(html).toContain(text)
   })
   test('the creator tag goes to anyone with a project, whatever its stage', () => {
     expect(people([profile({ projects: [{ title: 'A draft' }] })])).toContain(CREATOR_TAG)

@@ -1,6 +1,6 @@
 # Accounts and sign-in
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 How people get an account on Manifund, sign in (email and password, or Google), carry their session to Trace, and
 how admins remove an account (bans). How it got here: `history.md`. What a profile shows and how people edit it:
@@ -85,7 +85,7 @@ observed (code, 2026-10-08) unless marked otherwise.
   that address (what happens when they do: `../ledger/`, L18).
 - **S11** New accounts can be switched off in code (`DISABLE_NEW_SIGNUPS_AND_PROJECTS` in `utils/constants.ts`,
   together with new projects; used in January 2026 against spam accounts). While off, the sign-up form answers with
-  a message saying so and giving hi@manifund.org. Today it's on.
+  a message saying so and giving hi@manifund.org. Today sign-ups are open (the constant is `false`).
 
 ### Passwords
 
@@ -131,16 +131,16 @@ observed (code, 2026-10-08) unless marked otherwise.
 Found in the git history and pull requests (2026-10-08); the person is the author of the change, who isn't
 necessarily who decided. Newest first.
 
-| Date | Who (from git) | Decision | Why (from the PR or commit) |
-|---|---|---|---|
-| 2026-10-07 | Vals (#284) | Show/hide button on password fields, hidden again on submit (S2) | Seeing what you typed; not leaving a password on screen |
-| 2026-08-28 | Caroline (#216) | Reset links go through `/auth/callback`, preferring `token_hash` links (S12, S13) | Reset never established a session; `code` links fail on another device |
-| 2026-08-27 | Caroline (#214) | Sign-in returns to `next`, same-site paths only (S3, S22) | The handoff to Trace was lost after signing in; `next` comes from a URL anyone can write |
-| 2026-08-26 | Caroline (#211) | `/sso` to Trace: tokens in the URL fragment, Trace as the only allowed target (S20, S21) | One sign-in for both sites; an open target would hand sessions to any site |
-| 2026-07-21 | Caroline (#182) | Spam filter: ban accounts under a week old, hide the project otherwise, email first (S19) | New accounts posting spam are almost always throwaway; older ones may be a real person |
-| 2026-06-17 | Austin | Usernames and names from the email (or Google) at sign-up (S7) | New profiles showed the account id as their name |
-| 2026-01-28 | Austin | Superban (S16, S17), with cascading deletes; a switch to stop new accounts and projects (S11) | Spam accounts |
-| 2025-05-30 | Nishu (#154) | One form for sign-in, sign-up and reset; password change for email accounts (S1, S12, S14) | Password resets didn't work before |
+| Date       | Who (from git)  | Decision                                                                                      | Why (from the PR or commit)                                                              |
+| ---------- | --------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| 2026-10-07 | Vals (#284)     | Show/hide button on password fields, hidden again on submit (S2)                              | Seeing what you typed; not leaving a password on screen                                  |
+| 2026-08-28 | Caroline (#216) | Reset links go through `/auth/callback`, preferring `token_hash` links (S12, S13)             | Reset never established a session; `code` links fail on another device                   |
+| 2026-08-27 | Caroline (#214) | Sign-in returns to `next`, same-site paths only (S3, S22)                                     | The handoff to Trace was lost after signing in; `next` comes from a URL anyone can write |
+| 2026-08-26 | Caroline (#211) | `/sso` to Trace: tokens in the URL fragment, Trace as the only allowed target (S20, S21)      | One sign-in for both sites; an open target would hand sessions to any site               |
+| 2026-07-21 | Caroline (#182) | Spam filter: ban accounts under a week old, hide the project otherwise, email first (S19)     | New accounts posting spam are almost always throwaway; older ones may be a real person   |
+| 2026-06-17 | Austin          | Usernames and names from the email (or Google) at sign-up (S7)                                | New profiles showed the account id as their name                                         |
+| 2026-01-28 | Austin          | Superban (S16, S17), with cascading deletes; a switch to stop new accounts and projects (S11) | Spam accounts                                                                            |
+| 2025-05-30 | Nishu (#154)    | One form for sign-in, sign-up and reset; password change for email accounts (S1, S12, S14)    | Password resets didn't work before                                                       |
 
 ## Open questions
 

@@ -12,7 +12,8 @@ import { getURL, SIGNUP_DISABLED_MESSAGE } from '@/utils/constants'
 let supabase: any
 mock.module('@/db/supabase-server', () => ({
   createServerSupabaseClient: async () => {
-    if (!supabase) throw new Error('no Supabase client outside a request (tests/components/accounts.test.tsx)')
+    if (!supabase)
+      throw new Error('no Supabase client outside a request (tests/components/accounts.test.tsx)')
     return supabase
   },
 }))
@@ -38,8 +39,14 @@ async function withAuth<T>(auth: Record<string, (...a: any[]) => any>, fn: () =>
 describe('S1 one form: email and password, or Google', () => {
   test('signing in, with links to create an account or reset the password', () => {
     const html = renderToStaticMarkup(<AuthModal isOpen />)
-    for (const text of ['Continue with Google', 'type="email"', 'name="password"', 'Sign in', 'Sign up',
-      'Forgot your password?']) {
+    for (const text of [
+      'Continue with Google',
+      'type="email"',
+      'name="password"',
+      'Sign in',
+      'Sign up',
+      'Forgot your password?',
+    ]) {
       expect(html).toContain(text)
     }
   })
@@ -61,7 +68,10 @@ describe('S2 password fields have a show/hide button', () => {
 describe('S4 a failed link shows why, on the sign-in form', () => {
   test('the reason from the link', () => {
     const html = renderToStaticMarkup(
-      <AuthModal isOpen authError={{ error: 'invalid_request', errorDescription: 'This link is malformed.' }} />
+      <AuthModal
+        isOpen
+        authError={{ error: 'invalid_request', errorDescription: 'This link is malformed.' }}
+      />
     )
     expect(html).toContain('Authentication Error')
     expect(html).toContain('This link is malformed.')
@@ -102,7 +112,10 @@ describe('S5 creating an account by email: confirm, then fill in the profile', (
       password: 'localpass123',
       options: { emailRedirectTo: `${getURL()}auth/callback?next=/edit-profile` },
     })
-    expect(result).toEqual({ type: 'success', text: 'Account created! Check your email to continue signing up' })
+    expect(result).toEqual({
+      type: 'success',
+      text: 'Account created! Check your email to continue signing up',
+    })
   })
   test("Supabase's refusal is shown as is", async () => {
     const result = await withAuth(
@@ -155,7 +168,11 @@ describe('S3 Google brings people back to where they were going', () => {
   const google = async (next?: string) => {
     let asked: any
     const result = await withAuth(
-      { signInWithOAuth: async (a: any) => ((asked = a), { data: { url: 'https://accounts.example/o' }, error: null }) },
+      {
+        signInWithOAuth: async (a: any) => (
+          (asked = a), { data: { url: 'https://accounts.example/o' }, error: null }
+        ),
+      },
       () => actions.signInWithGoogle(next)
     )
     return { asked, result }
@@ -170,7 +187,9 @@ describe('S3 Google brings people back to where they were going', () => {
   })
   test('another site, or nothing, becomes the home page', async () => {
     for (const next of ['https://evil.example', '//evil.example', undefined]) {
-      expect((await google(next)).asked.options.redirectTo).toBe(`${getURL()}auth/callback?next=%2F`)
+      expect((await google(next)).asked.options.redirectTo).toBe(
+        `${getURL()}auth/callback?next=%2F`
+      )
     }
   })
 })

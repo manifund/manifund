@@ -21,7 +21,7 @@ const complete = {
   signatory_name: 'Sam Signer',
 }
 
-describe('A9 an organization\'s details are required, and checked by the server too', () => {
+describe("A9 an organization's details are required, and checked by the server too", () => {
   test('complete details pass, trimmed', () => {
     const parsed = parseOrgValues({ ...complete, recipient_name: '  Example Foundation, Inc.  ' })
     expect(parsed).toEqual({ ...complete, recipient_entity_class: 'us_501c3' } as any)
@@ -47,17 +47,30 @@ describe('A9 an organization\'s details are required, and checked by the server 
     expect('error' in parsed && parsed.error).toContain('entity type')
   })
   test('a US entity needs an EIN; a non-US one an EIN or "no US taxpayer ID"', () => {
-    for (const c of ['us_501c3', 'us_nonprofit_other', 'us_for_profit'] as const) expect(requiresEin(c)).toBe(true)
+    for (const c of ['us_501c3', 'us_nonprofit_other', 'us_for_profit'] as const)
+      expect(requiresEin(c)).toBe(true)
     expect(requiresEin('foreign_org')).toBe(false)
     const foreign = { ...complete, recipient_entity_class: 'foreign_org', recipient_tax_id: '' }
     expect('error' in parseOrgValues(foreign)).toBe(true)
-    expect(parseOrgValues({ ...foreign, foreign_no_tin: true })).toMatchObject({ recipient_tax_id: null, foreign_no_tin: true })
-    expect(parseOrgValues({ ...foreign, recipient_tax_id: '00-0000000' })).toMatchObject({ recipient_tax_id: '00-0000000' })
+    expect(parseOrgValues({ ...foreign, foreign_no_tin: true })).toMatchObject({
+      recipient_tax_id: null,
+      foreign_no_tin: true,
+    })
+    expect(parseOrgValues({ ...foreign, recipient_tax_id: '00-0000000' })).toMatchObject({
+      recipient_tax_id: '00-0000000',
+    })
     // A US entity can't skip the EIN with the foreign-only confirmation.
-    expect('error' in parseOrgValues({ ...complete, recipient_tax_id: '', foreign_no_tin: true })).toBe(true)
+    expect(
+      'error' in parseOrgValues({ ...complete, recipient_tax_id: '', foreign_no_tin: true })
+    ).toBe(true)
   })
   test('fields of the wrong type count as missing; unknown fields are dropped', () => {
-    const parsed = parseOrgValues({ ...complete, signatory_name: 42, extra: 'x', foreign_no_tin: 'yes' })
+    const parsed = parseOrgValues({
+      ...complete,
+      signatory_name: 42,
+      extra: 'x',
+      foreign_no_tin: 'yes',
+    })
     expect('error' in parsed && parsed.error).toContain('signatory')
     const ok = parseOrgValues({ ...complete, extra: 'x', foreign_no_tin: 'yes' })
     expect(ok).not.toHaveProperty('extra')
@@ -73,7 +86,7 @@ describe('A16 the signing link is the credential; only its hash is stored', () =
     expect(Buffer.from(a, 'base64url')).toHaveLength(32)
     expect(a).not.toBe(b)
   })
-  test('the stored hash is the token\'s SHA-256, in hex', async () => {
+  test("the stored hash is the token's SHA-256, in hex", async () => {
     const token = generateSigningToken()
     const hash = await hashSigningToken(token)
     expect(hash).toBe(createHash('sha256').update(token).digest('hex'))
@@ -93,7 +106,9 @@ describe('A15 a signing link is valid for 30 days', () => {
 const clientReturning = (data: unknown) =>
   ({
     from: () => ({
-      select: () => ({ eq: () => ({ maybeSingle: () => ({ throwOnError: async () => ({ data }) }) }) }),
+      select: () => ({
+        eq: () => ({ maybeSingle: () => ({ throwOnError: async () => ({ data }) }) }),
+      }),
     }),
   }) as any
 
@@ -108,11 +123,13 @@ describe('A18 an unknown or expired link finds nothing (the same answer for both
   })
   test('still valid', async () => {
     const valid = { ...row, token_expires_at: new Date(Date.now() + 60_000).toISOString() }
-    expect((await getAgreementBySigningTokenHash(clientReturning(valid), 'h')) as unknown).toEqual(valid)
+    expect((await getAgreementBySigningTokenHash(clientReturning(valid), 'h')) as unknown).toEqual(
+      valid
+    )
   })
 })
 
-describe('A13 A19 the signer\'s IP address is the first one forwarded', () => {
+describe("A13 A19 the signer's IP address is the first one forwarded", () => {
   test('first of x-forwarded-for, else x-real-ip, else none', () => {
     const req = (h: Record<string, string>) => new Request('http://x', { headers: h })
     expect(clientIp(req({ 'x-forwarded-for': '203.0.113.5, 10.0.0.1' }))).toBe('203.0.113.5')

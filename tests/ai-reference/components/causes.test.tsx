@@ -10,10 +10,17 @@ import QuadraticMatch from '@/app/causes/[causeSlug]/qf'
 const text = (html: string) => html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ')
 
 describe('R8 at most 3 causes per project', () => {
-  const causes = ['tais', 'ai-gov', 'biosec', 'ea'].map((slug) => ({ slug, title: `Title ${slug}` }))
+  const causes = ['tais', 'ai-gov', 'biosec', 'ea'].map((slug) => ({
+    slug,
+    title: `Title ${slug}`,
+  }))
   const render = (selected: number) =>
     renderToStaticMarkup(
-      <SelectCauses causesList={causes} selectedCauses={causes.slice(0, selected)} setSelectedCauses={() => {}} />
+      <SelectCauses
+        causesList={causes}
+        selectedCauses={causes.slice(0, selected)}
+        setSelectedCauses={() => {}}
+      />
     )
   test('with 2 chosen, every cause can still be picked', () => {
     const html = render(2)
@@ -27,9 +34,18 @@ describe('R8 at most 3 causes per project', () => {
   })
 })
 
-describe('R4 a cause\'s page counts proposals, active projects and money raised', () => {
+describe("R4 a cause's page counts proposals, active projects and money raised", () => {
   const project = (id: string, stage: string, fields: Record<string, unknown> = {}) =>
-    ({ id, stage, type: 'grant', creator: `creator-${id}`, funding_goal: 0, bids: [], txns: [], ...fields }) as any
+    ({
+      id,
+      stage,
+      type: 'grant',
+      creator: `creator-${id}`,
+      funding_goal: 0,
+      bids: [],
+      txns: [],
+      ...fields,
+    }) as any
   test('a proposal counts its pending offers, an active project the donations its creator received', () => {
     const projects = [
       project('a', 'proposal', {
@@ -55,7 +71,12 @@ describe('R4 a cause\'s page counts proposals, active projects and money raised'
 })
 
 describe('R16 EA Community Choice participants: $100 per role claimed', () => {
-  const ada = { id: 'd1', username: 'ada-123', full_name: 'Ada', roles: { scholar: 'https://scholar.example/x/ada', senior: 'yes', worker: null } }
+  const ada = {
+    id: 'd1',
+    username: 'ada-123',
+    full_name: 'Ada',
+    roles: { scholar: 'https://scholar.example/x/ada', senior: 'yes', worker: null },
+  }
   const ben = { id: 'd2', username: 'ben-456', full_name: '', roles: { donor: true } }
   test('each participant with their roles, and the totals', () => {
     const html = text(renderToStaticMarkup(<Donors donors={[ada, ben] as any} />))
@@ -70,12 +91,14 @@ describe('R16 EA Community Choice participants: $100 per role claimed', () => {
   // Open question 8 (docs/ai-reference/causes/README.md): the roles object includes the row's id, which counts as one
   // more claimed role. Turn on once fixed.
   test.skip('the id in the roles row is not counted as a role (open question 8)', () => {
-    const withId = [{ ...ada, roles: { id: 'd1', ...ada.roles } }, { ...ben, roles: { id: 'd2', ...ben.roles } }]
+    const withId = [
+      { ...ada, roles: { id: 'd1', ...ada.roles } },
+      { ...ben, roles: { id: 'd2', ...ben.roles } },
+    ]
     const html = text(renderToStaticMarkup(<Donors donors={withId as any} />))
     expect(html).toContain('Ada - 200')
     expect(html).toContain('Total $ claimed $300')
   })
-
 })
 
 describe('R17 EA Community Choice matching: quadratic shares of the $100k pool', () => {
@@ -83,14 +106,19 @@ describe('R17 EA Community Choice matching: quadratic shares of the $100k pool',
   const OUT = '2024-09-06T00:00:00.000Z'
   const txn = (project: string, donor: string, amount: number, created_at = IN) =>
     ({ project, amount, created_at, profiles: { id: donor } }) as any
-  const offer = (project: string, donor: string, amount: number, created_at = IN, status = 'pending') =>
-    ({ project, amount, created_at, status, profiles: { id: donor } }) as any
+  const offer = (
+    project: string,
+    donor: string,
+    amount: number,
+    created_at = IN,
+    status = 'pending'
+  ) => ({ project, amount, created_at, status, profiles: { id: donor } }) as any
   const projects = [
     { id: 'p1', slug: 'many', title: 'Many small donors' },
     { id: 'p2', slug: 'one', title: 'One big donor' },
   ] as any
 
-  test('many small donors beat one big donor; one donor\'s amounts to a project add up', () => {
+  test("many small donors beat one big donor; one donor's amounts to a project add up", () => {
     // p1: two donors of 100 (one in two parts): (10 + 10)^2 = 400. p2: one donor of 300: 300.
     const html = text(
       renderToStaticMarkup(
@@ -113,7 +141,11 @@ describe('R17 EA Community Choice matching: quadratic shares of the $100k pool',
       renderToStaticMarkup(
         <QuadraticMatch
           projects={projects}
-          matchTxns={[txn('p1', 'x', 100), txn('p1', 'late', 900, OUT), txn('p1', 'early', 900, '2024-08-11T23:59:59.000Z')]}
+          matchTxns={[
+            txn('p1', 'x', 100),
+            txn('p1', 'late', 900, OUT),
+            txn('p1', 'early', 900, '2024-08-11T23:59:59.000Z'),
+          ]}
           matchBids={[]}
         />
       )
@@ -122,14 +154,16 @@ describe('R17 EA Community Choice matching: quadratic shares of the $100k pool',
   })
   test('a project hidden since shows as "Hidden project"', () => {
     const html = text(
-      renderToStaticMarkup(<QuadraticMatch projects={projects} matchTxns={[txn('gone', 'x', 100)]} matchBids={[]} />)
+      renderToStaticMarkup(
+        <QuadraticMatch projects={projects} matchTxns={[txn('gone', 'x', 100)]} matchBids={[]} />
+      )
     )
     expect(html).toContain('Hidden project 1 100')
   })
 
   // Open question 3 (docs/ai-reference/causes/README.md): offers count whatever their status, and an offer that
   // became a donation counts twice. Turn on if the projection is fixed.
-  test.skip('declined offers don\'t count, and an accepted offer counts once with its donation (open question 3)', () => {
+  test.skip("declined offers don't count, and an accepted offer counts once with its donation (open question 3)", () => {
     const html = text(
       renderToStaticMarkup(
         <QuadraticMatch
@@ -141,5 +175,4 @@ describe('R17 EA Community Choice matching: quadratic shares of the $100k pool',
     )
     expect(html).toContain('Many small donors 1 100 100000 100100')
   })
-
 })

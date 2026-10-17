@@ -67,8 +67,9 @@ const bidsOn = (projectId: string) =>
   sql`select bidder, type, status, amount::float as amount, valuation::float as valuation from bids
       where project = ${projectId} order by created_at`
 const follows = async (projectId: string, who: string) =>
-  (await sql`select 1 from project_follows where project_id = ${projectId} and follower_id = ${who}`)
-    .length > 0
+  (
+    await sql`select 1 from project_follows where project_id = ${projectId} and follower_id = ${who}`
+  ).length > 0
 async function until<T>(check: () => Promise<T | undefined | false>, ms = 15_000) {
   const end = Date.now() + ms
   while (Date.now() < end) {
@@ -108,14 +109,17 @@ describe('X1 a new project gives its creator all its shares', () => {
 })
 
 describe('X2 an active certificate’s page', () => {
-  smoke('visitors see the Offers and Shareholders tabs and are asked to sign in to trade', async () => {
-    const cert = await certificate()
-    const page = await anonymous().get(`/projects/${cert.slug}`)
-    expect(found(page)).toBe(true)
-    expect(page.text).toContain('Sign in to trade')
-    expect(page.text).toContain('Shareholders')
-    expect(page.text).toContain('Offers')
-  })
+  smoke(
+    'visitors see the Offers and Shareholders tabs and are asked to sign in to trade',
+    async () => {
+      const cert = await certificate()
+      const page = await anonymous().get(`/projects/${cert.slug}`)
+      expect(found(page)).toBe(true)
+      expect(page.text).toContain('Sign in to trade')
+      expect(page.text).toContain('Shareholders')
+      expect(page.text).toContain('Offers')
+    }
+  )
   standard('signed in, without a market maker: "Make a trade offer"', async () => {
     const cert = await certificate()
     const page = await trader.get(`/projects/${cert.slug}`)
@@ -163,21 +167,24 @@ describe('X5 trading with the market maker', () => {
     expect(s.status).toBe(400)
     expect(s.text).toBe('Insufficient shares')
   })
-  smoke('a purchase moves dollars to the market maker and shares back, in one bundle; the buyer follows', async () => {
-    const cert = await certificate({ amm: true })
-    const r = await trade(trader, { projectId: cert.id, amount: 5, buying: true })
-    expect(r.status).toBe(200)
-    const txns = await txnsOn(cert.id, 'user to amm trade')
-    expect(txns).toHaveLength(2)
-    const usd = txns.find((t: any) => t.token === 'USD')
-    const shares = txns.find((t: any) => t.token !== 'USD')
-    expect(usd).toMatchObject({ from_id: trader.id, to_id: cert.id, amount: 5 })
-    // Constant product: (20 + 5) × (1,000,000 − s) = 20 × 1,000,000, so s = 200,000.
-    expect(shares).toMatchObject({ from_id: cert.id, to_id: trader.id, token: cert.id })
-    expect(shares.amount).toBeCloseTo(200_000, 3)
-    expect(usd.bundle).toBe(shares.bundle)
-    expect(await follows(cert.id, trader.id)).toBe(true)
-  })
+  smoke(
+    'a purchase moves dollars to the market maker and shares back, in one bundle; the buyer follows',
+    async () => {
+      const cert = await certificate({ amm: true })
+      const r = await trade(trader, { projectId: cert.id, amount: 5, buying: true })
+      expect(r.status).toBe(200)
+      const txns = await txnsOn(cert.id, 'user to amm trade')
+      expect(txns).toHaveLength(2)
+      const usd = txns.find((t: any) => t.token === 'USD')
+      const shares = txns.find((t: any) => t.token !== 'USD')
+      expect(usd).toMatchObject({ from_id: trader.id, to_id: cert.id, amount: 5 })
+      // Constant product: (20 + 5) × (1,000,000 − s) = 20 × 1,000,000, so s = 200,000.
+      expect(shares).toMatchObject({ from_id: cert.id, to_id: trader.id, token: cert.id })
+      expect(shares.amount).toBeCloseTo(200_000, 3)
+      expect(usd.bundle).toBe(shares.bundle)
+      expect(await follows(cert.id, trader.id)).toBe(true)
+    }
+  )
   standard('with a valuation, it saves a pending offer and moves no money', async () => {
     const cert = await certificate({ amm: true })
     const r = await trade(trader, { projectId: cert.id, amount: 10, buying: true, valuation: 150 })
@@ -214,24 +221,27 @@ describe('X6 accepting someone’s offer', () => {
     expect(await txnsOn(cert.id, 'user to user trade')).toHaveLength(2) // only the setup's
     expect((await bidsOn(cert.id))[0]).toMatchObject({ status: 'pending', amount: 10 })
   })
-  smoke('selling into a buy offer: shares and dollars in one bundle at its valuation; X8 the offer shrinks', async () => {
-    const cert = await certificate()
-    const bid = await buyOffer(cert.id)
-    expect((await accept(holder, bid, 4)).status).toBe(200)
-    const trades = (await txnsOn(cert.id, 'user to user trade')).filter(
-      (t: any) => t.from_id !== creator.id && t.to_id !== creator.id
-    )
-    const usd = trades.find((t: any) => t.token === 'USD')
-    const shares = trades.find((t: any) => t.token !== 'USD')
-    expect(usd).toMatchObject({ from_id: trader.id, to_id: holder.id, amount: 4 })
-    expect(shares).toMatchObject({ from_id: holder.id, to_id: trader.id, amount: 40_000 })
-    expect(usd.bundle).toBe(shares.bundle)
-    expect((await bidsOn(cert.id))[0]).toMatchObject({ status: 'pending', amount: 6 })
-    expect(await follows(cert.id, holder.id)).toBe(true)
-    // X8 taken in full: accepted.
-    expect((await accept(holder, bid, 6)).status).toBe(200)
-    expect((await bidsOn(cert.id))[0]).toMatchObject({ status: 'accepted', amount: 0 })
-  })
+  smoke(
+    'selling into a buy offer: shares and dollars in one bundle at its valuation; X8 the offer shrinks',
+    async () => {
+      const cert = await certificate()
+      const bid = await buyOffer(cert.id)
+      expect((await accept(holder, bid, 4)).status).toBe(200)
+      const trades = (await txnsOn(cert.id, 'user to user trade')).filter(
+        (t: any) => t.from_id !== creator.id && t.to_id !== creator.id
+      )
+      const usd = trades.find((t: any) => t.token === 'USD')
+      const shares = trades.find((t: any) => t.token !== 'USD')
+      expect(usd).toMatchObject({ from_id: trader.id, to_id: holder.id, amount: 4 })
+      expect(shares).toMatchObject({ from_id: holder.id, to_id: trader.id, amount: 40_000 })
+      expect(usd.bundle).toBe(shares.bundle)
+      expect((await bidsOn(cert.id))[0]).toMatchObject({ status: 'pending', amount: 6 })
+      expect(await follows(cert.id, holder.id)).toBe(true)
+      // X8 taken in full: accepted.
+      expect((await accept(holder, bid, 6)).status).toBe(200)
+      expect((await bidsOn(cert.id))[0]).toMatchObject({ status: 'accepted', amount: 0 })
+    }
+  )
 })
 
 describe('X7 a new offer on an active certificate is matched against the other side', () => {
@@ -242,33 +252,41 @@ describe('X7 a new offer on an active certificate is matched against the other s
     // Wait for its own webhook (following the project is its last step) before the next offer.
     expect(await until(() => follows(projectId, holder.id))).toBe(true)
   }
-  standard('a buy offer at the same price or better trades at once, at the older offer’s valuation', async () => {
-    const cert = await certificate()
-    await sellOffer(cert.id)
-    expect((await trade(trader, { projectId: cert.id, amount: 10, buying: true, valuation: 1200 })).status).toBe(200)
-    const matched = await until(async () => {
-      const bids = await bidsOn(cert.id)
-      return bids.length === 2 && bids.every((b: any) => b.status === 'accepted') && bids
-    })
-    expect(matched).toBeTruthy()
-    const trades = (await txnsOn(cert.id, 'user to user trade')).filter(
-      (t: any) => t.from_id !== creator.id && t.to_id !== creator.id
-    )
-    expect(trades.find((t: any) => t.token === 'USD')).toMatchObject({
-      from_id: trader.id,
-      to_id: holder.id,
-      amount: 10,
-    })
-    expect(trades.find((t: any) => t.token !== 'USD')).toMatchObject({
-      from_id: holder.id,
-      to_id: trader.id,
-      amount: 100_000,
-    })
-  })
+  standard(
+    'a buy offer at the same price or better trades at once, at the older offer’s valuation',
+    async () => {
+      const cert = await certificate()
+      await sellOffer(cert.id)
+      expect(
+        (await trade(trader, { projectId: cert.id, amount: 10, buying: true, valuation: 1200 }))
+          .status
+      ).toBe(200)
+      const matched = await until(async () => {
+        const bids = await bidsOn(cert.id)
+        return bids.length === 2 && bids.every((b: any) => b.status === 'accepted') && bids
+      })
+      expect(matched).toBeTruthy()
+      const trades = (await txnsOn(cert.id, 'user to user trade')).filter(
+        (t: any) => t.from_id !== creator.id && t.to_id !== creator.id
+      )
+      expect(trades.find((t: any) => t.token === 'USD')).toMatchObject({
+        from_id: trader.id,
+        to_id: holder.id,
+        amount: 10,
+      })
+      expect(trades.find((t: any) => t.token !== 'USD')).toMatchObject({
+        from_id: holder.id,
+        to_id: trader.id,
+        amount: 100_000,
+      })
+    }
+  )
   standard('a buy offer below the asking price waits', async () => {
     const cert = await certificate()
     await sellOffer(cert.id)
-    expect((await trade(trader, { projectId: cert.id, amount: 5, buying: true, valuation: 500 })).status).toBe(200)
+    expect(
+      (await trade(trader, { projectId: cert.id, amount: 5, buying: true, valuation: 500 })).status
+    ).toBe(200)
     // Give the webhook time to act (it follows the bidder last), then check nothing traded.
     await until(() => follows(cert.id, trader.id))
     await Bun.sleep(500)
@@ -292,25 +310,30 @@ describe('X11 grant evaluations', () => {
     expect(page.text).toContain('Grant evaluation form')
     expect((await anonymous().get('/evals-form')).text).not.toContain('Grant evaluation form')
   })
-  standard('saving replaces the person’s evaluations and trust; their page shows them', async () => {
-    const project = await makeProject(sql, creator.id, 'active', `${RUN}-evaluated`)
-    const save = (tier: string) =>
-      evaluator.post('/api/save-evals', {
-        tiers: tiers(project.id, tier),
-        confidenceMap: { [project.id]: 0.8 },
-        trustList: [{ profileId: holder.id, trust: 2 }],
-      })
-    expect((await save('3')).status).toBe(200)
-    expect(await evalsOf(evaluator.id)).toEqual([{ project_id: project.id, score: 3, confidence: 0.8 }])
-    expect(
-      (await sql`select trusted_id, weight::float as weight from profile_trust where truster_id = ${evaluator.id}`) as unknown[]
-    ).toEqual([{ trusted_id: holder.id, weight: 2 }])
-    const page = await anonymous().get(`/${evaluator.username}/evals`)
-    expect(found(page)).toBe(true)
-    expect(page.text).toContain('Test evaluator')
-    expect(page.text).toContain(`Test project ${RUN}`)
-    // Put back in "unsorted": the evaluation goes.
-    expect((await save('unsorted')).status).toBe(200)
-    expect(await evalsOf(evaluator.id)).toHaveLength(0)
-  })
+  standard(
+    'saving replaces the person’s evaluations and trust; their page shows them',
+    async () => {
+      const project = await makeProject(sql, creator.id, 'active', `${RUN}-evaluated`)
+      const save = (tier: string) =>
+        evaluator.post('/api/save-evals', {
+          tiers: tiers(project.id, tier),
+          confidenceMap: { [project.id]: 0.8 },
+          trustList: [{ profileId: holder.id, trust: 2 }],
+        })
+      expect((await save('3')).status).toBe(200)
+      expect(await evalsOf(evaluator.id)).toEqual([
+        { project_id: project.id, score: 3, confidence: 0.8 },
+      ])
+      expect(
+        (await sql`select trusted_id, weight::float as weight from profile_trust where truster_id = ${evaluator.id}`) as unknown[]
+      ).toEqual([{ trusted_id: holder.id, weight: 2 }])
+      const page = await anonymous().get(`/${evaluator.username}/evals`)
+      expect(found(page)).toBe(true)
+      expect(page.text).toContain('Test evaluator')
+      expect(page.text).toContain(`Test project ${RUN}`)
+      // Put back in "unsorted": the evaluation goes.
+      expect((await save('unsorted')).status).toBe(200)
+      expect(await evalsOf(evaluator.id)).toHaveLength(0)
+    }
+  )
 })

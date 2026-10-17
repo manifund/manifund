@@ -42,15 +42,24 @@ const refused = async (tx: Tx, fn: (sp: Tx) => Promise<unknown>) => {
 describe('W16 one open Mercury withdrawal per person', () => {
   test('a second open request is refused, whatever the open status', () =>
     inRollback(async (tx) => {
-      for (const open of ['awaiting_recipient', 'ready_to_pay', 'pending_approval', 'needs_manual']) {
-        await (tx as any).savepoint(async (sp: Tx) => {
-          await request(sp, { profile: p.bob.id, status: open })
-          const e = await refused(sp, (s) => request(s, { profile: p.bob.id, status: 'awaiting_recipient' }))
-          expect(String(e)).toContain('withdrawal_requests_one_active_per_profile')
-          throw new Error('undo') // roll this round back
-        }).catch((e: unknown) => {
-          if (String(e) !== 'Error: undo') throw e
-        })
+      for (const open of [
+        'awaiting_recipient',
+        'ready_to_pay',
+        'pending_approval',
+        'needs_manual',
+      ]) {
+        await (tx as any)
+          .savepoint(async (sp: Tx) => {
+            await request(sp, { profile: p.bob.id, status: open })
+            const e = await refused(sp, (s) =>
+              request(s, { profile: p.bob.id, status: 'awaiting_recipient' })
+            )
+            expect(String(e)).toContain('withdrawal_requests_one_active_per_profile')
+            throw new Error('undo') // roll this round back
+          })
+          .catch((e: unknown) => {
+            if (String(e) !== 'Error: undo') throw e
+          })
       }
     }))
   test('finished requests (sent, failed, rejected) do not count', () =>
@@ -59,7 +68,9 @@ describe('W16 one open Mercury withdrawal per person', () => {
       await request(tx, { profile: p.bob.id, status: 'failed' })
       await request(tx, { profile: p.bob.id, status: 'rejected' })
       await request(tx, { profile: p.bob.id, status: 'awaiting_recipient' })
-      expect(await tx`select 1 from withdrawal_requests where profile_id = ${p.bob.id} and status = 'awaiting_recipient'`).toHaveLength(1)
+      expect(
+        await tx`select 1 from withdrawal_requests where profile_id = ${p.bob.id} and status = 'awaiting_recipient'`
+      ).toHaveLength(1)
     }))
   test("another person's open request doesn't block", () =>
     inRollback(async (tx) => {
@@ -68,9 +79,15 @@ describe('W16 one open Mercury withdrawal per person', () => {
     }))
   test('a request is for a positive amount, by ACH or international wire, in a known status', () =>
     inRollback(async (tx) => {
-      expect(String(await refused(tx, (s) => request(s, { profile: p.bob.id, amount: 0 })))).toContain('amount_check')
-      expect(String(await refused(tx, (s) => request(s, { profile: p.bob.id, method: 'paypal' })))).toContain('payment_method_check')
-      expect(String(await refused(tx, (s) => request(s, { profile: p.bob.id, status: 'paid' })))).toContain('status_check')
+      expect(
+        String(await refused(tx, (s) => request(s, { profile: p.bob.id, amount: 0 })))
+      ).toContain('amount_check')
+      expect(
+        String(await refused(tx, (s) => request(s, { profile: p.bob.id, method: 'paypal' })))
+      ).toContain('payment_method_check')
+      expect(
+        String(await refused(tx, (s) => request(s, { profile: p.bob.id, status: 'paid' })))
+      ).toContain('status_check')
     }))
 })
 
@@ -81,7 +98,8 @@ describe('W10 giving the money back deletes the withdraw txn; the request stays 
       const id = await request(tx, { profile: p.bob.id, status: 'pending_approval', txn })
       await tx`update withdrawal_requests set status = 'rejected', failure_reason = 'payment rejected in Mercury' where id = ${id}`
       await tx`delete from txns where id = ${txn}`
-      const [row] = await tx`select status, txn_id, failure_reason, amount from withdrawal_requests where id = ${id}`
+      const [row] =
+        await tx`select status, txn_id, failure_reason, amount from withdrawal_requests where id = ${id}`
       expect(row.txn_id).toBeNull()
       expect(row.status).toBe('rejected')
       expect(row.failure_reason).toBe('payment rejected in Mercury')
@@ -103,14 +121,20 @@ describe('W18 people read only their own withdrawal requests and write none', ()
   test('a signed-in person creating a request for themselves is refused', () =>
     inRollback(async (tx) => {
       await actAs(tx, p.bob.id)
-      expect(String(await refused(tx, (s) => request(s, { profile: p.bob.id })))).toContain('row-level security')
+      expect(String(await refused(tx, (s) => request(s, { profile: p.bob.id })))).toContain(
+        'row-level security'
+      )
     }))
   test('the owner can neither change nor delete their request', () =>
     inRollback(async (tx) => {
       const id = await request(tx, { profile: p.bob.id, status: 'pending_approval' })
       await actAs(tx, p.bob.id)
-      expect(await tx`update withdrawal_requests set status = 'sent' where id = ${id} returning id`).toHaveLength(0)
-      expect(await tx`delete from withdrawal_requests where id = ${id} returning id`).toHaveLength(0)
+      expect(
+        await tx`update withdrawal_requests set status = 'sent' where id = ${id} returning id`
+      ).toHaveLength(0)
+      expect(await tx`delete from withdrawal_requests where id = ${id} returning id`).toHaveLength(
+        0
+      )
       await tx`reset role`
       const [row] = await tx`select status from withdrawal_requests where id = ${id}`
       expect(row.status).toBe('pending_approval')
@@ -139,13 +163,25 @@ describe('W7 Stripe records are private to the server', () => {
     inRollback(async (tx) => {
       const row = await stripeRow(tx)
       await actAs(tx, p.bob.id)
-      const e = await refused(tx, (s) => s`insert into stripe_txns (session_id, customer_id, txn_id, amount)
-                                          values ('cs_forged', ${p.bob.id}, ${row.txn_id}, 1000)`)
+      const e = await refused(
+        tx,
+        (s) => s`insert into stripe_txns (session_id, customer_id, txn_id, amount)
+                                          values ('cs_forged', ${p.bob.id}, ${row.txn_id}, 1000)`
+      )
       expect(String(e)).toContain('row-level security')
-      expect(await tx`update stripe_txns set amount = 1000 where id = ${row.id} returning id`).toHaveLength(0)
+      expect(
+        await tx`update stripe_txns set amount = 1000 where id = ${row.id} returning id`
+      ).toHaveLength(0)
       expect(await tx`delete from stripe_txns where id = ${row.id} returning id`).toHaveLength(0)
       await actAsAnon(tx)
-      expect(String(await refused(tx, (s) => s`insert into stripe_txns (session_id, customer_id, txn_id, amount)
-                                          values ('cs_forged', ${p.bob.id}, ${row.txn_id}, 1000)`))).toContain('row-level security')
+      expect(
+        String(
+          await refused(
+            tx,
+            (s) => s`insert into stripe_txns (session_id, customer_id, txn_id, amount)
+                                          values ('cs_forged', ${p.bob.id}, ${row.txn_id}, 1000)`
+          )
+        )
+      ).toContain('row-level security')
     }))
 })

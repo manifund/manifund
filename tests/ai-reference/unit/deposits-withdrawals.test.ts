@@ -24,24 +24,34 @@ describe('W15 the Mercury minimum: $1,000, or the whole balance when less', () =
       expect(routeAmount >= mercuryMinWithdrawal(rawBalance)).toBe(true)
     }
   })
-
 })
 
 describe('W20 wires to India and the Philippines go to a person', () => {
-  const recipient = (r: Partial<Recipient>): Recipient => ({ id: 'r1', name: 'Test', status: 'active', ...r })
+  const recipient = (r: Partial<Recipient>): Recipient => ({
+    id: 'r1',
+    name: 'Test',
+    status: 'active',
+    ...r,
+  })
   test("by the recipient's address or the wire's bank address, in any case", () => {
     expect(isManualWireCountry(recipient({ address: { country: 'IN' } }))).toBe(true)
     expect(isManualWireCountry(recipient({ address: { country: 'ph' } }))).toBe(true)
     expect(
-      isManualWireCountry(recipient({ internationalWireRoutingInfo: { address: { country: 'IN' } } }))
+      isManualWireCountry(
+        recipient({ internationalWireRoutingInfo: { address: { country: 'IN' } } })
+      )
     ).toBe(true)
   })
   test('by the country-specific routing data when no address says', () => {
     expect(
-      isManualWireCountry(recipient({ internationalWireRoutingInfo: { countrySpecific: { india: { ifsc: 'X' } } } }))
+      isManualWireCountry(
+        recipient({ internationalWireRoutingInfo: { countrySpecific: { india: { ifsc: 'X' } } } })
+      )
     ).toBe(true)
     expect(
-      isManualWireCountry(recipient({ internationalWireRoutingInfo: { countrySpecific: { Philippines: {} } } }))
+      isManualWireCountry(
+        recipient({ internationalWireRoutingInfo: { countrySpecific: { Philippines: {} } } })
+      )
     ).toBe(true)
   })
   test('everyone else goes through the API', () => {
@@ -49,7 +59,9 @@ describe('W20 wires to India and the Philippines go to a person', () => {
     expect(isManualWireCountry(recipient({ address: { country: 'GB' } }))).toBe(false)
     expect(isManualWireCountry(recipient({}))).toBe(false)
     expect(
-      isManualWireCountry(recipient({ internationalWireRoutingInfo: { countrySpecific: { mexico: {} } } }))
+      isManualWireCountry(
+        recipient({ internationalWireRoutingInfo: { countrySpecific: { mexico: {} } } })
+      )
     ).toBe(false)
   })
 })

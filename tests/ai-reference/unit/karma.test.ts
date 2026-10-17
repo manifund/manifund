@@ -15,7 +15,11 @@ import {
 
 const BANK = 'bank'
 const profile = (id: string) => ({ id, username: id, full_name: id })
-const project = (id: string, creator: string, fields: Partial<KarmaProjectRow> = {}): KarmaProjectRow => ({
+const project = (
+  id: string,
+  creator: string,
+  fields: Partial<KarmaProjectRow> = {}
+): KarmaProjectRow => ({
   id,
   creator,
   created_at: '2026-10-01T00:00:00Z',
@@ -37,7 +41,14 @@ const inputs = (fields: Partial<KarmaInputs>): KarmaInputs => ({
   bankId: BANK,
   ...fields,
 })
-const deposit = (to: string) => ({ from_id: BANK, to_id: to, amount: 100, type: 'deposit', token: 'USD', project: null })
+const deposit = (to: string) => ({
+  from_id: BANK,
+  to_id: to,
+  amount: 100,
+  type: 'deposit',
+  token: 'USD',
+  project: null,
+})
 const donation = (from: string, to: string, projectId: string, amount: number) => ({
   from_id: from,
   to_id: to,
@@ -46,15 +57,21 @@ const donation = (from: string, to: string, projectId: string, amount: number) =
   token: 'USD',
   project: projectId,
 })
-const profileKarma = (r: ReturnType<typeof computeKarma>, id: string) => r.profiles.get(id)?.karma ?? 0
-const projectKarma = (r: ReturnType<typeof computeKarma>, id: string) => r.projects.get(id)?.karma ?? 0
+const profileKarma = (r: ReturnType<typeof computeKarma>, id: string) =>
+  r.profiles.get(id)?.karma ?? 0
+const projectKarma = (r: ReturnType<typeof computeKarma>, id: string) =>
+  r.projects.get(id)?.karma ?? 0
 
 describe('K1 hidden projects and drafts get no karma and count for nothing', () => {
   test('only live projects are scored; a vote on a draft gives its creator nothing', () => {
     const r = computeKarma(
       inputs({
         profiles: [profile('creator'), profile('voter')],
-        projects: [project('live', 'creator'), project('draft', 'creator', { stage: 'draft' }), project('hidden', 'creator', { stage: 'hidden' })],
+        projects: [
+          project('live', 'creator'),
+          project('draft', 'creator', { stage: 'draft' }),
+          project('hidden', 'creator', { stage: 'hidden' }),
+        ],
         txns: [deposit('voter')],
         votes: [{ voter_id: 'voter', project_id: 'draft', magnitude: 1 }],
       })
@@ -64,7 +81,7 @@ describe('K1 hidden projects and drafts get no karma and count for nothing', () 
   })
 })
 
-describe('K2 a person\'s karma', () => {
+describe("K2 a person's karma", () => {
   test('starting karma: 10 for anyone who has received a deposit, 0 otherwise', () => {
     const r = computeKarma(inputs({ profiles: [profile('a'), profile('b')], txns: [deposit('a')] }))
     expect(profileKarma(r, 'a')).toBe(10)
@@ -87,7 +104,7 @@ describe('K2 a person\'s karma', () => {
     expect(donationKarma(100)).toBeCloseTo(2.5 * 100 ** 0.3, 9)
     expect(donationKarma(-5)).toBe(0)
   })
-  test('votes on their projects: direction × the voter\'s weight', () => {
+  test("votes on their projects: direction × the voter's weight", () => {
     const r = computeKarma(
       inputs({
         profiles: [profile('creator'), profile('up'), profile('down')],
@@ -122,7 +139,7 @@ describe('K2 a person\'s karma', () => {
 })
 
 describe('K3 what counts as a donation', () => {
-  test('a pending offer on a proposal counts in full and as early; bank, self and own-project money doesn\'t', () => {
+  test("a pending offer on a proposal counts in full and as early; bank, self and own-project money doesn't", () => {
     const r = computeKarma(
       inputs({
         profiles: [profile('donor'), profile('creator')],
@@ -137,7 +154,10 @@ describe('K3 what counts as a donation', () => {
         ],
       })
     )
-    expect(r.profiles.get('donor')!.breakdown.donationsGiven).toBeCloseTo(donationKarma(100) * 1.5, 6)
+    expect(r.profiles.get('donor')!.breakdown.donationsGiven).toBeCloseTo(
+      donationKarma(100) * 1.5,
+      6
+    )
     expect(r.profiles.get('creator')!.breakdown.donationsGiven).toBe(0)
     expect(r.projects.get('act')!.breakdown.donations).toBe(0)
     expect(r.projects.get('prop')!.breakdown.donorCount).toBe(1)
@@ -212,8 +232,8 @@ describe('K5 nothing counts for oneself', () => {
   })
 })
 
-describe('K6 a project\'s karma', () => {
-  test('base 2 + 5 × log10(1 + creator karma) + votes + others\' comments + donations', () => {
+describe("K6 a project's karma", () => {
+  test("base 2 + 5 × log10(1 + creator karma) + votes + others' comments + donations", () => {
     const r = computeKarma(
       inputs({
         profiles: [profile('creator'), profile('fan')],
@@ -230,7 +250,10 @@ describe('K6 a project\'s karma', () => {
     expect(b.votes).toBeCloseTo(fanWeight, 6)
     expect(b.comments).toBeCloseTo(fanWeight, 6)
     expect(b.donations).toBeCloseTo(donationKarma(100), 6)
-    expect(projectKarma(r, 'p')).toBeCloseTo(b.base + b.creator + b.votes + b.comments + b.donations, 6)
+    expect(projectKarma(r, 'p')).toBeCloseTo(
+      b.base + b.creator + b.votes + b.comments + b.donations,
+      6
+    )
   })
   test('a new project starts with the base and the creator term', () => {
     expect(newProjectKarma(0).karma).toBe(2)
@@ -239,7 +262,7 @@ describe('K6 a project\'s karma', () => {
   })
 })
 
-describe('K10 the homepage\'s hot order', () => {
+describe("K10 the homepage's hot order", () => {
   const now = new Date('2026-10-11T00:00:00Z').getTime()
   test('karma ÷ (age in days + 1)^1.7', () => {
     expect(projectHotScore(100, '2026-10-11T00:00:00Z', true, now)).toBeCloseTo(100, 9)

@@ -9,7 +9,13 @@ beforeAll(async () => {
   p = await getPeople()
 })
 
-const insertTxn = async (tx: Tx, from: string | null, to: string, amount = 10, type = 'profile donation') => {
+const insertTxn = async (
+  tx: Tx,
+  from: string | null,
+  to: string,
+  amount = 10,
+  type = 'profile donation'
+) => {
   const [row] = await tx`insert into txns (from_id, to_id, amount, token, type)
                          values (${from}, ${to}, ${amount}, 'USD', ${type}) returning id`
   return row.id as string
@@ -58,7 +64,8 @@ describe('L3 only server code writes the ledger', () => {
 
 describe('L4 a profile in the ledger cannot be deleted', () => {
   const makeProfile = async (tx: Tx, name: string) => {
-    const [row] = await tx`insert into profiles (id, username) values (gen_random_uuid(), ${`${RUN}-${name}`}) returning id`
+    const [row] =
+      await tx`insert into profiles (id, username) values (gen_random_uuid(), ${`${RUN}-${name}`}) returning id`
     return row.id as string
   }
   test('as recipient or as sender', () =>
@@ -86,7 +93,8 @@ describe('L18 handing a project over to the person who signed up', () => {
   test('the project changes creator, the transfer is marked done, and no money moves', () =>
     inRollback(async (tx) => {
       const project = await makeProject(tx, p.rita.id, 'proposal')
-      const [transfer] = await tx`insert into project_transfers (recipient_email, recipient_name, project_id)
+      const [transfer] =
+        await tx`insert into project_transfers (recipient_email, recipient_name, project_id)
                                   values (${`${RUN}-new@local.test`}, 'New person', ${project.id}) returning id`
       const [{ count: before }] = await tx`select count(*)::int from txns`
       await tx`select _transfer_project(project_id => ${project.id}::uuid, to_id => ${p.bob.id}::uuid,

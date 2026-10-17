@@ -28,10 +28,14 @@ describe('E1 every profile is public', () => {
       const ann = await makeProfile(tx)
       const bob = await makeProfile(tx)
       await actAsAnon(tx)
-      expect((await tx`select username from profiles where id = ${ann.id}`) as unknown[]).toEqual([{ username: ann.username }])
+      expect((await tx`select username from profiles where id = ${ann.id}`) as unknown[]).toEqual([
+        { username: ann.username },
+      ])
       await tx`reset role`
       await actAs(tx, bob.id)
-      expect((await tx`select username from profiles where id = ${ann.id}`) as unknown[]).toEqual([{ username: ann.username }])
+      expect((await tx`select username from profiles where id = ${ann.id}`) as unknown[]).toEqual([
+        { username: ann.username },
+      ])
     }))
 })
 
@@ -63,37 +67,49 @@ describe('E3 usernames are unique, exactly as typed', () => {
   test('a second profile with the same username is refused', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
-      await expect(makeProfile(tx, { username: ann.username })).rejects.toThrow(/profiles_username_key|duplicate/)
+      await expect(makeProfile(tx, { username: ann.username })).rejects.toThrow(
+        /profiles_username_key|duplicate/
+      )
     }))
   test('a different case is a different username', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
       await makeProfile(tx, { username: ann.username.toUpperCase() })
-      expect(await tx`select 1 from profiles where lower(username) = ${ann.username}`).toHaveLength(2)
+      expect(await tx`select 1 from profiles where lower(username) = ${ann.username}`).toHaveLength(
+        2
+      )
     }))
 })
 
-describe('E4 others don\'t change someone\'s profile; nobody adds or deletes one', () => {
+describe("E4 others don't change someone's profile; nobody adds or deletes one", () => {
   test('a person changes their own profile', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
       await actAs(tx, ann.id)
-      expect(await tx`update profiles set bio = 'after' where id = ${ann.id} returning id`).toHaveLength(1)
+      expect(
+        await tx`update profiles set bio = 'after' where id = ${ann.id} returning id`
+      ).toHaveLength(1)
     }))
-  test("another signed-in person changes nothing on it", () =>
+  test('another signed-in person changes nothing on it', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
       const bob = await makeProfile(tx)
       await actAs(tx, bob.id)
-      expect(await tx`update profiles set bio = 'after' where id = ${ann.id} returning id`).toHaveLength(0)
+      expect(
+        await tx`update profiles set bio = 'after' where id = ${ann.id} returning id`
+      ).toHaveLength(0)
       await tx`reset role`
-      expect((await tx`select bio from profiles where id = ${ann.id}`) as unknown[]).toEqual([{ bio: 'before' }])
+      expect((await tx`select bio from profiles where id = ${ann.id}`) as unknown[]).toEqual([
+        { bio: 'before' },
+      ])
     }))
   test('a visitor changes no profile', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
       await actAsAnon(tx)
-      expect(await tx`update profiles set bio = 'after' where id = ${ann.id} returning id`).toHaveLength(0)
+      expect(
+        await tx`update profiles set bio = 'after' where id = ${ann.id} returning id`
+      ).toHaveLength(0)
     }))
   test('nobody deletes a profile, even their own', () =>
     inRollback(async (tx) => {
@@ -106,7 +122,9 @@ describe('E4 others don\'t change someone\'s profile; nobody adds or deletes one
       const ann = await makeProfile(tx)
       await actAs(tx, ann.id)
       const id = crypto.randomUUID()
-      await expect(run(tx`insert into profiles (id, username) values (${id}, ${tag()})`)).rejects.toThrow('row-level security')
+      await expect(
+        run(tx`insert into profiles (id, username) values (${id}, ${tag()})`)
+      ).rejects.toThrow('row-level security')
     }))
 })
 
@@ -118,23 +136,25 @@ describe('E5 avatars are public; people upload only into their own folder', () =
       await tx`insert into storage.objects (bucket_id, name) values ('avatars', ${ann.id + '/a'})`
       await tx`reset role`
       await actAsAnon(tx)
-      expect(await tx`select 1 from storage.objects where bucket_id = 'avatars' and name = ${ann.id + '/a'}`).toHaveLength(1)
+      expect(
+        await tx`select 1 from storage.objects where bucket_id = 'avatars' and name = ${ann.id + '/a'}`
+      ).toHaveLength(1)
     }))
   test("into someone else's folder: refused", () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
       const bob = await makeProfile(tx)
       await actAs(tx, bob.id)
-      await expect(run(tx`insert into storage.objects (bucket_id, name) values ('avatars', ${ann.id + '/a'})`)).rejects.toThrow(
-        'row-level security'
-      )
+      await expect(
+        run(tx`insert into storage.objects (bucket_id, name) values ('avatars', ${ann.id + '/a'})`)
+      ).rejects.toThrow('row-level security')
     }))
   test('a visitor uploads nothing', () =>
     inRollback(async (tx) => {
       const ann = await makeProfile(tx)
       await actAsAnon(tx)
-      await expect(run(tx`insert into storage.objects (bucket_id, name) values ('avatars', ${ann.id + '/a'})`)).rejects.toThrow(
-        'row-level security'
-      )
+      await expect(
+        run(tx`insert into storage.objects (bucket_id, name) values ('avatars', ${ann.id + '/a'})`)
+      ).rejects.toThrow('row-level security')
     }))
 })

@@ -12,7 +12,14 @@ const { ProjectCard } = await import('@/components/project-card')
 const { ProjectsDisplay } = await import('@/components/projects-display')
 
 // Cards link through the app router; a do-nothing one is enough to render.
-const router = { push() {}, replace() {}, refresh() {}, prefetch() {}, back() {}, forward() {} } as any
+const router = {
+  push() {},
+  replace() {},
+  refresh() {},
+  prefetch() {},
+  back() {},
+  forward() {},
+} as any
 const render = (node: ReactNode) =>
   renderToStaticMarkup(<AppRouterContext.Provider value={router}>{node}</AppRouterContext.Provider>)
 
@@ -101,7 +108,9 @@ describe('K12 karma shows as a rounded number with a star', () => {
     const html = renderToStaticMarkup(<Karma value={41.6} breakdown={null} kind="project" />)
     expect(text(html).trim()).toBe('42')
     expect(html).toContain('<svg')
-    expect(text(renderToStaticMarkup(<Karma value={null} breakdown={null} kind="profile" />)).trim()).toBe('0')
+    expect(
+      text(renderToStaticMarkup(<Karma value={null} breakdown={null} kind="profile" />)).trim()
+    ).toBe('0')
   })
   test('project cards show karma and no vote count', () => {
     const html = text(render(<ProjectCard project={project('card', 123.4)} />))

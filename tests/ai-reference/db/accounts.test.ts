@@ -83,7 +83,8 @@ describe('S9 browsers neither create nor delete profiles', () => {
       await tx`delete from profiles where id = ${id}`
       await actAs(tx, id)
       await expect(
-        (async () => await tx`insert into profiles (id, username, full_name) values (${id}, ${tag}, 'Me')`)()
+        (async () =>
+          await tx`insert into profiles (id, username, full_name) values (${id}, ${tag}, 'Me')`)()
       ).rejects.toThrow('row-level security')
     }))
 
@@ -114,7 +115,12 @@ async function ban(tx: Tx, id: string) {
   await tx`delete from profiles where id = ${id}`
   await tx`delete from auth.users where id = ${id}`
 }
-async function comment(tx: Tx, by: string, target: { project?: string; profile?: string }, replyingTo?: string) {
+async function comment(
+  tx: Tx,
+  by: string,
+  target: { project?: string; profile?: string },
+  replyingTo?: string
+) {
   const [row] = await tx`
     insert into comments (commenter, project, profile_id, content, replying_to)
     values (${by}, ${target.project ?? null}, ${target.profile ?? null}, ${doc('test')}, ${replyingTo ?? null})
@@ -146,10 +152,17 @@ describe('S17 what a ban deletes', () => {
 
       expect(await count(tx, tx`select 1 from projects where id = ${theirs.id}`)).toBe(0)
       expect(await count(tx, tx`select 1 from comments where project = ${theirs.id}`)).toBe(0)
-      expect(await count(tx, tx`select 1 from comments where id in (${theirComment}, ${reply})`)).toBe(0)
+      expect(
+        await count(tx, tx`select 1 from comments where id in (${theirComment}, ${reply})`)
+      ).toBe(0)
       expect(await count(tx, tx`select 1 from comments where id = ${kept}`)).toBe(1)
       expect(await count(tx, tx`select 1 from comments where profile_id = ${banned}`)).toBe(0)
-      expect(await count(tx, tx`select 1 from project_follows where follower_id = ${banned} or project_id = ${theirs.id}`)).toBe(0)
+      expect(
+        await count(
+          tx,
+          tx`select 1 from project_follows where follower_id = ${banned} or project_id = ${theirs.id}`
+        )
+      ).toBe(0)
       expect(await count(tx, tx`select 1 from project_votes where voter_id = ${banned}`)).toBe(0)
       expect(await count(tx, tx`select 1 from profiles where id = ${banned}`)).toBe(0)
       expect(await count(tx, tx`select 1 from auth.users where id = ${banned}`)).toBe(0)

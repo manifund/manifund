@@ -24,7 +24,11 @@ async function account(type: 'org' | 'fund', name: string) {
 }
 
 beforeAll(async () => {
-  ;[world, viewer, regrantor] = await Promise.all([getWorld(), person('viewer'), person('regrantor')])
+  ;[world, viewer, regrantor] = await Promise.all([
+    getWorld(),
+    person('viewer'),
+    person('regrantor'),
+  ])
   await sql`update profiles set regranter_status = true where id = ${regrantor.id}`
 })
 afterAll(async () => {
@@ -44,7 +48,13 @@ describe('E6 /edit-profile edits your own profile', () => {
   standard('a signed-in person gets their own profile in the form', async () => {
     const page = await viewer.get('/edit-profile')
     expect(page.status).toBe(200)
-    for (const field of ['id="username"', 'id="full_name"', 'id="bio"', 'id="website"', 'id="avatar"']) {
+    for (const field of [
+      'id="username"',
+      'id="full_name"',
+      'id="bio"',
+      'id="website"',
+      'id="avatar"',
+    ]) {
       expect(page.text).toContain(field)
     }
     expect(page.text).toContain(`value="${viewer.username}"`)
@@ -63,7 +73,11 @@ describe('E9 after a rename, the profile is at its new address', () => {
     const token = await accessToken(`${old}@local.test`)
     const res = await fetch(`${env.supabaseUrl}/rest/v1/profiles?id=eq.${renamed.id}`, {
       method: 'PATCH',
-      headers: { apikey: env.anonKey, authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      headers: {
+        apikey: env.anonKey,
+        authorization: `Bearer ${token}`,
+        'content-type': 'application/json',
+      },
       body: JSON.stringify({ username: `${old}-new` }),
     })
     expect(res.status).toBeLessThan(300)
@@ -91,12 +105,17 @@ describe('E11 /<username> shows a profile', () => {
     expect(await shows(`/${viewer.username}`, `@${viewer.username}`)).toBe(true)
     expect(await isNotFound(`/${RUN}-nobody`)).toBe(true)
   })
-  standard("a fund's account shows its fund page; a charity's says the type isn't supported", async () => {
-    const fund = await account('fund', 'fund')
-    expect(await shows(`/${fund.username}`, `${fund.full_name} fund`)).toBe(true)
-    const charity = await account('org', 'charity-u11')
-    expect((await anonymous().get(`/${charity.username}`)).text).toContain('Profile type not supported')
-  })
+  standard(
+    "a fund's account shows its fund page; a charity's says the type isn't supported",
+    async () => {
+      const fund = await account('fund', 'fund')
+      expect(await shows(`/${fund.username}`, `${fund.full_name} fund`)).toBe(true)
+      const charity = await account('org', 'charity-u11')
+      expect((await anonymous().get(`/${charity.username}`)).text).toContain(
+        'Profile type not supported'
+      )
+    }
+  )
 })
 
 describe('E13 hidden and draft projects show on a profile only to its owner', () => {
@@ -142,7 +161,8 @@ describe("E20 regrantors see a project creator's email", () => {
     const path = `/projects/${world.project.slug}`
     expect((await regrantor.get(path)).text).toContain(email)
     const rita = await adminClient()
-    for (const who of [anonymous(), viewer, rita]) expect((await who.get(path)).text).not.toContain(email)
+    for (const who of [anonymous(), viewer, rita])
+      expect((await who.get(path)).text).not.toContain(email)
   })
 })
 
@@ -152,40 +172,53 @@ describe('E25 admins set accreditation; the route refuses anyone else', () => {
     const res = await viewer.post('/api/verify-investor', { userId: target.id, accredited: true })
     expect(res.status).toBeGreaterThanOrEqual(400)
     expect(await accredited(target.id)).toBe(false)
-    expect((await anonymous().post('/api/verify-investor', { userId: target.id, accredited: true })).status).toBeGreaterThanOrEqual(400)
+    expect(
+      (await anonymous().post('/api/verify-investor', { userId: target.id, accredited: true }))
+        .status
+    ).toBeGreaterThanOrEqual(400)
     expect(await accredited(target.id)).toBe(false)
   })
   standard('an admin sets and clears it', async () => {
     const target = await person('investor')
     const rita = await adminClient()
-    expect((await rita.post('/api/verify-investor', { userId: target.id, accredited: true })).status).toBe(200)
+    expect(
+      (await rita.post('/api/verify-investor', { userId: target.id, accredited: true })).status
+    ).toBe(200)
     expect(await accredited(target.id)).toBe(true)
-    expect((await rita.post('/api/verify-investor', { userId: target.id, accredited: false })).status).toBe(200)
+    expect(
+      (await rita.post('/api/verify-investor', { userId: target.id, accredited: false })).status
+    ).toBe(200)
     expect(await accredited(target.id)).toBe(false)
   })
 })
 
 describe('E26 /leaderboards: total deposits per person, every deposit, no emails', () => {
-  standard("a person's deposits are summed; a regrantor's are listed but not ranked", async () => {
-    const donor = await person('donor')
-    await sql`insert into txns (from_id, to_id, amount, token, type) values
+  standard(
+    "a person's deposits are summed; a regrantor's are listed but not ranked",
+    async () => {
+      const donor = await person('donor')
+      await sql`insert into txns (from_id, to_id, amount, token, type) values
                 (${BANK_ID}, ${donor.id}, 1234, 'USD', 'deposit'), (${BANK_ID}, ${donor.id}, 1000, 'USD', 'deposit'),
                 (${BANK_ID}, ${regrantor.id}, 777, 'USD', 'deposit')`
-    const page = await anonymous().get('/leaderboards')
-    expect(page.status).toBe(200)
-    // The page's HTML rows (the streamed data holds the same content in another form): two cells for "Total
-    // donated", four for "All deposits".
-    const rows = (username: string) =>
-      (html(page.text).match(/<tr>[\s\S]*?<\/tr>/g) ?? []).filter((r) => r.includes(`href="/${username}"`))
-    const cells = (row: string) => row.match(/<td/g)?.length
-    const ranked = (username: string) => rows(username).filter((r) => cells(r) === 2)
-    expect(ranked(donor.username)).toHaveLength(1)
-    expect(ranked(donor.username)[0]).toContain('$2234<')
-    expect(ranked(regrantor.username)).toHaveLength(0)
-    expect(rows(regrantor.username).filter((r) => cells(r) === 4)).toHaveLength(1)
-    expect(rows(donor.username).filter((r) => cells(r) === 4)).toHaveLength(2)
-    expect(page.text).not.toContain(`${donor.username}@local.test`)
-  }, 90_000)
+      const page = await anonymous().get('/leaderboards')
+      expect(page.status).toBe(200)
+      // The page's HTML rows (the streamed data holds the same content in another form): two cells for "Total
+      // donated", four for "All deposits".
+      const rows = (username: string) =>
+        (html(page.text).match(/<tr>[\s\S]*?<\/tr>/g) ?? []).filter((r) =>
+          r.includes(`href="/${username}"`)
+        )
+      const cells = (row: string) => row.match(/<td/g)?.length
+      const ranked = (username: string) => rows(username).filter((r) => cells(r) === 2)
+      expect(ranked(donor.username)).toHaveLength(1)
+      expect(ranked(donor.username)[0]).toContain('$2234<')
+      expect(ranked(regrantor.username)).toHaveLength(0)
+      expect(rows(regrantor.username).filter((r) => cells(r) === 4)).toHaveLength(1)
+      expect(rows(donor.username).filter((r) => cells(r) === 4)).toHaveLength(2)
+      expect(page.text).not.toContain(`${donor.username}@local.test`)
+    },
+    90_000
+  )
 })
 
 describe('E27 charity accounts', () => {
@@ -200,7 +233,9 @@ describe('E27 charity accounts', () => {
     expect(page.status).toBe(200)
     expect(page.text).toContain(charity.full_name)
     expect(html(page.text)).toContain('$500')
-    expect(html(page.text)).toMatch(/>2<\/[a-z]+>[\s\S]{0,300}supporters|supporters[\s\S]{0,300}>2</)
+    expect(html(page.text)).toMatch(
+      />2<\/[a-z]+>[\s\S]{0,300}supporters|supporters[\s\S]{0,300}>2</
+    )
     expect((await anonymous().get(`/charity/${RUN}-nobody`)).text).toContain('Charity not found.')
   })
 })
@@ -228,7 +263,8 @@ async function location(path: string) {
   const res = await fetch(`${env.baseUrl}${path}`, { redirect: 'manual' })
   return new URL(res.headers.get('location') ?? '', env.baseUrl).pathname
 }
-const accredited = async (id: string) => (await sql`select accreditation_status from profiles where id = ${id}`)[0].accreditation_status
+const accredited = async (id: string) =>
+  (await sql`select accreditation_status from profiles where id = ${id}`)[0].accreditation_status
 // rita, the local admin, without the shared-account guard: /api/verify-investor isn't among rita's allowed admin
 // actions in tests/helpers/people.ts, and it only changes this file's own person.
 async function adminClient() {

@@ -1,6 +1,6 @@
 # People (profiles)
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 Who is on Manifund and what their public record says: profiles, editing your own, the people list, regrantor and
 accredited-investor status, the donations leaderboard and charity accounts.
@@ -25,8 +25,8 @@ passwords and bans are `../accounts/` (S), the public API and MCP's user tools a
 
 - **`profiles`**, one row per account, keyed by the auth user's id: `username` (unique, the profile's address
   `/<username>`), `full_name`, `bio`, `website`, `long_description` (the editor's JSON, "About Me"), `avatar_url`,
-  `type` (`individual`, `org` for charity accounts, `fund`, `amm` for the dormant market maker), `regranter_status`,
-  `accreditation_status` and `created_at`.
+  `type` (`individual`, `org` for charity accounts, `fund`, `amm` for the dormant market maker), `regranter_status` and
+  `created_at`.
 - **Created by the database at sign-up** (`handle_new_user`, a trigger on `auth.users`, since 2026-06-17), with a
   username and name made from the email or the Google name (E2). Accounts nobody signs in to (charities, funds)
   are made by hand.
@@ -105,7 +105,7 @@ Ids are stable once merged: tests name them. All observed (code,
 - **E21** `/people` lists individuals whose profile is complete (a username other than their id, and a full name);
   charities, funds and the market maker aren't listed (#58, 2023-08-09).
 - **E22** Order: regrantors first (largest 2025 sponsored budget first), then people with a project, then people
-  with a bio, then accredited investors, then everyone else (Austin, 2025-04-17, "Sort by 2025").
+  with a bio, then everyone else (Austin, 2025-04-17, "Sort by 2025").
 - **E23** Each row shows the avatar, name, bio, a regrantor tag and a creator tag (anyone with a project, whatever its
   stage), and links to the profile.
 - **E24** Search keeps people whose name, bio or one project title contains every word of the query (any case).
@@ -114,7 +114,7 @@ Ids are stable once merged: tests name them. All observed (code,
 ### Accredited investors
 
 - **E25** Admins set or clear someone's accreditation on `/admin/users` (`/api/verify-investor`, which refuses
-  anyone else). It orders `/people` (E22).
+  anyone else).
 
 ### Leaderboard
 
@@ -134,18 +134,18 @@ Ids are stable once merged: tests name them. All observed (code,
 
 From the git history and PR descriptions, dated by commit; none reviewed for this doc yet.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-09-28 | Vals (comments work) | `/people/id/<id>` redirect; mentions link by id (E17) | 31 of 1,353 mentions pointed to old usernames |
-| 2026-09-14 | Caroline (#245) | A failed profile save shows the error; a taken username gets its own message (E3, E9) | The Save spinner hung forever |
-| 2026-09-04 | Austin | No accredited-investor tag on profiles or `/people` (E16) | Not given in the commit |
-| 2026-06-17 | Austin | Default username and name from the email or Google name, made in the database (E2) | Better defaults than the account id |
-| 2025-04-17 | Austin | `/people` orders regrantors by their 2025 budget (E22) | New regranting year |
-| 2024-03-21 | Lily (#117) | Show your own email on your profile (E14) | Not given |
-| 2023-12-24 | Austin | `/leaderboards` lists top donors by deposits (E26) | Not given |
-| 2023-08-09 | Rachel (#58) | `/people`: searchable, everyone with a complete profile; profiles without tabs, comments at the bottom (E21, E24) | Not given |
-| 2023-07-09 | Rachel | Regrantors see project creators' emails (E20) | Presumably so regrantors can reach grantees; not given |
-| 2023-03-06 | Austin | Admins verify accredited investors on `/admin` (E25) | Not given |
+| Date       | Decided by           | Decision                                                                                                          | Why                                                    |
+| ---------- | -------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| 2026-09-28 | Vals (comments work) | `/people/id/<id>` redirect; mentions link by id (E17)                                                             | 31 of 1,353 mentions pointed to old usernames          |
+| 2026-09-14 | Caroline (#245)      | A failed profile save shows the error; a taken username gets its own message (E3, E9)                             | The Save spinner hung forever                          |
+| 2026-09-04 | Austin               | No accredited-investor tag on profiles or `/people` (E16)                                                         | Not given in the commit                                |
+| 2026-06-17 | Austin               | Default username and name from the email or Google name, made in the database (E2)                                | Better defaults than the account id                    |
+| 2025-04-17 | Austin               | `/people` orders regrantors by their 2025 budget (E22)                                                            | New regranting year                                    |
+| 2024-03-21 | Lily (#117)          | Show your own email on your profile (E14)                                                                         | Not given                                              |
+| 2023-12-24 | Austin               | `/leaderboards` lists top donors by deposits (E26)                                                                | Not given                                              |
+| 2023-08-09 | Rachel (#58)         | `/people`: searchable, everyone with a complete profile; profiles without tabs, comments at the bottom (E21, E24) | Not given                                              |
+| 2023-07-09 | Rachel               | Regrantors see project creators' emails (E20)                                                                     | Presumably so regrantors can reach grantees; not given |
+| 2023-03-06 | Austin               | Admins verify accredited investors on `/admin` (E25)                                                              | Not given                                              |
 
 ## Open questions
 

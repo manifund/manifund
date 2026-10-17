@@ -1,6 +1,6 @@
 # Public API and MCP server
 
-> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Optional: use or update it when asked ([about this folder](../README.md)).
+> Agent-written from the code in October 2026: it describes what the code did then, not decisions the team made. Ignore it unless asked: then use or update it ([about this folder](../README.md)).
 
 How people and their agents read Manifund's data without the site: three JSON endpoints (`/api/v0/...`), a public
 MCP server for AI assistants (`/api/mcp`), and an admin MCP server for the team. Reference for users: `/docs` on the
@@ -63,8 +63,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
   strictly older). Dates come as ISO strings.
 - **I4** `/api/v0/projects` leaves out hidden and draft projects. Each project comes with its description in
   Markdown, its creator's username and name, its causes, its USD txns and its pending offers.
-- **I5** `/api/v0/comments` returns comments on every target (projects, profiles, org pages), with the author's
-  username and name, the content in Markdown, and the fields of C33.
+- **I5** `/api/v0/comments` returns comments with the author's username and name, the content in Markdown, and the
+  fields of C33.
 - **I6** `/api/v0/users` returns public profile fields only: id, created date, username, name, bio, website, avatar,
   type, regrantor status. No email, accreditation status or payout account ids (Austin, 2026-08-07).
 - **I7** Each user comes with the cash, charity and total balances a profile shows (L5-L12; cash and charity leave
@@ -128,22 +128,22 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **I25** Searching by meaning (`search_projects_by_embedding`) leaves out hidden and draft projects unless asked to
   include them, and returns at most 50 projects, closest first.
 - **I26** Similar projects (`find_similar_projects`) are the closest by meaning among embeddings of the same model,
-  leaving out the project itself and hidden projects.
+  other than the project itself.
 
 ## Decisions
 
 Newest first. Found in commits and PRs; none of these were re-confirmed during the backfill.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-10-05 | Austin (#275) | Comments carry their target (`project`, `profile_id`, `org_id`), edit and removal fields; removed ones have no content (C33) | Comments everywhere |
-| 2026-08-07 | Austin | `/api/v0/users`: public fields only, the balances profiles show, all USD txns; filters by id, username, name; profiles get a `created_at` (backfilled) to sort by (I6-I8) | Profiles had no creation date; signup dates lived only in `auth.users` |
-| 2026-07-03 | Austin | MCP: semantic search defaults to fundable stages and says when it's degraded; quality signals; `get_comments`; `recommend_projects` (I11-I15) | Embeddings had silently failed since April (quota); donors need recommendations |
-| 2026-07-03 | Austin | Public MCP shows every txn type except share trades (by default), and balances (I17, I18) | Deposits and withdrawals are public on the site too (L2); the old balance function was broken |
-| 2026-07-03 | Austin | Hosted MCP server in the app, public and admin tiers; the admin tier with read-only SQL (I9, I21-I24) | Ad-hoc questions without building every aggregation |
-| 2025-06-24 | wasabipesto (#172) | Comments API adds `replying_to` and `special_type` | Rebuild threads; tell official updates apart |
-| 2025-03-03 | Austin | `/api/v0/comments` | |
-| 2025-01-06 | Austin (#145) | `/api/v0/projects`, 100 newest, `before` to page ("very experimental") (I3, I4) | |
+| Date       | Decided by         | Decision                                                                                                                                                                  | Why                                                                                           |
+| ---------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| 2026-10-05 | Austin (#275)      | Comments carry their target (`project`, `profile_id`, `org_id`), edit and removal fields; removed ones have no content (C33)                                              | Comments everywhere                                                                           |
+| 2026-08-07 | Austin             | `/api/v0/users`: public fields only, the balances profiles show, all USD txns; filters by id, username, name; profiles get a `created_at` (backfilled) to sort by (I6-I8) | Profiles had no creation date; signup dates lived only in `auth.users`                        |
+| 2026-07-03 | Austin             | MCP: semantic search defaults to fundable stages and says when it's degraded; quality signals; `get_comments`; `recommend_projects` (I11-I15)                             | Embeddings had silently failed since April (quota); donors need recommendations               |
+| 2026-07-03 | Austin             | Public MCP shows every txn type except share trades (by default), and balances (I17, I18)                                                                                 | Deposits and withdrawals are public on the site too (L2); the old balance function was broken |
+| 2026-07-03 | Austin             | Hosted MCP server in the app, public and admin tiers; the admin tier with read-only SQL (I9, I21-I24)                                                                     | Ad-hoc questions without building every aggregation                                           |
+| 2025-06-24 | wasabipesto (#172) | Comments API adds `replying_to` and `special_type`                                                                                                                        | Rebuild threads; tell official updates apart                                                  |
+| 2025-03-03 | Austin             | `/api/v0/comments`                                                                                                                                                        |                                                                                               |
+| 2025-01-06 | Austin (#145)      | `/api/v0/projects`, 100 newest, `before` to page ("very experimental") (I3, I4)                                                                                           |                                                                                               |
 
 ## Open questions
 

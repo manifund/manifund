@@ -11,7 +11,9 @@ const files = (dir: string): string[] =>
   })
 
 const docs = files(join(root, 'docs', 'ai-reference')).filter((f) => f.endsWith('README.md'))
-const tests = files(join(root, 'tests', 'ai-reference')).filter((f) => /\.(test|e2e)\.tsx?$/.test(f))
+const tests = files(join(root, 'tests', 'ai-reference')).filter((f) =>
+  /\.(test|e2e)\.tsx?$/.test(f)
+)
 const testText = tests.map((f) => [relative(root, f), readFileSync(f, 'utf8')] as const)
 
 let missing = 0
@@ -27,11 +29,20 @@ for (const doc of docs) {
     const todoRe = new RegExp(`\\.todo\\(\\s*['"\`][^'"\`]*\\b${id}\\b`)
     // A test that names the rule, other than a test.todo (which only says it's still to write).
     const where = testText
-      .filter(([, t]) => re.test(t.split('\n').filter((l) => !todoRe.test(l)).join('\n')))
+      .filter(([, t]) =>
+        re.test(
+          t
+            .split('\n')
+            .filter((l) => !todoRe.test(l))
+            .join('\n')
+        )
+      )
       .map(([f]) => f.replace(/^tests\/ai-reference\//, ''))
     const todo = testText.some(([, t]) => todoRe.test(t))
     if (!where.length) todo ? todos++ : missing++
-    console.log(`  ${id.padEnd(4)} ${where.length ? where.join(', ') : todo ? '(todo)' : '— no test'}`)
+    console.log(
+      `  ${id.padEnd(4)} ${where.length ? where.join(', ') : todo ? '(todo)' : '— no test'}`
+    )
   }
 }
 console.log(`\n${missing} rule(s) without a test${todos ? `, ${todos} with only a test.todo` : ''}`)

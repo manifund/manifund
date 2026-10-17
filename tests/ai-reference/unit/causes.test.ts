@@ -23,7 +23,7 @@ function recorder() {
   return { client: client as any, calls }
 }
 
-describe('R10 saving a project\'s causes replaces its whole list; a cause sent twice is saved once', () => {
+describe("R10 saving a project's causes replaces its whole list; a cause sent twice is saved once", () => {
   test('the old links are removed, then the new list is written', async () => {
     const { client, calls } = recorder()
     await updateProjectCauses(client, ['tais', 'ai-gov'], 'project-1')

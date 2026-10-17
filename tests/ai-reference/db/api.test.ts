@@ -28,7 +28,9 @@ const migration = readFileSync(
 )
 const grants = [
   ...(migration.match(/^grant mcp_readonly to service_role;$/m) ?? []),
-  ...(migration.match(/^revoke execute on function execute_readonly_sql\(text, int\) from \w+;$/gm) ?? []),
+  ...(migration.match(
+    /^revoke execute on function execute_readonly_sql\(text, int\) from \w+;$/gm
+  ) ?? []),
 ]
 async function productionGrants(tx: Tx) {
   expect(grants).toHaveLength(4) // the membership, and the revokes from public, anon, authenticated
@@ -78,12 +80,16 @@ describe('I23 read-only SQL: one statement, read-only role, 15 seconds, at most 
       await productionGrants(tx)
       await tx.unsafe(`create function pg_temp.api_test_write() returns int language sql as
         $$ insert into causes (slug, title) values ('api-test-write', 'x') returning 1 $$`)
-      await expect(run(readonlySql(tx, 'select pg_temp.api_test_write()'))).rejects.toThrow(/permission denied for table causes/)
+      await expect(run(readonlySql(tx, 'select pg_temp.api_test_write()'))).rejects.toThrow(
+        /permission denied for table causes/
+      )
     }))
   test('other schemas (sign-in data) are out of reach', () =>
     inRollback(async (tx) => {
       await productionGrants(tx)
-      await expect(run(readonlySql(tx, 'select count(*) from auth.users'))).rejects.toThrow(/permission denied for schema auth/)
+      await expect(run(readonlySql(tx, 'select count(*) from auth.users'))).rejects.toThrow(
+        /permission denied for schema auth/
+      )
     }))
   test('two statements are refused', () =>
     inRollback(async (tx) => {
@@ -97,20 +103,25 @@ describe('I24 only the service role runs read-only SQL', () => {
     inRollback(async (tx) => {
       await productionGrants(tx)
       await actAsAnon(tx)
-      await expect(run(tx`select execute_readonly_sql('select 1', 1)`)).rejects.toThrow(/permission denied for function/)
+      await expect(run(tx`select execute_readonly_sql('select 1', 1)`)).rejects.toThrow(
+        /permission denied for function/
+      )
     }))
   test('signed-in people are refused', () =>
     inRollback(async (tx) => {
       await productionGrants(tx)
       const me = await makeProfile(tx)
       await actAs(tx, me.id)
-      await expect(run(tx`select execute_readonly_sql('select 1', 1)`)).rejects.toThrow(/permission denied for function/)
+      await expect(run(tx`select execute_readonly_sql('select 1', 1)`)).rejects.toThrow(
+        /permission denied for function/
+      )
     }))
 })
 
 // A unit vector along one dimension: closer to itself than any real project's embedding is.
 const DIM = 3072
-const axis = (i: number) => `[${Array.from({ length: DIM }, (_, k) => (k === i ? 1 : 0)).join(',')}]`
+const axis = (i: number) =>
+  `[${Array.from({ length: DIM }, (_, k) => (k === i ? 1 : 0)).join(',')}]`
 async function embed(tx: Tx, projectId: string, vector: string, model = 'text-embedding-3-large') {
   await tx`insert into project_embeddings (project_id, embedding, model_name) values (${projectId}, ${vector}::vector, ${model})`
 }
@@ -131,7 +142,8 @@ describe('I25 searching by meaning leaves out hidden and drafts unless asked, at
     inRollback(async (tx) => {
       const v = axis(11)
       const p = await projectsAlong(tx, v, ['active', 'proposal', 'hidden', 'draft'])
-      const rows = await tx`select id, stage, similarity from search_projects_by_embedding(${v}::vector, 10)`
+      const rows =
+        await tx`select id, stage, similarity from search_projects_by_embedding(${v}::vector, 10)`
       const ids = rows.map((r: any) => r.id)
       expect(ids).toContain(p.active)
       expect(ids).toContain(p.proposal)
@@ -150,7 +162,8 @@ describe('I25 searching by meaning leaves out hidden and drafts unless asked, at
     inRollback(async (tx) => {
       const v = axis(13)
       const p = await projectsAlong(tx, v, ['active'])
-      const rows = await tx`select id, similarity from search_projects_by_embedding(${v}::vector, 500)`
+      const rows =
+        await tx`select id, similarity from search_projects_by_embedding(${v}::vector, 500)`
       expect(rows.length).toBeLessThanOrEqual(50)
       expect(rows[0].id).toBe(p.active)
       const sims = rows.map((r: any) => r.similarity)
@@ -158,8 +171,8 @@ describe('I25 searching by meaning leaves out hidden and drafts unless asked, at
     }))
 })
 
-describe('I26 similar projects: same model, not the project itself, not hidden', () => {
-  test('the closest projects, leaving out the project itself, hidden projects and other models', () =>
+describe('I26 similar projects: the closest by meaning among embeddings of the same model, other than the project itself', () => {
+  test('the closest projects of the same model, other than the project itself', () =>
     inRollback(async (tx) => {
       const v = axis(21)
       const p = await projectsAlong(tx, v, ['active', 'proposal', 'hidden'])

@@ -15,7 +15,15 @@ describe('S3 after signing in, only a path on this site', () => {
     )
   })
   test('another site, a protocol-relative address or nothing lands on the home page', () => {
-    for (const next of ['https://evil.example', '//evil.example', '/\\evil.example', 'evil', '', null, undefined]) {
+    for (const next of [
+      'https://evil.example',
+      '//evil.example',
+      '/\\evil.example',
+      'evil',
+      '',
+      null,
+      undefined,
+    ]) {
       expect(safeNext(next)).toBe('/')
     }
   })
@@ -31,7 +39,9 @@ describe('S21 /sso hands sessions only to Trace', () => {
     '/auth/handoff',
   ]) {
     test(`refuses next=${JSON.stringify(next)}`, async () => {
-      const res = await sso(new NextRequest(`http://localhost:3000/sso?next=${encodeURIComponent(next)}`))
+      const res = await sso(
+        new NextRequest(`http://localhost:3000/sso?next=${encodeURIComponent(next)}`)
+      )
       expect(res.status).toBe(400)
     })
   }
@@ -95,7 +105,14 @@ describe('S17 a ban deletes projects, comments, the profile, then the account', 
 })
 
 describe('S19 the spam filter bans accounts under 7 days old, hides the project otherwise', () => {
-  const project = { id: 'p1', title: 'Spam', slug: 'spam', creator: 'u1', description: null, blurb: null }
+  const project = {
+    id: 'p1',
+    title: 'Spam',
+    slug: 'spam',
+    creator: 'u1',
+    description: null,
+    blurb: null,
+  }
   const verdict = { is_spam: true, reason: 'pharmacy ad', model: 'test' } as any
   const daysAgo = (d: number) => new Date(Date.now() - d * 24 * 3600 * 1000).toISOString()
   const hide = `update projects {"stage":"hidden"} where id=p1`
