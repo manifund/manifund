@@ -144,4 +144,11 @@ describe('X8 after a trade, the offer’s amount goes down; taken in full, it’
     await updateBidFromTrade(offer(100), 100, client)
     expect(calls.update).toEqual({ amount: 0, status: 'accepted' })
   })
+  // Open question 4 (docs/ai-reference/dormant/README.md): only an exact match accepts the offer, so rounding leaves
+  // it pending with a few cents. Turn on when fixed.
+  test.skip('taken in full up to rounding: accepted, not left pending with cents (open question 4)', async () => {
+    const { client, calls } = fakeClient()
+    await updateBidFromTrade(offer(0.3), 0.1 + 0.2, client)
+    expect(calls.update?.status).toBe('accepted')
+  })
 })

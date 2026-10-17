@@ -14,6 +14,17 @@ describe('W15 the Mercury minimum: $1,000, or the whole balance when less', () =
     expect(mercuryMinWithdrawal(0.5)).toBe(0.5)
   })
 
+  // Open question "Withdrawing everything under $1,000 can be refused" (docs/ai-reference/deposits-withdrawals): the
+  // route compares the amount (the form sends the balance floored to cents) with the minimum of the raw balance,
+  // which can carry float dust. Turn on once the minimum comes from the balance in cents.
+  test.skip('withdrawing the whole balance, as the form sends it, meets the minimum (balances with float dust)', () => {
+    for (const rawBalance of [500.004, 499.9999999, 0.1 + 0.2 + 300]) {
+      const formSends = Math.floor(rawBalance * 100) / 100 // withdraw-request-form.tsx
+      const routeAmount = Math.round(formSends * 100) / 100 // mercury-withdraw/route.ts
+      expect(routeAmount >= mercuryMinWithdrawal(rawBalance)).toBe(true)
+    }
+  })
+
 })
 
 describe('W20 wires to India and the Philippines go to a person', () => {

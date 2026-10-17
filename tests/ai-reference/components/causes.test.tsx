@@ -67,6 +67,15 @@ describe('R16 EA Community Choice participants: $100 per role claimed', () => {
     expect(html).toContain('Quadratic matching fund $100000')
   })
 
+  // Open question 8 (docs/ai-reference/causes/README.md): the roles object includes the row's id, which counts as one
+  // more claimed role. Turn on once fixed.
+  test.skip('the id in the roles row is not counted as a role (open question 8)', () => {
+    const withId = [{ ...ada, roles: { id: 'd1', ...ada.roles } }, { ...ben, roles: { id: 'd2', ...ben.roles } }]
+    const html = text(renderToStaticMarkup(<Donors donors={withId as any} />))
+    expect(html).toContain('Ada - 200')
+    expect(html).toContain('Total $ claimed $300')
+  })
+
 })
 
 describe('R17 EA Community Choice matching: quadratic shares of the $100k pool', () => {
@@ -116,6 +125,21 @@ describe('R17 EA Community Choice matching: quadratic shares of the $100k pool',
       renderToStaticMarkup(<QuadraticMatch projects={projects} matchTxns={[txn('gone', 'x', 100)]} matchBids={[]} />)
     )
     expect(html).toContain('Hidden project 1 100')
+  })
+
+  // Open question 3 (docs/ai-reference/causes/README.md): offers count whatever their status, and an offer that
+  // became a donation counts twice. Turn on if the projection is fixed.
+  test.skip('declined offers don\'t count, and an accepted offer counts once with its donation (open question 3)', () => {
+    const html = text(
+      renderToStaticMarkup(
+        <QuadraticMatch
+          projects={projects}
+          matchTxns={[txn('p1', 'x', 100)]}
+          matchBids={[offer('p1', 'x', 100, IN, 'accepted'), offer('p1', 'y', 500, IN, 'declined')]}
+        />
+      )
+    )
+    expect(html).toContain('Many small donors 1 100 100000 100100')
   })
 
 })

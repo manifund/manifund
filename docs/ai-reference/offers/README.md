@@ -195,7 +195,8 @@ Found while writing this doc (2026-10-08). Vals reviewed them on 2026-10-08 (in 
 
 ## Tests
 
-Run locally: `bun run test:ai-reference` (unit, database, components); see `tests/ai-reference/README.md`. Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (routes,
+against a dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/offers.test.ts`): B9 and B18 (what counts toward the minimum), B16, B17, B18 (valuation).
 - **Database** (`tests/ai-reference/db/offers.test.ts`): B8 (only the bidder withdraws an offer), B11, B12, B13 (two
@@ -203,3 +204,6 @@ Run locally: `bun run test:ai-reference` (unit, database, components); see `test
 - **Logic** (`tests/ai-reference/unit/offers.test.ts`) also: B20-B22's limits (`utils/donation-limits.ts`).
 - **In main's tests** (`bun run test`): B4 and B8's server-only columns (`tests/db/bids-owner-edits.test.ts`), B11
   and B13 with the checked offers (`tests/db/activate-proposal.test.ts`), B23 (`tests/unit/activation-offers.test.ts`).
+- **Routes** (`tests/ai-reference/routes/offers.test.ts`): B1-B7, B20, B22 (what's left on the page), B8 (a withdrawn
+  offer frees the balance), B10 (an offer, then an admin's approval; the agreement signature is the agreements
+  area's).

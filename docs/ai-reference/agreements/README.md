@@ -159,7 +159,7 @@ Observed (code, 2026-10-08). Ids are stable once merged.
 
 - **A25** On a grant proposal's page, a strip shows the three requirements (sign the agreement, with a link to it;
   reach the minimum funding; Manifund's approval), each ticked when done. The creator of a grant in draft, proposal
-  or active sees a "Next steps" timeline instead, with the same steps plus publishing and withdrawing. Neither shows
+  or active sees a progress stepper instead (#304), with the same steps plus publishing and withdrawing. Neither shows
   while a project transfer is pending.
 - **A26** On a profile's list of projects, a grant proposal shows its next step: "unfunded" below its minimum, then
   "pending grant agreement signature" (a link to the agreement) until signed, then "pending admin approval".
@@ -231,7 +231,8 @@ For the team:
 
 ## Tests
 
-Run locally: see `tests/ai-reference/README.md`. Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (routes,
+against a dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks.
 
 - **Logic and documents** (`tests/ai-reference/unit/agreements.test.ts`,
   `tests/ai-reference/components/agreements.test.tsx`): A2-A6
@@ -240,3 +241,6 @@ Run locally: see `tests/ai-reference/README.md`. Each test names the rules it ch
 - **Database** (`tests/ai-reference/db/agreements.test.ts`): A2 and A9 (the tables' own checks), A16 (one agreement
   per token hash), A20, A21 (who can write the two tables, who can read the private one), A22 (the countersignature
   on its own agreement only).
+- **Routes** (`tests/ai-reference/routes/agreements.test.ts`): A1, A5-A19 (the signing flows end to end, including
+  activation on signing, B10), A22-A28. Signing-link tests send a link through the route, then store the hash of a
+  token the test knows.

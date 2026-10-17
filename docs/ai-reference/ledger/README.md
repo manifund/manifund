@@ -158,8 +158,11 @@ doc.
 
 ## Tests
 
-Run locally: see `tests/ai-reference/README.md`. Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (routes,
+against a dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/ledger.test.ts`): L1, L5-L7, L9, L17, `/finances`' balances matching L5
   (L21), and finding a transfer by email, ignoring case (L18).
 - **Database** (`tests/ai-reference/db/ledger.test.ts`): L2, L3, L4, L18 (the hand-over function).
+- **Routes** (`tests/ai-reference/routes/ledger.test.ts`): donations (L13-L16), the profile's balances (L12), a sign-up
+  claiming its grants through the webhook, also when sent with capitals (L18-L20), and `/finances` (L21-L23).

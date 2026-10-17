@@ -211,7 +211,8 @@ were reviewed for this doc.
 
 ## Tests
 
-Run locally: see `tests/ai-reference/README.md`. Each test names the rules it checks. Stripe and Mercury are never
+Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (routes,
+against a dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks. Stripe and Mercury are never
 called: keys are blank locally, and the in-process tests below answer for them.
 
 - **Logic** (`tests/ai-reference/unit/deposits-withdrawals.test.ts`): W15 (the minimum), W20 (which recipients need
@@ -226,3 +227,6 @@ called: keys are blank locally, and the in-process tests below answer for them.
   locally: Stripe's account lookup is blocked, Mercury refuses outside production), the success paths of W1, W11,
   W12 and W14, the crons' production behaviour (W23, W24), and what the deposit box asks in the browser (W1, W4,
   W6).
+- **Routes** (`tests/ai-reference/routes/deposits-withdrawals.test.ts`): W1, W2, W4, W8, W11, W12, W14, W18,
+  W23-W26, up to where Stripe or Mercury would be called, checking that nothing is recorded until then; moving cash
+  to charity (W26) end to end.

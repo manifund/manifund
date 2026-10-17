@@ -1,6 +1,12 @@
 // Who the ai-reference tests act as.
-// - The shared test accounts (personas): alice, bob, rita @local.test, from the local stack.
-// - The file's own people (`person('name')`): throwaway accounts made for one test file and deleted after it.
+// - The shared test accounts (personas): alice, bob, rita @local.test, from the local stack. Several test files run
+//   at once and other sessions use them too, so route tests only read through them. One exception: rita is the
+//   admin (admins come from the server's environment), so she may moderate and give verdicts.
+// - The file's own people (`person('name')`): throwaway accounts made for one test file and deleted after it. Use
+//   them for anyone who posts, reacts, reports, follows or gets notified. Their rate-limit windows, balances and
+//   notifications belong to that file alone.
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { sql } from './db'
 import { env } from './env'
 import { RUN } from './content'
@@ -20,6 +26,32 @@ export async function getPeople(): Promise<People> {
   }
   people = byName
   return people
+}
+
+// Full profiles for the personas (bio, About, a project, donations), so pages look like real ones. Run once
+// before a test run (routes/run.ts), not from each file: files run at the same time.
+export async function applyPersonas() {
+  await sql.unsafe(readFileSync(join(import.meta.dir, '..', 'fixtures', 'personas.sql'), 'utf8'))
+}
+
+// What a persona may send: nothing, except rita's admin actions (moderating a comment, closing reports, a verdict).
+const ADMIN_ACTIONS = [/^PATCH \/api\/comments\/[^/]+$/, /^DELETE \/api\/comments\/[^/]+$/,
+  /^POST \/api\/comments\/[^/]+\/resolve$/, /^POST \/api\/issue-grant-verdict$/]
+function personaGuard(who: Persona) {
+  return (method: string, path: string) => {
+    const action = `${method} ${path.split('?')[0]}`
+    if (who === 'rita' && ADMIN_ACTIONS.some((re) => re.test(action))) return
+    throw new Error(
+      `${who} is a shared test account: ${action} would change shared state. Use person('…') for someone who ` +
+        `writes.`
+    )
+  }
+}
+
+// A persona, signed in, read-only (except rita's admin actions above).
+export async function as(who: Persona): Promise<Client> {
+  const p = (await getPeople())[who]
+  return client(p.id, p.username, await cookieForEmail(p.email), personaGuard(who))
 }
 
 // A throwaway account for this file. Created through local Supabase Auth's admin API; deleteTempUsers() removes it

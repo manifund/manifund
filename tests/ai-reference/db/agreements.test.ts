@@ -138,6 +138,23 @@ describe('A22 the countersignature is the approval, on that project\'s agreement
       expect(row).toEqual({ approved_by: null, approved_at: null })
     }))
 
+  // Open question 1 (docs/ai-reference/agreements/README.md): the verdict updates the agreement only if its row
+  // exists, and signing later writes the row without the approval. Turn on when an approval given before signing
+  // shows on the signed agreement.
+  test.skip('an approval given before the agreement is signed still shows on it once signed (open question 1)', () =>
+    inRollback(async (tx) => {
+      const project = await makeProject(tx, p.alice.id, 'proposal', `${RUN}-approved-first`)
+      await verdict(tx, true, project.id, p.rita.id)
+      // What commitSignature (utils/grant-agreement-write.ts) writes when the creator then signs.
+      await tx`insert into grant_agreements (project_id, signed_at, recipient_name, project_title, version)
+               values (${project.id}, now(), 'Test Recipient', ${'Test project ' + RUN}, 3)
+               on conflict (project_id) do update set signed_at = excluded.signed_at,
+                 recipient_name = excluded.recipient_name, project_title = excluded.project_title,
+                 version = excluded.version`
+      const [row] = await tx`select approved_by, approved_at is not null as approved from grant_agreements
+                             where project_id = ${project.id}`
+      expect(row).toEqual({ approved_by: p.rita.id, approved: true })
+    }))
 })
 
 describe('A20 A21 an agreement goes with its project', () => {

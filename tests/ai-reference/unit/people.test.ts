@@ -12,6 +12,10 @@ describe('E12 a website shows as a link, with https:// added when missing', () =
     expect(addHttpToUrl('https://ann.example')).toBe('https://ann.example')
     expect(addHttpToUrl('http://ann.example')).toBe('http://ann.example')
   })
+  // Open question (people doc, "A website starting with http but not http://"): today it stays relative.
+  test.skip('E12 a domain that starts with "http" still gets https://', () => {
+    expect(addHttpToUrl('httpbin.example')).toBe('https://httpbin.example')
+  })
 })
 
 describe('E24 /people search: every word, in the name, the bio or one project title', () => {
@@ -28,3 +32,6 @@ describe('E24 /people search: every word, in the name, the bio or one project ti
     expect(searchInAny('', 'Ann Lee', '')).toBe(true)
   })
 })
+
+// Open question (people doc, "Usernames that are page names"): nothing refuses them today.
+test.todo('E6 a username that is a page name (e.g. "people") is refused when saving the profile', () => {})

@@ -67,3 +67,14 @@ export function client(
     del: write('DELETE'),
   }
 }
+
+export const anonymous = () => client('', '')
+
+// Fail fast with a clear message when the dev server isn't running.
+export async function requireServer() {
+  try {
+    await fetch(`${env.baseUrl}/api/comments`, { method: 'POST', body: '{}' })
+  } catch {
+    throw new Error(`no dev server at ${env.baseUrl}: start it with local-dev/poc.sh up comments`)
+  }
+}

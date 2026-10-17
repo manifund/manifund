@@ -178,9 +178,13 @@ Suspected bugs and unclear intent, found while backfilling (2026-10-08).
 
 ## Tests
 
-Run locally: see `tests/ai-reference/README.md`. Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (routes,
+against a dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/people.test.ts`): E12 (website links), E24 (search).
 - **Components** (`tests/ai-reference/components/people.test.tsx`): E12, E14-E16, E18 (profile header); E16, E18, E21-E24 (the
   people list); E19 (badges).
 - **Database** (`tests/ai-reference/db/people.test.ts`): E1-E5.
+- **Routes** (`tests/ai-reference/routes/people.test.ts`): E6, E9-E11, E13-E15, E17, E20, E25-E27. The leaderboard test
+  (E26) loads the whole page, about 20 s on a large database. E7 and E8 are `test.todo`: they're the form's own
+  checks in the browser (a browser test would cover them).

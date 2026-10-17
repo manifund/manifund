@@ -180,10 +180,15 @@ From the code's history; the "why" comes from PRs and commit messages where they
 
 ## Tests
 
-Run locally (not in CI yet): `bun run test:ai-reference` (`../README.md`). Each test names the rules it checks.
+Run locally: `bun run test:ai-reference` (unit, database, components) and `bun run test:ai-reference:routes` (routes,
+against a dev server); see `tests/ai-reference/README.md`. Each test names the rules it checks.
 
 - **Logic** (`tests/ai-reference/unit/admin.test.ts`): M1, M2 (`isAdmin` in development and production builds, in a
   child process each), M5 (the balance), M15, M16 (the dashboard addresses).
 - **Components** (`tests/ai-reference/components/admin.test.tsx`): M4, M5 (the users table), M9 (the projects table
   and when "Restore" shows), M13 (donations per organization).
 - **Database** (`tests/ai-reference/db/admin.test.ts`): M11 (new projects start unpaused).
+- **Routes** (`tests/ai-reference/routes/admin-tools.test.ts`, with the file's own people and projects; rita's admin
+  calls on those rows only): M3, M4 (the CSV), M6, M8, M10, M11, M14-M18; main's `tests/routes/admin.test.ts` also
+  checks M3 page by page. Not testable locally (`test.todo`): M12, which needs the daily closing check, a cron that
+  reads and closes every project.
