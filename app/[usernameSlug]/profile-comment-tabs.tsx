@@ -39,7 +39,7 @@ export function ProfileCommentTabs(props: {
             userProfile={userProfile}
             userCharityBalance={userCharityBalance}
             canStartThread={!isOwnProfile}
-            placeholder={`What is it like to work with ${firstName}?`}
+            placeholder={`What’s it like to work with ${firstName}? Share your experience as a grantee, collaborator, or colleague. Please don’t use this to pitch projects or ask for funding.`}
             emptyText="No comments yet."
           />
         </section>
