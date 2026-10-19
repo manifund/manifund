@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { FullProject, listProjects } from './project'
-import { projectHotScore, ProjectKarmaBreakdown } from '@/utils/karma'
+import { aiRankingScore, projectHotScore, ProjectKarmaBreakdown } from '@/utils/karma'
 import { isLikelyAiWritten, SLOP_FUNDING_EXEMPTION_DOLLARS } from '@/utils/slop'
 
 // Top projects by stored karma, decayed by age (see utils/karma.ts). Karma is
@@ -11,7 +11,9 @@ export async function getHotProjects(
 ): Promise<FullProject[]> {
   const { data } = await supabase
     .from('projects')
-    .select('id, created_at, karma, karma_breakdown, ai_fraction')
+    .select(
+      'id, created_at, karma, karma_breakdown, ai_fraction, project_ai_evals(score, created_at)'
+    )
     .neq('stage', 'hidden')
     .neq('stage', 'draft')
     .order('karma', { ascending: false })
@@ -29,7 +31,13 @@ export async function getHotProjects(
     return {
       id: p.id,
       createdAt: new Date(p.created_at).getTime(),
-      hot: projectHotScore(p.karma, p.created_at, breakdown?.acceptingDonations ?? true, now),
+      hot: projectHotScore(
+        p.karma,
+        p.created_at,
+        breakdown?.acceptingDonations ?? true,
+        aiRankingScore(p.project_ai_evals),
+        now
+      ),
     }
   })
   scored.sort((a, b) => b.hot - a.hot || b.createdAt - a.createdAt)
