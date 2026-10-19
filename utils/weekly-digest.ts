@@ -611,10 +611,10 @@ const generateCommentItem = (comment: NotableComment): string => {
           projectSlug
         )}">${escapeHtml(projectTitle)}</a></span>
       </div>
-      <div class="summary">${escapeHtml(commentText)}</div>
-      <div class="reactions">${reactionHtml ? `${reactionHtml}&nbsp;&nbsp;·&nbsp;&nbsp;` : ''}<a href="${escapeHtml(
+      <div class="summary">${escapeHtml(commentText)}&nbsp;<a href="${escapeHtml(
         commentUrl(comment)
-      )}" style="color:#ea580c;text-decoration:none;">View comment</a></div>
+      )}" title="Open this comment on Manifund" aria-label="Open this comment on Manifund" style="color:#ea580c;text-decoration:none;font-weight:600;">&#8599;</a></div>
+      ${reactionHtml ? `<div class="reactions">${reactionHtml}</div>` : ''}
     </div>
   `
 }
