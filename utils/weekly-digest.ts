@@ -7,7 +7,6 @@ import { getUserEmail } from './email'
 import { getSponsoredAmount } from './constants'
 import { toPlaintext } from './tiptap-parsing'
 import { aiRankingScore } from './karma'
-import { pointScore } from './sort'
 import {
   closesAt,
   DIGEST_PROJECT_RULES,
@@ -59,12 +58,6 @@ interface WeekRange {
 }
 
 // Constants
-const DEFAULT_DIGEST_RECIPIENTS = [
-  'austin@manifund.org',
-  'rachel.weinberg12@gmail.com',
-  // Add more emails here as needed
-]
-
 const NOTABLE_GRANT_THRESHOLD = 1000
 const LARGE_DONOR_THRESHOLD = 1000
 
@@ -490,45 +483,22 @@ export async function getLargeDonorsEmails(
   return Array.from(new Set(emails.filter((email): email is string => email !== null)))
 }
 
-// This is about the top 150 projects
-const TOP_CREATOR_MIN_SCORE = 40
+// Everyone active enough on Manifund to want the digest, beyond donors and regrantors
+const DIGEST_MIN_KARMA = 50
 
-export async function getTopCreatorEmails(
+export async function getHighKarmaEmails(
   supabase: SupabaseClient,
-  minScore = TOP_CREATOR_MIN_SCORE
+  minKarma = DIGEST_MIN_KARMA
 ): Promise<string[]> {
-  const { data: projects } = await supabase
-    .from('projects')
-    .select(
-      `
-      id, title, creator, created_at, stage, type, funding_goal,
-      profiles!projects_creator_fkey(id, full_name, username),
-      project_votes(magnitude),
-      comments(id),
-      bids(amount, status, type),
-      txns(amount, type, token, to_id)
-    `
-    )
-    .neq('stage', 'hidden')
-    .neq('stage', 'draft')
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id')
+    .gte('karma', minKarma)
     .throwOnError()
-
-  if (!projects?.length) return []
-
-  const scored = projects
-    .map((p) => ({
-      creatorId: p.creator,
-      score: pointScore(p as any),
-    }))
-    .filter((p) => p.score >= minScore)
-    .sort((a, b) => b.score - a.score)
-
-  const topCreatorIds = Array.from(new Set(scored.map((p) => p.creatorId)))
-
-  const users = await selectByIdsChunked<{ email: string | null }>(topCreatorIds, (chunk) =>
-    supabase.from('users').select('email').in('id', chunk)
+  const users = await selectByIdsChunked<{ email: string | null }>(
+    (profiles ?? []).map((p) => p.id),
+    (chunk) => supabase.from('users').select('email').in('id', chunk)
   )
-
   return users.map((u) => u.email).filter((email): email is string => email !== null)
 }
 
@@ -807,30 +777,30 @@ export async function sendWeeklyDigest(supabase: SupabaseClient): Promise<void> 
     `Found ${highlyRated.length} highly rated, ${projects.length} new projects, ${notableComments.length} notable comments, ${notableGrants.length} notable grants`
   )
 
+  // Karma 50+, $1,000+ deposited, or a regrantor (N8)
   const recipients = [
-    ...DEFAULT_DIGEST_RECIPIENTS,
+    ...(await getHighKarmaEmails(supabase)),
     ...(await getLargeDonorsEmails(supabase)),
     ...(await getRegrantorEmails(supabase)),
-    ...(await getTopCreatorEmails(supabase)),
   ]
-  const uniqueRecipients = new Set(recipients)
+  const uniqueRecipients = new Set(recipients.map((email) => email.toLowerCase()))
 
-  const batchEmails = Array.from(uniqueRecipients)
-    // Cap at 500 recipients due to Postmark limit
-    .slice(0, 500)
-    .map((email) => ({
-      toEmail: email,
-      subject,
-      htmlBody,
-      textBody,
-      fromEmail: 'Manifund Digest <digest@manifund.org>',
-      messageStream: 'broadcast' as const,
-    }))
+  const batchEmails = Array.from(uniqueRecipients).map((email) => ({
+    toEmail: email,
+    subject,
+    htmlBody,
+    textBody,
+    fromEmail: 'Manifund Digest <digest@manifund.org>',
+    messageStream: 'broadcast' as const,
+  }))
 
-  try {
-    await sendBatchEmail(batchEmails)
-    console.log(`Weekly digest sent to ${recipients.length} recipients via batch API`)
-  } catch (error) {
-    console.error('Failed to send weekly digest batch:', error)
+  // Postmark takes at most 500 messages per batch call
+  for (let i = 0; i < batchEmails.length; i += 500) {
+    try {
+      await sendBatchEmail(batchEmails.slice(i, i + 500))
+    } catch (error) {
+      console.error('Failed to send weekly digest batch:', error)
+    }
   }
+  console.log(`Weekly digest sent to ${batchEmails.length} recipients via batch API`)
 }
