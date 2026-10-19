@@ -27,7 +27,7 @@ pages, the homepage or the weekly digest comes later. The prompt was chosen by t
 - **P5** Evaluations are public, like the rest of a project's data.
 - **P6** When the model declines to evaluate a project (some biosecurity proposals), that is recorded and not
   retried for the same text.
-- **P8** The first time a project is evaluated 4 or 5, it is posted to the team's Discord with its score, chance
+- **P8** The first time a project is evaluated 4 or 5, it is posted to the team's Discord alerts channel with its score, chance
   of reaching its minimum, and Claude's opinion. Later evaluations of the same project don't post again.
 
 ## Stage

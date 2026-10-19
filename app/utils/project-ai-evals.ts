@@ -2,7 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 import { createProjectScoringText } from '@/app/utils/project-scores'
 import { log } from '@/lib/log'
-import { sendDiscordMessage } from '@/utils/discord'
+import { sendDiscordAlert } from '@/utils/discord'
 
 // Claude reads each project the way a donor would see it (text, amounts, creator; no votes,
 // comments or money raised), gives a 1-5 merit score, a short opinion, and the probability it
@@ -126,7 +126,7 @@ async function postTopRated(
     `Claude: ${output.score}/5 · ${Math.round(output.p_min_funding * 100)}% chance of reaching its minimum · min ${usd(p.min_funding)}, goal ${usd(p.funding_goal)}`,
     `> ${output.opinion}`,
   ].join('\n')
-  await sendDiscordMessage(process.env.DISCORD_TOP_PROJECTS_WEBHOOK_URL, message.slice(0, 2000))
+  await sendDiscordAlert(message.slice(0, 2000))
 }
 
 type CallResult =
