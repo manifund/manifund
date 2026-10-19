@@ -3,6 +3,7 @@ import { FullProject } from '@/db/project'
 import { sendEmail, sendBatchEmail } from './email'
 import { pointScore, countVotes } from './sort'
 import { getAmountRaised } from './math'
+import { formatMoney } from './formatting'
 import { getUserEmail } from './email'
 import { getSponsoredAmount } from './constants'
 import { toPlaintext } from './tiptap-parsing'
@@ -521,27 +522,45 @@ export async function getTopCreatorEmails(
 }
 
 // Content generation functions
-const generateProjectItem = (project: FullProject): string => {
-  const upvotes = project.project_votes.reduce((acc, vote) => acc + vote.magnitude, 0)
-  const commentCount = project.comments.length
-  const creatorName = getDisplayName(project.profiles)
-  const summary = project.blurb
+// A card like the homepage's ProjectCard, in inline styles and tables so email clients keep it
+const generateProjectCard = (project: FullProject): string => {
+  const url = `https://manifund.org/projects/${escapeHtml(project.slug)}`
+  const name = getDisplayName(project.profiles)
   const raised = getAmountRaised(project, project.bids, project.txns)
-
+  const goal = project.funding_goal
+  const percent = goal > 0 ? Math.min((raised / goal) * 100, 100) : 0
+  const showBar = project.stage === 'proposal' || project.stage === 'active'
+  const avatarUrl = (project.profiles as { avatar_url?: string | null } | undefined)?.avatar_url
+  const avatar = avatarUrl
+    ? `<img src="${escapeHtml(avatarUrl)}" width="24" height="24" alt="" style="display:inline-block;width:24px;height:24px;border-radius:12px;vertical-align:middle;object-fit:cover;" />`
+    : `<span style="display:inline-block;width:24px;height:24px;border-radius:12px;background:#ffedd5;color:#c2410c;font-size:12px;font-weight:600;line-height:24px;text-align:center;vertical-align:middle;">${escapeHtml(name.charAt(0).toUpperCase())}</span>`
+  const causes = (project.causes ?? [])
+    .map(
+      (c) =>
+        `<span style="display:inline-block;margin:0 4px 4px 0;padding:0 8px;border-radius:999px;background:#f3f4f6;color:#1f2937;font-size:12px;font-weight:300;line-height:20px;white-space:nowrap;">${escapeHtml(c.title)}</span>`
+    )
+    .join('')
+  const bar = showBar
+    ? `<div style="height:6px;border-radius:999px;background:#e5e7eb;margin:8px 0 6px;"><div style="height:6px;width:${percent > 0 ? Math.max(percent, 1.5) : 0}%;border-radius:999px;background:#f97316;"></div></div>`
+    : ''
+  const money = `${formatMoney(raised)}${project.stage === 'proposal' ? ` / ${formatMoney(goal)}` : ' raised'}`
   return `
-    <div class="item">
-      <div class="title"><a href="https://manifund.org/projects/${escapeHtml(
-        project.slug
-      )}">${escapeHtml(
-        project.title
-      )}</a> <span class="creator">by ${escapeHtml(creatorName)}</span></div>
-      ${summary ? `<div class="summary">${escapeHtml(summary)}</div>` : ''}
-      <div class="stats">
-        <span>${upvotes} ⬆️</span>
-        <span>${commentCount} 💬</span>
-        <span>💰 $${raised} / $${project.funding_goal}</span>
-      </div>
-    </div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px;background:#ffffff;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+      <tr><td style="padding:10px 16px 10px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td style="font-size:14px;color:#374151;">${avatar}&nbsp;&nbsp;<span style="vertical-align:middle;">${escapeHtml(name)}</span></td>
+          <td align="right" style="font-size:14px;font-weight:600;color:#c2410c;white-space:nowrap;">&#9733; ${Math.round(project.karma ?? 0)}</td>
+        </tr></table>
+        <a href="${url}" style="display:block;margin:10px 0 2px;color:#111827;font-size:18px;font-weight:500;line-height:1.25;letter-spacing:-0.01em;text-decoration:none;">${escapeHtml(project.title)}</a>
+        ${project.blurb ? `<div style="margin:0 0 8px;color:#6b7280;font-size:14px;font-weight:300;line-height:1.4;">${escapeHtml(project.blurb)}</div>` : ''}
+        ${causes ? `<div style="margin:4px 0 0;">${causes}</div>` : ''}
+        ${bar}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+          <td style="font-size:14px;color:#9ca3af;"><a href="${url}#tabs" style="color:#9ca3af;text-decoration:none;">&#128172; ${project.comments.length}</a></td>
+          <td align="right" style="font-size:14px;color:#9ca3af;">${money}</td>
+        </tr></table>
+      </td></tr>
+    </table>
   `
 }
 
@@ -637,8 +656,8 @@ export function generateHtmlDigest(
   const projectsSection =
     projects.length > 0
       ? `
-      <div class="section">
-        ${projects.map(generateProjectItem).join('')}
+      <div class="section" style="background:#f9fafb;border-radius:8px;padding:12px;">
+        ${projects.map(generateProjectCard).join('')}
       </div>
       <div style="text-align: center;">
         <a href="https://manifund.org/projects" class="cta-button">View all projects</a>
