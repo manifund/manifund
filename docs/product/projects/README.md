@@ -32,7 +32,7 @@ evaluations on pages or in the weekly digest comes later. The prompt was chosen 
 - **P9** The homepage top sort adds a head start to a project's karma from its AI score (1: -1, 2: +1, 3: +3,
   4: +10, 5: +15; `aiScoreBoost` in `utils/karma.ts`) before the age decay, so new projects start from Claude's
   judgment and community karma takes over as it builds. Karma itself stays human-only. The score used is the latest
-  evaluation but at most one above the first, so repeated edits can't lift a project far.
+  evaluation.
 
 ## Stage
 

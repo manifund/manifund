@@ -167,15 +167,11 @@ export function quadraticDonationScore(
 
 export type AiEvalScore = { score: number | null; created_at: string }
 
-// The AI score the homepage ranks by: the latest evaluation, but at most one point above the
-// first, so editing a proposal until the model likes it can't lift it far.
+// The AI score the homepage ranks by: the latest evaluation the model didn't decline.
 export function aiRankingScore(evals: AiEvalScore[] | null | undefined) {
-  const scores = [...(evals ?? [])]
-    .sort((a, b) => a.created_at.localeCompare(b.created_at))
-    .map((e) => e.score)
-    .filter((s): s is number => s != null)
-  if (scores.length === 0) return null
-  return Math.min(scores[scores.length - 1], scores[0] + 1)
+  const scored = (evals ?? []).filter((e) => e.score != null)
+  if (scored.length === 0) return null
+  return scored.reduce((a, b) => (b.created_at > a.created_at ? b : a)).score
 }
 
 export function projectHotScore(
