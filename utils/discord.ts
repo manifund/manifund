@@ -8,7 +8,8 @@ export async function sendDiscordAlert(message: string) {
     await fetch(webhookUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content: message }),
+      // Never ping: alerts can quote user text such as project titles
+      body: JSON.stringify({ content: message, allowed_mentions: { parse: [] } }),
     })
   } catch (e) {
     console.error('Failed to send Discord alert', e)
