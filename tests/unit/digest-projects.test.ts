@@ -49,7 +49,7 @@ describe('P10 new this week in the weekly digest', () => {
   })
 })
 
-describe('P10 highly rated, still raising in the weekly digest', () => {
+describe('P10 featured projects in the weekly digest', () => {
   const rated = (over: Partial<FullProject> = {}) =>
     project({ created_at: daysAgo(20), project_ai_evals: evals([4, 20]), ...over })
   test('shows a 4-5 proposal below its minimum in the week it first qualifies', () => {

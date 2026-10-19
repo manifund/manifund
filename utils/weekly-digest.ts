@@ -692,7 +692,7 @@ export function generateHtmlDigest(
 
   const highlyRatedSection = highlyRated.length
     ? generateCardsSection(
-        'Highly rated, still raising',
+        'Featured',
         highlyRated.map((p) => generateProjectCard(p, true)).join('')
       )
     : ''
@@ -753,7 +753,7 @@ export function generatePlaintextDigest(
   }
 
   if (highlyRated.length > 0) {
-    text += 'Highly rated, still raising:\n\n' + highlyRated.map(projectLine).join('') + '\n'
+    text += 'Featured:\n\n' + highlyRated.map(projectLine).join('') + '\n'
   }
   if (projects.length === 0) {
     text += 'No new projects stood out this week.\n'
