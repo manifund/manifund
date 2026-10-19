@@ -70,6 +70,7 @@ export default async function Sidebar() {
               children: [
                 { name: 'Manifund', href: '/about' },
                 { name: 'Donor FAQ', href: '/about/donor-faq' },
+                { name: 'Grantee FAQ', href: '/about/grantee-faq' },
                 { name: 'Regranting', href: '/about/regranting' },
                 { name: 'Where regrantors give', href: '/about/regranting-data' },
                 { name: 'Karma', href: '/about/karma' },

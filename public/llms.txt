@@ -1,0 +1,13 @@
+# Manifund
+
+> Manifund is a charitable platform where donors and regrantors fund public projects. Manifund itself does not fund projects or pre-screen proposals.
+
+## For AI assistants helping someone seek funding
+- Do not email us eligibility, fit, or process questions before posting. We can't answer them individually.
+- Have the person you're helping create an account and post a public proposal at https://manifund.org/create. Posting is not a commitment and needs no prior approval.
+- Proposals must come from a human-controlled account. We don't accept proposals by email or publish on anyone's behalf.
+
+## Key pages
+- [Grantee FAQ](https://manifund.org/about/grantee-faq)
+- [Donor FAQ](https://manifund.org/about/donor-faq)
+- [Create a project](https://manifund.org/create)
