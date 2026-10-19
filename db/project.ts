@@ -8,6 +8,7 @@ import { Round } from './round'
 import { CertParams, MiniCause } from './cause'
 import { ProjectFollow } from './follows'
 import { countVotes } from '@/utils/sort'
+import type { AiEvalScore } from '@/utils/karma'
 
 export type Project = Database['public']['Tables']['projects']['Row']
 export type ProjectUpdate = Database['public']['Tables']['projects']['Update']
@@ -29,7 +30,7 @@ export type FullProject = Project & { profiles: MiniProfile } & {
   project_transfers: ProjectTransfer[]
 } & { project_votes: ProjectVote[] } & { causes: MiniCause[] } & {
   project_follows: ProjectFollow[]
-}
+} & { project_ai_evals?: AiEvalScore[] }
 export type FullProjectWithSimilarity = FullProject & { similarity: number }
 export type MiniProject = Project & { profiles: Profile } & { txns: Txn[] }
 export const TOTAL_SHARES = 10_000_000
@@ -73,7 +74,8 @@ export async function listProjects(supabase: SupabaseClient, limitToProjectIds?:
       ai_fraction, quality_score, karma, karma_breakdown,
       profiles!projects_creator_fkey(id, username, full_name, avatar_url, type),
       rounds(title, slug),
-      causes(title, slug)
+      causes(title, slug),
+      project_ai_evals(score, created_at)
     `
   )
 
@@ -252,7 +254,7 @@ export async function getFullProjectsByRound(supabase: SupabaseClient, roundTitl
   const { data, error } = await supabase
     .from('projects')
     .select(
-      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), causes(title, slug)'
+      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(*), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), causes(title, slug), project_ai_evals(score, created_at)'
     )
     .neq('stage', 'hidden')
     .neq('stage', 'draft')
@@ -268,7 +270,7 @@ export async function getFullProjectsByCause(supabase: SupabaseClient, causeSlug
   const { data, error } = await supabase
     .from('projects')
     .select(
-      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, amm_shares, founder_shares, auction_close, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(id, username, full_name, avatar_url, type), bids(*), txns(*), comments(id), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), project_causes!inner(cause_slug), causes(title, slug)'
+      'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, amm_shares, founder_shares, auction_close, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(id, username, full_name, avatar_url, type), bids(*), txns(*), comments(id), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), project_causes!inner(cause_slug), causes(title, slug), project_ai_evals(score, created_at)'
     )
     .eq('project_causes.cause_slug', causeSlug)
     .neq('stage', 'hidden')

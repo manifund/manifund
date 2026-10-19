@@ -12,8 +12,8 @@ offers that were checked.
 ## AI evaluation
 
 Claude reads each project as a donor would see it and records a 1-5 merit score, a 2-4 sentence opinion, and the
-probability it reaches its minimum funding. For now these are only recorded (`project_ai_evals`); showing them on
-pages, the homepage or the weekly digest comes later. The prompt was chosen by testing on closed proposals
+probability it reaches its minimum funding (`project_ai_evals`). The score feeds the homepage's top sort; showing
+evaluations on pages or in the weekly digest comes later. The prompt was chosen by testing on closed proposals
 (`tools/proposal-eval`).
 
 - **P1** Projects posted on or after 1 July 2026 are evaluated; earlier ones aren't, since the model may have seen
@@ -29,6 +29,10 @@ pages, the homepage or the weekly digest comes later. The prompt was chosen by t
   retried for the same text.
 - **P8** The first time a project is evaluated 4 or 5, it is posted to the team's Discord alerts channel with its score, chance
   of reaching its minimum, and Claude's opinion. Later evaluations of the same project don't post again.
+- **P9** The homepage top sort adds a head start to a project's karma from its AI score (1: -1, 2: +1, 3: +3,
+  4: +10, 5: +15; `aiScoreBoost` in `utils/karma.ts`) before the age decay, so new projects start from Claude's
+  judgment and community karma takes over as it builds. Karma itself stays human-only. The score used is the latest
+  evaluation.
 
 ## Stage
 

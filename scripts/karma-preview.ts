@@ -7,14 +7,14 @@ import { parseArgs } from 'util'
 import { createAdminClient } from '@/db/edge'
 import { loadKarmaInputs } from '@/db/karma'
 import { listProjects } from '@/db/project'
-import { hotScore } from '@/utils/sort'
 import { isSlopProject } from '@/utils/slop'
-import { sortBy } from 'es-toolkit'
 import {
+  aiRankingScore,
   computeKarma,
   KARMA_CONFIG,
   KarmaConfig,
   projectHotScore,
+  AiEvalScore,
   ProfileKarmaBreakdown,
   ProjectKarmaBreakdown,
 } from '@/utils/karma'
@@ -91,31 +91,40 @@ async function main() {
 
   const people = [...result.profiles.entries()].sort((a, b) => b[1].karma - a[1].karma)
   const projects = [...result.projects.entries()].sort((a, b) => b[1].karma - a[1].karma)
-  console.log('Loading current hot ranking for comparison...')
-  // Mirror the homepage: it hides slop projects by default, then sorts the rest by hotScore.
-  // Both rankings below exclude the same slop set.
+  // Mirror the homepage: it hides slop projects by default. Both rankings exclude the same set.
   const allProjects = await listProjects(supabase)
   const slopIds = new Set(allProjects.filter(isSlopProject).map((p) => p.id))
-  const currentHot = sortBy(
-    allProjects.filter((p) => !slopIds.has(p.id)),
-    [hotScore]
-  ).slice(0, 30)
+
+  const { data: evals } = await supabase
+    .from('project_ai_evals')
+    .select('project_id, score, created_at')
+    .throwOnError()
+  const evalsByProject = new Map<string, AiEvalScore[]>()
+  for (const e of evals ?? []) {
+    evalsByProject.set(e.project_id, [...(evalsByProject.get(e.project_id) ?? []), e])
+  }
+  const aiScore = new Map([...evalsByProject].map(([id, es]) => [id, aiRankingScore(es)] as const))
 
   const now = Date.now()
-  const hot = [...result.projects.entries()]
-    .filter(([id]) => !slopIds.has(id))
-    .map(([id, r]) => ({
-      id,
-      karma: r.karma,
-      hot: projectHotScore(
-        r.karma,
-        projectById.get(id)!.created_at,
-        r.breakdown.acceptingDonations,
-        now,
-        config
-      ),
-    }))
-    .sort((a, b) => b.hot - a.hot)
+  const rank = (withAi: boolean) =>
+    [...result.projects.entries()]
+      .filter(([id]) => !slopIds.has(id))
+      .map(([id, r]) => ({
+        id,
+        karma: r.karma,
+        ai: aiScore.get(id) ?? null,
+        hot: projectHotScore(
+          r.karma,
+          projectById.get(id)!.created_at,
+          r.breakdown.acceptingDonations,
+          withAi ? aiScore.get(id) : null,
+          now,
+          config
+        ),
+      }))
+      .sort((a, b) => b.hot - a.hot)
+  const hot = rank(true)
+  const currentHot = rank(false).slice(0, 30)
 
   const personRow = (
     rank: number | string,
@@ -197,42 +206,56 @@ async function main() {
   const sections: (Table | string)[] = [
     `# Karma preview (${new Date().toISOString()})\n\nRow counts: ${JSON.stringify(counts)}\nIterations: ${result.iterations}, converged: ${result.converged}\n\nConfig:\n${JSON.stringify(config, null, 2)}`,
     {
-      title: 'Homepage: new karma sort vs. current hot sort (top 30)',
-      headers: ['#', 'NEW: project', 'karma', 'hot', 'CURRENT: project', 'hotScore', 'new rank'],
+      title: 'Homepage: karma + AI score vs. karma only (top 30)',
+      headers: [
+        '#',
+        'WITH AI: project',
+        'AI',
+        'karma',
+        'hot',
+        'KARMA ONLY: project',
+        'AI',
+        'hot',
+        'rank with AI',
+      ],
       rows: newTop30.map((h, i) => {
         const p = projectById.get(h.id)!
         const c = currentHot[i]
+        const cp = c && projectById.get(c.id)!
         return [
           i + 1,
           `${p.title} [${p.stage}${result.projects.get(h.id)!.breakdown.acceptingDonations ? '' : ', closed'}]`,
+          h.ai ?? '-',
           fmt(h.karma),
           h.hot.toFixed(3),
-          c ? `${c.title} [${c.stage}]` : '',
-          c ? (-hotScore(c)).toFixed(3) : '',
+          cp ? `${cp.title} [${cp.stage}]` : '',
+          c ? (c.ai ?? '-') : '',
+          c ? c.hot.toFixed(3) : '',
           c ? (hotRank.get(c.id) ?? '-') : '',
         ]
       }),
     },
     {
       title: 'Moved into top 30 (new only)',
-      headers: ['new #', 'Project', 'Creator', 'karma'],
+      headers: ['new #', 'Project', 'Creator', 'AI', 'karma'],
       rows: newTop30
         .filter((h) => !currentIds.has(h.id))
         .map((h) => {
           const p = projectById.get(h.id)!
-          return [hotRank.get(h.id)!, p.title, name(p.creator), fmt(h.karma)]
+          return [hotRank.get(h.id)!, p.title, name(p.creator), h.ai ?? '-', fmt(h.karma)]
         }),
     },
     {
       title: 'Dropped out of top 30 (current only)',
-      headers: ['current #', 'Project', 'new #', 'karma'],
+      headers: ['current #', 'Project', 'new #', 'AI', 'karma'],
       rows: currentHot
         .filter((c) => !newIds.has(c.id))
-        .map((c, i) => [
+        .map((c) => [
           currentHot.indexOf(c) + 1,
-          c.title,
+          projectById.get(c.id)!.title,
           hotRank.get(c.id) ?? '-',
-          fmt(result.projects.get(c.id)?.karma ?? 0),
+          c.ai ?? '-',
+          fmt(c.karma),
         ]),
     },
     {

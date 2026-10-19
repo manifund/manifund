@@ -1,6 +1,6 @@
 import { FullProject } from '@/db/project'
 import { getAmountRaised } from '@/utils/math'
-import { isAcceptingDonations, projectHotScore } from '@/utils/karma'
+import { aiRankingScore, isAcceptingDonations, projectHotScore } from '@/utils/karma'
 
 export function pointScore(project: FullProject) {
   // Rough heuristic for how good a project is:
@@ -32,10 +32,15 @@ export function hotScore(project: FullProject) {
   return -score
 }
 
-// Homepage sort: stored karma decayed by age. Negated so sortBy() ascending puts hottest first.
+// Homepage sort: stored karma plus the AI score head start, decayed by age. Negated so sortBy() ascending puts hottest first.
 export function karmaHotScore(project: FullProject) {
   const raised = getAmountRaised(project, project.bids, project.txns)
-  return -projectHotScore(project.karma, project.created_at, isAcceptingDonations(project, raised))
+  return -projectHotScore(
+    project.karma,
+    project.created_at,
+    isAcceptingDonations(project, raised),
+    aiRankingScore(project.project_ai_evals)
+  )
 }
 
 export const countVotes = (project: FullProject) =>

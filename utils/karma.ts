@@ -30,6 +30,9 @@ export const KARMA_CONFIG = {
   // homepage only: multiplier for projects no longer accepting donations
   // (complete / not funded, or a grant that has reached its funding goal)
   closedProjectMultiplier: 0.2,
+  // homepage only: added to a project's karma by its AI evaluation score (1-5), so new projects
+  // start from Claude's judgment and community karma takes over as it builds up
+  aiScoreBoost: { 1: -1, 2: 1, 3: 3, 4: 10, 5: 15 } as Record<number, number>,
   maxIterations: 10,
   convergenceEpsilon: 0.01,
   excludedProjectStages: ['hidden', 'draft'],
@@ -162,16 +165,27 @@ export function quadraticDonationScore(
   return score
 }
 
+export type AiEvalScore = { score: number | null; created_at: string }
+
+// The AI score the homepage ranks by: the latest evaluation the model didn't decline.
+export function aiRankingScore(evals: AiEvalScore[] | null | undefined) {
+  const scored = (evals ?? []).filter((e) => e.score != null)
+  if (scored.length === 0) return null
+  return scored.reduce((a, b) => (b.created_at > a.created_at ? b : a)).score
+}
+
 export function projectHotScore(
   karma: number | null | undefined,
   createdAt: string,
   acceptingDonations: boolean,
+  aiScore: number | null | undefined,
   now: number = Date.now(),
   config: KarmaConfig = KARMA_CONFIG
 ) {
   const ageDays = Math.max(0, now - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24)
   const multiplier = acceptingDonations ? 1 : config.closedProjectMultiplier
-  return ((karma ?? 0) * multiplier) / (ageDays + 1) ** config.hotAgeExponent
+  const boosted = Math.max(0, (karma ?? 0) + (config.aiScoreBoost[aiScore ?? 0] ?? 0))
+  return (boosted * multiplier) / (ageDays + 1) ** config.hotAgeExponent
 }
 
 // Same rule as the project page's DonateBox: open stage, and grants must be under goal.
