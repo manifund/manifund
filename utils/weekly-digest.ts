@@ -35,8 +35,11 @@ interface NotableGrant {
   id: string
   amount: number
   // Bids are pledges to proposal-stage projects; donations are completed txns
-  // to active projects. Both count as notable grants.
-  kind: 'bid' | 'donation'
+  // to active projects. Both count as notable grants. A donor's grants to one
+  // project in the week are combined; 'mixed' means some of each.
+  kind: 'bid' | 'donation' | 'mixed'
+  donorId: string
+  projectId: string
   createdAt: string
   profiles?: { username?: string; full_name?: string }
   projects?: { title?: string; slug?: string }
@@ -357,8 +360,25 @@ export async function getNotableGrantsLastWeek(
       .in('project', chunk)
       .eq('status', 'accepted')
   )
+  // Match over each project's whole donation history, oldest first: a bid converted in an
+  // earlier week must not claim a later, unrelated donation of the same amount.
+  const allDonations = await selectByIdsChunked<{
+    id: string
+    from_id: string
+    project: string
+    amount: number
+    created_at: string
+  }>(donationProjectIds, (chunk) =>
+    supabase
+      .from('txns')
+      .select('id, from_id, project, amount, created_at')
+      .in('project', chunk)
+      .eq('type', 'project donation')
+      .eq('token', 'USD')
+  )
   const unmatchedBids = [...acceptedBids]
-  const isConvertedBid = (txn: any) => {
+  const convertedTxnIds = new Set<string>()
+  for (const txn of allDonations.sort((a, b) => a.created_at.localeCompare(b.created_at))) {
     const idx = unmatchedBids.findIndex(
       (bid) =>
         bid.bidder === txn.from_id &&
@@ -366,10 +386,11 @@ export async function getNotableGrantsLastWeek(
         bid.amount === txn.amount &&
         bid.created_at <= txn.created_at
     )
-    if (idx === -1) return false
+    if (idx === -1) continue
     unmatchedBids.splice(idx, 1)
-    return true
+    convertedTxnIds.add(txn.id)
   }
+  const isConvertedBid = (txn: any) => convertedTxnIds.has(txn.id)
 
   const grants: NotableGrant[] = [
     ...(bids ?? []).map((bid: any) => ({
@@ -378,6 +399,8 @@ export async function getNotableGrantsLastWeek(
       // An accepted bid has already turned into a donation; say so
       kind: (bid.status === 'accepted' ? 'donation' : 'bid') as NotableGrant['kind'],
       createdAt: bid.created_at,
+      donorId: bid.bidder,
+      projectId: bid.project,
       profiles: bid.profiles ?? undefined,
       projects: bid.projects ?? undefined,
       isRegrantor: regrantorIds.has(bid.bidder),
@@ -389,13 +412,33 @@ export async function getNotableGrantsLastWeek(
         amount: txn.amount,
         kind: 'donation' as const,
         createdAt: txn.created_at,
+        donorId: txn.from_id,
+        projectId: txn.project,
         profiles: txn.profiles ?? undefined,
         projects: txn.projects ?? undefined,
         isRegrantor: regrantorIds.has(txn.from_id),
       })),
   ]
 
-  return grants
+  // One line per donor and project, with the week's total
+  const combined = new Map<string, NotableGrant>()
+  for (const grant of grants) {
+    const key = `${grant.donorId}:${grant.projectId}`
+    const prev = combined.get(key)
+    combined.set(
+      key,
+      prev
+        ? {
+            ...prev,
+            amount: prev.amount + grant.amount,
+            kind: prev.kind === grant.kind ? prev.kind : 'mixed',
+            createdAt: prev.createdAt > grant.createdAt ? prev.createdAt : grant.createdAt,
+          }
+        : grant
+    )
+  }
+
+  return Array.from(combined.values())
     .filter((grant) => grant.isRegrantor || grant.amount >= NOTABLE_GRANT_THRESHOLD)
     .sort((a, b) => b.amount - a.amount)
     .slice(0, limit)
@@ -530,6 +573,13 @@ const generateCommentItem = (comment: NotableComment): string => {
   `
 }
 
+const GRANT_VERBS: Record<NotableGrant['kind'], string> = {
+  donation: 'donated',
+  bid: 'offered',
+  mixed: 'offered and donated',
+}
+const grantVerb = (grant: NotableGrant) => GRANT_VERBS[grant.kind]
+
 const generateGrantItem = (grant: NotableGrant): string => {
   const bidderName = getDisplayName(grant.profiles)
   const projectTitle = grant.projects?.title || 'Unknown Project'
@@ -540,7 +590,7 @@ const generateGrantItem = (grant: NotableGrant): string => {
       <div class="content">
         <span class="name">${escapeHtml(bidderName)}${
           grant.isRegrantor ? ' ⭐️' : ''
-        }</span> ${grant.kind === 'donation' ? 'donated' : 'offered'} <span class="amount">$${grant.amount.toLocaleString()}</span> to 
+        }</span> ${grantVerb(grant)} <span class="amount">$${grant.amount.toLocaleString()}</span> to 
         <span><a href="https://manifund.org/projects/${escapeHtml(
           projectSlug
         )}">${escapeHtml(projectTitle)}</a></span>
@@ -665,7 +715,7 @@ export function generatePlaintextDigest(
     const projectTitle = grant.projects?.title || 'Unknown Project'
     return `- ${bidderName}${
       grant.isRegrantor ? ' ⭐️' : ''
-    } ${grant.kind === 'donation' ? 'donated' : 'offered'} $${grant.amount.toLocaleString()} to ${projectTitle}\n`
+    } ${grantVerb(grant)} $${grant.amount.toLocaleString()} to ${projectTitle}\n`
   })
 
   return text
