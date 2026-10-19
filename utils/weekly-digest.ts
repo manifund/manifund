@@ -7,6 +7,7 @@ import { getUserEmail } from './email'
 import { getSponsoredAmount } from './constants'
 import { toPlaintext } from './tiptap-parsing'
 import { isSlopProject } from './slop'
+import { NOTABLE_COMMENT_RULES, notableCommentScore } from './notable-comments'
 
 /* TODOs:
 - [x] Pull out regrantor emails from Supabase
@@ -54,7 +55,6 @@ const DEFAULT_DIGEST_RECIPIENTS = [
   // Add more emails here as needed
 ]
 
-const REGRANTOR_BONUS = 2
 const NOTABLE_GRANT_THRESHOLD = 1000
 const LARGE_DONOR_THRESHOLD = 1000
 
@@ -227,7 +227,7 @@ export async function getNewProjectsLastWeek(
 
 export async function getNotableCommentsLastWeek(
   supabase: SupabaseClient,
-  limit = 15
+  limit = NOTABLE_COMMENT_RULES.limit
 ): Promise<NotableComment[]> {
   const oneWeekAgo = getOneWeekAgo()
 
@@ -238,46 +238,57 @@ export async function getNotableCommentsLastWeek(
       .select(
         `
       *,
-      profiles!comments_commenter_fkey(id, username, full_name, avatar_url),
+      profiles!comments_commenter_fkey(id, username, full_name, avatar_url, karma),
       projects(id, title, slug, stage),
-      comment_rxns(reactor_id, reaction)
+      comment_rxns(reactor_id, reaction, txn_id)
     `
       )
       .gte('created_at', oneWeekAgo.toISOString())
       .not('project', 'is', null) // the digest is about project comments
-      .neq('projects.stage', 'hidden')
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .throwOnError(),
   ])
 
-  if (!comments?.length) return []
+  // An embedded filter can't drop the parent row, so comments on hidden projects are dropped here
+  const live = (comments ?? []).filter((c) => c.projects && c.projects.stage !== 'hidden')
+  if (!live.length) return []
 
+  const reactorIds = Array.from(
+    new Set(live.flatMap((c) => (c.comment_rxns ?? []).map((r: any) => r.reactor_id as string)))
+  )
+  const reactors = await selectByIdsChunked<{ id: string; karma: number }>(reactorIds, (chunk) =>
+    supabase.from('profiles').select('id, karma').in('id', chunk)
+  )
+  const karmaById = new Map(reactors.map((r) => [r.id, r.karma]))
   const regrantorIds = new Set(regrantors?.map((r) => r.id) || [])
 
-  const commentsWithScores = comments.map((comment) => {
+  const scored = live.flatMap((comment) => {
     const reactions = comment.comment_rxns || []
+    const totalScore = notableCommentScore({
+      commenter: comment.commenter,
+      commenterKarma: comment.profiles?.karma ?? 0,
+      replyingTo: comment.replying_to,
+      specialType: comment.special_type,
+      textLength: toPlaintext(comment.content).trim().length,
+      reactions: reactions.map((r: any) => ({
+        reactorId: r.reactor_id,
+        reactorKarma: karmaById.get(r.reactor_id) ?? 0,
+        reaction: r.reaction,
+        tipped: !!r.txn_id,
+      })),
+    })
+    if (totalScore === null) return []
     const reactionCounts: Record<string, number> = {}
-
     reactions.forEach((rxn: any) => {
       reactionCounts[rxn.reaction] = (reactionCounts[rxn.reaction] || 0) + 1
     })
-
-    const baseScore = Object.values(reactionCounts).reduce(
-      (sum, count) => sum + (count as number),
-      0
-    )
-    const isRegrantor = regrantorIds.has(comment.commenter)
-    const totalScore = baseScore + (isRegrantor ? REGRANTOR_BONUS : 0)
-
-    return {
-      ...comment,
-      reactionCounts,
-      totalScore,
-      isRegrantor,
-    }
+    return [
+      { ...comment, reactionCounts, totalScore, isRegrantor: regrantorIds.has(comment.commenter) },
+    ]
   })
 
-  return commentsWithScores.sort((a, b) => b.totalScore - a.totalScore).slice(0, limit)
+  return scored.sort((a, b) => b.totalScore - a.totalScore).slice(0, limit)
 }
 
 export async function getNotableGrantsLastWeek(
@@ -666,7 +677,7 @@ export async function sendWeeklyDigest(supabase: SupabaseClient): Promise<void> 
 
   const [projects, notableComments, notableGrants] = await Promise.all([
     getNewProjectsLastWeek(supabase),
-    getNotableCommentsLastWeek(supabase, 15),
+    getNotableCommentsLastWeek(supabase),
     getNotableGrantsLastWeek(supabase, 15),
   ])
 
