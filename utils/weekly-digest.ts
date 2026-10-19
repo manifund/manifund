@@ -583,10 +583,13 @@ const generateProjectCard = (project: FullProject, showClose = false): string =>
 const COMMENT_PREVIEW_CHARS = 600
 
 // Cut at a word boundary so previews don't end mid-word
-const previewText = (text: string) => {
+const previewText = (raw: string) => {
+  // Paragraphs come through as blank-line breaks; keep at most one blank line
+  const text = raw.trim().replace(/\n{3,}/g, '\n\n')
   if (text.length <= COMMENT_PREVIEW_CHARS) return text
   const cut = text.slice(0, COMMENT_PREVIEW_CHARS)
-  const words = cut.slice(0, cut.lastIndexOf(' ') > 0 ? cut.lastIndexOf(' ') : cut.length)
+  const lastSpace = Math.max(cut.lastIndexOf(' '), cut.lastIndexOf('\n'))
+  const words = cut.slice(0, lastSpace > 0 ? lastSpace : cut.length)
   return words.replace(/[\s,;:.\-–—]+$/, '') + '…'
 }
 
@@ -611,7 +614,7 @@ const generateCommentItem = (comment: NotableComment): string => {
           projectSlug
         )}">${escapeHtml(projectTitle)}</a></span>
       </div>
-      <div class="summary">${escapeHtml(commentText)}&nbsp;<a href="${escapeHtml(
+      <div class="summary">${escapeHtml(commentText).replace(/\n/g, '<br>')}&nbsp;<a href="${escapeHtml(
         commentUrl(comment)
       )}" title="Open this comment on Manifund" aria-label="Open this comment on Manifund" style="color:#ea580c;text-decoration:none;font-weight:600;">&#8599;</a></div>
       ${reactionHtml ? `<div class="reactions">${reactionHtml}</div>` : ''}
