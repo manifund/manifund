@@ -580,15 +580,24 @@ const generateProjectCard = (project: FullProject, showClose = false): string =>
   `
 }
 
+const COMMENT_PREVIEW_CHARS = 600
+
+// Cut at a word boundary so previews don't end mid-word
+const previewText = (text: string) => {
+  if (text.length <= COMMENT_PREVIEW_CHARS) return text
+  const cut = text.slice(0, COMMENT_PREVIEW_CHARS)
+  const words = cut.slice(0, cut.lastIndexOf(' ') > 0 ? cut.lastIndexOf(' ') : cut.length)
+  return words.replace(/[\s,;:.\-–—]+$/, '') + '…'
+}
+
+const commentUrl = (comment: NotableComment) =>
+  `https://manifund.org/projects/${comment.projects?.slug || ''}?tab=comments#${comment.id}`
+
 const generateCommentItem = (comment: NotableComment): string => {
   const commenterName = getDisplayName(comment.profiles)
   const projectTitle = comment.projects?.title || 'Unknown Project'
   const projectSlug = comment.projects?.slug || ''
-  let commentText = toPlaintext(comment.content)
-
-  if (commentText.length > 360) {
-    commentText = commentText.substring(0, 360) + '...'
-  }
+  const commentText = previewText(toPlaintext(comment.content).trim())
 
   const reactionHtml = Object.entries(comment.reactionCounts)
     .map(([emoji, count]) => `${emoji}${(count as number) > 1 ? count : ''}`)
@@ -603,7 +612,9 @@ const generateCommentItem = (comment: NotableComment): string => {
         )}">${escapeHtml(projectTitle)}</a></span>
       </div>
       <div class="summary">${escapeHtml(commentText)}</div>
-      ${reactionHtml ? `<div class="reactions">${reactionHtml}</div>` : ''}
+      <div class="reactions">${reactionHtml ? `${reactionHtml}&nbsp;&nbsp;·&nbsp;&nbsp;` : ''}<a href="${escapeHtml(
+        commentUrl(comment)
+      )}" style="color:#ea580c;text-decoration:none;">View comment</a></div>
     </div>
   `
 }
@@ -662,11 +673,10 @@ const generatePlaintextSection = (
 }
 
 // Main generation functions
-const generateCardsSection = (title: string, note: string, cards: string) => `
+const generateCardsSection = (title: string, cards: string) => `
     <div class="section">
       <div class="section-header">
         <h2>${title}</h2>
-        ${note ? `<p style="margin:4px 0 0;color:#7f8c8d;font-size:13px;">${note}</p>` : ''}
       </div>
       <div style="background:#f9fafb;border-radius:8px;padding:12px;">${cards}</div>
     </div>
@@ -683,16 +693,11 @@ export function generateHtmlDigest(
   const highlyRatedSection = highlyRated.length
     ? generateCardsSection(
         'Highly rated, still raising',
-        'Proposals our AI evaluation scored 4 or 5 out of 5 that haven’t reached their minimum funding yet.',
         highlyRated.map((p) => generateProjectCard(p, true)).join('')
       )
     : ''
   const newSection = projects.length
-    ? generateCardsSection(
-        'New this week',
-        '',
-        projects.map((p) => generateProjectCard(p)).join('')
-      )
+    ? generateCardsSection('New this week', projects.map((p) => generateProjectCard(p)).join(''))
     : '<div class="no-projects">No new projects stood out this week.</div>'
   const projectsSection = `
       ${highlyRatedSection}
@@ -759,13 +764,13 @@ export function generatePlaintextDigest(
   text += generatePlaintextSection('Notable comments this week', notableComments, (comment) => {
     const commenterName = getDisplayName(comment.profiles)
     const projectTitle = comment.projects?.title || 'Unknown Project'
-    const commentText = toPlaintext(comment.content)
+    const commentText = previewText(toPlaintext(comment.content).trim())
     const reactionText = Object.entries(comment.reactionCounts)
       .map(([emoji, count]) => `${emoji}${(count as number) > 1 ? count : ''}`)
       .join(' ')
     return `- ${commenterName}${
       comment.isRegrantor ? ' ⭐️' : ''
-    } on "${projectTitle}": ${commentText} ${reactionText}\n`
+    } on "${projectTitle}": ${commentText} ${reactionText} ${commentUrl(comment)}\n`
   })
 
   text += generatePlaintextSection('Notable grants this week', notableGrants, (grant) => {
