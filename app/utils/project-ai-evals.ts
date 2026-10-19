@@ -2,6 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
 import { createProjectScoringText } from '@/app/utils/project-scores'
 import { log } from '@/lib/log'
+import { sendDiscordMessage } from '@/utils/discord'
 
 // Claude reads each project the way a donor would see it (text, amounts, creator; no votes,
 // comments or money raised), gives a 1-5 merit score, a short opinion, and the probability it
@@ -14,6 +15,8 @@ export const AI_EVAL_MODEL = 'anthropic/claude-opus-5.5'
 export const AI_EVAL_CUTOFF = '2026-07-01'
 // After the first evaluation, edits are re-evaluated only while the project can still take money.
 const RESCORE_STAGES = ['proposal', 'active']
+// A project's first evaluation at or above this score is posted to Discord.
+const TOP_SCORE = 4
 
 const SYSTEM_PROMPT = `You are evaluating a funding proposal posted on Manifund, a platform where individuals and small teams ask for grants, mostly in AI safety, effective altruism, forecasting, and adjacent causes. Donors and regrantors (individuals given a budget to grant) decide whether to fund each proposal. A proposal only receives money if pledges reach its minimum funding amount; otherwise it closes as "not funded".
 
@@ -58,6 +61,7 @@ const OUTPUT_SCHEMA = {
 
 type EvalProject = {
   id: string
+  slug: string
   title: string
   blurb: string | null
   description: any
@@ -70,7 +74,7 @@ type EvalProject = {
 }
 
 const PROJECT_FIELDS =
-  'id, title, blurb, description, created_at, stage, type, min_funding, funding_goal, profiles!projects_creator_fkey(full_name, username)'
+  'id, slug, title, blurb, description, created_at, stage, type, min_funding, funding_goal, profiles!projects_creator_fkey(full_name, username)'
 
 export function hasAiEvalKeys() {
   return Boolean(process.env.OPENROUTER_API_KEY)
@@ -100,15 +104,29 @@ function isEligible(p: EvalProject, hash: string, priorHashes: string[]) {
   return priorHashes.length === 0 || RESCORE_STAGES.includes(p.stage)
 }
 
-async function priorHashes(supabase: SupabaseClient, projectId: string) {
+async function priorEvals(supabase: SupabaseClient, projectId: string) {
   const { data } = await supabase
     .from('project_ai_evals')
-    .select('content_hash')
+    .select('content_hash, score')
     .eq('project_id', projectId)
     .eq('prompt_version', AI_EVAL_PROMPT_VERSION)
     .eq('model', AI_EVAL_MODEL)
     .throwOnError()
-  return (data ?? []).map((r) => r.content_hash)
+  return data ?? []
+}
+
+async function postTopRated(
+  p: EvalProject,
+  output: { score: number; p_min_funding: number; opinion: string }
+) {
+  const name = p.profiles?.full_name || p.profiles?.username || 'someone'
+  const usd = (n: number) => `$${n.toLocaleString('en-US')}`
+  const message = [
+    `**[${p.title}](https://manifund.org/projects/${p.slug})** by ${name}`,
+    `Claude: ${output.score}/5 · ${Math.round(output.p_min_funding * 100)}% chance of reaching its minimum · min ${usd(p.min_funding)}, goal ${usd(p.funding_goal)}`,
+    `> ${output.opinion}`,
+  ].join('\n')
+  await sendDiscordMessage(process.env.DISCORD_TOP_PROJECTS_WEBHOOK_URL, message.slice(0, 2000))
 }
 
 type CallResult =
@@ -168,7 +186,9 @@ export async function evaluateProject(
   const p = project as unknown as EvalProject
   const input = aiEvalInput(p)
   const hash = await hashText(input)
-  if (!isEligible(p, hash, await priorHashes(supabase, projectId))) return 'skipped'
+  const prior = await priorEvals(supabase, projectId)
+  const priorHashes = prior.map((e) => e.content_hash)
+  if (!isEligible(p, hash, priorHashes)) return 'skipped'
 
   const result = await callModel(input)
   const row = {
@@ -203,6 +223,13 @@ export async function evaluateProject(
     declined: 'declined' in result,
     costUsd: result.cost,
   })
+  if (
+    'output' in result &&
+    result.output.score >= TOP_SCORE &&
+    !prior.some((e) => (e.score ?? 0) >= TOP_SCORE)
+  ) {
+    await postTopRated(p, result.output)
+  }
   return 'output' in result ? 'evaluated' : 'declined'
 }
 
