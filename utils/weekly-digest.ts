@@ -1,13 +1,19 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { FullProject } from '@/db/project'
 import { sendEmail, sendBatchEmail } from './email'
-import { pointScore, countVotes } from './sort'
 import { getAmountRaised } from './math'
 import { formatMoney } from './formatting'
 import { getUserEmail } from './email'
 import { getSponsoredAmount } from './constants'
 import { toPlaintext } from './tiptap-parsing'
-import { isSlopProject } from './slop'
+import { aiRankingScore } from './karma'
+import { pointScore } from './sort'
+import {
+  closesAt,
+  DIGEST_PROJECT_RULES,
+  selectHighlyRatedStillRaising,
+  selectNewProjects,
+} from './digest-projects'
 import { NOTABLE_COMMENT_RULES, notableCommentScore } from './notable-comments'
 
 /* TODOs:
@@ -165,30 +171,20 @@ export async function getRegrantorEmails(
   return Array.from(new Set(emails.filter((email): email is string => email !== null)))
 }
 
-export async function getNewProjectsLastWeek(
+const PROJECT_FIELDS = `
+  *,
+  profiles!projects_creator_fkey(*),
+  rounds(title, slug),
+  causes(title, slug),
+  project_ai_evals(score, created_at)
+`
+
+// Adds the votes, comments, bids and txns the cards and ranking need
+async function hydrateProjects(
   supabase: SupabaseClient,
-  limit = 7
+  projectsBase: any[]
 ): Promise<FullProject[]> {
-  const oneWeekAgo = getOneWeekAgo()
-
-  const { data: projectsBase } = await supabase
-    .from('projects')
-    .select(
-      `
-      *,
-      profiles!projects_creator_fkey(*),
-      rounds(title, slug),
-      causes(title, slug)
-    `
-    )
-    .neq('stage', 'hidden')
-    .neq('stage', 'draft')
-    .gte('created_at', oneWeekAgo.toISOString())
-    .order('created_at', { ascending: false })
-    .throwOnError()
-
-  if (!projectsBase?.length) return []
-
+  if (!projectsBase.length) return []
   const projectIds = projectsBase.map((p) => p.id)
   const [votes, comments, bids, txns] = await Promise.all([
     selectByIdsChunked(projectIds, (chunk) =>
@@ -204,8 +200,7 @@ export async function getNewProjectsLastWeek(
       supabase.from('txns').select('*').in('project', chunk)
     ),
   ])
-
-  const projects: FullProject[] = projectsBase.map((project) => ({
+  return projectsBase.map((project) => ({
     ...project,
     project_votes: votes.filter((v) => v.project_id === project.id),
     comments: comments.filter((c) => c.project === project.id),
@@ -214,19 +209,35 @@ export async function getNewProjectsLastWeek(
     project_transfers: [],
     project_follows: [],
   }))
+}
 
-  return (
-    projects
-      // Exclude projects with 0 or fewer net upvotes
-      .filter((p) => {
-        const netUpvotes = p.project_votes.reduce((acc, v) => acc + v.magnitude, 0)
-        return netUpvotes > 0
-      })
-      // Exclude likely-AI-written projects, same as the default projects feed
-      .filter((p) => !isSlopProject(p))
-      .sort((a, b) => pointScore(b) - pointScore(a))
-      .slice(0, limit)
+// Proposals rated 4-5 still short of their minimum, in their first week or the week before they close
+export async function getHighlyRatedStillRaising(supabase: SupabaseClient): Promise<FullProject[]> {
+  const { data } = await supabase
+    .from('projects')
+    .select(PROJECT_FIELDS)
+    .eq('stage', 'proposal')
+    .throwOnError()
+  const rated = (data ?? []).filter(
+    (p: any) =>
+      (aiRankingScore(p.project_ai_evals) ?? 0) >= DIGEST_PROJECT_RULES.highlyRatedMinScore
   )
+  return selectHighlyRatedStillRaising(await hydrateProjects(supabase, rated), Date.now())
+}
+
+// The week's new projects, ranked by karma plus the AI head start
+export async function getNewProjectsLastWeek(
+  supabase: SupabaseClient,
+  excludeIds = new Set<string>()
+): Promise<FullProject[]> {
+  const { data } = await supabase
+    .from('projects')
+    .select(PROJECT_FIELDS)
+    .neq('stage', 'hidden')
+    .neq('stage', 'draft')
+    .gte('created_at', getOneWeekAgo().toISOString())
+    .throwOnError()
+  return selectNewProjects(await hydrateProjects(supabase, data ?? []), Date.now(), excludeIds)
 }
 
 export async function getNotableCommentsLastWeek(
@@ -523,7 +534,7 @@ export async function getTopCreatorEmails(
 
 // Content generation functions
 // A card like the homepage's ProjectCard, in inline styles and tables so email clients keep it
-const generateProjectCard = (project: FullProject): string => {
+const generateProjectCard = (project: FullProject, showClose = false): string => {
   const url = `https://manifund.org/projects/${escapeHtml(project.slug)}`
   const name = getDisplayName(project.profiles)
   const raised = getAmountRaised(project, project.bids, project.txns)
@@ -543,7 +554,12 @@ const generateProjectCard = (project: FullProject): string => {
   const bar = showBar
     ? `<div style="height:6px;border-radius:999px;background:#e5e7eb;margin:8px 0 6px;"><div style="height:6px;width:${percent > 0 ? Math.max(percent, 1.5) : 0}%;border-radius:999px;background:#f97316;"></div></div>`
     : ''
-  const money = `${formatMoney(raised)}${project.stage === 'proposal' ? ` / ${formatMoney(goal)}` : ' raised'}`
+  const close = closesAt(project)
+  const closing =
+    showClose && close
+      ? ` · closes ${new Date(close).toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'America/Los_Angeles' })}`
+      : ''
+  const money = `${formatMoney(raised)}${project.stage === 'proposal' ? ` / ${formatMoney(goal)}` : ' raised'}${closing}`
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 12px;background:#ffffff;border:1px solid #e5e7eb;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
       <tr><td style="padding:10px 16px 10px;">
@@ -646,24 +662,45 @@ const generatePlaintextSection = (
 }
 
 // Main generation functions
+const generateCardsSection = (title: string, note: string, cards: string) => `
+    <div class="section">
+      <div class="section-header">
+        <h2>${title}</h2>
+        ${note ? `<p style="margin:4px 0 0;color:#7f8c8d;font-size:13px;">${note}</p>` : ''}
+      </div>
+      <div style="background:#f9fafb;border-radius:8px;padding:12px;">${cards}</div>
+    </div>
+  `
+
 export function generateHtmlDigest(
   projects: FullProject[],
   notableComments: NotableComment[] = [],
-  notableGrants: NotableGrant[] = []
+  notableGrants: NotableGrant[] = [],
+  highlyRated: FullProject[] = []
 ): string {
   const { weekStart, weekEnd } = formatWeekRange()
 
-  const projectsSection =
-    projects.length > 0
-      ? `
-      <div class="section" style="background:#f9fafb;border-radius:8px;padding:12px;">
-        ${projects.map(generateProjectCard).join('')}
-      </div>
+  const highlyRatedSection = highlyRated.length
+    ? generateCardsSection(
+        'Highly rated, still raising',
+        'Proposals our AI evaluation scored 4 or 5 out of 5 that haven’t reached their minimum funding yet.',
+        highlyRated.map((p) => generateProjectCard(p, true)).join('')
+      )
+    : ''
+  const newSection = projects.length
+    ? generateCardsSection(
+        'New this week',
+        '',
+        projects.map((p) => generateProjectCard(p)).join('')
+      )
+    : '<div class="no-projects">No new projects stood out this week.</div>'
+  const projectsSection = `
+      ${highlyRatedSection}
+      ${newSection}
       <div style="text-align: center;">
         <a href="https://manifund.org/projects" class="cta-button">View all projects</a>
       </div>
     `
-      : '<div class="no-projects">No new projects were created this week.</div>'
 
   const commentsSection = generateSection('Notable Comments', notableComments, generateCommentItem)
   const grantsSection = generateSection('Notable Grants', notableGrants, generateGrantItem)
@@ -698,23 +735,25 @@ export function generateHtmlDigest(
 export function generatePlaintextDigest(
   projects: FullProject[],
   notableComments: NotableComment[] = [],
-  notableGrants: NotableGrant[] = []
+  notableGrants: NotableGrant[] = [],
+  highlyRated: FullProject[] = []
 ): string {
   const { weekStart, weekEnd } = formatWeekRange()
 
   let text = `Manifund: Weekly Digest\n${weekStart} - ${weekEnd}\n\n`
+  const projectLine = (project: FullProject) => {
+    const creatorName = getDisplayName(project.profiles)
+    const summary = project.blurb ? ` - ${project.blurb}` : ''
+    return `- ${project.title}, by ${creatorName}${summary} https://manifund.org/projects/${project.slug}\n`
+  }
 
+  if (highlyRated.length > 0) {
+    text += 'Highly rated, still raising:\n\n' + highlyRated.map(projectLine).join('') + '\n'
+  }
   if (projects.length === 0) {
-    text += 'No new projects were created this week.\n'
+    text += 'No new projects stood out this week.\n'
   } else {
-    text += 'New projects this week:\n\n'
-    projects.forEach((project) => {
-      const upvotes = project.project_votes.reduce((acc, vote) => acc + vote.magnitude, 0)
-      const commentCount = project.comments.length
-      const creatorName = getDisplayName(project.profiles)
-      const summary = project.blurb ? ` - ${project.blurb}` : ''
-      text += `- ${project.title}, by ${creatorName}${summary}. ${upvotes} ⬆️ ${commentCount} 💬\n`
-    })
+    text += 'New this week:\n\n' + projects.map(projectLine).join('')
   }
 
   text += generatePlaintextSection('Notable comments this week', notableComments, (comment) => {
@@ -744,19 +783,20 @@ export function generatePlaintextDigest(
 export async function sendWeeklyDigest(supabase: SupabaseClient): Promise<void> {
   console.log('Starting weekly digest generation...')
 
+  const highlyRated = await getHighlyRatedStillRaising(supabase)
   const [projects, notableComments, notableGrants] = await Promise.all([
-    getNewProjectsLastWeek(supabase),
+    getNewProjectsLastWeek(supabase, new Set(highlyRated.map((p) => p.id))),
     getNotableCommentsLastWeek(supabase),
     getNotableGrantsLastWeek(supabase, 15),
   ])
 
   const { weekStart } = formatWeekRange()
   const subject = `Manifund: Weekly Digest, from ${weekStart}`
-  const htmlBody = generateHtmlDigest(projects, notableComments, notableGrants)
-  const textBody = generatePlaintextDigest(projects, notableComments, notableGrants)
+  const htmlBody = generateHtmlDigest(projects, notableComments, notableGrants, highlyRated)
+  const textBody = generatePlaintextDigest(projects, notableComments, notableGrants, highlyRated)
 
   console.log(
-    `Found ${projects.length} new projects, ${notableComments.length} notable comments, ${notableGrants.length} notable grants`
+    `Found ${highlyRated.length} highly rated, ${projects.length} new projects, ${notableComments.length} notable comments, ${notableGrants.length} notable grants`
   )
 
   const recipients = [

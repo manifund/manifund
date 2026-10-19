@@ -33,6 +33,11 @@ evaluations on pages or in the weekly digest comes later. The prompt was chosen 
   4: +10, 5: +15; `aiScoreBoost` in `utils/karma.ts`) before the age decay, so new projects start from Claude's
   judgment and community karma takes over as it builds. Karma itself stays human-only. The score used is the latest
   evaluation.
+- **P10** The weekly digest shows projects in two sections. First, *highly rated, still raising*: proposals whose
+  AI score is 4 or 5 and that are below their minimum, shown twice, in the week they first qualify and the week
+  before they close. Then *new this week*: projects posted in the last 7 days, except AI-written ones the homepage
+  hides, whose karma plus the AI head start (P9) is above 3, highest first, up to 7. Rules in
+  `utils/digest-projects.ts`.
 
 ## Stage
 
