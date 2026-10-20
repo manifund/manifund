@@ -62,7 +62,8 @@ else, one choice: instant, daily or never. Comments' own rules for who is notifi
 - **N7** If recording or emailing a notification fails, the event that caused it still stands; the failure is
   logged.
 - **N8** The weekly digest (`utils/weekly-digest.ts`, Mondays) isn't a notification: it keeps its own unsubscribe
-  link (Postmark's), as before.
+  link (Postmark's), as before. It goes to everyone with karma 50 or more, everyone who has deposited $1,000 or
+  more, and every regrantor; Postmark skips anyone who unsubscribed.
 
 ## Decisions
 

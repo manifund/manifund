@@ -157,6 +157,11 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C33** The public API returns each comment's target (`project`, `profile_id` or `org_id`), type, and edit and
   removal fields; a removed comment has no content.
 - **C34** Posting, editing, moderation, reports, refusals for limits and notifications write structured log lines.
+- **C36** The weekly digest highlights the week's notable project comments: each positive reaction from someone
+  else adds log10 of the reactor's karma (tips multiply, as in karma), plus half of log10 of the author's karma. A
+  comment needs a score of 1 (an author with karma 100, or one reaction from someone with karma 10) and either a
+  positive reaction or 100 characters; replies and admin verdict notes never count. Up to 15, highest first; a
+  quiet week can have none. Creators' updates count like any comment. Constants in `utils/notable-comments.ts`.
 
 ## Decisions
 
