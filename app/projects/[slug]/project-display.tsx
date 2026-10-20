@@ -1,5 +1,6 @@
 'use client'
 import { Karma } from '@/components/karma'
+import { AiTrophy } from '@/components/ai-trophy'
 import { DonateBox } from '@/components/donate-box'
 import { fundingLeft } from '@/utils/donation-limits'
 import { Col } from '@/components/layout/col'
@@ -10,9 +11,14 @@ import { Profile } from '@/db/profile'
 import { FullProject, Project } from '@/db/project'
 import { Cause, SimpleCause } from '@/db/cause'
 import { TxnAndProfiles, TxnAndProject } from '@/db/txn'
-import { calculateCashBalance, getAmountRaised, getMinIncludingAmm, getProjectValuation } from '@/utils/math'
+import {
+  calculateCashBalance,
+  getAmountRaised,
+  getMinIncludingAmm,
+  getProjectValuation,
+} from '@/utils/math'
 import { useState } from 'react'
-import { karmaWeight } from '@/utils/karma'
+import { isHighlyRatedByAi, karmaWeight } from '@/utils/karma'
 import { countVotes } from '@/utils/sort'
 import { CommentPromptProvider, useCommentPrompt } from './comment-prompt'
 import { getViewerFunds } from './viewer-funds'
@@ -156,6 +162,9 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
             <Col className="min-w-0 flex-1">
               <h2 className="text-lg font-bold leading-tight text-gray-900 sm:text-2xl">
                 {project.title}
+                {isHighlyRatedByAi(project.project_ai_evals) && (
+                  <AiTrophy href="?tab=ai-review" className="ml-2 inline-block align-middle" />
+                )}
               </h2>
             </Col>
             <Vote

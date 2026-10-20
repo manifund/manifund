@@ -167,11 +167,21 @@ export function quadraticDonationScore(
 
 export type AiEvalScore = { score: number | null; created_at: string }
 
-// The AI score the homepage ranks by: the latest evaluation the model didn't decline.
-export function aiRankingScore(evals: AiEvalScore[] | null | undefined) {
+// The evaluation a project is shown and ranked by: the latest one the model didn't decline.
+export function latestAiEval<T extends AiEvalScore>(evals: T[] | null | undefined) {
   const scored = (evals ?? []).filter((e) => e.score != null)
   if (scored.length === 0) return null
-  return scored.reduce((a, b) => (b.created_at > a.created_at ? b : a)).score
+  return scored.reduce((a, b) => (b.created_at > a.created_at ? b : a))
+}
+
+export function aiRankingScore(evals: AiEvalScore[] | null | undefined) {
+  return latestAiEval(evals)?.score ?? null
+}
+
+export const AI_HIGHLY_RATED_MIN_SCORE = 4
+
+export function isHighlyRatedByAi(evals: AiEvalScore[] | null | undefined) {
+  return (aiRankingScore(evals) ?? 0) >= AI_HIGHLY_RATED_MIN_SCORE
 }
 
 export function projectHotScore(

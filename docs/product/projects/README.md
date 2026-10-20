@@ -12,8 +12,8 @@ offers that were checked.
 ## AI evaluation
 
 Claude reads each project as a donor would see it and records a 1-5 merit score, a 2-4 sentence opinion, and the
-probability it reaches its minimum funding (`project_ai_evals`). The score feeds the homepage's top sort; showing
-evaluations on pages or in the weekly digest comes later. The prompt was chosen by testing on closed proposals
+probability it reaches its minimum funding (`project_ai_evals`). The score feeds the homepage's top sort and the weekly
+digest; highly rated projects show it on their pages. The prompt was chosen by testing on closed proposals
 (`tools/proposal-eval`).
 
 - **P1** Projects posted on or after 1 July 2026 are evaluated; earlier ones aren't, since the model may have seen
@@ -33,11 +33,14 @@ evaluations on pages or in the weekly digest comes later. The prompt was chosen 
   4: +10, 5: +15; `aiScoreBoost` in `utils/karma.ts`) before the age decay, so new projects start from Claude's
   judgment and community karma takes over as it builds. Karma itself stays human-only. The score used is the latest
   evaluation.
-- **P10** The weekly digest shows projects in two sections. First, *featured*: proposals whose
+- **P10** The weekly digest shows projects in two sections. First, _featured_: proposals whose
   AI score is 4 or 5 and that are below their minimum, shown twice, in the week they first qualify and the week
-  before they close. Then *new this week*: projects posted in the last 7 days, except AI-written ones the homepage
+  before they close. Then _new this week_: projects posted in the last 7 days, except AI-written ones the homepage
   hides, whose karma plus the AI head start (P9) is above 3, highest first, up to 7. Rules in
   `utils/digest-projects.ts`.
+- **P11** A project whose AI score is 4 or 5 shows a trophy on its card and next to its title ("highly rated by our
+  experimental AI rating system"), and an _AI review_ tab after Comments, Offers, Shareholders and Donations with the score and Claude's
+  opinion. Lower-rated projects show neither. The evaluation shown is the latest, as in P9.
 
 ## Stage
 
