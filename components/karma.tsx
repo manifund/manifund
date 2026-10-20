@@ -140,7 +140,7 @@ export function Karma(props: {
         ref={reference}
         {...getReferenceProps()}
         className={clsx(
-          'inline-flex cursor-help items-center gap-1 font-semibold text-orange-700',
+          'inline-flex cursor-help items-center gap-1 font-semibold text-orange-500',
           size === 'md' ? 'text-base' : 'text-sm',
           className
         )}
