@@ -145,7 +145,7 @@ export function Karma(props: {
           className
         )}
       >
-        <Star className={size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
+        <Star className={clsx('text-orange-500', size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5')} />
         {fmt(value)}
       </span>
       {open && (
