@@ -5,7 +5,7 @@ import { FaceSmileIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { buttonClass } from './button'
 import { InfoTooltip } from './info-tooltip'
 import { Col } from './layout/col'
@@ -287,50 +287,71 @@ export function CommentRxnsPanel(props: {
 
   const router = useRouter()
   const [localRxns, setLocalRxns] = useState(rxns)
+  // Take fresh server data whenever the page re-renders with new props.
+  const [prevRxns, setPrevRxns] = useState(rxns)
+  if (rxns !== prevRxns) {
+    setPrevRxns(rxns)
+    setLocalRxns(rxns)
+  }
+  const pending = useRef(new Set<string>())
+
   async function postRxn(reaction: string) {
-    const existingRxnIdx = rxns.findIndex(
-      (rxn) => rxn.reaction === reaction && rxn.reactor_id === userId
-    )
-    if (existingRxnIdx === -1) {
-      rxns.push({
-        comment_id: commentId,
-        reaction,
-        reactor_id: userId ?? '',
-        txn_id: null,
-        profiles: userProfile ?? {
-          id: userId ?? '',
-          username: '',
-          avatar_url: '',
-          full_name: '',
-          created_at: new Date().toISOString(),
-          accreditation_status: false,
-          bio: '',
-          long_description: {},
-          mercury_recipient_id: null,
-          regranter_status: false,
-          stripe_connect_id: null,
-          type: 'individual',
-          website: null,
-          id_text: null,
-          karma: 0,
-          karma_breakdown: null,
-          karma_updated_at: null,
+    if (!userId || pending.current.has(reaction)) return
+    pending.current.add(reaction)
+    const isMine = (rxn: CommentRxnWithProfile) =>
+      rxn.reaction === reaction && rxn.reactor_id === userId
+    const toggle = (list: CommentRxnWithProfile[]) =>
+      list.some(isMine)
+        ? list.filter((rxn) => !isMine(rxn))
+        : [
+            ...list,
+            {
+              comment_id: commentId,
+              reaction,
+              reactor_id: userId,
+              txn_id: null,
+              profiles: userProfile ?? {
+                id: userId,
+                username: '',
+                avatar_url: '',
+                full_name: '',
+                created_at: new Date().toISOString(),
+                accreditation_status: false,
+                bio: '',
+                long_description: {},
+                mercury_recipient_id: null,
+                regranter_status: false,
+                stripe_connect_id: null,
+                type: 'individual',
+                website: null,
+                id_text: null,
+                karma: 0,
+                karma_breakdown: null,
+                karma_updated_at: null,
+              },
+            },
+          ]
+    setLocalRxns(toggle)
+    try {
+      const res = await fetch(`/api/comments/${commentId}/react`, {
+        method: 'POST',
+        body: JSON.stringify({ reaction }),
+        headers: {
+          'Content-Type': 'application/json',
         },
       })
-      setLocalRxns(rxns)
-    } else {
-      rxns.splice(existingRxnIdx, 1)
-      setLocalRxns(rxns)
+      if (!res.ok) {
+        setLocalRxns(toggle)
+        toast.error((await res.json().catch(() => ({}))).error ?? 'Could not react')
+      } else if (tippedRxns[reaction]) {
+        router.refresh() // the tip changed charity balances
+      }
+    } catch {
+      setLocalRxns(toggle)
+      toast.error('Could not react')
+    } finally {
+      pending.current.delete(reaction)
     }
-    const res = await fetch(`/api/comments/${commentId}/react`, {
-      method: 'POST',
-      body: JSON.stringify({ reaction }),
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    })
-    if (!res.ok) toast.error((await res.json().catch(() => ({}))).error ?? 'Could not react')
-    router.refresh()
   }
 
   return (
