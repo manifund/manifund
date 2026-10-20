@@ -535,7 +535,7 @@ const generateProjectCard = (project: FullProject, showClose = false): string =>
       <tr><td style="padding:10px 16px 10px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
           <td style="font-size:14px;color:#374151;">${avatar}&nbsp;&nbsp;<span style="vertical-align:middle;">${escapeHtml(name)}</span></td>
-          <td align="right" style="font-size:14px;font-weight:600;color:#c2410c;white-space:nowrap;"><span style="color:#f97316;">&#9733;</span> ${Math.round(project.karma ?? 0)}</td>
+          <td align="right" style="font-size:14px;font-weight:600;color:#f97316;white-space:nowrap;">&#9733; ${Math.round(project.karma ?? 0)}</td>
         </tr></table>
         <a href="${url}" style="display:block;margin:10px 0 2px;color:#111827;font-size:18px;font-weight:500;line-height:1.25;letter-spacing:-0.01em;text-decoration:none;">${escapeHtml(project.title)}</a>
         ${project.blurb ? `<div style="margin:0 0 8px;color:#6b7280;font-size:14px;font-weight:300;line-height:1.4;">${escapeHtml(project.blurb)}</div>` : ''}
