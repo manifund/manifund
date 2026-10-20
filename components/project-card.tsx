@@ -1,4 +1,5 @@
 'use client'
+import clsx from 'clsx'
 import { MiniProfile, Profile } from '@/db/profile'
 import { formatMoney } from '@/utils/formatting'
 import { getAmountRaised, getMinIncludingAmm } from '@/utils/math'
@@ -21,6 +22,8 @@ import { Tooltip } from './tooltip'
 import { getSponsoredAmount } from '@/utils/constants'
 import { AiWrittenIcon } from './slop-flag'
 import { Karma } from './karma'
+import { AiTrophy } from './ai-trophy'
+import { isHighlyRatedByAi } from '@/utils/karma'
 
 export function ProjectCard(props: { project: FullProject; valuation?: number }) {
   const { project, valuation } = props
@@ -36,6 +39,7 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
   const fundingGoal = project.type === 'cert' ? minIncludingAmm : project.funding_goal
   const projectTransfers = project.project_transfers
   const incompleteProjectTransfers = projectTransfers.filter((pt) => !pt.transferred)
+  const highlyRated = isHighlyRatedByAi(project.project_ai_evals)
   return (
     <Card className="px-4 pb-2 pt-1">
       <Col className="h-full justify-between">
@@ -45,6 +49,7 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
           valuation={project.stage !== 'not funded' ? valuation : undefined}
           regrantorFunded={regrantorFunded}
           aiFraction={project.ai_fraction}
+          highlyRated={highlyRated}
           karma={<Karma value={project.karma} breakdown={project.karma_breakdown} kind="project" />}
           projectRecipient={
             incompleteProjectTransfers.length > 0
@@ -58,7 +63,12 @@ export function ProjectCard(props: { project: FullProject; valuation?: number })
           href={`/projects/${project.slug}`}
           className="group flex h-full flex-col justify-start gap-1 py-2 hover:cursor-pointer"
         >
-          <h1 className="text-lg font-medium leading-tight tracking-tight group-hover:underline">
+          <h1
+            className={clsx(
+              'text-lg font-medium leading-tight tracking-tight group-hover:underline',
+              highlyRated && 'pr-6'
+            )}
+          >
             {project.title}
           </h1>
           <p className="text-xs font-light text-gray-500 sm:text-sm">{project.blurb}</p>
@@ -125,10 +135,19 @@ export function ProjectCardHeader(props: {
   valuation?: number
   regrantorFunded?: boolean
   aiFraction?: number | null
+  highlyRated?: boolean
   karma?: ReactNode
 }) {
-  const { creator, valuation, projectRecipient, projectType, regrantorFunded, aiFraction, karma } =
-    props
+  const {
+    creator,
+    valuation,
+    projectRecipient,
+    projectType,
+    regrantorFunded,
+    aiFraction,
+    highlyRated,
+    karma,
+  } = props
   return (
     <Row className="mt-1 items-start justify-between">
       <div>
@@ -155,7 +174,11 @@ export function ProjectCardHeader(props: {
             <CheckBadgeIcon className="relative h-6 w-6 text-orange-500" />
           </Tooltip>
         )}
-        {karma}
+        <div className="relative">
+          {karma}
+          {/* sits under the karma without pushing the title down; the title leaves room for it */}
+          {highlyRated && <AiTrophy className="absolute right-0 top-full mt-1" />}
+        </div>
       </Row>
     </Row>
   )

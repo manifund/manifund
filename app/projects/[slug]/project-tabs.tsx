@@ -8,7 +8,9 @@ import { BidAndProfile } from '@/db/bid'
 import { TxnAndProfiles } from '@/db/txn'
 import { Shareholders } from './shareholders'
 import { bundleTxns } from '@/utils/math'
-import { Tabs } from '@/components/tabs'
+import { Tab, Tabs } from '@/components/tabs'
+import { AI_HIGHLY_RATED_MIN_SCORE, latestAiEval } from '@/utils/karma'
+import { AiReview } from './ai-review'
 import { DonationsHistory } from '@/components/donations-history'
 import { CommentAndProfileAndRxns, CommentAndProfile } from '@/db/comment'
 import { uniq } from 'es-toolkit'
@@ -52,7 +54,7 @@ export function ProjectTabs(props: {
       ? getShareholders(txns)
       : undefined
   const commenterContributions = getCommenterContributions(comments, bids, txns, shareholders)
-  const tabs = [
+  const tabs: Tab[] = [
     {
       name: 'Comments',
       id: 'comments',
@@ -125,6 +127,11 @@ export function ProjectTabs(props: {
         />
       ),
     })
+  }
+
+  const aiEval = latestAiEval(project.project_ai_evals)
+  if (aiEval && (aiEval.score ?? 0) >= AI_HIGHLY_RATED_MIN_SCORE && aiEval.opinion) {
+    tabs.push({ name: 'AI review', id: 'ai-review', display: <AiReview evaluation={aiEval} /> })
   }
 
   // Disable predictions tab for now, as it's not getting any usage

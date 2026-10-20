@@ -30,7 +30,7 @@ export type FullProject = Project & { profiles: MiniProfile } & {
   project_transfers: ProjectTransfer[]
 } & { project_votes: ProjectVote[] } & { causes: MiniCause[] } & {
   project_follows: ProjectFollow[]
-} & { project_ai_evals?: AiEvalScore[] }
+} & { project_ai_evals?: (AiEvalScore & { opinion?: string | null })[] }
 export type FullProjectWithSimilarity = FullProject & { similarity: number }
 export type MiniProject = Project & { profiles: Profile } & { txns: Txn[] }
 export const TOTAL_SHARES = 10_000_000
@@ -215,7 +215,7 @@ export async function getFullProjectBySlug(supabase: SupabaseClient, slug: strin
   const { data } = await supabase
     .from('projects')
     .select(
-      '*, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(id), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(*), project_follows(follower_id), causes(title, slug)'
+      '*, profiles!projects_creator_fkey(*), bids(*), txns(*), comments(id), rounds(*), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(*), project_follows(follower_id), causes(title, slug), project_ai_evals(score, opinion, created_at)'
     )
     .eq('slug', slug)
     .throwOnError()
