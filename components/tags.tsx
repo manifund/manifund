@@ -29,8 +29,8 @@ import { Tooltip } from './tooltip'
 import { Col } from './layout/col'
 import { LuBrainCircuit, LuHourglass } from 'react-icons/lu'
 import { BiDonateHeart, BiHeart } from 'react-icons/bi'
-import { TbCrystalBall, TbWorldX } from 'react-icons/tb'
-import { PiBirdBold, PiCrownSimpleBold, PiFeatherBold, PiVirusBold } from 'react-icons/pi'
+import { TbCrystalBall, TbTriangleInverted, TbWorldX } from 'react-icons/tb'
+import { PiBirdBold, PiFeatherBold, PiVirusBold } from 'react-icons/pi'
 import { MdOutlineMedicalServices } from 'react-icons/md'
 import { PiSpiralBold } from 'react-icons/pi'
 import { ArrowTrendingUpIcon, CheckBadgeIcon } from '@heroicons/react/20/solid'
@@ -123,7 +123,7 @@ const CAUSE_ICONS = {
   ltff: <LuHourglass className="h-3 w-3" />,
   eaif: <WrenchScrewdriverIcon className="h-3 w-3 stroke-2" />,
   'ea-community-choice': <HandRaisedIcon className="h-3 w-3 stroke-2" />,
-  'leo-microgrants': <PiCrownSimpleBold className="h-3 w-3" />,
+  'leo-microgrants': <TbTriangleInverted className="h-3 w-3 stroke-[2.2px]" />,
 } as { [key: string]: React.JSX.Element }
 
 export function CauseTag(props: {
