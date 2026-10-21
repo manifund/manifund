@@ -21,7 +21,7 @@ export default async function CausesPage() {
           </div>
         </>
       )}
-      <h1 className="mt-10 text-lg font-bold text-gray-900 sm:text-2xl">Past prize rounds</h1>
+      <h1 className="mt-10 text-lg font-bold text-gray-900 sm:text-2xl">Past programs</h1>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
         {pastPrizes.map((cause) => (
           <CauseCard key={cause.slug} cause={cause} />
