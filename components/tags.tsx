@@ -14,16 +14,23 @@ import {
   BeakerIcon,
   StarIcon,
   EyeSlashIcon,
+  UserGroupIcon,
+  MegaphoneIcon,
+  SparklesIcon,
+  ScaleIcon,
+  CpuChipIcon,
+  WrenchScrewdriverIcon,
+  HandRaisedIcon,
 } from '@heroicons/react/24/outline'
 import { FireIcon } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import { Row } from './layout/row'
 import { Tooltip } from './tooltip'
 import { Col } from './layout/col'
-import { LuBrainCircuit } from 'react-icons/lu'
+import { LuBrainCircuit, LuHourglass } from 'react-icons/lu'
 import { BiDonateHeart, BiHeart } from 'react-icons/bi'
-import { TbCrystalBall, TbWorldX } from 'react-icons/tb'
-import { PiBirdBold, PiVirusBold } from 'react-icons/pi'
+import { TbCrystalBall, TbTriangleInverted, TbWorldX } from 'react-icons/tb'
+import { PiBirdBold, PiFeatherBold, PiVirusBold } from 'react-icons/pi'
 import { MdOutlineMedicalServices } from 'react-icons/md'
 import { PiSpiralBold } from 'react-icons/pi'
 import { ArrowTrendingUpIcon, CheckBadgeIcon } from '@heroicons/react/20/solid'
@@ -106,6 +113,17 @@ const CAUSE_ICONS = {
   'china-talk': <StarIcon className="h-3 w-3 stroke-2" />,
   'acx-grants-2024': <PiSpiralBold className="h-3 w-3" />,
   medical: <MdOutlineMedicalServices className="h-3 w-3" />,
+  'ais-fieldbuilding': <UserGroupIcon className="h-3 w-3 stroke-2" />,
+  'ais-advocacy': <MegaphoneIcon className="h-3 w-3 stroke-2" />,
+  'digital-minds': <SparklesIcon className="h-3 w-3 stroke-2" />,
+  epistemics: <ScaleIcon className="h-3 w-3 stroke-2" />,
+  'falcon-fund': <PiFeatherBold className="h-3 w-3" />,
+  'acx-grants-2025': <PiSpiralBold className="h-3 w-3" />,
+  'grantmaking-ai': <CpuChipIcon className="h-3 w-3 stroke-2" />,
+  ltff: <LuHourglass className="h-3 w-3" />,
+  eaif: <WrenchScrewdriverIcon className="h-3 w-3 stroke-2" />,
+  'ea-community-choice': <HandRaisedIcon className="h-3 w-3 stroke-2" />,
+  'leo-microgrants': <TbTriangleInverted className="h-3 w-3 stroke-[2.2px]" />,
 } as { [key: string]: React.JSX.Element }
 
 export function CauseTag(props: {
