@@ -14,6 +14,10 @@ import {
   BeakerIcon,
   StarIcon,
   EyeSlashIcon,
+  UserGroupIcon,
+  MegaphoneIcon,
+  SparklesIcon,
+  ScaleIcon,
 } from '@heroicons/react/24/outline'
 import { FireIcon } from '@heroicons/react/24/solid'
 import Image from 'next/image'
@@ -106,6 +110,10 @@ const CAUSE_ICONS = {
   'china-talk': <StarIcon className="h-3 w-3 stroke-2" />,
   'acx-grants-2024': <PiSpiralBold className="h-3 w-3" />,
   medical: <MdOutlineMedicalServices className="h-3 w-3" />,
+  'ais-fieldbuilding': <UserGroupIcon className="h-3 w-3 stroke-2" />,
+  'ais-advocacy': <MegaphoneIcon className="h-3 w-3 stroke-2" />,
+  'digital-minds': <SparklesIcon className="h-3 w-3 stroke-2" />,
+  epistemics: <ScaleIcon className="h-3 w-3 stroke-2" />,
 } as { [key: string]: React.JSX.Element }
 
 export function CauseTag(props: {
