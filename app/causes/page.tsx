@@ -1,5 +1,6 @@
 import { createServerSupabaseClient } from '@/db/supabase-server'
-import { FullCause, listFullCauses } from '@/db/cause'
+import { countVisibleProjects, FullCause, listFullCauses } from '@/db/cause'
+import { orderBy } from 'es-toolkit'
 import Image from 'next/image'
 import Link from 'next/link'
 
@@ -7,7 +8,12 @@ export default async function CausesPage() {
   const supabase = await createServerSupabaseClient()
   const causesList = await listFullCauses(supabase)
   const activePrograms = causesList.filter((c) => c.prize && c.open)
-  const pastPrizes = causesList.filter((c) => c.prize && !c.open)
+  // No close date is stored, so the newest project stands in for when a program closed
+  const pastPrizes = orderBy(
+    causesList.filter((c) => c.prize && !c.open),
+    [(c) => c.projects.reduce((latest, p) => (p.created_at > latest ? p.created_at : latest), '')],
+    ['desc']
+  )
   const regularCauses = causesList.filter((c) => !c.prize)
   return (
     <div className="p-5">
@@ -21,15 +27,15 @@ export default async function CausesPage() {
           </div>
         </>
       )}
-      <h1 className="mt-10 text-lg font-bold text-gray-900 sm:text-2xl">Past prize rounds</h1>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
-        {pastPrizes.map((cause) => (
-          <CauseCard key={cause.slug} cause={cause} />
-        ))}
-      </div>
       <h1 className="mt-10 text-lg font-bold text-gray-900 sm:text-2xl">Causes</h1>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
         {regularCauses.map((cause) => (
+          <CauseCard key={cause.slug} cause={cause} />
+        ))}
+      </div>
+      <h1 className="mt-10 text-lg font-bold text-gray-900 sm:text-2xl">Past programs</h1>
+      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8">
+        {pastPrizes.map((cause) => (
           <CauseCard key={cause.slug} cause={cause} />
         ))}
       </div>
@@ -39,9 +45,7 @@ export default async function CausesPage() {
 
 function CauseCard(props: { cause: FullCause; active?: boolean }) {
   const { cause, active } = props
-  const numProjects = cause.projects.filter(
-    (project) => project.stage !== 'hidden' && project.stage !== 'draft'
-  ).length
+  const numProjects = countVisibleProjects(cause)
   return (
     <Link
       className={
