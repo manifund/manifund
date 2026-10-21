@@ -1,6 +1,6 @@
 import { Database } from '@/db/database.types'
 import { SupabaseClient } from '@supabase/supabase-js'
-import { sortBy, uniq } from 'es-toolkit'
+import { orderBy, sortBy, uniq } from 'es-toolkit'
 
 // Prize causes that are only selectable via a direct ?prize=<slug> link — never
 // shown by default on /create, and not addable through the edit-project UI.
@@ -9,7 +9,7 @@ export const LINK_ONLY_PRIZE_CAUSE_SLUGS = ['leo-microgrants', 'grantmaking-ai']
 export type Cause = Omit<Database['public']['Tables']['causes']['Row'], 'cert_params'> & {
   cert_params: CertParams | null
 }
-export type FullCause = Cause & { projects: { stage: string; type: string }[] }
+export type FullCause = Cause & { projects: { stage: string; type: string; created_at: string }[] }
 export type MiniCause = { title: string; slug: string }
 export type SimpleCause = {
   title: string
@@ -30,13 +30,16 @@ export type CertParams = {
   judgeUnfundedProjects: boolean
 }
 
+export function countVisibleProjects(cause: FullCause) {
+  return cause.projects.filter((p) => p.stage !== 'hidden' && p.stage !== 'draft').length
+}
+
 export async function listFullCauses(supabase: SupabaseClient) {
-  const { data, error } = await supabase.from('causes').select('*, projects(stage)')
+  const { data, error } = await supabase.from('causes').select('*, projects(stage, created_at)')
   if (error) {
     throw error
   }
-  const sortedCauses = sortBy(data, ['name'])
-  return sortedCauses as FullCause[]
+  return orderBy(data as FullCause[], [countVisibleProjects], ['desc'])
 }
 
 export async function getSomeFullCauses(causeSlugs: string[], supabase: SupabaseClient) {
@@ -60,11 +63,16 @@ export async function listMiniCauses(supabase: SupabaseClient) {
 }
 
 export async function listSimpleCauses(supabase: SupabaseClient) {
-  const { data, error } = await supabase.from('causes').select('title, slug, prize, open')
+  const { data, error } = await supabase
+    .from('causes')
+    .select('title, slug, prize, open, projects(count)')
+    .not('projects.stage', 'in', '(hidden,draft)')
   if (error) {
     throw error
   }
-  return data as SimpleCause[]
+  return orderBy(data, [(c) => c.projects[0].count], ['desc']).map(
+    ({ projects, ...cause }) => cause
+  ) as SimpleCause[]
 }
 
 export async function listCauses(supabase: SupabaseClient) {
