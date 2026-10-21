@@ -18,13 +18,16 @@ import {
   MegaphoneIcon,
   SparklesIcon,
   ScaleIcon,
+  CpuChipIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/react/24/outline'
 import { FireIcon } from '@heroicons/react/24/solid'
 import Image from 'next/image'
 import { Row } from './layout/row'
 import { Tooltip } from './tooltip'
 import { Col } from './layout/col'
-import { LuBrainCircuit } from 'react-icons/lu'
+import { LuBrainCircuit, LuHourglass } from 'react-icons/lu'
+import { GiHawkEmblem } from 'react-icons/gi'
 import { BiDonateHeart, BiHeart } from 'react-icons/bi'
 import { TbCrystalBall, TbWorldX } from 'react-icons/tb'
 import { PiBirdBold, PiVirusBold } from 'react-icons/pi'
@@ -114,6 +117,11 @@ const CAUSE_ICONS = {
   'ais-advocacy': <MegaphoneIcon className="h-3 w-3 stroke-2" />,
   'digital-minds': <SparklesIcon className="h-3 w-3 stroke-2" />,
   epistemics: <ScaleIcon className="h-3 w-3 stroke-2" />,
+  'falcon-fund': <GiHawkEmblem className="h-3 w-3" />,
+  'acx-grants-2025': <PiSpiralBold className="h-3 w-3" />,
+  'grantmaking-ai': <CpuChipIcon className="h-3 w-3 stroke-2" />,
+  ltff: <LuHourglass className="h-3 w-3" />,
+  eaif: <WrenchScrewdriverIcon className="h-3 w-3 stroke-2" />,
 } as { [key: string]: React.JSX.Element }
 
 export function CauseTag(props: {
