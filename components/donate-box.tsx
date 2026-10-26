@@ -9,9 +9,10 @@ import { Project } from '@/db/project'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { Row } from './layout/row'
-import { Tooltip } from './tooltip'
 import { SignInButton } from './sign-in-button'
-import { donationLimitError, usd } from '@/utils/donation-limits'
+import { DepositButton } from './deposit-buttons'
+import { buttonClass } from './button'
+import { donationLimitError, MIN_DONATION, usd } from '@/utils/donation-limits'
 
 export function DonateBox(props: {
   charity?: Profile
@@ -29,9 +30,14 @@ export function DonateBox(props: {
   const router = useRouter()
   const isBid = project && project.stage === 'proposal'
 
+  const available = Math.max(0, Math.floor(maxDonation * 100) / 100)
+  // Too little to give even the smallest allowed amount: offer to add funds instead of an amount box.
+  const needsFunds = available < Math.min(MIN_DONATION, fundingLeft ?? MIN_DONATION)
+  const overBalance = !!amount && amount > maxDonation
+
   let errorMessage = null
-  if (amount && amount > maxDonation) {
-    errorMessage = `You don't have enough funds to donate $${amount}. You can donate up to $${maxDonation}.`
+  if (overBalance) {
+    errorMessage = `You have ${usd(available)} to give.`
   } else if (amount) {
     errorMessage = donationLimitError(amount, fundingLeft ?? null)
   }
@@ -109,7 +115,14 @@ export function DonateBox(props: {
           </p>
         )}
       </div>
-      {profile ? (
+      {profile && needsFunds ? (
+        <Row className="items-center justify-between gap-2">
+          <span className="text-sm text-gray-500">You have {usd(available)} to give.</span>
+          <DepositButton userId={profile.id}>
+            <span className={buttonClass('md', 'orange')}>Add funds</span>
+          </DepositButton>
+        </Row>
+      ) : profile ? (
         <Row className="items-center justify-between gap-2">
           <AmountInput
             id="amount"
@@ -118,19 +131,27 @@ export function DonateBox(props: {
             onChangeAmount={setAmount}
             className="w-48 max-w-full"
           />
-          <Tooltip text={errorMessage ?? ''}>
-            <Button
-              onClick={donate}
-              className="font-semibold"
-              disabled={!amount || errorMessage !== null}
-              loading={isSubmitting}
-            >
-              Donate
-            </Button>
-          </Tooltip>
+          <Button
+            onClick={donate}
+            className="font-semibold"
+            disabled={!amount || errorMessage !== null}
+            loading={isSubmitting}
+          >
+            Donate
+          </Button>
         </Row>
       ) : (
         <SignInButton buttonText="Sign in to donate" className="mx-auto my-4" />
+      )}
+      {profile && errorMessage && (
+        <p className="text-sm text-rose-600">
+          {errorMessage}{' '}
+          {overBalance && (
+            <DepositButton userId={profile.id}>
+              <span className="font-semibold underline">Add funds</span>
+            </DepositButton>
+          )}
+        </p>
       )}
       {profile && refusal && <p className="text-sm text-rose-600">{refusal}</p>}
     </Card>

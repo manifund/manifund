@@ -184,6 +184,7 @@ function DonateTab(props: {
                 dollarQuantity: amount,
                 userId,
                 passFundsToId: passFundsTo?.id,
+                returnPath: window.location.pathname + window.location.search,
               }),
             })
             const json = await response.json()

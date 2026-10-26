@@ -36,14 +36,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   if (!user) {
     return res.status(401).json({ error: 'Unauthorized' })
   }
-  const { dollarQuantity, passFundsToId } = (await req.body) as {
+  const { dollarQuantity, passFundsToId, returnPath } = (await req.body) as {
     dollarQuantity: number
     passFundsToId?: string
+    returnPath?: string
   }
   if (!Number.isFinite(dollarQuantity) || dollarQuantity <= 0 || dollarQuantity > 1_000_000) {
     return res.status(400).json({ error: 'Invalid amount' })
   }
   const amountToCharge = Math.round(dollarQuantity * CENTS_PER_DOLLAR)
+  // Back to the page the deposit started from, so a donor lands where they were donating.
+  const origin = isProd() ? 'https://manifund.org' : 'http://localhost:3000'
+  let backUrl = origin
+  try {
+    const returnUrl = new URL(String(returnPath ?? '/'), origin)
+    if (returnUrl.origin === origin) backUrl = returnUrl.href
+  } catch {}
   try {
     const session = await stripe.checkout.sessions.create({
       metadata: {
@@ -62,8 +70,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         },
       ],
       mode: 'payment',
-      success_url: isProd() ? 'https://manifund.org' : 'http://localhost:3000',
-      cancel_url: isProd() ? 'https://manifund.org' : 'http://localhost:3000',
+      success_url: backUrl,
+      cancel_url: backUrl,
     })
     res.json({ url: session.url, id: session.id })
   } catch (error: any) {
