@@ -89,11 +89,12 @@ export async function getPrizeCause(causeSlugs: string[], supabase: SupabaseClie
     .select('*')
     .in('slug', causeSlugs)
     .eq('prize', true)
-    .maybeSingle()
   if (error) {
     throw error
   }
-  return data ? (data as Cause) : undefined
+  // A project can be in several programs (e.g. EA Community Choice and LTFF); prefer the one
+  // whose cert params drive the project, then an open one.
+  return orderBy(data as Cause[], [(c) => !!c.cert_params, (c) => c.open], ['desc', 'desc'])[0]
 }
 
 // The program a new project joins, read from the database: only open prize programs.
