@@ -2200,8 +2200,7 @@ export default function AisFunderBulletinPage() {
             </li>
             <li>
               <A href="https://futureoflife.org/">FLI</A>: Their 2025 grants page, published in July
-              2026, lists eight grants totalling $7.08m, led by $2.3m to the Center for AI Risk in
-              July 2026, lists eight grants totalling $7.08m, led by $2.3m to the Center for AI
+              2026, lists eight grants totalling $7.08m, led by $2.3m to the Center for AI Risk
               Management &amp; Alignment and $1.95m to IASEAI, with $1m to HITRECORD and the
               remaining five ranging from $129k to $550k. Their{' '}
               <A href="https://futureoflife.org/grant-program/phd-fellowships/">PhD fellowship</A>{' '}
