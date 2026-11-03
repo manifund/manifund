@@ -74,28 +74,34 @@ export default function UsersGrid({ users }: { users: User[] }) {
 }
 
 export function BalanceSheet() {
-  const lastUpdated = '2026-10-01'
+  const lastUpdated = '2026-11-01'
   const $ = {
-    // Stripe Opal + Payments balance
-    stripe: 83_656,
+    // Stripe Opal + Payments balance (total, incl. pending)
+    stripe: 146_981,
     // Mercury Manifund Grants account
-    mercury: 3_237_447,
-    coinbase: 2_078_097,
+    mercury: 2_572_660,
+    coinbase: 2_085_444,
     // Current users
-    users: -4_408_262,
+    users: -3_967_588,
     // Regranting pot owed + amount assigned to regrantors
     regranting: -2_250_000 + 2_175_000,
-    // not credited: -pending grants on Airtable
-    // Oct 2026: $900k received for AISTOF, not yet credited (account not created yet); $20k held for Julia Bossmann;
-    // $28,650 returned Future Matters grant, not yet re-credited; $5k Lucas Irwin withdrawal awaiting recipient details
-    pending: -900_000 - 20_000 - 28_650 - 5_000,
+    // Withdrawals debited on the platform but not yet sent from Mercury
+    // Nov 2026: Jacob Steinhardt $40,250 and Mateusz Bagiński $5,550 awaiting Mercury recipient details;
+    // Ali Ahmad Rahemtulla $12,000 and Md Azizul Hakim $1,630 debited Oct 30, wired Nov 2
+    pending: -40_250 - 5_550 - 12_000 - 1_630,
+    // Received but not tracked on the platform: $900k held for AISTOF
+    held_deposit: -900_000,
+    // Just Write (Nov 2026) $1,000 commitment deposits taken on Stripe through Nov 1, not on the platform
+    just_write: -18_000,
     // Donations for Manifold for Charity
     // 500k initial - donated - David MCF - AmmonLam
     charity: 500000 - 315832 - 186747,
     // Mox: Mercury + Stripe pending
-    mox: 323_015 + 1_348,
+    mox: 216_168 + 31_470,
 
     mox_fund: 142_300,
+    // Committed by Lightcone Commons to Mox, not yet received
+    mox_receivable: 813_000,
   }
   const financeRows = [
     { name: 'Stripe Bank', balance: $.stripe },
@@ -103,18 +109,21 @@ export function BalanceSheet() {
     { name: 'Coinbase (USDC)', balance: $.coinbase },
     { name: 'Mox balance (Mercury + Stripe)', balance: $.mox },
     { name: 'Mox Fund investments', balance: $.mox_fund },
+    { name: 'Pending Lightcone Commons grant to Mox', balance: $.mox_receivable },
     {
       name: 'Total assets',
-      balance: $.stripe + $.mercury + $.coinbase + $.mox + $.mox_fund,
+      balance: $.stripe + $.mercury + $.coinbase + $.mox + $.mox_fund + $.mox_receivable,
     },
     {},
     { name: 'User balances', balance: $.users },
     { name: '2025 regrantor funds, to be allocated', balance: $.regranting },
     { name: 'Pending transfers', balance: $.pending },
+    { name: 'Large deposit not on platform', balance: $.held_deposit },
+    { name: 'Just Write commitment deposits', balance: $.just_write },
     { name: 'Pending Manifold for Charity donations', balance: $.charity },
     {
       name: 'Total liabilities',
-      balance: $.users + $.regranting + $.pending + $.charity,
+      balance: $.users + $.regranting + $.pending + $.held_deposit + $.just_write + $.charity,
     },
     {},
     {
@@ -126,9 +135,12 @@ export function BalanceSheet() {
         $.users +
         $.regranting +
         $.pending +
+        $.held_deposit +
+        $.just_write +
         $.charity +
         $.mox +
-        $.mox_fund,
+        $.mox_fund +
+        $.mox_receivable,
     },
     {},
     { name: '(not included in net calculations)' },
