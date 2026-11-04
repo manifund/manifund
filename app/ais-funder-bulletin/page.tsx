@@ -888,52 +888,11 @@ export default function AisFunderBulletinPage() {
                       and Dan Wattendorf, whom Zaremba{' '}
                       <A href="https://x.com/woj_zaremba/status/2083256852255736256">announced</A>{' '}
                       on July 31, 2026 as Head of Bio-Resilience; they said in August 2026 that the
-                      team is &ldquo;still small&rdquo;. Separately,{' '}
-                      <A href="https://openaifoundation.org/news/paul-christiano-joins-openai-foundation-board">
-                        Paul Christiano
-                      </A>{' '}
-                      — founder of the Alignment Research Center, who led alignment research at
-                      OpenAI from 2017 to 2021 and is now a Senior Tech Advisor at NIST&apos;s CAISI
-                      — joined the Foundation Board in September 2026, as a non-voting observer on
-                      the OpenAI Group PBC Board, and sits on the Board&apos;s Safety and Security
-                      Committee chaired by Zico Kolter, recusing himself from all OpenAI-related
-                      matters and model evaluations. That is a governance seat, not a grantmaking
-                      one
+                      team is &ldquo;still small&rdquo;
                     </li>
                     <li>
                       as of November 1, 2026 the Foundation still hasn&apos;t published a list of
-                      the AI resilience grants it described as being finalized in June, five months
-                      on, and posted no news at all between October 15 and November 1. The grants
-                      that have surfaced were announced by the grantees: the Child Mind Institute
-                      said on{' '}
-                      <A href="https://childmind.org/blog/child-mind-institute-launches-research-initiative-to-inform-safer-ai-systems-for-youth/">
-                        July 22, 2026
-                      </A>{' '}
-                      that it had launched a research initiative on youth mental health and AI
-                      chatbots &ldquo;with support from the OpenAI Foundation,&rdquo; without naming
-                      an amount, and SecureBio Detection said in{' '}
-                      <A href="https://securebio.substack.com/p/building-a-three-day-early-warning">
-                        August 2026
-                      </A>{' '}
-                      that it had received $17.2m to cut its pathogen detection time from fourteen
-                      days to three. Inside Philanthropy reported in September 2026 that the
-                      Foundation has no single publication schedule for its grants
-                    </li>
-                  </ul>
-                </li>
-                <li>
-                  Recent updates:
-                  <ul>
-                    <li>
-                      On October 14, 2026 they and the Rockefeller Foundation launched{' '}
-                      <A href="https://openaifoundation.org/news/helping-cities-deliver-more-for-their-residents">
-                        Cities Deliver
-                      </A>
-                      , a $50m open call for AI in municipal public services, with grants of $500k
-                      to $2m over 24 months and proposals due November 29, 2026. It is their first
-                      open application route of any kind, but it belongs to the civil society and
-                      philanthropy program rather than AI resilience, and their share of the $50m is
-                      not disclosed. This remains their most recent announcement.
+                      the AI resilience grants it described as being finalized in June
                     </li>
                   </ul>
                 </li>
@@ -951,19 +910,7 @@ export default function AisFunderBulletinPage() {
                     </li>
                     <li>
                       Apply for funding: the Foundation has no application route for AI safety work,
-                      and has not published one. Its one open call is{' '}
-                      <A href="https://openaifoundation.org/news/helping-cities-deliver-more-for-their-residents">
-                        Cities Deliver
-                      </A>
-                      , a $50m joint program with the Rockefeller Foundation announced on October
-                      14, 2026 for AI in municipal public services — grants of $500k to $2m over 24
-                      months, with proposals due November 29, 2026 and applications through the{' '}
-                      <A href="https://citiesdeliver.rockefellerfoundation.org/">
-                        Rockefeller Foundation&apos;s portal
-                      </A>
-                      . It sits in their civil society and philanthropy program rather than AI
-                      safety, so it is not counted as an open RFP in the table above, and the
-                      Foundation&apos;s share of the $50m is not disclosed.
+                      and has not published one.
                     </li>
                   </ul>
                 </li>
