@@ -973,34 +973,12 @@ export default function AisFunderBulletinPage() {
                       Apply for funding: they post periodic RFPs{' '}
                       <A href="https://www.longview.org/grantmaking/#funding-opportunities">here</A>
                       , though none are open right now; otherwise opportunities are sourced via
-                      proactive research. Be careful with that page: the one card still in its
-                      Funding Opportunities section links to their{' '}
-                      <A href="https://www.longview.org/request-for-proposals-on-extreme-power-concentration/">
-                        extreme power concentration RFP
-                      </A>
-                      , which closed on July 2, 2026, and the card carries no closed marker. Their{' '}
-                      <A href="https://www.longview.org/request-for-proposals-on-hardware-enabled-mechanisms-hems-for-ai-verification/">
-                        hardware-enabled mechanisms RFP
-                      </A>{' '}
-                      for AI verification is also closed and is not linked from that section at all,
-                      so AI RFPs can appear outside it
+                      proactive research.
                     </li>
                     <li>
                       Donate: <A href="https://www.longview.org/contact/">contact form</A>;
                       they&apos;re interested in donors giving at least $1m/year for advisory
-                      services, and their private funds are open to donors giving over $100k. Their
-                      public route has shifted: the{' '}
-                      <A href="https://www.longview.org/fund/emerging-challenges-fund/">
-                        Emerging Challenges Fund
-                      </A>{' '}
-                      has stopped taking donations, with gifts reaching Giving What We Can by
-                      September 30, 2026 going into a final grant round and a final grant report
-                      promised for later in 2026 — it granted over $3.5m from more than 2,000 donors
-                      since August 2022 — while the{' '}
-                      <A href="https://www.longview.org/fund/nuclear-weapons-policy-fund/">
-                        Nuclear Weapons Policy Fund
-                      </A>{' '}
-                      page now carries a public Donate button
+                      services, and their private funds are open to donors giving over $100k.
                     </li>
                     <li>
                       Apply for a job: their{' '}
