@@ -37,14 +37,37 @@ file, open a PR, and merging deploys it.
   unknown values are `'—'`; always state years explicitly in prose (e.g.
   "in 2025", not "last year").
 
+## Writing style
+
+The bulletin is an overview, not a research report. Readers who want detail
+can follow the links to funders' own sites. Research thoroughly, but write
+briefly:
+
+- **Concision beats completeness.** Each funder entry and "Not included"
+  item should be a few sentences: what they fund, how much, and how to apply
+  or get involved. Cut anything a reader wouldn't need to decide whether to
+  look further.
+- **Don't narrate changes.** Describe the current state, not what changed
+  since the last check ("the site was rebuilt", "was $1m", "grew by 181
+  grants in two weeks"). Change history belongs in the PR body's research log.
+- **Skip fine print**: contract and licensing terms, administrative details
+  (who runs the portal, notice numbers), sub-allocations, delivery
+  mechanisms, and caveats about where a figure was sourced. Put sourcing
+  caveats in a footnote only if a reader would otherwise be misled.
+- **Don't explain classification decisions** (why something is or isn't
+  counted in the table).
+- **Verifying a sentence doesn't mean expanding it.** If an existing
+  sentence is still accurate, leave it as is; if new information is minor,
+  leave it out. A refresh may make the page shorter.
+
 ## Research process
 
 Be thorough. The expectation is that **every figure and claim on
 the page gets re-verified on every refresh**, not just skimmed for obvious
-staleness. A refresh that only tweaks a line or two is almost certainly
-under-researched. Do several distinct searches per funder (their site, public grants
-database, blog/newsroom, careers page, plus news and community sources like
-the EA Forum and LessWrong).
+staleness. Thorough research should show up in the PR's research log, not as
+longer prose on the page (see Writing style). Do several distinct searches per
+funder (their site, public grants database, blog/newsroom, careers page, plus
+news and community sources like the EA Forum and LessWrong).
 
 For each funder:
 

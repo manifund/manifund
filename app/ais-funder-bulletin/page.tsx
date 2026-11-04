@@ -1990,9 +1990,7 @@ export default function AisFunderBulletinPage() {
                       <A href="https://manifund.org/causes/falcon-fund">cause page</A> showed 17
                       proposals and $272k contributed on November 1, 2026, of which $163k is
                       completed on-platform donations to three projects, and new proposals were
-                      still arriving on October 31. But it funds the intersection of animal welfare
-                      and transformative AI rather than AI safety as such, so it is not counted as
-                      an open RFP in the table above.
+                      still arriving on October 31.
                     </li>
                     <li>
                       Donate: you can donate to projects yourself, or donate to regrantors{' '}
@@ -2131,9 +2129,7 @@ export default function AisFunderBulletinPage() {
                 NVIDIA
               </A>
               : On October 13, 2026 they committed compute &ldquo;valued at $250 million&rdquo; over
-              five years to UK agentic AI safety and security research, delivered through UK-based
-              NVIDIA Cloud Partners, with a portion going to the Oxford-led BOLD, the UCL-led
-              SOFAIR, and Imperial College London and the rest to the wider UK community.
+              five years to UK agentic AI safety and security research.
             </li>
             <li>
               <A href="https://www.mercor.com/careers/1d59ce50-4207-4d95-b7fd-5a01e90b0897/">
@@ -2147,32 +2143,16 @@ export default function AisFunderBulletinPage() {
               rolling with no deadline, but eligibility is narrow: applicants must be based in the
               US or UK, and awards go to the researcher&apos;s institution — universities, nonprofit
               research organizations, public benefit corporations, and small startups &ldquo;that do
-              not sell AI training data.&rdquo; Mercor is a for-profit company, and the award terms
-              carry commercial strings: grantees keep ownership but grant Mercor a non-exclusive
-              licence to use the work commercially; for benchmark and evaluation projects Mercor
-              gets early access plus &ldquo;the exclusive right to build and host a private held-out
-              test set&rdquo;; and grantees agree not to work with specified Mercor competitors on
-              substantially similar benchmarks during the award and for 12 months afterward.
-              Grantees are expected to publish under an open licence permitting commercial use.
+              not sell AI training data.&rdquo;
             </li>
             <li>
               <A href="https://www.halcyonfutures.org/">Halcyon Futures</A>: An incubator-grantmaker
-              for new organizations in AI safety, cybersecurity and biosecurity. Their site was
-              rebuilt on October 28, 2026 and is now a single landing page saying only that
-              &ldquo;Halcyon is a grant-maker, incubator and investment firm. We back exceptional
-              founders building in AI safety, cybersecurity and biosecurity.&rdquo; Everything we
-              reported at our last check has been taken down: the ceilings (career transition grants
-              up to $500k, nonprofit seed grants up to $3m, and VC investments &ldquo;up to $5M, and
-              sometimes much more&rdquo;), the three cumulative stats (30 new orgs and companies
-              launched, $500m in follow-on funding raised, 200 career transitions supported), and
-              the About page itself, which now 404s along with the grants, apply and careers pages.
-              The only route given is email. The one other page left is a new report,{' '}
-              <A href="https://halcyonfutures.org/governance">
-                Mission Preservation: Governance Mechanisms for Startups
-              </A>
-              , drawn from interviews with 22 founders, investors and legal experts. No explanation
-              for the teardown has been published, and they still appear as a cofunder of the UK AI
-              Security Institute&apos;s Alignment Project.
+              for new organizations in AI safety, cybersecurity and biosecurity. They offer career
+              transition grants up to $500k, nonprofit seed grants up to $3m, and VC investments
+              &ldquo;up to $5M, and sometimes much more&rdquo;; the only route given is email. They
+              publish three cumulative stats — 30 new orgs and companies launched, $500m in
+              follow-on funding raised, and 200 career transitions supported. They also appear as a
+              cofunder of the UK AI Security Institute&apos;s Alignment Project.
             </li>
             <li>
               <A href="https://www.navigation.org/">Navigation Fund</A>: Jed McCaleb&apos;s
@@ -2235,8 +2215,7 @@ export default function AisFunderBulletinPage() {
               are possible for the right project&rdquo;, with overhead capped at 10%. All funded
               work must be open-sourced. They strongly prefer applicants who will be in-person
               members of their SF or Berlin hubs; they have also added a community xNode in Cape
-              Town. Applicants can opt in to having their application shared with Lightcone Commons
-              for additional funding consideration.
+              Town.
             </li>
             <li>
               <A href="https://astera.org/ai-safety/">Astera</A>: Their webpage mentions that
@@ -2260,25 +2239,11 @@ export default function AisFunderBulletinPage() {
             </li>
             <li>
               <A href="https://www.darpa.mil/research/programs/ai-forge">AI Forge</A>: A joint
-              DARPA/NSF program launched on June 1, 2026, working with CAISI at NIST, to fund
-              research on AI interpretability, AI control, and adversarial robustness. Per the
-              program&apos;s RFI (SAM.gov notice DARPA-SN-26-80 — the figures are not on the DARPA
-              program page), its &ldquo;Project Ventures&rdquo; are &ldquo;university-led efforts
-              ranging from $750K to $3M or higher&rdquo; spanning up to one year, targeted at US
-              universities including military service academies, with key personnel expected to be
-              US citizens or permanent residents. That RFI closed on June 22, 2026 and drew nearly
-              130 responses. The forum is administered by the AI Forge Forum Management Office at
-              Riverside Research, which published a finalized{' '}
-              <A href="https://aiforge.govsignals.ai/updates/3">
-                Critical AI Challenges for National Security Report
-              </A>{' '}
-              for Cycle 2 on October 21, 2026 — now nine challenges across four thrusts, adding AI
-              Assurance (evaluation and verification) to the original three — and opened a{' '}
-              <A href="https://aiforge.govsignals.ai/">Cycle 2 Request for Abstracts</A> through its
-              GovSignals portal on October 23, 2026, with abstracts due 11:59 PM ET on November 6,
-              2026 and invited pitches on December 8, 2026. University guidance anticipates awards
-              of about $1.5m over one year, one abstract per institution. No awardees have been
-              announced.
+              DARPA/NSF program, working with CAISI at NIST, funding university-led research on AI
+              interpretability, control, robustness and assurance. Its{' '}
+              <A href="https://aiforge.govsignals.ai/">Cycle 2 Request for Abstracts</A> is open to
+              US universities, with abstracts due November 6, 2026 and awards of about $1.5m over
+              one year.
             </li>
             <li>
               <A href="https://www.iliad.ac/funding">ILIAD</A>: They fund &ldquo;ambitious research
