@@ -1031,31 +1031,10 @@ export default function AisFunderBulletinPage() {
                   </ul>
                 </li>
                 <li>
-                  Recent updates:
-                  <ul>
-                    <li>
-                      The joint{' '}
-                      <A href="https://middlepowers.ai/">Middle Powers and Transformative AI RFP</A>{' '}
-                      they launched with Astralis Foundation on September 23, 2026 closed to
-                      applications on October 23, 2026; the RFP page now reads &ldquo;Applications
-                      are now closed&rdquo; and the application link has been removed. It was run by
-                      Astralis in collaboration with Macroscopic and set out to allocate around
-                      $10m, mostly in grants of $100k to $2m over 6 to 24 months, for work that
-                      helps middle powers gain and use leverage over frontier AI development so that
-                      it is safer and more broadly beneficial. Applications were reviewed on a
-                      rolling basis, with a final decision aimed at within 8 weeks of applying and
-                      payouts &ldquo;likely&rdquo; before the end of 2026. No grantees had been
-                      announced as of November 1, 2026.
-                    </li>
-                  </ul>
-                </li>
-                <li>
                   Get involved:
                   <ul>
                     <li>
-                      Apply for funding: no open route &mdash; the{' '}
-                      <A href="https://middlepowers.ai/">Middle Powers RFP</A> closed on October 23,
-                      2026. You can email{' '}
+                      Apply for funding: you can email{' '}
                       <A href="mailto:info@macroscopic.org">info@macroscopic.org</A>, though most
                       grants are sourced through proactive research and they don&apos;t respond to
                       most proposals
@@ -1128,11 +1107,7 @@ export default function AisFunderBulletinPage() {
                   Get involved:
                   <ul>
                     <li>
-                      Apply for funding: they don&apos;t take unsolicited requests. The{' '}
-                      <A href="https://middlepowers.ai/">Middle Powers and Transformative AI RFP</A>{' '}
-                      they ran with Macroscopic (details above) closed on October 23, 2026, and no
-                      grantees have been announced; their own homepage still describes the deadline
-                      in the present tense. You can email{' '}
+                      Apply for funding: they don&apos;t take unsolicited requests. You can email{' '}
                       <A href="mailto:ops@astralisfoundation.org">ops@astralisfoundation.org</A>{' '}
                       about funding, partnering, or ideas.
                     </li>
