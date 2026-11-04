@@ -21,7 +21,9 @@ file, open a PR, and merging deploys it.
   order as the table rows.
 - "Not included" section — funders deliberately excluded. Describe them; don't
   explain why they are excluded.
-- "Other resources" — external links.
+- "Other resources" — external links. Keep the Trace figures rounded
+  ($3.5b, 4,900+ grants, 800+ funders); only change them when the rounded
+  value changes, never swap in exact counts. Just bump the as-of date.
 
 ## Gotchas
 

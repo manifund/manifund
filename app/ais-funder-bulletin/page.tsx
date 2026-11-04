@@ -2316,13 +2316,12 @@ export default function AisFunderBulletinPage() {
           <A href="https://aisafety.com/newsletter/funding">
             https://aisafety.com/newsletter/funding
           </A>
-          , which moved off Substack on October 21, 2026; the latest issue is #24, dated that day.
+          .
+        </p>
+        <p className="mt-3 text-sm text-gray-600 [&_a]:text-orange-600">
           Manifund also launched <A href="https://trace.manifund.org">Trace</A> in August 2026, a
-          database tracking $3.48b of AI safety funding across 4,946 grants and 814 funders as of
-          November 1, 2026, with dated grants going back to 2007. The full database now also covers
-          biosecurity, animal welfare, EA infrastructure and global health, for 12,656 grants and
-          $14.0b in all. It is available as a website, an API, an MCP endpoint, and a bulk download.
-          Those figures come from the API; the homepage chart shows a smaller aggregated view.
+          database tracking $3.5b of AI safety funding across 4,900+ grants and 800+ funders as of
+          November 1, 2026, with dated grants going back to 2007.
         </p>
       </div>
     </div>
