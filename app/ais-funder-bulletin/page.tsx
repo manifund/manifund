@@ -361,17 +361,11 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: "Estimate from Manifund's Trace database, which as of November 1, 2026 puts AISTOF's 2025 giving at $15.0M across 14 recorded grants ($13.5M of it an explicit estimate rather than itemised grants) and its 2026 giving at $25.0M across 30 ($22.2M of it an estimate). Trace's year totals are fixed lump sums, so publishing another itemised grant moves money out of the estimate line and raises the record count without changing the year total. AISTOF publishes no year-by-year or itemised figures of its own, only the running totals on its Manifund account.",
+    text: 'Estimate. AISTOF publishes no year-by-year or itemised figures of its own, only the running totals on its Manifund account.',
     node: (
       <>
-        Estimate from Manifund&apos;s <A href="https://trace.manifund.org/orgs/aistof">Trace</A>
-        &nbsp;database, which as of November 1, 2026 puts AISTOF&apos;s 2025 giving at $15.0M across
-        14 recorded grants ($13.5M of it an explicit estimate rather than itemised grants) and its
-        2026 giving at $25.0M across 30 ($22.2M of it an estimate). Trace&apos;s year totals are
-        fixed lump sums, so publishing another itemised grant moves money out of the estimate line
-        and raises the record count without changing the year total. AISTOF publishes no
-        year-by-year or itemised figures of its own, only the running totals on its Manifund
-        account.
+        Estimate. AISTOF publishes no year-by-year or itemised figures of its own, only the running
+        totals on its Manifund account.
       </>
     ),
   },
