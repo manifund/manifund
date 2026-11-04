@@ -159,7 +159,7 @@ const AT_A_GLANCE: Row[] = [
     href: 'https://manifund.org/',
     donated2025: { v: '$6M', n: 22 },
     grants2025: { v: '144', n: 23 },
-    expected2026: { v: '$8.5M', n: 24 },
+    expected2026: { v: '$8M', n: 24 },
     fte: '2',
     generalApps: true,
     openRfps: false,

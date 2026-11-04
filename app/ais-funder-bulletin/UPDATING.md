@@ -66,6 +66,9 @@ For each funder:
   claimed.
 - **Make changes consistently in both the At-a-glance table and the funder
   profiles** whenever both apply.
+- **Round extrapolated or derived dollar figures in the At-a-glance table to
+  the nearest million** (e.g. $8.44M → $8M). Keep the precise figure in the
+  footnote.
 - Refresh "Recent updates" bullets with notable grants or announcements, and
   "Get involved" with current job openings. Keep only updates from roughly the
   last month; delete older bullets, and drop the "Recent updates" section
