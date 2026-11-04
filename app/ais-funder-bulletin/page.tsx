@@ -348,7 +348,7 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Lightcone Commons\' own site, as of November 1, 2026: "We expect ~$45M to be granted overall in the first round." Nathan Young had said on October 12, 2026: "Lightcone Commons looks set to advise on $50m this round. We are having a second round before Christmas." This is money funders are expected to distribute on Lightcone Commons\' recommendations, not money Lightcone holds.',
+    text: 'Lightcone Commons\' own site, as of November 1, 2026: "We expect ~$45M to be granted overall in the first round." Nathan Young had said on October 12, 2026: "Lightcone Commons looks set to advise on $50m this round. We are having a second round before Christmas."',
     node: (
       <>
         <A href="https://www.lightconecommons.com/">Lightcone Commons&apos; own site</A>, as of
@@ -356,8 +356,7 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         Nathan Young had said on{' '}
         <A href="https://x.com/NathanpmYoung/status/2109700584693768321">October 12, 2026</A>:
         &ldquo;Lightcone Commons looks set to advise on $50m this round. We are having a second
-        round before Christmas.&rdquo; This is money funders are expected to distribute on Lightcone
-        Commons&apos; recommendations, not money Lightcone holds.
+        round before Christmas.&rdquo;
       </>
     ),
   },
