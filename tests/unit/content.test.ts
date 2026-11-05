@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
-import { checkContent, countWords, mentionIds } from '@/lib/comments/content'
-import { doc, docWithMention, words } from '../helpers/content'
+import { checkContent, countWords, disguisedLink, mentionIds } from '@/lib/comments/content'
+import { doc, docWithLink, docWithMention, words } from '../helpers/content'
 
 describe('C4 what a comment can contain', () => {
   test('accepts what the editor produces', () => {
@@ -22,7 +22,9 @@ describe('C4 what a comment can contain', () => {
     expect(checkContent({ type: 'doc', content: [{ type: 'script' }] }).ok).toBe(false)
     const styled = {
       type: 'doc',
-      content: [{ type: 'paragraph', content: [{ type: 'text', text: 'x', marks: [{ type: 'onclick' }] }] }],
+      content: [
+        { type: 'paragraph', content: [{ type: 'text', text: 'x', marks: [{ type: 'onclick' }] }] },
+      ],
     }
     expect(checkContent(styled).ok).toBe(false)
   })
@@ -42,6 +44,49 @@ describe('C4 what a comment can contain', () => {
   })
   test('a mention counts as one word', () => {
     expect(countWords(docWithMention('u1', 'maya', 'thanks for this'))).toBe(4)
+  })
+})
+
+describe('C37 links cannot disguise where they go', () => {
+  test('refuses the userinfo trick, naming the decoy and the real host', () => {
+    const r = checkContent(docWithLink('https://manifund.org@share.google/dtG6j79T'))
+    expect(r.ok).toBe(false)
+    if (!r.ok) {
+      expect(r.message).toContain('manifund.org')
+      expect(r.message).toContain('share.google')
+    }
+  })
+  test('refuses it with a password, protocol-relative, or backslashes', () => {
+    expect(checkContent(docWithLink('https://manifund.org:pw@evil.example/x')).ok).toBe(false)
+    expect(checkContent(docWithLink('//manifund.org@evil.example/x')).ok).toBe(false)
+    expect(checkContent(docWithLink('https:\\\\manifund.org@evil.example/x')).ok).toBe(false)
+  })
+  test('refuses it when the authority is only an @', () => {
+    expect(checkContent(docWithLink('https://@evil.example/x')).ok).toBe(false)
+    expect(checkContent(docWithLink('https://manifund.org@')).ok).toBe(false)
+  })
+  test('accepts ordinary links', () => {
+    expect(checkContent(docWithLink('https://manifund.org/projects/x?tab=comments#y')).ok).toBe(
+      true
+    )
+    expect(checkContent(docWithLink('http://localhost:3000/x')).ok).toBe(true)
+    expect(checkContent(docWithLink('/projects/relative')).ok).toBe(true)
+    expect(checkContent(docWithLink('https://share.google/dtG6j79T')).ok).toBe(true)
+  })
+  test('accepts a mailto: whose address contains an @', () => {
+    expect(checkContent(docWithLink('mailto:austin@manifund.org')).ok).toBe(true)
+  })
+  test('an @ in the path or query is not the trick', () => {
+    expect(checkContent(docWithLink('https://manifund.org/u/@maya')).ok).toBe(true)
+    expect(checkContent(docWithLink('https://manifund.org/x?to=a@b.com')).ok).toBe(true)
+  })
+  test('the helper reports the two hosts', () => {
+    expect(disguisedLink('https://manifund.org@evil.example/x')).toEqual({
+      decoy: 'manifund.org',
+      host: 'evil.example',
+    })
+    expect(disguisedLink('https://manifund.org/x')).toBeNull()
+    expect(disguisedLink(null)).toBeNull()
   })
 })
 

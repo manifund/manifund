@@ -20,6 +20,17 @@ export const docWithMention = (id: string, label: string, text: string): JSONCon
   ],
 })
 
+// A document with one link, as the editor's link mark stores it.
+export const docWithLink = (href: string, text = 'click here'): JSONContent => ({
+  type: 'doc',
+  content: [
+    {
+      type: 'paragraph',
+      content: [{ type: 'text', text, marks: [{ type: 'link', attrs: { href } }] }],
+    },
+  ],
+})
+
 // n words of filler.
 export const words = (n: number) => Array.from({ length: n }, (_, i) => `word${i}`).join(' ')
 

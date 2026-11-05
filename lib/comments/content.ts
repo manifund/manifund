@@ -30,6 +30,28 @@ export type ContentCheck =
   | { ok: true; content: JSONContent; words: number }
   | { ok: false; message: string; tooLong?: { words: number; limit: number } }
 
+// A link whose authority carries userinfo -- https://manifund.org@evil.example/x -- goes to the
+// host *after* the @; everything before it is a username, so a reader scanning left to right sees
+// a decoy. Real links never need userinfo (a password in one would leak anyway), and this is the
+// exact trick the 2026-11-04 "Manifund_Support" phishing comments used, so refuse it (C37).
+export function disguisedLink(href: unknown): { decoy: string; host: string } | null {
+  if (typeof href !== 'string') return null
+  // Browsers read a backslash in the authority as a slash, so normalize before splitting it off.
+  const authority = /^(?:[a-z][a-z0-9+.-]*:)?\/\/([^/?#]*)/i.exec(
+    href.trim().replace(/\\/g, '/')
+  )?.[1]
+  if (!authority) return null // no authority at all: mailto:, a relative link, plain text
+  const at = authority.lastIndexOf('@')
+  if (at < 0) return null
+  return { decoy: authority.slice(0, at), host: authority.slice(at + 1) }
+}
+
+function disguisedMessage({ decoy, host }: { decoy: string; host: string }) {
+  return decoy && host
+    ? `This link is disguised: it reads as "${decoy}" but goes to "${host}". A link can't have an "@" before the site name — use the real address.`
+    : `This link is malformed: the "@" before the site name hides where it really goes. Use the real address.`
+}
+
 export function checkContent(content: unknown, maxWords = WORD_LIMIT): ContentCheck {
   if (!content || typeof content !== 'object' || (content as JSONContent).type !== 'doc') {
     return { ok: false, message: 'content must be an editor document' }
@@ -59,6 +81,10 @@ function findProblem(node: JSONContent, depth: number): string | null {
   if (!node.type || !NODE_TYPES.has(node.type)) return `unsupported content: ${node.type}`
   for (const mark of node.marks ?? []) {
     if (!MARK_TYPES.has(mark.type)) return `unsupported formatting: ${mark.type}`
+    if (mark.type === 'link') {
+      const disguised = disguisedLink((mark.attrs as { href?: unknown } | undefined)?.href)
+      if (disguised) return disguisedMessage(disguised)
+    }
   }
   for (const child of node.content ?? []) {
     const p = findProblem(child, depth + 1)

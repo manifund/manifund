@@ -52,6 +52,10 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C4** A comment is what the editor produces, with some text (or a mention or an image), up to 10,000 words (far
   above anything written so far, so it never gets in the way of real comments). A longer one is refused with a
   message saying so, and the attempt is logged for review.
+- **C37** A link can't hide where it goes. A link whose address carries userinfo — an `@` before the site name, as
+  in `https://manifund.org@share.google/abc` — reads as the decoy before the `@` but goes to the host after it, so
+  the comment is refused with a message naming both. Real links never need it. An `@` elsewhere in the address (a
+  `mailto:`, a path, a query) is fine.
 - **C5** A comment can be a plain comment, or have a type: a progress update (by the project's creator), a final
   report, a grant rationale or an admin note. Only progress updates are posted from the comment box; the others come
   from their own flows (closing a project, giving a grant, an admin's verdict). Only top-level comments have a type.
@@ -169,6 +173,7 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-11-04 | Austin | Refuse a link whose address carries userinfo, an `@` before the site name (C37) | A "Manifund_Support" account spammed 82 threads with `https://manifund.org@share.google/...`, which reads as Manifund and goes elsewhere; the pattern is exact and has no legitimate use in a comment (`docs/postmortems/2026-11-04-manifund-support-phishing.md`) |
 | 2026-10-12 | Vals | The unread count becomes a badge on the sidebar's bell instead of "Notifications (n)"; it clears once `/notifications` is opened, not only after a reload (bug report from the team, 2026-10-09) (C25) | Easier to spot, and the label stays steady. The sidebar sits in the root layout, which survives client-side navigation, so it kept showing the count from before the visit |
 | 2026-10-07 | Austin | Org pages take comments, as reviews: a third target column, `org_id` | Reviews need everything comments already have (editing, moderation, reports) |
 | 2026-10-05 | Vals | Programs (causes, e.g. Falcon Fund) take no comments for now; C2 removed. Two target columns stay (`project`, `profile_id`), over one generic parent column or link tables | Causes are keyed by slug, not id, and will be reworked; two columns keep real foreign keys and a one-line "exactly one" check |

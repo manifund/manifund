@@ -137,7 +137,8 @@ Everyone else was exposed via in-app notifications and the public project pages.
    filter never ran. Comment spam has rate limits but no content classification.
 3. **No link-safety check on comment content.** A userinfo-spoofed URL
    (`https://legit.com@evil.com/...`) is a well-known, mechanically detectable phishing
-   pattern, and `lib/comments/links.ts` did not flag it. 82 identical links to a
+   pattern, and `checkContent` in `lib/comments/content.ts` — which validates the editor
+   document's nodes and marks — did not look at link hrefs at all. 82 identical links to a
    shortener domain also went unremarked.
 4. **Reports were queued, not escalated.** Two spam reports on a brand-new account posting
    identical content to dozens of threads did not stop it or page anyone; the attack ran
@@ -167,9 +168,11 @@ Not done; each is a separate change.
 - [ ] **Reserve staff-sounding usernames.** Block registration of names matching
       `manifund`, `support`, `admin`, `team`, `trust`, `safety`, `security`, `official`
       and close variants (including the display name, not just the slug).
-- [ ] **Detect userinfo-spoofed URLs in comment content** (`lib/comments/links.ts`):
-      reject or flag any link whose authority contains `@` before the host. Cheap, exact,
-      no false positives on legitimate links.
+- [x] **Detect userinfo-spoofed URLs in comment content** (`lib/comments/content.ts`):
+      reject any link whose authority contains `@` before the host. Cheap, exact, no false
+      positives on legitimate links. Done 2026-11-04 — rule C37.
+      Still open: project descriptions and org pages are editor documents too and get no
+      such check, so the same link would post fine inside a proposal.
 - [ ] **Flag duplicate comment content across threads.** N identical comments on N
       different projects from one account inside a short window is a strong, simple spam
       signal; auto-hold pending review rather than relying on rate limits alone.
