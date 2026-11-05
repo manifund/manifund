@@ -79,6 +79,7 @@ export async function getCommentsByUser(supabase: SupabaseClient, commenterId: s
     )
     .eq('commenter', commenterId)
     .is('deleted_at', null)
+    .is('held_at', null)
   if (error) {
     throw error
   }
@@ -92,6 +93,7 @@ export async function countFeedComments(supabase: SupabaseClient, filter?: FeedF
     .from('comments')
     .select('id', { count: 'exact', head: true })
     .is('deleted_at', null)
+    .is('held_at', null)
   if (filter === 'discussion') query = query.is('special_type', null)
   else if (filter) query = query.in('special_type', [...FEED_FILTERS[filter]])
   const { count } = await query
@@ -110,6 +112,7 @@ export async function getRecentFullComments(
       `*, profiles!comments_commenter_fkey(*), ${TARGET_EMBEDS}, comment_rxns(reactor_id, reaction, profiles!comment_rxns_reactor_id_fkey(id, username, avatar_url, full_name)), parent:replying_to(profiles!comments_commenter_fkey(username, full_name))`
     )
     .is('deleted_at', null)
+    .is('held_at', null)
   if (filter === 'discussion') query = query.is('special_type', null)
   else if (filter) query = query.in('special_type', [...FEED_FILTERS[filter]])
   const { data } = await query

@@ -177,6 +177,7 @@ export async function listDirectoryOrgs(supabase: SupabaseClient, thisYear: numb
       .not('org_id', 'is', null)
       .is('replying_to', null)
       .is('deleted_at', null)
+      .is('held_at', null)
       .throwOnError(),
   ])
 

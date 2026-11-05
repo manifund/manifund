@@ -14,6 +14,11 @@ export const SIGNUP_DISABLED_MESSAGE =
 export const SPAM_FILTER_ENABLED = true
 export const SPAM_FILTER_ENFORCE = true
 
+// AI moderation (docs/product/comments C38-C42, docs/product/people U2-U6). Kill switches: when
+// false, comments post without the check and accounts are never held (existing holds stop applying).
+export const COMMENT_MODERATION_ENABLED = true
+export const ACCOUNT_MODERATION_ENABLED = true
+
 // Mercury-backed withdrawals (large or international; Stripe Connect still
 // handles self-serve US withdrawals under $10k).
 // MERCURY_ENABLED: master switch. When false the withdraw page keeps linking to

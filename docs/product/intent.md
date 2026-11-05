@@ -83,6 +83,9 @@ rules. The overview of the code and services is in `../README.md`.
 ### Evaluation and quality
 
 - Admins approve proposals before they can activate.
+- People's comments and new accounts' names get an automatic check by Claude; a flagged comment is collapsed with
+  its reason until an admin reviews it, and a flagged account can't post until then (`comments/` C38-C42,
+  `people/` U2-U6).
 - Every new or edited project gets an automatic spam check, an AI quality score (a short rubric: concrete plan,
   budget clarity, track record, falsifiability, grandiose claims) and an AI-text check. The score is shown, not
   used to hide projects.

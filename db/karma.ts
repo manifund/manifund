@@ -50,7 +50,12 @@ export async function loadKarmaInputs(supabase: SupabaseClient): Promise<KarmaIn
         .range(f, t)
     ),
     pageAll<KarmaInputs['comments'][number]>((f, t) =>
-      supabase.from('comments').select('id, commenter, project').order('id').range(f, t)
+      supabase
+        .from('comments')
+        .select('id, commenter, project')
+        .is('held_at', null)
+        .order('id')
+        .range(f, t)
     ),
     pageAll<KarmaInputs['commentRxns'][number]>((f, t) =>
       supabase

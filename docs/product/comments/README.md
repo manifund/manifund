@@ -103,13 +103,34 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C17** The author is told (in the app and by email) when a moderator edits or removes their comment.
 - **C18** Spam accounts can still be wiped entirely by an admin (their comments deleted).
 
+### Automatic moderation
+
+- **C38** A person's comment (not an admin's, not one posted by another flow) is checked after it's saved, by
+  Claude (Sonnet, with Haiku as a fallback), for scam or phishing, impersonation, spam, harassment, doxxing and
+  offensive content. Criticism of a project, a grantee or a funder is not harassment. Nobody is notified about the
+  comment until the check passes. If the check can't run, the comment stands and notifies as usual.
+- **C39** Links are checked first, without the model: a link whose text names one site but goes to another, a raw
+  IP address, a look-alike international domain, a misspelling of Manifund, Stripe, PayPal, Coinbase, Mercury or
+  Google, or a site Google Safe Browsing lists. Any of these holds the comment as possible scam or phishing.
+- **C40** A flagged comment is held: everyone sees a collapsed "Comment hidden pending review: <category>" in its
+  place and can click to show it. A revealed comment held as possible phishing shows its links as plain text. A
+  comment held for private information can't be shown: its words are kept aside for admins until review. A held
+  comment notifies nobody, stays out of the home feed, the digest, the API's text and the counts, and can't be
+  edited by its author until reviewed. Replies are allowed.
+- **C41** A held comment goes to the review queue with a report from the AI moderator (its categories and reason)
+  and an alert to the team's Discord. Admins approve it (the hold lifts, and the notifications that waited go out),
+  or remove it with a public reason (C16: the placeholder becomes "Removed by a moderator", and nothing can be
+  shown).
+- **C42** An author's edit is checked again the same way; an edit can't lift a hold.
+
 ### Reports
 
 - **C19** Anyone signed in can report someone else's comment, once, with an optional note and a "this is spam"
   toggle. Reporters see only their own reports.
-- **C20** Admins see open reports per comment (the comment, its author, a link, the notes). They dismiss them (the
-  comment stays; the reports are marked dismissed, kept for later), or remove the comment with a public reason, which
-  closes the reports too.
+- **C20** Admins see open reports per comment (the comment, its author, a link, the notes, and the AI moderator's
+  report for a held comment). They dismiss them (the comment stays; the reports are marked dismissed, kept for
+  later; on a held comment this approves it, C41), or remove the comment with a public reason, which closes the
+  reports too.
 
 ### Reactions
 
@@ -154,7 +175,7 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C30** A profile shows the comments on it and, in a second tab, the comments the person wrote elsewhere (on every
   other target). Their replies on their own profile stay with their threads in the first tab.
 - **C31** The home feed includes comments on every target, tagged with where they were posted (and, for a reply,
-  whom it answers); comments on hidden projects and removed comments stay out. Filters show only updates (progress
+  whom it answers); comments on hidden projects, removed comments and held comments (C40) stay out. Filters show only updates (progress
   updates and final reports), grant reasoning, or discussion (plain comments). The weekly digest covers project
   comments. *(Planned: search, and filters by where and tag.)*
 - **C32** Mentions show the person's current username and link to their profile even after a rename.
@@ -173,6 +194,7 @@ Newest first. Everything here is also reflected in the rules above.
 
 | Date | Decided by | Decision | Why |
 |---|---|---|---|
+| 2026-11-05 | Carol | Claude checks people's comments after posting; a flagged comment is collapsed for everyone with its category and can be revealed (except private information), and waits in the review queue; links are checked without the model first, including Google Safe Browsing; enforced from the start (C38-C42) | The 2026-11-04 phishing attack ran for 33 minutes across 82 threads with nothing reading the comments; showing that something was hidden, and why, keeps moderation visible (C16's transparency) while a reviewer catches up. Posting stays instant: the check runs after, and notifications wait for it |
 | 2026-11-04 | Austin | Refuse a link whose address carries userinfo, an `@` before the site name (C37) | A "Manifund_Support" account spammed 82 threads with `https://manifund.org@share.google/...`, which reads as Manifund and goes elsewhere; the pattern is exact and has no legitimate use in a comment (`docs/postmortems/2026-11-04-manifund-support-phishing.md`) |
 | 2026-10-12 | Vals | The unread count becomes a badge on the sidebar's bell instead of "Notifications (n)"; it clears once `/notifications` is opened, not only after a reload (bug report from the team, 2026-10-09) (C25) | Easier to spot, and the label stays steady. The sidebar sits in the root layout, which survives client-side navigation, so it kept showing the count from before the visit |
 | 2026-10-07 | Austin | Org pages take comments, as reviews: a third target column, `org_id` | Reviews need everything comments already have (editing, moderation, reports) |
@@ -235,11 +257,14 @@ Newest first. Everything here is also reflected in the rules above.
 
 Run locally (not in CI yet): see `tests/README.md`. Each test names the rules it checks.
 
-- **Logic**: C4 (content checks), C21 (one notification per person, strongest reason), links and labels (C32).
+- **Logic**: C4 (content checks), C21 (one notification per person, strongest reason), links and labels (C32),
+  the link check (C39), stripping links from a revealed comment (C40).
 - **Database**: C1, C11 (threading), C14 (versions kept, with who wrote them), C16 (removed text hidden), C19 and
   C25 (people see only their own reports and notifications), C24 (two senders never email the same notification),
-  C3 (no direct writes from browsers, with the production-only rules applied).
-- **Routes**: C2, C3, C5, C6, C8, C9, C12, C13, C15-C17, C19, C20, C26-C28, and the pages and API shape (C30, C31,
+  C3 (no direct writes from browsers, with the production-only rules applied), C40 (words kept aside for a
+  private-information hold aren't readable).
+- **Routes**: C2, C3, C5, C6, C8, C9, C12, C13, C15-C17, C19, C20, C26-C28, C38-C42 (with a phishing link, so no
+  model call), and the pages and API shape (C30, C31,
   C33).
 - **Browser**: posting and replying, editing and the history, a moderator removal, a profile comment, notifications,
   and that a refused comment keeps its text (C10).

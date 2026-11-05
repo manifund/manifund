@@ -23,7 +23,9 @@ async function listCommentsPaginated(supabase: SupabaseClient, before?: string |
       special_type,
       edited_at,
       deleted_at,
-      removed_reason
+      removed_reason,
+      held_at,
+      held_categories
     `
     )
     .order('created_at', { ascending: false })
@@ -47,7 +49,8 @@ export async function GET(request: Request) {
 
   comments?.map((comment) => {
     // Convert Tiptap content to markdown
-    comment.content = comment.content ? toMarkdown(comment.content) : null
+    // A held comment's words wait for review (C40); its categories say why.
+    comment.content = comment.content && !comment.held_at ? toMarkdown(comment.content) : null
     // Convert created_at to ISO string
     comment.created_at = new Date(comment.created_at).toISOString()
   })

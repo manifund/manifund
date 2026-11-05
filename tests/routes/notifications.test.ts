@@ -2,19 +2,21 @@
 import { beforeAll, describe, expect } from 'bun:test'
 import { as, type Client } from '../helpers/http'
 import { getWorld, type World } from '../helpers/fixtures'
-import { sql } from '../helpers/db'
+import { checked, sql } from '../helpers/db'
 import { doc, docWithMention, RUN } from '../helpers/content'
 import { smoke, standard } from '../helpers/levels'
 
 let w: World
 let alice: Client, bob: Client, rita: Client
-const reasons = async (commentId: string) =>
-  Object.fromEntries(
+const reasons = async (commentId: string) => {
+  await checked(commentId)
+  return Object.fromEntries(
     (await sql`select recipient_id, reason from notifications where comment_id = ${commentId}`).map((r: any) => [
       r.recipient_id,
       r.reason,
     ])
   )
+}
 
 beforeAll(async () => {
   w = await getWorld()

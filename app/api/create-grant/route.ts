@@ -1,7 +1,8 @@
+import { assertNotHeld } from '@/lib/account-holds'
 import { NextResponse } from 'next/server'
 import uuid from 'react-uuid'
 import type { JSONContent } from '@tiptap/core'
-import { getProfileById, getProfileByUsername } from '@/db/profile'
+import { getProfileById, getProfileByUsername, isAdmin } from '@/db/profile'
 import { Project, TOTAL_SHARES } from '@/db/project'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { getURL } from '@/utils/constants'
@@ -72,6 +73,8 @@ export async function POST(req: Request) {
   ) {
     return fail('invalid inputs')
   }
+  const held = await assertNotHeld(regranterProfile, isAdmin(regranter))
+  if (held) return fail(held.message, held.status)
   const regranterTxns = await getTxnAndProjectsByUser(supabase, regranter.id)
   const regranterBids = await getBidsByUser(supabase, regranter.id)
   const regranterCharityBalance = calculateCharityBalance(

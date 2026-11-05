@@ -6,15 +6,16 @@ import { Button } from '@/components/button'
 import { RichContent } from '@/components/editor'
 import clsx from 'clsx'
 
-// The two outcomes of a report (C20), in one row so a queue can be worked through quickly: Dismiss
+// The two outcomes of a report (C20, C41 for held comments, where dismissing approves), in one row so a queue can be worked through quickly: Dismiss
 // on the left (the comment stays); on the right, the public reason and Remove comment (one click
 // once a reason is typed). Either closes the comment's open reports.
 export function ResolveReport(props: {
   commentId: string
   reportCount: number
   alreadyRemoved: boolean
+  held?: boolean // hidden pending review: dismissing approves it (C41)
 }) {
-  const { commentId, reportCount, alreadyRemoved } = props
+  const { commentId, reportCount, alreadyRemoved, held } = props
   const [reason, setReason] = useState('')
   const [busy, setBusy] = useState<false | 'dismissed' | 'removed'>(false)
   const router = useRouter()
@@ -40,7 +41,11 @@ export function ResolveReport(props: {
         loading={busy === 'dismissed'}
         onClick={() => resolve('dismissed')}
       >
-        {reportCount === 1 ? 'Dismiss report' : `Dismiss ${reportCount} reports`}
+        {held
+          ? 'Approve comment'
+          : reportCount === 1
+            ? 'Dismiss report'
+            : `Dismiss ${reportCount} reports`}
       </Button>
       {!alreadyRemoved && (
         <div className="ml-auto flex min-w-[18rem] flex-1 items-center gap-2 sm:ml-6">

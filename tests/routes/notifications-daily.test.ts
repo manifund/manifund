@@ -3,7 +3,7 @@
 // file's.
 import { beforeAll, describe, expect } from 'bun:test'
 import { tempUser, type Client } from '../helpers/http'
-import { sql } from '../helpers/db'
+import { checked, sql } from '../helpers/db'
 import { env } from '../helpers/env'
 import { doc, RUN } from '../helpers/content'
 import { smoke } from '../helpers/levels'
@@ -30,6 +30,7 @@ describe('N5 the daily summary sends what waits for it, once', () => {
       content: doc(`Daily ${RUN}`),
     })
     expect(c.status).toBe(201)
+    await checked(c.body.comment.id)
     const row = async () =>
       (
         await sql`select email_status, emailed_at from notifications where comment_id = ${c.body.comment.id} and recipient_id = ${bob.id}`

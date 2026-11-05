@@ -29,7 +29,7 @@ export type ProfileWithRoles = Profile & {
   roles: ProfileRoles
 }
 
-const ADMINS = ['akrolsmir@gmail.com', 'hannah@manifund.org', 'carol@manifund.org']
+export const ADMINS = ['akrolsmir@gmail.com', 'hannah@manifund.org', 'carol@manifund.org']
 
 // Local development only: extra admin emails for test accounts (e.g. the local stack sets
 // rita@local.test), comma-separated. Empty in production builds whatever the variable says.

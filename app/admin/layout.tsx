@@ -50,6 +50,31 @@ async function ProjectCount() {
   )
 }
 
+async function OpenCommentReportCount() {
+  const { count } = await createAdminClient()
+    .from('comment_reports')
+    .select('*', { count: 'exact', head: true })
+    .is('resolved_at', null)
+  return (
+    <span className="ml-2 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+      {count}
+    </span>
+  )
+}
+
+async function HeldAccountCount() {
+  const { count } = await createAdminClient()
+    .from('account_holds')
+    .select('*', { count: 'exact', head: true })
+    .not('held_at', 'is', null)
+    .is('cleared_at', null)
+  return (
+    <span className="ml-2 rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-600">
+      {count}
+    </span>
+  )
+}
+
 // Loading fallback for counts
 function CountLoading() {
   return (
@@ -98,7 +123,24 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </Suspense>
       ),
     },
-    { name: 'Reported comments', path: '/admin/comment-reports' },
+    {
+      name: 'Comment review',
+      path: '/admin/comment-reports',
+      count: (
+        <Suspense fallback={<CountLoading />}>
+          <OpenCommentReportCount />
+        </Suspense>
+      ),
+    },
+    {
+      name: 'Held accounts',
+      path: '/admin/held-accounts',
+      count: (
+        <Suspense fallback={<CountLoading />}>
+          <HeldAccountCount />
+        </Suspense>
+      ),
+    },
     { name: 'Karma', path: '/admin/karma' },
     { name: 'Tools', path: '/admin/tools' },
   ]
