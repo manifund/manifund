@@ -17,7 +17,7 @@ import { Col } from '@/components/layout/col'
 import { Tooltip } from '@/components/tooltip'
 import { PlusSmallIcon } from '@heroicons/react/24/outline'
 import { getPendingBidsByUser } from '@/db/bid'
-import { HELD_MESSAGE, isOpenHold } from '@/lib/account-hold-status'
+import { isOpenHold } from '@/lib/account-hold-status'
 
 export const revalidate = 30
 export default async function Sidebar() {
@@ -63,8 +63,14 @@ export default async function Sidebar() {
           </Link>
           <div className="h-6" />
           {profile && <ProfileSummary profile={profile} />}
+          {/* The nav is fixed with no width of its own, so the notice takes the Create button's. */}
           {isOpenHold(hold) && (
-            <p className="mb-3 rounded-md bg-amber-50 p-2 text-xs text-amber-800">{HELD_MESSAGE}</p>
+            <div className="mb-3 w-52 rounded-md bg-amber-50 p-2 text-xs text-amber-800">
+              Your account is pending review, so you can’t post yet.{' '}
+              <a href="mailto:hi@manifund.org" className="underline">
+                Questions?
+              </a>
+            </div>
           )}
           {user === undefined && <div className="h-[56px]" />}
           <SidebarItem item={{ name: 'Home', href: '/' }} />
