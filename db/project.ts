@@ -123,7 +123,7 @@ export async function listProjects(supabase: SupabaseClient, limitToProjectIds?:
         .select('id, project_id, recipient_name, transferred, created_at')
         .in('project_id', batchIds),
 
-      supabase.from('comments').select('project, id').in('project', batchIds),
+      supabase.from('comments').select('project, id').in('project', batchIds).is('held_at', null),
     ])
 
     return {

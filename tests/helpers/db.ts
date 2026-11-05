@@ -58,3 +58,14 @@ export async function insertComment(
     returning id`
   return row.id
 }
+
+// A person's comment is checked after the response (C38) and notifies only then: wait for the check.
+export async function checked(commentId: string, timeoutMs = 20_000) {
+  const until = Date.now() + timeoutMs
+  while (Date.now() < until) {
+    const [row] = await sql`select moderated_at from comments where id = ${commentId}`
+    if (!row || row.moderated_at) return
+    await Bun.sleep(100)
+  }
+  throw new Error(`comment ${commentId} was not checked within ${timeoutMs}ms`)
+}

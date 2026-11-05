@@ -2,7 +2,7 @@
 // throwaway account (alice follows bob); bob's projects carry the run marker, so the run's cleanup deletes them.
 import { afterAll, beforeAll, describe, expect } from 'bun:test'
 import { anonymous, tempUser, type Client } from '../helpers/http'
-import { sql } from '../helpers/db'
+import { checked, sql } from '../helpers/db'
 import { doc, RUN } from '../helpers/content'
 import { getWorld } from '../helpers/fixtures'
 import { smoke, standard } from '../helpers/levels'
@@ -72,6 +72,7 @@ describe('F3 F4 people you follow: their new projects and comments notify you', 
       content: doc(`Follow ${RUN}`),
     })
     expect(c.status).toBe(201)
+    await checked(c.body.comment.id)
     const rows =
       await sql`select reason from notifications where recipient_id = ${alice.id} and comment_id = ${c.body.comment.id}`
     expect(rows.map((r: any) => r.reason)).toEqual(['followed_person_comment'])
@@ -87,10 +88,12 @@ describe('F4 someone you follow commenting on a profile or an org page notifies 
       content: doc(`Profile ${RUN}`),
     })
     expect(onProfile.status).toBe(201)
-    const reasons = async (commentId: string) =>
-      (
+    const reasons = async (commentId: string) => {
+      await checked(commentId)
+      return (
         await sql`select reason from notifications where recipient_id = ${alice.id} and comment_id = ${commentId}`
       ).map((r: any) => r.reason)
+    }
     expect(await reasons(onProfile.body.comment.id)).toEqual(['followed_person_comment'])
     const review = await bob.post('/api/comments', {
       target: { org_id: org.id },

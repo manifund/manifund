@@ -8,6 +8,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_holds: {
+        Row: {
+          categories: string[] | null
+          checked_at: string
+          checked_full_name: string | null
+          checked_username: string
+          cleared_at: string | null
+          cleared_by: string | null
+          held_at: string | null
+          model: string | null
+          profile_id: string
+          reason: string | null
+        }
+        Insert: {
+          categories?: string[] | null
+          checked_at?: string
+          checked_full_name?: string | null
+          checked_username: string
+          cleared_at?: string | null
+          cleared_by?: string | null
+          held_at?: string | null
+          model?: string | null
+          profile_id: string
+          reason?: string | null
+        }
+        Update: {
+          categories?: string[] | null
+          checked_at?: string
+          checked_full_name?: string | null
+          checked_username?: string
+          cleared_at?: string | null
+          cleared_by?: string | null
+          held_at?: string | null
+          model?: string | null
+          profile_id?: string
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'account_holds_cleared_by_fkey'
+            columns: ['cleared_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'account_holds_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: true
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       bids: {
         Row: {
           amount: number
@@ -108,37 +162,43 @@ export type Database = {
       }
       comment_reports: {
         Row: {
+          categories: string[] | null
           comment_id: string
           created_at: string
           id: string
           is_spam: boolean
           note: string | null
-          reporter_id: string
+          reporter_id: string | null
           resolution: string | null
           resolved_at: string | null
           resolved_by: string | null
+          source: string
         }
         Insert: {
+          categories?: string[] | null
           comment_id: string
           created_at?: string
           id?: string
           is_spam?: boolean
           note?: string | null
-          reporter_id: string
+          reporter_id?: string | null
           resolution?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          source?: string
         }
         Update: {
+          categories?: string[] | null
           comment_id?: string
           created_at?: string
           id?: string
           is_spam?: boolean
           note?: string | null
-          reporter_id?: string
+          reporter_id?: string | null
           resolution?: string | null
           resolved_at?: string | null
           resolved_by?: string | null
+          source?: string
         }
         Relationships: [
           {
@@ -262,7 +322,10 @@ export type Database = {
           edit_note: string | null
           edited_at: string | null
           edited_by: string | null
+          held_at: string | null
+          held_categories: string[] | null
           id: string
+          moderated_at: string | null
           org_id: string | null
           profile_id: string | null
           project: string | null
@@ -279,7 +342,10 @@ export type Database = {
           edit_note?: string | null
           edited_at?: string | null
           edited_by?: string | null
+          held_at?: string | null
+          held_categories?: string[] | null
           id?: string
+          moderated_at?: string | null
           org_id?: string | null
           profile_id?: string | null
           project?: string | null
@@ -296,7 +362,10 @@ export type Database = {
           edit_note?: string | null
           edited_at?: string | null
           edited_by?: string | null
+          held_at?: string | null
+          held_categories?: string[] | null
           id?: string
+          moderated_at?: string | null
           org_id?: string | null
           profile_id?: string | null
           project?: string | null
@@ -519,6 +588,60 @@ export type Database = {
           },
         ]
       }
+      grant_agreement_private_superseded: {
+        Row: {
+          created_at: string | null
+          determination_letter_on_file: boolean | null
+          foreign_withholding_flag: boolean | null
+          project_id: string | null
+          signatory_email: string | null
+          signed_ip: string | null
+          signed_user_agent: string | null
+          signing_token_hash: string | null
+          superseded_at: string | null
+          token_expires_at: string | null
+          token_sent_at: string | null
+          token_sent_to: string | null
+          updated_at: string | null
+          w8_received_at: string | null
+          w9_received_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          determination_letter_on_file?: boolean | null
+          foreign_withholding_flag?: boolean | null
+          project_id?: string | null
+          signatory_email?: string | null
+          signed_ip?: string | null
+          signed_user_agent?: string | null
+          signing_token_hash?: string | null
+          superseded_at?: string | null
+          token_expires_at?: string | null
+          token_sent_at?: string | null
+          token_sent_to?: string | null
+          updated_at?: string | null
+          w8_received_at?: string | null
+          w9_received_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          determination_letter_on_file?: boolean | null
+          foreign_withholding_flag?: boolean | null
+          project_id?: string | null
+          signatory_email?: string | null
+          signed_ip?: string | null
+          signed_user_agent?: string | null
+          signing_token_hash?: string | null
+          superseded_at?: string | null
+          token_expires_at?: string | null
+          token_sent_at?: string | null
+          token_sent_to?: string | null
+          updated_at?: string | null
+          w8_received_at?: string | null
+          w9_received_at?: string | null
+        }
+        Relationships: []
+      }
       grant_agreements: {
         Row: {
           approved_at: string | null
@@ -602,6 +725,107 @@ export type Database = {
             columns: ['project_id']
             isOneToOne: true
             referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      grant_agreements_superseded: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          completed_at: string | null
+          foreign_no_tin: boolean | null
+          lobbying_clause_excluded: boolean | null
+          org_agreement_version: number | null
+          project_description: Json | null
+          project_id: string | null
+          project_title: string | null
+          recipient_address: string | null
+          recipient_country: string | null
+          recipient_entity_class: string | null
+          recipient_name: string | null
+          recipient_tax_id: string | null
+          recipient_type: string | null
+          rendered_document: string | null
+          signatory_authority_attested: boolean | null
+          signatory_name: string | null
+          signed_at: string | null
+          signed_off_site: boolean | null
+          superseded_at: string | null
+          version: number | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          foreign_no_tin?: boolean | null
+          lobbying_clause_excluded?: boolean | null
+          org_agreement_version?: number | null
+          project_description?: Json | null
+          project_id?: string | null
+          project_title?: string | null
+          recipient_address?: string | null
+          recipient_country?: string | null
+          recipient_entity_class?: string | null
+          recipient_name?: string | null
+          recipient_tax_id?: string | null
+          recipient_type?: string | null
+          rendered_document?: string | null
+          signatory_authority_attested?: boolean | null
+          signatory_name?: string | null
+          signed_at?: string | null
+          signed_off_site?: boolean | null
+          superseded_at?: string | null
+          version?: number | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          completed_at?: string | null
+          foreign_no_tin?: boolean | null
+          lobbying_clause_excluded?: boolean | null
+          org_agreement_version?: number | null
+          project_description?: Json | null
+          project_id?: string | null
+          project_title?: string | null
+          recipient_address?: string | null
+          recipient_country?: string | null
+          recipient_entity_class?: string | null
+          recipient_name?: string | null
+          recipient_tax_id?: string | null
+          recipient_type?: string | null
+          rendered_document?: string | null
+          signatory_authority_attested?: boolean | null
+          signatory_name?: string | null
+          signed_at?: string | null
+          signed_off_site?: boolean | null
+          superseded_at?: string | null
+          version?: number | null
+        }
+        Relationships: []
+      }
+      held_comment_content: {
+        Row: {
+          comment_id: string
+          content: Json
+          created_at: string
+        }
+        Insert: {
+          comment_id: string
+          content: Json
+          created_at?: string
+        }
+        Update: {
+          comment_id?: string
+          content?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'held_comment_content_comment_id_fkey'
+            columns: ['comment_id']
+            isOneToOne: true
+            referencedRelation: 'comments'
             referencedColumns: ['id']
           },
         ]
@@ -1815,15 +2039,6 @@ export type Database = {
         }
         Returns: undefined
       }
-      execute_grant_verdict_v2: {
-        Args: {
-          admin_id: string
-          approved: boolean
-          project_id: string
-          public_benefit?: string
-        }
-        Returns: undefined
-      }
       credit_stripe_checkout: {
         Args: {
           p_amount: number
@@ -1834,6 +2049,15 @@ export type Database = {
           p_user_id: string
         }
         Returns: boolean
+      }
+      execute_grant_verdict_v2: {
+        Args: {
+          admin_id: string
+          approved: boolean
+          project_id: string
+          public_benefit?: string
+        }
+        Returns: undefined
       }
       execute_readonly_sql: {
         Args: { max_rows?: number; query: string }
@@ -1866,6 +2090,7 @@ export type Database = {
           error: true
         } & 'the function public.id_text with parameter or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache'
       }
+      is_held: { Args: { uid: string }; Returns: boolean }
       network_activity: {
         Args: never
         Returns: {

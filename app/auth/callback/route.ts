@@ -1,12 +1,17 @@
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import { safeNext } from '@/utils/safe-next'
-import { NextResponse } from 'next/server'
+import { after, NextResponse } from 'next/server'
+import { createAdminClient } from '@/db/supabase-admin'
+import { getProfileById, isAdmin } from '@/db/profile'
+import { checkAccount } from '@/lib/account-holds'
 
 import type { EmailOtpType } from '@supabase/supabase-js'
 import type { NextRequest } from 'next/server'
 
 // Email links may name any of these; anything else is not a link we sent.
 const OTP_TYPES: EmailOtpType[] = ['signup', 'invite', 'magiclink', 'recovery', 'email_change']
+
+const NEW_ACCOUNT_MS = 60 * 60 * 1000
 
 function isOtpType(value: string | null): value is EmailOtpType {
   return !!value && (OTP_TYPES as string[]).includes(value)
@@ -50,6 +55,21 @@ export async function GET(request: NextRequest) {
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (error) return failed(error.name, error.message)
+  }
+
+  // A brand-new account's names are checked after the redirect (U3); renames are caught when posting.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (user && Date.now() - new Date(user.created_at).getTime() < NEW_ACCOUNT_MS) {
+    after(async () => {
+      try {
+        const profile = await getProfileById(createAdminClient(), user.id)
+        if (profile) await checkAccount(profile, isAdmin(user))
+      } catch (e) {
+        console.error('account check after sign-up failed:', e)
+      }
+    })
   }
 
   // Redirect to the requested destination after sign in

@@ -19,6 +19,7 @@ import { CommentRxnsPanel } from './comment-rxn'
 import { HistoryPopup } from './comments/history-popup'
 import { CommentActions } from './comments/comment-actions'
 import { CommentEdit } from './comments/comment-edit'
+import { HeldNotice, withoutLinks } from './comments/held-notice'
 
 export function Comment(props: {
   comment: Comment
@@ -49,6 +50,7 @@ export function Comment(props: {
     userProfile,
   } = props
   const [expanded, setExpanded] = useState(false)
+  const [revealed, setRevealed] = useState(false)
   const [editing, setEditing] = useState<false | 'author' | 'moderator'>(false)
   const [showExpandButton, setShowExpandButton] = useState(false)
   const contentElement = useRef<any>(null)
@@ -85,6 +87,26 @@ export function Comment(props: {
       </Col>
     )
   }
+  const held = !!comment.held_at
+  if (held && !revealed) {
+    // Hidden pending review (C40): everyone sees why, and can look unless it's private information.
+    return (
+      <Col ref={commentElement} id={comment.id}>
+        <Row className="w-full gap-2">
+          <HeldNotice
+            comment={comment}
+            isAuthor={userId === comment.commenter}
+            onReveal={comment.content ? () => setRevealed(true) : undefined}
+          />
+        </Row>
+      </Col>
+    )
+  }
+  // A revealed comment held as a possible scam shows its links as plain text.
+  const shownContent =
+    held && comment.held_categories?.includes('scam_phishing')
+      ? withoutLinks(comment.content)
+      : comment.content
   return (
     <Col ref={commentElement} id={comment.id}>
       <div className="ml-10 flex items-center">
@@ -112,6 +134,7 @@ export function Comment(props: {
         <Card
           className={clsx(
             'relative w-full overflow-visible rounded-xl rounded-tl-sm px-4 py-2',
+            held && 'border border-dashed border-amber-300',
             highlighted ? '!bg-orange-100 ring-2 !ring-orange-600' : '',
             editing && 'ring-1 ring-orange-300'
           )}
@@ -152,7 +175,7 @@ export function Comment(props: {
                 ref={contentElement}
                 className={clsx(expanded || !showExpandButton ? 'max-h-fit' : 'line-clamp-[12]')}
               >
-                <RichContent content={comment.content} className="text-sm" />
+                <RichContent content={shownContent} className="text-sm" />
               </div>
               {showExpandButton && (
                 <div

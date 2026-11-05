@@ -1,6 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import { JSONContent } from '@tiptap/core'
-import OpenAI from 'openai'
+import { classifyJson, hasModerationKeys } from '@/app/utils/ai-moderation'
 import { toMarkdown } from '@/utils/tiptap-parsing'
 import { getUserEmail, sendTemplateEmail, TEMPLATE_IDS } from '@/utils/email'
 import { notify, notifyAddressOnly, templateEmail } from '@/lib/notifications/notify'
@@ -12,9 +12,6 @@ import { superbanUser } from '@/db/superban'
 // filter handles. Primary classifier is Sonnet; on a refusal/error it falls
 // back to Haiku; if both fail it fails OPEN (treats the project as not spam) so
 // an API glitch can never hide or ban a real user.
-
-const PRIMARY_MODEL = 'anthropic/claude-sonnet-5'
-const FALLBACK_MODEL = 'anthropic/claude-haiku-4-5'
 
 const MIN_SPAM_CONTENT_CHARS = 15
 
@@ -52,9 +49,7 @@ export type SpamVerdict = {
   model: string
 }
 
-export function hasSpamScoringKeys() {
-  return Boolean(process.env.OPENROUTER_API_KEY)
-}
+export const hasSpamScoringKeys = hasModerationKeys
 
 function spamText(project: {
   title: string
@@ -69,34 +64,6 @@ function spamText(project: {
   }
   // Spam is unmistakable from the top of the post; a tight cap keeps this cheap.
   return parts.join('\n\n').slice(0, 2000)
-}
-
-async function classifyWithModel(text: string, model: string): Promise<SpamVerdict> {
-  const apiKey = process.env.OPENROUTER_API_KEY
-  if (!apiKey) throw new Error('Missing OPENROUTER_API_KEY')
-  const openrouter = new OpenAI({ apiKey, baseURL: 'https://openrouter.ai/api/v1' })
-
-  const completion = await openrouter.chat.completions.create({
-    model,
-    max_tokens: 500,
-    messages: [
-      { role: 'system', content: SPAM_SYSTEM_PROMPT },
-      { role: 'user', content: text },
-    ],
-  })
-  const raw = completion.choices[0]?.message?.content ?? ''
-  // An empty body means the model refused (Anthropic safety classifier) - treat
-  // as a failure so the caller falls back to the other model.
-  const match = raw.match(/\{[\s\S]*\}/)
-  if (!match)
-    throw new Error(`spam classifier returned no JSON (model=${model}): "${raw.slice(0, 120)}"`)
-  const parsed = JSON.parse(match[0]) as Omit<SpamVerdict, 'model'>
-  if (typeof parsed.is_spam !== 'boolean') {
-    throw new Error(
-      `spam classifier returned invalid is_spam (model=${model}): ${match[0].slice(0, 120)}`
-    )
-  }
-  return { ...parsed, model }
 }
 
 // Sonnet primary -> Haiku on refusal/error -> fail open (not spam).
@@ -114,17 +81,10 @@ export async function classifyProjectSpam(project: {
       model: 'guard',
     }
   }
-  try {
-    return await classifyWithModel(text, PRIMARY_MODEL)
-  } catch (primaryError) {
-    console.warn('Spam classifier primary failed, falling back to Haiku:', primaryError)
-    try {
-      return await classifyWithModel(text, FALLBACK_MODEL)
-    } catch (fallbackError) {
-      console.error('Spam classifier fallback also failed; failing open:', fallbackError)
-      return { is_spam: false, confidence: 0, reason: 'classifier unavailable', model: 'none' }
-    }
-  }
+  const verdict = await classifyJson(SPAM_SYSTEM_PROMPT, text, (parsed) =>
+    typeof parsed?.is_spam === 'boolean' ? (parsed as Omit<SpamVerdict, 'model'>) : null
+  )
+  return verdict ?? { is_spam: false, confidence: 0, reason: 'classifier unavailable', model: 'none' }
 }
 
 async function accountAgeDays(

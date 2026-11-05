@@ -254,6 +254,7 @@ export async function getNotableCommentsLastWeek(
       .gte('created_at', oneWeekAgo.toISOString())
       .not('project', 'is', null) // the digest is about project comments
       .is('deleted_at', null)
+      .is('held_at', null)
       .order('created_at', { ascending: false })
       .throwOnError(),
   ])

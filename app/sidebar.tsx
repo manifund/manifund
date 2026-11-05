@@ -17,6 +17,7 @@ import { Col } from '@/components/layout/col'
 import { Tooltip } from '@/components/tooltip'
 import { PlusSmallIcon } from '@heroicons/react/24/outline'
 import { getPendingBidsByUser } from '@/db/bid'
+import { HELD_MESSAGE, isOpenHold } from '@/lib/account-hold-status'
 
 export const revalidate = 30
 export default async function Sidebar() {
@@ -30,6 +31,14 @@ export default async function Sidebar() {
         .select('id', { count: 'exact', head: true })
         .is('read_at', null)
     : { count: 0 }
+  // The person's own hold (U4), readable to them alone.
+  const { data: hold } = user
+    ? await supabase
+        .from('account_holds')
+        .select('held_at, cleared_at')
+        .eq('profile_id', user.id)
+        .maybeSingle()
+    : { data: null }
   return (
     <>
       <div className="lg:col-span-3" />
@@ -54,6 +63,9 @@ export default async function Sidebar() {
           </Link>
           <div className="h-6" />
           {profile && <ProfileSummary profile={profile} />}
+          {isOpenHold(hold) && (
+            <p className="mb-3 rounded-md bg-amber-50 p-2 text-xs text-amber-800">{HELD_MESSAGE}</p>
+          )}
           {user === undefined && <div className="h-[56px]" />}
           <SidebarItem item={{ name: 'Home', href: '/' }} />
           {user === null && (

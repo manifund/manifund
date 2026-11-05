@@ -8,7 +8,10 @@ import { bucketFor, checkRate } from './limits'
 import { recordCommentNotifications } from '@/lib/notifications/record'
 import { sendPendingEmails } from '@/lib/notifications/send'
 import { commentFollowers } from '@/lib/follows'
-import { rulesFor } from './targets'
+import { rulesFor, targetOf } from './targets'
+import { hold, moderate, release } from './moderation'
+import { assertNotHeld } from '@/lib/account-holds'
+import { COMMENT_MODERATION_ENABLED } from '@/utils/constants'
 import { denied, USER_TYPES, type CommentRow, type PostInput, type Result } from './types'
 
 export * from './types'
@@ -19,10 +22,14 @@ export * from './types'
 // source 'user': a person through the public route; only USER_TYPES are allowed.
 // source 'server': a server flow (final report, grant rationale, admin note) that has already
 // checked who the caller is.
+//
+// A person's comment is checked after it's saved (C38): notifications wait for the verdict, so a
+// held comment notifies nobody until an admin approves it. Admins and server flows skip the check.
 export async function post(
   author: Profile,
   input: PostInput,
-  source: 'user' | 'server' = 'user'
+  source: 'user' | 'server' = 'user',
+  authorIsAdmin = false
 ): Promise<Result<{ comment: CommentRow }>> {
   const type = input.type ?? null
   if (source === 'user' && !USER_TYPES.includes(type)) {
@@ -55,6 +62,12 @@ export async function post(
     if (parent.deleted_at) return denied(409, 'this thread was deleted')
   }
 
+  // A held account can't post (U4); a rename since the last check is checked here.
+  if (source === 'user') {
+    const held = await assertNotHeld(author, authorIsAdmin)
+    if (held) return held
+  }
+
   const verdict = await rules.canPost(ctx, author, { type, parent })
   if (!verdict.ok) return verdict
   // Server flows (grant rationale, admin note, final report) aren't rate limited.
@@ -63,6 +76,7 @@ export async function post(
     if (limited) return limited
   }
 
+  const checkFirst = source === 'user' && !authorIsAdmin && COMMENT_MODERATION_ENABLED
   const { data: comment, error } = await createAdminClient()
     .from('comments')
     .insert({
@@ -71,6 +85,7 @@ export async function post(
       content: checked.content,
       special_type: type,
       replying_to: parent?.id ?? null,
+      moderated_at: checkFirst ? null : new Date().toISOString(),
     })
     .select()
     .single()
@@ -86,8 +101,62 @@ export async function post(
   } catch (e) {
     log.warn('comment.after_post_failed', { comment_id: comment.id, error: e })
   }
-  await notify(rules, ctx, comment, parent)
+  if (checkFirst) {
+    deferOrRun(() => checkThenNotify(comment, author))
+  } else {
+    await notify(rules, ctx, comment, parent)
+  }
   return { ok: true, comment }
+}
+
+// The check, then notifications if it passes (C38). Also run by the notifications sweep for a comment
+// whose after-response check never finished. The moderated_at claim makes a second run a no-op.
+export async function checkThenNotify(
+  comment: CommentRow,
+  author: Pick<Profile, 'username' | 'full_name'>
+) {
+  const target = targetOf(comment)
+  const rules = rulesFor(target)
+  const ctx = await rules.load(target)
+  if (!ctx) return
+  const { title, href } = rules.label(ctx)
+  const verdict = await moderateSafely(comment, author, title)
+  const { data: claimed } = await createAdminClient()
+    .from('comments')
+    .update({ moderated_at: new Date().toISOString() })
+    .eq('id', comment.id)
+    .is('moderated_at', null)
+    .select('id')
+  if (!claimed?.length) return
+  if (verdict) {
+    await hold(comment, verdict, href)
+    return
+  }
+  const parent = comment.replying_to
+    ? ((await getComment(comment.replying_to)) ?? undefined)
+    : undefined
+  await notify(rules, ctx, comment, parent)
+}
+
+async function moderateSafely(...args: Parameters<typeof moderate>) {
+  try {
+    return await moderate(...args)
+  } catch (e) {
+    // Fail open: the comment stands and notifies as usual.
+    log.error('comment.moderation_failed', { comment_id: args[0].id, error: e })
+    return null
+  }
+}
+
+// After the response inside a request; inline outside one (a script, a test).
+function deferOrRun(task: () => Promise<void>) {
+  const run = () =>
+    task().catch((e) => log.error('comment.background_failed', { error: e }))
+  try {
+    after(run)
+  } catch {
+    void run()
+  }
 }
 
 // Record who hears about the comment, then email them after the response is sent (the backup
@@ -141,6 +210,9 @@ export async function edit(
   const existing = await getComment(commentId)
   if (!existing) return denied(404, 'comment not found')
   if (existing.deleted_at) return denied(409, 'this comment was removed')
+  // Editing could slip new words past a hold (or past a doxxing hold's moved words): wait for review.
+  if (existing.held_at && !actor.admin)
+    return denied(409, 'this comment is waiting for review and can’t be edited yet')
   const checked = checkContent(content)
   if (!checked.ok) {
     if (checked.tooLong) {
@@ -172,6 +244,16 @@ export async function edit(
   }
   log.info('comment.edited', { comment_id: commentId, by_moderator: !byAuthor })
   if (!byAuthor) await tellAuthor(comment, actor.profile.id)
+  // An author's edit is checked again (C42); an edit can't clear a hold, only an admin can.
+  if (byAuthor && !actor.admin && COMMENT_MODERATION_ENABLED && !comment.held_at) {
+    deferOrRun(async () => {
+      const rules = rulesFor(targetOf(comment))
+      const ctx = await rules.load(targetOf(comment))
+      if (!ctx) return
+      const verdict = await moderateSafely(comment, actor.profile, rules.label(ctx).title)
+      if (verdict) await hold(comment, verdict, rules.label(ctx).href)
+    })
+  }
   return { ok: true, comment }
 }
 
@@ -205,6 +287,8 @@ export async function remove(
     log.error('comment.remove_failed', { comment_id: commentId, error })
     return denied(500, 'could not remove the comment')
   }
+  // Words moved aside for a doxxing hold go too (C41).
+  await createAdminClient().from('held_comment_content').delete().eq('comment_id', commentId)
   // Nobody needs an email about a comment that is gone, except its author.
   await createAdminClient()
     .from('notifications')
@@ -257,17 +341,32 @@ export async function report(
 }
 
 // From the reports queue (C20): dismiss (the comment stays), or remove the comment with a reason.
-// Either way every open report on the comment is closed with that resolution.
+// On a held comment (C41), dismissing is approving: the hold lifts and the notifications that
+// waited for the verdict go out. Either way every open report on the comment is closed.
 export async function resolveReports(
   admin: Actor,
   commentId: string,
-  resolution: 'dismissed' | 'removed',
+  resolution: 'dismissed' | 'removed' | 'approved',
   reason?: string | null
 ): Promise<Result> {
   if (!admin.admin) return denied(403, 'admins only')
   if (resolution === 'removed') {
     const removed = await remove(admin, commentId, reason)
     if (!removed.ok) return removed
+  } else {
+    const existing = await getComment(commentId)
+    if (existing?.held_at && !existing.deleted_at) {
+      resolution = 'approved'
+      const released = await release(commentId)
+      if (!released) return denied(500, 'could not approve the comment')
+      const rules = rulesFor(targetOf(released))
+      const ctx = await rules.load(targetOf(released))
+      const parent = released.replying_to
+        ? ((await getComment(released.replying_to)) ?? undefined)
+        : undefined
+      if (ctx) await notify(rules, ctx, released, parent)
+      log.info('comment.approved', { comment_id: commentId })
+    }
   }
   const { error } = await createAdminClient()
     .from('comment_reports')

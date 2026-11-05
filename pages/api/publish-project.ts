@@ -1,3 +1,4 @@
+import { HELD_MESSAGE, isHeld } from '@/lib/account-hold-status'
 import { onProjectPublished } from '@/lib/follows'
 import { updateProject, getProjectById } from '@/db/project'
 import { invalidateProjectsCache } from '@/db/project-cached'
@@ -22,6 +23,7 @@ export default async function handler(req: NextRequest) {
   }
   const { supabase, user } = await getUserAndClient(req)
   if (!user) return NextResponse.error()
+  if (await isHeld(user.id)) return NextResponse.json({ error: HELD_MESSAGE }, { status: 403 })
   const existingProject = await getProjectById(supabase, projectId)
   if (existingProject.creator !== user.id) {
     return NextResponse.json({ error: 'Not your project' }, { status: 403 })

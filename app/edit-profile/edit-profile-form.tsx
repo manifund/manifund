@@ -119,6 +119,10 @@ export function EditProfileForm(props: { profile: Profile }) {
     } finally {
       setSubmitting(false)
     }
+    // A changed name is checked for impersonation (U3); posting checks again, so failures don't matter.
+    if (formattedUsername !== profile.username || fullName !== profile.full_name) {
+      fetch('/api/account-check', { method: 'POST' }).catch(() => {})
+    }
     router.push(redirect ? redirect : `/${formattedUsername}`)
     router.refresh()
   }

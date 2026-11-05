@@ -370,6 +370,7 @@ export function registerPublicTools(server: McpServer, options: { admin: boolean
             'id, content, created_at, replying_to, special_type, author:profiles!comments_commenter_fkey(username, full_name)'
           )
           .eq('project', project.id)
+          .is('held_at', null)
           .order('created_at', { ascending: false })
           .limit(limit)
           .throwOnError()

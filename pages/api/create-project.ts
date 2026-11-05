@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import uuid from 'react-uuid'
 import { newProjectKarma } from '@/utils/karma'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
+import { HELD_MESSAGE, isHeld } from '@/lib/account-hold-status'
 import { projectSlugify, toTitleCase } from '@/utils/formatting'
 import { ProjectParams } from '@/utils/upsert-project'
 import { getOpenPrize, updateProjectCauses } from '@/db/cause'
@@ -41,6 +42,7 @@ export default async function handler(req: NextRequest) {
   } = (await req.json()) as ProjectParams
   const { supabase, user } = await getUserAndClient(req)
   if (!user) return NextResponse.error()
+  if (await isHeld(user.id)) return NextResponse.json({ error: HELD_MESSAGE }, { status: 403 })
   const selectedPrize = requestedPrize ? await getOpenPrize(supabase, requestedPrize.slug) : null
   if (requestedPrize && !selectedPrize) {
     return NextResponse.json({ error: 'This program is not open' }, { status: 400 })

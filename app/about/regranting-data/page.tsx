@@ -82,6 +82,7 @@ export default async function RegrantingDataPage() {
         .select('id, project, commenter, content, created_at')
         .in('commenter', regrantorIds)
         .in('project', projectIds)
+        .is('held_at', null)
         .order('created_at', { ascending: true })
         .throwOnError()
     : { data: [] }

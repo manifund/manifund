@@ -165,7 +165,9 @@ no longer serve the link.
 
 Not done; each is a separate change.
 
-- [ ] **Reserve staff-sounding usernames.** Block registration of names matching
+- [x] **Reserve staff-sounding usernames.** Done 2026-11-05 as account holds (people U2-U6): a name with
+      "Manifund" or "Trust & Safety" is held outright, and Claude checks the rest for impersonation; a held
+      account can't post until an admin clears it. A plain "support" or "admin" isn't held without the model. Block registration of names matching
       `manifund`, `support`, `admin`, `team`, `trust`, `safety`, `security`, `official`
       and close variants (including the display name, not just the slug).
 - [x] **Detect userinfo-spoofed URLs in comment content** (`lib/comments/content.ts`):
@@ -179,7 +181,8 @@ Not done; each is a separate change.
 - [ ] **Escalate on reports against new accounts.** k spam reports (k=2?) against an
       account younger than ~24h with no funding history → auto-hide its comments and
       page an admin, instead of waiting in the queue.
-- [ ] **Extend spam scoring to comments**, or at minimum run new accounts' first comments
+- [x] **Extend spam scoring to comments** — done 2026-11-05 (comments C38-C42): every person's comment is
+      checked after posting, and a flagged one is collapsed and queued, with its notifications held., or at minimum run new accounts' first comments
       through the same classifier that gates projects (S19).
 - [ ] **Add a staff badge** on comments from real Manifund accounts, so "Manifund Support"
       with no badge reads as suspicious.
