@@ -69,10 +69,12 @@ export async function POST(req: Request) {
   if (
     (recipientEmail && recipientUsername) ||
     ((!recipientEmail || !recipientName) && !recipientUsername) ||
-    !regranterProfile
+    !regranterProfile ||
+    !(donorContribution > 0)
   ) {
     return fail('invalid inputs')
   }
+  if (!regranterProfile.regranter_status) return fail('only regranters can give grants', 403)
   const held = await assertNotHeld(regranterProfile, isAdmin(regranter))
   if (held) return fail(held.message, held.status)
   const regranterTxns = await getTxnAndProjectsByUser(supabase, regranter.id)
