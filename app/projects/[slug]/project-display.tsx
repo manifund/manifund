@@ -29,6 +29,7 @@ import { Vote } from './vote'
 import { CauseTag, StageIcon } from '@/components/tags'
 import { NetworkLine } from '@/components/follows/network-tag'
 import type { NetworkItem } from '@/lib/follows/network'
+import type { GivingFund } from '@/db/fund'
 import { Trade } from './trade'
 import { AssuranceBuyBox } from './assurance-buy-box'
 import { calculateTradePoints } from '@/utils/amm'
@@ -58,6 +59,7 @@ type ProjectDisplayProps = {
   creatorEmail?: string
   userIsAdmin?: boolean
   network?: NetworkItem[] // what people the viewer follows did here (F8)
+  givingFunds?: GivingFund[] // funds the viewer can give as (F2)
   // The tabs (comments, offers, similar projects), rendered by the page and streamed in later.
   tabs: React.ReactNode
 }
@@ -82,6 +84,7 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
     causesList,
     prizeCause,
     userIsAdmin,
+    givingFunds,
     tabs,
   } = props
   const { userSpendableFunds, userSellableShares } = getViewerFunds(
@@ -314,6 +317,7 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
                     maxDonation={userSpendableFunds}
                     fundingLeft={fundingLeft(project.funding_goal, amountRaised)}
                     setCommentPrompt={setSpecialCommentPrompt}
+                    givingFunds={givingFunds}
                   />
                 ) : (
                   <span className="mx-auto mb-5 text-sm italic text-gray-500">

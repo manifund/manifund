@@ -11,6 +11,7 @@ import { getMatchBids, getPendingBidsByUser } from '@/db/bid'
 import { getProfileById } from '@/db/profile'
 import { MATCH_END, MATCH_START } from './qf'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 
 export const revalidate = 60
 
@@ -74,6 +75,14 @@ export default async function CausePage(props: { params: Promise<{ causeSlug: st
       )}
       <h1 className="mb-1 mt-3 text-3xl font-bold lg:text-4xl">{cause.title}</h1>
       <CauseData projects={projects} />
+      {fund?.type === 'fund' && (
+        <p className="my-3 rounded bg-orange-50 p-3 text-sm text-orange-800">
+          These are applications to {fund.full_name}.{' '}
+          <Link href={`/${fund.username}`} className="font-semibold underline">
+            See the fund, its grants and how to donate
+          </Link>
+        </p>
+      )}
       <CauseTabs
         cause={cause}
         projects={projects}
