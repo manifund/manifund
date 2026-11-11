@@ -5,6 +5,7 @@ import { Button } from '@/components/button'
 import { Card } from '@/components/layout/card'
 import { AmountInput } from '@/components/input'
 import { Profile } from '@/db/profile'
+import type { GivingFund } from '@/db/fund'
 import { Project } from '@/db/project'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
@@ -13,6 +14,7 @@ import { SignInButton } from './sign-in-button'
 import { DepositButton } from './deposit-buttons'
 import { buttonClass } from './button'
 import { donationLimitError, MIN_DONATION, usd } from '@/utils/donation-limits'
+import clsx from 'clsx'
 
 export function DonateBox(props: {
   charity?: Profile
@@ -22,9 +24,14 @@ export function DonateBox(props: {
   // What's left of a grant project's funding goal (fundingLeft); the server applies the same cap.
   fundingLeft?: number
   setCommentPrompt?: (value: string) => void
+  // Funds the viewer administers and can give as instead (F2).
+  givingFunds?: GivingFund[]
 }) {
-  const { charity, project, profile, maxDonation, fundingLeft, setCommentPrompt } = props
+  const { charity, project, profile, fundingLeft, setCommentPrompt, givingFunds = [] } = props
   const [amount, setAmount] = useState<number>()
+  const [asFundId, setAsFundId] = useState<string>()
+  const asFund = givingFunds.find((g) => g.fund.id === asFundId)
+  const maxDonation = asFund ? asFund.balance : props.maxDonation
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [refusal, setRefusal] = useState<string | null>(null)
   const router = useRouter()
@@ -37,7 +44,7 @@ export function DonateBox(props: {
 
   let errorMessage = null
   if (overBalance) {
-    errorMessage = `You have ${usd(available)} to give.`
+    errorMessage = `${asFund ? asFund.fund.full_name + ' has' : 'You have'} ${usd(available)} to give.`
   } else if (amount) {
     errorMessage = donationLimitError(amount, fundingLeft ?? null)
   }
@@ -60,6 +67,7 @@ export function DonateBox(props: {
           valuation: 0,
           amount,
           type: 'donate',
+          asFundId,
         }),
       }).catch(() => undefined)
     } else if (project || charity) {
@@ -69,7 +77,7 @@ export function DonateBox(props: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          fromId: profile.id,
+          fromId: asFundId ?? profile.id,
           toId: charity?.id ?? project?.creator,
           amount,
           projectId: project?.id,
@@ -115,7 +123,34 @@ export function DonateBox(props: {
           </p>
         )}
       </div>
-      {profile && needsFunds ? (
+      {profile && givingFunds.length > 0 && (
+        <Row className="flex-wrap items-center gap-2 text-sm">
+          <span className="text-gray-500">Give as</span>
+          {[
+            { id: undefined, name: 'You' },
+            ...givingFunds.map((g) => ({ id: g.fund.id, name: g.fund.full_name })),
+          ].map((option) => (
+            <button
+              key={option.id ?? 'self'}
+              type="button"
+              onClick={() => setAsFundId(option.id)}
+              className={clsx(
+                'rounded-full px-3 py-1 ring-1',
+                asFundId === option.id
+                  ? 'bg-orange-500 text-white ring-orange-500'
+                  : 'text-gray-700 ring-gray-300 hover:bg-gray-50'
+              )}
+            >
+              {option.name}
+            </button>
+          ))}
+        </Row>
+      )}
+      {profile && asFund && needsFunds ? (
+        <span className="text-sm text-gray-500">
+          {asFund.fund.full_name} has {usd(available)} to give.
+        </span>
+      ) : profile && needsFunds ? (
         <Row className="items-center justify-between gap-2">
           <span className="text-sm text-gray-500">You have {usd(available)} to give.</span>
           <DepositButton userId={profile.id}>
@@ -146,7 +181,7 @@ export function DonateBox(props: {
       {profile && errorMessage && (
         <p className="text-sm text-rose-600">
           {errorMessage}{' '}
-          {overBalance && (
+          {overBalance && !asFund && (
             <DepositButton userId={profile.id}>
               <span className="font-semibold underline">Add funds</span>
             </DepositButton>

@@ -529,6 +529,39 @@ export type Database = {
           },
         ]
       }
+      fund_admins: {
+        Row: {
+          created_at: string
+          fund_id: string
+          profile_id: string
+        }
+        Insert: {
+          created_at?: string
+          fund_id: string
+          profile_id: string
+        }
+        Update: {
+          created_at?: string
+          fund_id?: string
+          profile_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'fund_admins_fund_id_fkey'
+            columns: ['fund_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'fund_admins_profile_id_fkey'
+            columns: ['profile_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       grant_agreement_private: {
         Row: {
           created_at: string

@@ -8,6 +8,8 @@ const posthogProjectId = process.env.POSTHOG_PROJECT_ID
 
 const nextConfig = {
   reactStrictMode: false,
+  // A package-lock.json in a parent directory otherwise makes Turbopack pick the wrong root
+  turbopack: { root: __dirname },
   // PostHog API paths end in '/'; the trailing-slash redirect is re-implemented in proxy.ts
   skipTrailingSlashRedirect: true,
   images: {

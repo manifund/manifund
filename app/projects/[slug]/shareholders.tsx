@@ -74,10 +74,7 @@ function Trade(props: {
           <span className="text-gray-500">for</span>
           {formatMoneyPrecise(amountUSD)}
         </Row>
-        <RelativeTime
-          date={createdAt}
-          className="hidden text-right text-gray-500 sm:block"
-        />
+        <RelativeTime date={createdAt} className="hidden text-right text-gray-500 sm:block" />
       </div>
     </Row>
   )

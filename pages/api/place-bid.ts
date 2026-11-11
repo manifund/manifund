@@ -1,9 +1,10 @@
 import { Bid, getBidsByUser } from '@/db/bid'
 import { NextRequest } from 'next/server'
 import uuid from 'react-uuid'
-import { getUserAndClient } from '@/db/edge'
+import { createAdminClient, getUserAndClient } from '@/db/edge'
 import { getProjectAndBidsById } from '@/db/project'
 import { getProfileAndBidsById } from '@/db/profile'
+import { isFundAdmin } from '@/db/fund'
 import { getTxnAndProjectsByUser } from '@/db/txn'
 import { calculateCashBalance, calculateCharityBalance } from '@/utils/math'
 import { calcFundingNeeded, calcTotalOffered } from '@/utils/activate-project'
@@ -19,10 +20,12 @@ type BidProps = {
   valuation: number
   amount: number
   type: Bid['type']
+  // Give as a fund the user administers instead of as themselves (F2).
+  asFundId?: string
 }
 
 export default async function handler(req: NextRequest) {
-  const { projectId, valuation, amount, type } = (await req.json()) as BidProps
+  const { projectId, valuation, amount, type, asFundId } = (await req.json()) as BidProps
   const { supabase, user } = await getUserAndClient(req)
   if (!user) {
     return new Response('Unauthorized', { status: 401 })
@@ -30,10 +33,14 @@ export default async function handler(req: NextRequest) {
   if (!Number.isFinite(amount) || amount <= 0 || !Number.isFinite(valuation) || valuation < 0) {
     return new Response('Invalid amount', { status: 400 })
   }
+  if (asFundId && (type !== 'donate' || !(await isFundAdmin(supabase, asFundId, user.id)))) {
+    return new Response('Unauthorized', { status: 401 })
+  }
+  const bidderId = asFundId ?? user.id
   const [bidder, txns, bids, project] = await Promise.all([
-    getProfileAndBidsById(supabase, user.id),
-    getTxnAndProjectsByUser(supabase, user.id),
-    getBidsByUser(supabase, user.id),
+    getProfileAndBidsById(supabase, bidderId),
+    getTxnAndProjectsByUser(supabase, bidderId),
+    getBidsByUser(supabase, bidderId),
     getProjectAndBidsById(supabase, projectId),
   ])
   const bidderBalance =
@@ -69,11 +76,12 @@ export default async function handler(req: NextRequest) {
   const newBid = {
     id,
     project: projectId,
-    bidder: user.id,
+    bidder: bidderId,
     valuation,
     amount: actualBidAmount,
     status: 'pending' as Bid['status'],
     type,
   }
-  await supabase.from('bids').insert([newBid]).throwOnError()
+  // RLS only lets people insert their own bids; a fund's is written by the server once checked above.
+  await (asFundId ? createAdminClient() : supabase).from('bids').insert([newBid]).throwOnError()
 }

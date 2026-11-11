@@ -32,6 +32,7 @@ export function ProjectTabs(props: {
   userProfile?: Profile
   activeAuction?: boolean
   similarProjects?: FullProjectWithSimilarity[]
+  adminFundIds?: string[]
 }) {
   const {
     project,
@@ -44,6 +45,7 @@ export function ProjectTabs(props: {
     userProfile,
     activeAuction,
     similarProjects,
+    adminFundIds,
   } = props
   const { prompt: specialCommentPrompt } = useCommentPrompt()
   const searchParams = useSearchParams() ?? new URLSearchParams()
@@ -89,6 +91,7 @@ export function ProjectTabs(props: {
           userSpendableFunds={userSpendableFunds}
           userSellableShares={userSellableShares}
           activeAuction={activeAuction}
+          adminFundIds={adminFundIds}
         />
       ),
     })

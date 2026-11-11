@@ -150,13 +150,14 @@ export async function listProfilesAndEvals(supabase: SupabaseClient) {
 export async function getFundByUsername(supabase: SupabaseClient, username: string) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('id, full_name, username, avatar_url, bio, long_description')
+    .select('*')
     .eq('username', username)
+    .eq('type', 'fund')
     .maybeSingle()
   if (error) {
     throw error
   }
-  return data
+  return data as Profile | null
 }
 
 export async function getProfileRoles(supabase: SupabaseClient, id: string) {

@@ -14,6 +14,7 @@ import { getBidsByUser } from '@/db/bid'
 import NoAccess from '@/app/no-access'
 import { notFound } from 'next/navigation'
 import { networkFor } from '@/db/network'
+import { getGivingFunds } from '@/db/fund'
 
 export const revalidate = 0
 
@@ -62,6 +63,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     causesList,
     prizeCause,
     network,
+    givingFunds,
   ] = await Promise.all([
     user ? getProfileAndBidsById(supabase, user.id) : null,
     user ? getTxnAndProjectsByUser(supabase, user.id) : [],
@@ -75,6 +77,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     ),
     // what people the viewer follows did on this project (F8)
     user ? networkFor(supabase, user.id) : undefined,
+    user ? getGivingFunds(supabase, user.id) : [],
   ])
   const creatorEmail = userProfile?.regranter_status
     ? await getUserEmail(createAdminClient(), project.creator)
@@ -99,6 +102,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
           prizeCause={prizeCause}
           userIsAdmin={userIsAdmin}
           network={network?.[project.id]}
+          givingFunds={givingFunds}
           tabs={
             <Suspense fallback={<ProjectTabsSkeleton />}>
               <ProjectTabsSection
@@ -109,6 +113,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
                 projectBids={projectBids}
                 projectTxns={projectTxns}
                 prizeCause={prizeCause}
+                adminFundIds={givingFunds.map((g) => g.fund.id)}
               />
             </Suspense>
           }

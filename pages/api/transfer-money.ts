@@ -11,6 +11,8 @@ import { TEMPLATE_IDS } from '@/utils/email'
 import { notify, templateEmail } from '@/lib/notifications/notify'
 import { getURL } from '@/utils/constants'
 import { isAdmin } from '@/db/profile'
+import { isFundAdmin } from '@/db/fund'
+import { notifyFundAdmins } from '@/lib/notifications/fund-donation'
 
 export const config = {
   runtime: 'edge',
@@ -28,7 +30,11 @@ type MoneyTransferProps = {
 export default async function handler(req: NextRequest) {
   const { fromId, toId, amount, projectId } = (await req.json()) as MoneyTransferProps
   const { supabase, user } = await getUserAndClient(req)
-  if (user?.id !== fromId && !isAdmin(user)) {
+  // Yourself, a fund you administer (F2), or anyone for site admins.
+  if (
+    !user ||
+    (user.id !== fromId && !isAdmin(user) && !(await isFundAdmin(supabase, fromId, user.id)))
+  ) {
     return NextResponse.error()
   }
   const profile = await getProfileById(supabase, fromId)
@@ -112,7 +118,8 @@ export default async function handler(req: NextRequest) {
     await onDonation({ donorId: donor.id, projectId, amount, txnId: txn?.id })
     const { error } = await supabase.rpc('follow_project', {
       project_id: projectId,
-      follower_id: donor.id,
+      // A fund can't follow under RLS; the admin giving from it does.
+      follower_id: donor.type === 'fund' ? user.id : donor.id,
     })
     if (error) {
       console.error(error)
@@ -136,6 +143,15 @@ export default async function handler(req: NextRequest) {
         amount,
         email: templateEmail(TEMPLATE_IDS.REGRANTER_DONATION, postmarkVars, toId),
       })
+    } else if (regranterProfile.type === 'fund') {
+      // Nobody signs in as a fund; its admins hear about it (F9)
+      await notifyFundAdmins(
+        supabaseAdmin,
+        regranterProfile,
+        donor.full_name || donor.username,
+        amount,
+        txn?.id
+      )
     } else {
       // An organization's profile: no email today, but the donation still shows in-app (N1).
       await notify({

@@ -3,6 +3,7 @@ import { stripe } from '@/utils/stripe'
 import { createAdminClient } from '@/db/edge'
 import { TEMPLATE_IDS } from '@/utils/email'
 import { notify, templateEmail } from '@/lib/notifications/notify'
+import { notifyFundAdmins } from '@/lib/notifications/fund-donation'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { Readable } from 'node:stream'
 import uuid from 'react-uuid'
@@ -76,6 +77,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         amount: Number(session.metadata?.dollarQuantity ?? 0) || null,
         email: templateEmail(TEMPLATE_IDS.PAYMENT_CONFIRMATION, model, userId),
       })
+    }
+    const passFundsToId = session.metadata?.passFundsToId
+    if (passFundsToId) {
+      const [{ data: recipient }, { data: donor }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, username, full_name, type')
+          .eq('id', passFundsToId)
+          .single(),
+        supabase
+          .from('profiles')
+          .select('username, full_name')
+          .eq('id', userId ?? '')
+          .maybeSingle(),
+      ])
+      // A card donation straight to a fund: its admins hear about it (F9)
+      if (recipient?.type === 'fund') {
+        await notifyFundAdmins(
+          supabase,
+          recipient,
+          donor?.full_name || donor?.username || session.customer_details?.name || 'Someone',
+          Number(session.metadata?.dollarQuantity ?? 0)
+        )
+      }
     }
   }
   return res.status(200).send('success')

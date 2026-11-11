@@ -9,6 +9,7 @@ import { CertParams, MiniCause } from './cause'
 import { ProjectFollow } from './follows'
 import { countVotes } from '@/utils/sort'
 import type { AiEvalScore } from '@/utils/karma'
+import { chunk, uniq } from 'es-toolkit'
 
 export type Project = Database['public']['Tables']['projects']['Row']
 export type ProjectUpdate = Database['public']['Tables']['projects']['Update']
@@ -279,6 +280,27 @@ export async function getFullProjectsByCause(supabase: SupabaseClient, causeSlug
     throw error
   }
   return data as unknown as FullProject[]
+}
+
+export async function getFullProjectsByIds(supabase: SupabaseClient, projectIds: string[]) {
+  // Chunked: a long .in() list overflows the request URL
+  const results = await Promise.all(
+    chunk(uniq(projectIds), 100).map(async (ids) => {
+      const { data, error } = await supabase
+        .from('projects')
+        .select(
+          'title, id, created_at, creator, slug, blurb, stage, funding_goal, min_funding, type, amm_shares, founder_shares, auction_close, ai_fraction, quality_score, karma, karma_breakdown, profiles!projects_creator_fkey(id, username, full_name, avatar_url, type), bids(*), txns(*), comments(id), rounds(title, slug), project_transfers(id, project_id, recipient_name, transferred, created_at), project_votes(magnitude), causes(title, slug), project_ai_evals(score, created_at)'
+        )
+        .in('id', ids)
+        .neq('stage', 'hidden')
+        .neq('stage', 'draft')
+      if (error) {
+        throw error
+      }
+      return data as unknown as FullProject[]
+    })
+  )
+  return results.flat()
 }
 
 export async function getProjectsPendingTransferByUser(supabase: SupabaseClient, userId: string) {

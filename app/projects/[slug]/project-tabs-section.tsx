@@ -19,8 +19,19 @@ export async function ProjectTabsSection(props: {
   projectBids: BidAndProfile[]
   projectTxns: TxnAndProfiles[]
   prizeCause?: Cause
+  // Funds the viewer runs: they can withdraw those funds' pending offers (F8)
+  adminFundIds?: string[]
 }) {
-  const { project, userProfile, userTxns, userBids, projectBids, projectTxns, prizeCause } = props
+  const {
+    project,
+    userProfile,
+    userTxns,
+    userBids,
+    projectBids,
+    projectTxns,
+    prizeCause,
+    adminFundIds,
+  } = props
   const supabase = await createServerSupabaseClient()
   const [comments, similarProjects] = await Promise.all([
     getCommentsByProject(supabase, project.id),
@@ -36,6 +47,7 @@ export async function ProjectTabsSection(props: {
   return (
     <ProjectTabs
       project={project}
+      adminFundIds={adminFundIds}
       userProfile={userProfile}
       comments={comments}
       bids={projectBids}

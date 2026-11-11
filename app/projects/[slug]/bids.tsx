@@ -25,9 +25,17 @@ export function Bids(props: {
   userSellableShares: number
   userProfile?: Profile
   activeAuction?: boolean
+  adminFundIds?: string[]
 }) {
-  const { bids, project, userSpendableFunds, userSellableShares, userProfile, activeAuction } =
-    props
+  const {
+    bids,
+    project,
+    userSpendableFunds,
+    userSellableShares,
+    userProfile,
+    activeAuction,
+    adminFundIds,
+  } = props
   if (bids.length === 0)
     return <p className="text-center italic text-gray-500">There are no bids on this project.</p>
   const buyBids = bids.filter((bid) => bid.type === 'buy' || bid.type === 'assurance buy')
@@ -73,6 +81,7 @@ export function Bids(props: {
               project={project}
               userProfile={userProfile}
               showValuation={false}
+              adminFundIds={adminFundIds}
             />
           ))}
         </Col>
@@ -88,8 +97,18 @@ export function Bid(props: {
   userProfile?: Profile
   userSpendableFunds?: number
   userSellableShares?: number
+  adminFundIds?: string[]
 }) {
-  const { bid, showValuation, project, userProfile, userSpendableFunds, userSellableShares } = props
+  const {
+    bid,
+    showValuation,
+    project,
+    userProfile,
+    userSpendableFunds,
+    userSellableShares,
+    adminFundIds,
+  } = props
+  const fundOffer = !!adminFundIds?.includes(bid.bidder)
   const showTrade =
     userProfile &&
     bid.bidder !== userProfile.id &&
@@ -112,11 +131,10 @@ export function Bid(props: {
         )}
       </Row>
       <Row className="items-center justify-end gap-2">
-        <RelativeTime
-          date={bid.created_at}
-          className="hidden text-right text-gray-500 sm:block"
-        />
-        {userProfile && bid.bidder === userProfile.id && <DeleteBid bidId={bid.id} />}
+        <RelativeTime date={bid.created_at} className="hidden text-right text-gray-500 sm:block" />
+        {userProfile && (bid.bidder === userProfile.id || fundOffer) && (
+          <DeleteBid bidId={bid.id} fundOffer={fundOffer} />
+        )}
         {showTrade && project && (
           <Trade
             bid={bid}
@@ -285,8 +303,8 @@ function Trade(props: {
   )
 }
 
-function DeleteBid(props: { bidId: string }) {
-  const { bidId } = props
+function DeleteBid(props: { bidId: string; fundOffer?: boolean }) {
+  const { bidId, fundOffer } = props
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { supabase } = useSupabase()
@@ -326,7 +344,17 @@ function DeleteBid(props: { bidId: string }) {
             className="sm:flex-2 inline-flex w-full justify-center bg-rose-500 hover:bg-rose-600"
             loading={isSubmitting}
             onClick={async () => {
-              await deleteBid(supabase, bidId)
+              setIsSubmitting(true)
+              if (fundOffer) {
+                // RLS only lets bidders update their own bids; the server checks fund admins (F8)
+                await fetch('/api/withdraw-fund-bid', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ bidId }),
+                })
+              } else {
+                await deleteBid(supabase, bidId)
+              }
               setIsSubmitting(false)
               setOpen(false)
               router.refresh()
