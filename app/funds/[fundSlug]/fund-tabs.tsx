@@ -11,14 +11,15 @@ import { buttonClass } from '@/components/button'
 import { OutgoingDonationsHistory } from '@/app/[usernameSlug]/profile-donations'
 import { Profile } from '@/db/profile'
 import { FullTxn, TxnAndProfiles } from '@/db/txn'
-import { BidAndProject } from '@/db/bid'
 import { FullProject } from '@/db/project'
 import { SimpleCause } from '@/db/cause'
 
 export function FundTabs(props: {
   fund: Profile
-  grants: FullTxn[]
-  pendingOffers: BidAndProject[]
+  // Projects the fund has given to or has a pending offer on
+  grantProjects: FullProject[]
+  // Grants to profiles rather than projects
+  otherGrants: FullTxn[]
   donations: TxnAndProfiles[]
   applications: FullProject[]
   hasCause: boolean
@@ -26,23 +27,39 @@ export function FundTabs(props: {
   applySlug?: string
   causesList: SimpleCause[]
 }) {
-  const { fund, grants, pendingOffers, donations, applications, hasCause, applySlug, causesList } =
-    props
+  const {
+    fund,
+    grantProjects,
+    otherGrants,
+    donations,
+    applications,
+    hasCause,
+    applySlug,
+    causesList,
+  } = props
   const searchParams = useSearchParams() ?? new URLSearchParams()
+  const grantCount = grantProjects.length + otherGrants.length
   const tabs: Tab[] = [
     {
       name: 'Grants',
       id: 'grants',
-      count: grants.length + pendingOffers.length,
+      count: grantCount,
       display:
-        grants.length + pendingOffers.length === 0 ? (
+        grantCount === 0 ? (
           <EmptyContent
             icon={<WrenchIcon className="h-10 w-10 text-gray-400" />}
             title="No grants yet"
             subtitle={`Grants ${fund.full_name} makes will be listed here.`}
           />
         ) : (
-          <OutgoingDonationsHistory donations={grants} pendingDonateBids={pendingOffers} />
+          <>
+            {grantProjects.length > 0 && (
+              <ProjectsDisplay projects={grantProjects} causesList={causesList} noFilter />
+            )}
+            {otherGrants.length > 0 && (
+              <OutgoingDonationsHistory donations={otherGrants} pendingDonateBids={[]} />
+            )}
+          </>
         ),
     },
   ]
@@ -62,7 +79,7 @@ export function FundTabs(props: {
             </Link>
           ) : (
             <p className="mb-4 text-sm text-gray-500">
-              {fund.full_name} isn&apos;t taking applications right now.
+              {`${fund.full_name} isn't taking applications right now.`}
             </p>
           )}
           {applications.length > 0 && (

@@ -26,7 +26,7 @@ over later.
 - **F4** The page's figures: **raised** is every dollar given to the fund; **granted** is every dollar it has given
   out (project donations and profile donations); **available to grant** is its balance less its pending offers,
   never shown below $0 (ACX Grants paid grants with money that never came through Manifund).
-- **F5** Below the donate box and description, tabs: **Grants** (paid, and pending offers), **Applications** (when
+- **F5** Below the donate box and description, tabs: **Grants** (project cards for projects it paid or has a pending offer on, then rows for grants to people), **Applications** (when
   the fund has a cause), **Donations** (who gave to the fund).
 - **F6** Applications are the projects tagged with any of the fund's causes, hidden and draft ones left out. While a
   cause is open, "Apply for a grant" opens the create form with it chosen. The cause's own page links to the fund.

@@ -7,7 +7,7 @@ import {
   getIncomingTxnsByUserWithDonor,
 } from '@/db/txn'
 import { getBidsByUser, getPendingBidsByUser } from '@/db/bid'
-import { getFullProjectsByCause } from '@/db/project'
+import { getFullProjectsByCause, getFullProjectsByIds } from '@/db/project'
 import { listSimpleCauses } from '@/db/cause'
 import { calculateCharityBalance } from '@/utils/math'
 import { formatMoney } from '@/utils/formatting'
@@ -81,6 +81,10 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
   )
   const granted = grants.reduce((sum, txn) => sum + txn.amount, 0)
   const pendingOffers = fundBids.filter((bid) => bid.status === 'pending' && bid.type === 'donate')
+  const grantProjects = await getFullProjectsByIds(supabase, [
+    ...grants.flatMap((txn) => (txn.project ? [txn.project] : [])),
+    ...pendingOffers.map((bid) => bid.project),
+  ])
   const available = calculateCharityBalance(
     fundTxns,
     pendingOffers,
@@ -134,8 +138,8 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
       <div className="mt-6">
         <FundTabs
           fund={fund}
-          grants={grants}
-          pendingOffers={pendingOffers}
+          grantProjects={grantProjects}
+          otherGrants={grants.filter((txn) => !txn.project)}
           donations={incomingTxns.filter((txn) => txn.token === 'USD' && txn.from_id !== fund.id)}
           applications={applications}
           hasCause={hasCause}
