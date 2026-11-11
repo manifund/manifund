@@ -19,6 +19,7 @@ export const NOTIFICATION_REASONS = [
   // money to you
   'donation_to_your_project',
   'donation_to_your_budget',
+  'donation_to_your_fund',
   'tip_on_your_comment',
   'new_offer',
   'grant_to_you',
@@ -57,6 +58,7 @@ export const ESSENTIAL_REASONS: readonly NotificationReason[] = [
   // money to you
   'donation_to_your_project',
   'donation_to_your_budget',
+  'donation_to_your_fund',
   'new_offer',
   'grant_to_you',
   'trade_accepted',

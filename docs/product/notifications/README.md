@@ -42,7 +42,7 @@ else, one choice: instant, daily or never. Comments' own rules for who is notifi
   marks everything read, and what was new keeps an orange mark until the next visit. The sidebar bell shows the
   unread count ("9+" above nine) and clears once the page has been opened.
 - **N3** Essential notifications are always emailed right away and can't be turned off: money to you (donations,
-  regranting budget, offers, grants, trades), money you gave (your offer became a donation, or came back),
+  regranting budget or to a fund you run, offers, grants, trades), money you gave (your offer became a donation, or came back),
   your projects' timeline (approved or declined, active, not funded, agreement to sign, update due, flagged,
   auction resolved), receipts and records (deposits, payments, withdrawals, cash moved to charity, signed
   agreements), and what needs you (an unfinished withdrawal, money left idle in your account, a moderator editing or removing your comment).

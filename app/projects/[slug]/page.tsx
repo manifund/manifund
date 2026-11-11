@@ -113,6 +113,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
                 projectBids={projectBids}
                 projectTxns={projectTxns}
                 prizeCause={prizeCause}
+                adminFundIds={givingFunds.map((g) => g.fund.id)}
               />
             </Suspense>
           }

@@ -97,6 +97,14 @@ export function describe(n: NotificationRow, me: { username: string }): Describe
         href: mine,
         icon: 'money-in',
       }
+    // The actor is the fund; the donor is named in the email (F9)
+    case 'donation_to_your_fund':
+      return {
+        who,
+        text: money ? `received a ${money} donation` : 'received a donation',
+        href: n.actor ? `/${n.actor.username}?tab=donations` : mine,
+        icon: 'money-in',
+      }
     case 'tip_on_your_comment':
       return {
         who,

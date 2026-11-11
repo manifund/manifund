@@ -31,22 +31,24 @@ over later.
 - **F6** Applications are the projects tagged with any of the fund's causes, hidden and draft ones left out. While a
   cause is open, "Apply for a grant" opens the create form with it chosen. The cause's own page links to the fund.
 - **F7** Funds and their admins are created by hand (`scripts/create-fund.ts`).
+- **F8** A fund's admins can withdraw its pending offers from the project's Offers tab, as anyone withdraws their own
+  (`/api/withdraw-fund-bid`, which checks `fund_admins`).
+- **F9** A donation to a fund, from a balance or by card, notifies each of its admins in-app and by email right away
+  (`donation_to_your_fund`, essential like other money to you).
 
 ## Decisions
 
-| Date       | Decided by | Decision                                                                        | Why                                                       |
-| ---------- | ---------- | ------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| 2026-11-11 | Caroline   | Build on the existing `fund` profile type, with `fund_admins`, for the new fund | One page instead of a profile, a project and a cause      |
-| 2026-11-11 | Caroline   | Falcon Fund stays as it is for now                                              | Prove the model on the new fund before moving a live fund |
-| 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                               | The create form already handles it                        |
-| 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                 |                                                           |
+| Date       | Decided by | Decision                                                                                   | Why                                                       |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| 2026-11-11 | Caroline   | Build on the existing `fund` profile type, with `fund_admins`, for the new fund            | One page instead of a profile, a project and a cause      |
+| 2026-11-11 | Caroline   | Falcon Fund stays as it is for now                                                         | Prove the model on the new fund before moving a live fund |
+| 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                          | The create form already handles it                        |
+| 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                            |                                                           |
+| 2026-11-11 | Caroline   | Admins withdraw fund offers and hear about donations (F8, F9); regrantor-style grants wait |                                                           |
 
 ## Open questions
 
-- Withdrawing a fund's pending offer: the offer belongs to the fund, so admins can't withdraw it themselves yet; a
-  site admin can.
 - Regrantor-style grants (a fund creating a project for a grantee, `give_grant_v2`) aren't available as a fund.
-- Should a donation to a fund notify its admins? Today it only shows in-app to the fund, which nobody reads.
 
 ## Tests
 
