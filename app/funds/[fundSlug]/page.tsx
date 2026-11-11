@@ -18,8 +18,8 @@ import { Row } from '@/components/layout/row'
 import { Col } from '@/components/layout/col'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
-import { uniqBy } from 'es-toolkit'
-import { FundTabs } from './fund-tabs'
+import { orderBy, uniqBy } from 'es-toolkit'
+import { FundTabs, type GrantAmount } from './fund-tabs'
 
 export async function generateMetadata(props: { params: Promise<{ fundSlug: string }> }) {
   const { fundSlug } = await props.params
@@ -80,10 +80,27 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
   )
   const granted = grants.reduce((sum, txn) => sum + txn.amount, 0)
   const pendingOffers = fundBids.filter((bid) => bid.status === 'pending' && bid.type === 'donate')
-  const grantProjects = await getFullProjectsByIds(supabase, [
-    ...grants.flatMap((txn) => (txn.project ? [txn.project] : [])),
-    ...pendingOffers.map((bid) => bid.project),
-  ])
+  // What the fund gave or has offered each project, shown above its card (F5)
+  const grantAmounts: Record<string, GrantAmount> = {}
+  const addGrant = (
+    projectId: string,
+    field: 'granted' | 'offered',
+    amount: number,
+    at: string
+  ) => {
+    const entry = (grantAmounts[projectId] ??= { granted: 0, offered: 0, latest: at })
+    entry[field] += amount
+    if (at > entry.latest) entry.latest = at
+  }
+  for (const txn of grants) {
+    if (txn.project) addGrant(txn.project, 'granted', txn.amount, txn.created_at)
+  }
+  for (const bid of pendingOffers) addGrant(bid.project, 'offered', bid.amount, bid.created_at)
+  const grantProjects = orderBy(
+    await getFullProjectsByIds(supabase, Object.keys(grantAmounts)),
+    [(project) => grantAmounts[project.id].latest],
+    ['desc']
+  )
   const available = calculateCharityBalance(
     fundTxns,
     pendingOffers,
@@ -135,6 +152,7 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
         <FundTabs
           fund={fund}
           grantProjects={grantProjects}
+          grantAmounts={grantAmounts}
           otherGrants={grants.filter((txn) => !txn.project)}
           donations={incomingTxns.filter((txn) => txn.token === 'USD' && txn.from_id !== fund.id)}
           applications={applications}

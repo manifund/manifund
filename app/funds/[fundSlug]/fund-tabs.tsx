@@ -6,6 +6,8 @@ import { WrenchIcon } from '@heroicons/react/20/solid'
 import { Tab, Tabs } from '@/components/tabs'
 import { EmptyContent } from '@/components/empty-content'
 import { ProjectsDisplay } from '@/components/projects-display'
+import { ProjectCard } from '@/components/project-card'
+import { formatMoney } from '@/utils/formatting'
 import { DonationsHistory } from '@/components/donations-history'
 import { buttonClass } from '@/components/button'
 import { RichContent } from '@/components/editor'
@@ -15,10 +17,46 @@ import { FullTxn, TxnAndProfiles } from '@/db/txn'
 import { FullProject } from '@/db/project'
 import { SimpleCause } from '@/db/cause'
 
+export type GrantAmount = { granted: number; offered: number; latest: string }
+
+// Like ProjectGroup, with a band above each card saying what the fund gave or offered
+function GrantCards(props: { projects: FullProject[]; amounts: Record<string, GrantAmount> }) {
+  const { projects, amounts } = props
+  return (
+    <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      {projects.map((project) => {
+        const { granted, offered } = amounts[project.id]
+        return (
+          <div
+            key={project.id}
+            className="flex flex-col [&>:last-child]:flex-1 [&>:last-child]:rounded-tl-none"
+          >
+            <div className="w-fit bg-orange-100 px-2 py-1 text-sm text-gray-700">
+              {granted > 0 && (
+                <>
+                  <span className="font-semibold">{formatMoney(granted)}</span> granted
+                </>
+              )}
+              {granted > 0 && offered > 0 && ' · '}
+              {offered > 0 && (
+                <>
+                  <span className="font-semibold">{formatMoney(offered)}</span> offered (pending)
+                </>
+              )}
+            </div>
+            <ProjectCard project={project} />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function FundTabs(props: {
   fund: Profile
   // Projects the fund has given to or has a pending offer on
   grantProjects: FullProject[]
+  grantAmounts: Record<string, GrantAmount>
   // Grants to profiles rather than projects
   otherGrants: FullTxn[]
   donations: TxnAndProfiles[]
@@ -31,6 +69,7 @@ export function FundTabs(props: {
   const {
     fund,
     grantProjects,
+    grantAmounts,
     otherGrants,
     donations,
     applications,
@@ -64,10 +103,12 @@ export function FundTabs(props: {
         ) : (
           <>
             {grantProjects.length > 0 && (
-              <ProjectsDisplay projects={grantProjects} causesList={causesList} noFilter />
+              <GrantCards projects={grantProjects} amounts={grantAmounts} />
             )}
             {otherGrants.length > 0 && (
-              <OutgoingDonationsHistory donations={otherGrants} pendingDonateBids={[]} />
+              <div className="mt-6">
+                <OutgoingDonationsHistory donations={otherGrants} pendingDonateBids={[]} />
+              </div>
             )}
           </>
         ),
