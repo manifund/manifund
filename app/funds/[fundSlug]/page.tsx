@@ -110,8 +110,6 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
   const userCharityBalance = userProfile
     ? calculateCharityBalance(userTxns, userBids, userProfile.id, userProfile.accreditation_status)
     : 0
-  const viewerRunsFund = !!user && admins.some((admin) => admin.id === user.id)
-
   return (
     <div className="mx-auto max-w-4xl p-6">
       {fund.avatar_url && (
@@ -141,12 +139,6 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
           <Stat value={formatMoney(Math.max(available, 0))} label="available to grant" />
         </div>
         <DonateBox charity={fund} profile={userProfile} maxDonation={userCharityBalance} />
-        {viewerRunsFund && (
-          <p className="rounded bg-orange-50 p-3 text-sm text-orange-800">
-            You run this fund: give from it on any project page by choosing &ldquo;Give as{' '}
-            {fund.full_name}&rdquo; in the donate box.
-          </p>
-        )}
       </Col>
       <div className="mt-2">
         <FundTabs
