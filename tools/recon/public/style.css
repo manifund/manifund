@@ -293,3 +293,6 @@ pre.paste {
 .muted {
   color: #94a3b8;
 }
+#window-picker input[type='time'] {
+  margin-left: 2px;
+}

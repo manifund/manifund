@@ -1,3 +1,4 @@
+import { bankTxnTime, makeInWindow } from './time'
 import { BankTxn, COUNTED_SOURCES, isRevenue, Match, PlatformTxn, Snapshot } from './types'
 
 export type NavReport = {
@@ -36,8 +37,9 @@ export function computeNav(
   window: [string, string],
   priorSnapshot?: Snapshot
 ): NavReport {
-  const [start, end] = window
-  const inWindow = (date: string) => date >= start && date <= end
+  const inWin = makeInWindow(window)
+  const inWindow = (t: BankTxn) => inWin(t.date, bankTxnTime(t))
+  const platInWindow = (p: PlatformTxn) => inWin(p.created_at.slice(0, 10), p.created_at)
   const counted = new Set<string>(COUNTED_SOURCES)
   const matchByBankId = new Map<string, Match>()
   const matchByPlatformId = new Map<string, Match>()
@@ -47,7 +49,7 @@ export function computeNav(
   }
   const bankById = new Map(bankTxns.map((t) => [t.id, t]))
 
-  const rows = bankTxns.filter((t) => counted.has(t.source) && inWindow(t.date))
+  const rows = bankTxns.filter((t) => counted.has(t.source) && inWindow(t))
 
   let netExternalFlows = 0
   let transferResidual = 0
@@ -109,7 +111,7 @@ export function computeNav(
     if (!m.revenueRemainder && !m.uncreditedRemainder) continue
     const inScope = m.bankTxnIds.some((id) => {
       const t = bankById.get(id)
-      return t && counted.has(t.source) && inWindow(t.date)
+      return t && counted.has(t.source) && inWindow(t)
     })
     if (!inScope) continue
     if (m.revenueRemainder) {
@@ -125,7 +127,7 @@ export function computeNav(
   // platform liability change in window (deposits raise user balances, withdrawals lower them)
   let liabilityDelta = 0
   for (const p of platformTxns) {
-    if (!inWindow(p.created_at.slice(0, 10))) continue
+    if (!platInWindow(p)) continue
     // credited from the regrantor pot: one liability becomes another, no NAV change
     if (matchByPlatformId.get(p.id)?.category === 'regrantor_pot') continue
     liabilityDelta += p.type === 'deposit' ? p.amount : -p.amount
@@ -133,10 +135,7 @@ export function computeNav(
 
   // timing: platform withdrawals in the window with no bank match
   const inFlightWithdrawals = platformTxns
-    .filter(
-      (p) =>
-        p.type === 'withdraw' && inWindow(p.created_at.slice(0, 10)) && !matchByPlatformId.has(p.id)
-    )
+    .filter((p) => p.type === 'withdraw' && platInWindow(p) && !matchByPlatformId.has(p.id))
     .map((p) => ({
       txnId: p.id,
       who: `${p.username} (${p.fullName})`,
@@ -152,14 +151,13 @@ export function computeNav(
       if (!m || m.platformTxnIds.length === 0) return false
       return m.platformTxnIds.every((pid) => {
         const p = platformTxns.find((x) => x.id === pid)
-        return p && !inWindow(p.created_at.slice(0, 10))
+        return p && !platInWindow(p)
       })
     })
     .map((t) => ({ bankTxnId: t.id, description: t.description, amount: t.amount }))
 
   const unmatchedDeposits = platformTxns.filter(
-    (p) =>
-      p.type === 'deposit' && inWindow(p.created_at.slice(0, 10)) && !matchByPlatformId.has(p.id)
+    (p) => p.type === 'deposit' && platInWindow(p) && !matchByPlatformId.has(p.id)
   )
 
   return {

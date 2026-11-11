@@ -14,6 +14,7 @@ import {
 } from './lib/parsers'
 import { runAutoMatch, suggestFor } from './lib/match'
 import { computeNav } from './lib/nav'
+import { bankTxnTime } from './lib/time'
 import { store } from './lib/store'
 import { loadLocalConfig } from './lib/config'
 import { BankTxn, Match, MATCH_TOLERANCE, MatchKind, PlatformTxn } from './lib/types'
@@ -108,7 +109,14 @@ function openPlatformTxns() {
 
 function stateResponse() {
   const fetchedAt = store.loadPlatformCache<{ fetchedAt?: string }>()?.fetchedAt ?? null
-  return json({ bankTxns, matches, snapshots, platformTxns, platformFetchedAt: fetchedAt })
+  const withTime = bankTxns.map((t) => ({ ...t, at: bankTxnTime(t) }))
+  return json({
+    bankTxns: withTime,
+    matches,
+    snapshots,
+    platformTxns,
+    platformFetchedAt: fetchedAt,
+  })
 }
 
 const server = Bun.serve({
