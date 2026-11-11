@@ -93,7 +93,7 @@ describe('P12 only regrantors give grants, and a grant only touches the project 
   test('a held account cannot give a grant', () =>
     inRollback(async (tx) => {
       await setup(tx)
-      await tx`insert into account_holds (profile_id, held_at) values (${p.alice.id}, now())
+      await tx`insert into account_holds (profile_id, checked_username, held_at) values (${p.alice.id}, 'alice', now())
                on conflict (profile_id) do update set held_at = now(), cleared_at = null`
       const proj = project(p.bob.id)
       await actAs(tx, p.alice.id)
