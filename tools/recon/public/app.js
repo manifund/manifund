@@ -93,8 +93,32 @@ async function loadState() {
   render()
 }
 
+// a bare date covers the whole UTC day; a date + time (in your local time zone) is an exact instant
 function windowRange() {
-  return [$('#win-start').value, $('#win-end').value]
+  const bound = (d, t) => (d && t ? new Date(`${d}T${t}`).toISOString() : d)
+  return [
+    bound($('#win-start').value, $('#win-start-time').value),
+    bound($('#win-end').value, $('#win-end-time').value),
+  ]
+}
+
+// mirrors lib/time.ts makeInWindow; rows without a timestamp (manual rows) compare by date
+function makeInWin([ws, we]) {
+  const startAt = !ws ? '' : ws.length === 10 ? `${ws}T00:00:00.000Z` : ws
+  const endAt = !we ? '' : we.length === 10 ? `${we}T23:59:59.999Z` : we
+  return (date, at) => {
+    if (at) {
+      const iso = new Date(at).toISOString()
+      return (!startAt || iso >= startAt) && (!endAt || iso <= endAt)
+    }
+    return (!startAt || date >= startAt.slice(0, 10)) && (!endAt || date <= endAt.slice(0, 10))
+  }
+}
+
+function windowLabel(b) {
+  return b.length === 10
+    ? b
+    : new Date(b).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })
 }
 
 function matchedBankIds() {
@@ -238,9 +262,9 @@ function renderMatching() {
   const mb = matchedBankIds()
   const mp = matchedPlatIds()
   const [ws, we] = windowRange()
-  const inWin = (d) => (!ws || d >= ws) && (!we || d <= we)
+  const inWin = makeInWin([ws, we])
 
-  let bank = S.bankTxns.filter((t) => !t.matchId && !mb.has(t.id) && inWin(t.date))
+  let bank = S.bankTxns.filter((t) => !t.matchId && !mb.has(t.id) && inWin(t.date, t.at))
   if (filters.bankSource) bank = bank.filter((t) => t.source === filters.bankSource)
   // categorized rows are considered accounted for and hidden by default — except unpaired
   // internal transfers, which usually still need matching (e.g. pass-throughs to Frame/Surplus)
@@ -255,7 +279,9 @@ function renderMatching() {
   if (filters.hideSmall) bank = bank.filter((t) => Math.abs(t.amount) >= 100)
   bank.sort((a, b) => Math.abs(b.amount) - Math.abs(a.amount))
 
-  let plat = S.platformTxns.filter((t) => !mp.has(t.id) && inWin(t.created_at.slice(0, 10)))
+  let plat = S.platformTxns.filter(
+    (t) => !mp.has(t.id) && inWin(t.created_at.slice(0, 10), t.created_at)
+  )
   if (filters.platText)
     plat = plat.filter((t) =>
       (t.username + ' ' + t.fullName + ' ' + t.email)
@@ -278,11 +304,11 @@ function renderMatching() {
       (m) =>
         m.bankTxnIds.some((id) => {
           const t = S.bankTxns.find((x) => x.id === id)
-          return t && inWin(t.date)
+          return t && inWin(t.date, t.at)
         }) ||
         m.platformTxnIds.some((id) => {
           const t = S.platformTxns.find((x) => x.id === id)
-          return t && inWin(t.created_at.slice(0, 10))
+          return t && inWin(t.created_at.slice(0, 10), t.created_at)
         })
     )
     .slice()
@@ -597,7 +623,7 @@ function renderOverview() {
     main.innerHTML = '<div class="section">Set a date window above.</div>'
     return
   }
-  const inWin = (d) => d >= ws && d <= we
+  const inWin = makeInWin([ws, we])
   const bankById = new Map(S.bankTxns.map((t) => [t.id, t]))
   const mBank = new Map()
   for (const m of S.matches) for (const id of m.bankTxnIds) mBank.set(id, m)
@@ -615,7 +641,7 @@ function renderOverview() {
   }
   let residual = 0
   for (const t of S.bankTxns) {
-    if (!inWin(t.date)) continue
+    if (!inWin(t.date, t.at)) continue
     const m = mBank.get(t.id)
     const cat = t.category ?? (m && m.category)
     // Mox donations sometimes land in a Manifund account; attribute them to Mox anyway
@@ -651,11 +677,11 @@ function renderOverview() {
   for (const m of S.matches) {
     if (!m.revenueRemainder && !m.uncreditedRemainder) continue
     const t = m.bankTxnIds.map((id) => bankById.get(id)).find((x) => x && ORG[x.source])
-    if (t && !inWin(t.date)) continue
+    if (t && !inWin(t.date, t.at)) continue
     if (!t) {
       // platform-only group: check its platform txns are in window
       const p = m.platformTxnIds.map((id) => S.platformTxns.find((x) => x.id === id)).find(Boolean)
-      if (!p || !inWin(p.created_at.slice(0, 10))) continue
+      if (!p || !inWin(p.created_at.slice(0, 10), p.created_at)) continue
     }
     const org = t ? ORG[t.source] : 'manifund'
     if (m.revenueRemainder) {
@@ -672,7 +698,7 @@ function renderOverview() {
   let withdrawals = 0
   const inFlight = []
   for (const p of S.platformTxns) {
-    if (!inWin(p.created_at.slice(0, 10))) continue
+    if (!inWin(p.created_at.slice(0, 10), p.created_at)) continue
     // credited from the regrantor pot: liability swap, not a NAV change
     if (mPlatMatch.get(p.id)?.category === 'regrantor_pot') continue
     if (p.type === 'deposit') deposits += p.amount
@@ -690,11 +716,12 @@ function renderOverview() {
   const grandX = entries.reduce((s, [, r]) => s + r.mox, 0)
   const grand = grandM + grandX
   const unmatchedDeps = S.platformTxns.filter(
-    (p) => p.type === 'deposit' && inWin(p.created_at.slice(0, 10)) && !mPlat.has(p.id)
+    (p) =>
+      p.type === 'deposit' && inWin(p.created_at.slice(0, 10), p.created_at) && !mPlat.has(p.id)
   )
   const unmatchedDepsSum = unmatchedDeps.reduce((s, p) => s + p.amount, 0)
   const unBank = S.bankTxns.filter(
-    (t) => inWin(t.date) && !t.matchId && !mb.has(t.id) && !t.category
+    (t) => inWin(t.date, t.at) && !t.matchId && !mb.has(t.id) && !t.category
   )
   const inFlightSum = inFlight.reduce((s, p) => s + p.amount, 0)
   const month = we.slice(0, 7)
@@ -709,7 +736,7 @@ function renderOverview() {
 
   main.innerHTML = `
     <div class="overview-grid">
-    <div class="section"><h2>Expected NAV change · ${ws} → ${we}</h2>
+    <div class="section"><h2>Expected NAV change · ${windowLabel(ws)} → ${windowLabel(we)}</h2>
       <div class="tbl-wrap"><table>
         <tr><th></th><th class="num">Manifund</th><th class="num">Mox</th><th class="num">Total</th></tr>
         ${groups
@@ -744,8 +771,8 @@ document.querySelectorAll('#tabs button').forEach(
       render()
     })
 )
-$('#win-start').onchange = render
-$('#win-end').onchange = render
+for (const id of ['#win-start', '#win-start-time', '#win-end', '#win-end-time'])
+  $(id).onchange = render
 {
   // default window: last full month
   const now = new Date()
