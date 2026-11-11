@@ -14,7 +14,6 @@ import { formatMoney } from '@/utils/formatting'
 import { Stat } from '@/components/stat'
 import { RichContent } from '@/components/editor'
 import { DonateBox } from '@/components/donate-box'
-import { DepositButton } from '@/components/deposit-buttons'
 import { UserAvatarAndBadge } from '@/components/user-link'
 import { Row } from '@/components/layout/row'
 import { Col } from '@/components/layout/col'
@@ -22,9 +21,6 @@ import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { uniqBy } from 'es-toolkit'
 import { FundTabs } from './fund-tabs'
-
-const WIRE_INSTRUCTIONS_URL =
-  'https://manifoldmarkets.notion.site/Instructions-for-donations-via-wire-ACH-or-DAF-02aee92e884a47e49efd4d93242e2080?pvs=4'
 
 export async function generateMetadata(props: { params: Promise<{ fundSlug: string }> }) {
   const { fundSlug } = await props.params
@@ -125,26 +121,6 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
           <Stat value={formatMoney(Math.max(available, 0))} label="available to grant" />
         </div>
         <DonateBox charity={fund} profile={userProfile} maxDonation={userCharityBalance} />
-        <p className="text-center text-sm text-gray-500">
-          {user && (
-            <>
-              <DepositButton userId={user.id} passFundsTo={fund}>
-                <span className="font-semibold text-orange-600 hover:underline">
-                  Donate by card
-                </span>
-              </DepositButton>{' '}
-              &middot;{' '}
-            </>
-          )}
-          <a
-            href={WIRE_INSTRUCTIONS_URL}
-            target="_blank"
-            className="font-semibold text-orange-600 hover:underline"
-          >
-            Wire, ACH or DAF
-          </a>{' '}
-          for larger gifts
-        </p>
         {viewerRunsFund && (
           <p className="rounded bg-orange-50 p-3 text-sm text-orange-800">
             You run this fund: give from it on any project page by choosing &ldquo;Give as{' '}
