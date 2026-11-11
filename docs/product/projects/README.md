@@ -49,3 +49,12 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
   hide their project; a project they create starts as a draft or a proposal. A certificate program without a
   proposal phase starts its projects active only while it's open, as stored in the database. Regrants always create a
   grant proposal. Enforced by the trigger `protect_project_stage`; test: `tests/db/project-stage.test.ts`.
+
+## Regrants and votes
+
+- **P12** Only regrantors give grants, for more than $0. A grant creates one project and touches nothing else: its
+  offer and, for a grant to an email address, its pending transfer belong to that project. Held accounts can't give
+  or receive one. Checked in `app/api/create-grant/route.ts` and again in the SQL functions `give_grant_v2` and
+  `create_transfer_grant_v2`, which the REST API can call directly; test: `tests/db/grant-rpcs.test.ts`.
+- **P13** Each person has at most one vote per project, worth -1, 0 or 1, and casts it only as themselves. Enforced by
+  a unique constraint, a check and the insert policy on `project_votes`; test: `tests/db/grant-rpcs.test.ts`.
