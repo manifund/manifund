@@ -12,7 +12,6 @@ import { listSimpleCauses } from '@/db/cause'
 import { calculateCharityBalance } from '@/utils/math'
 import { formatMoney } from '@/utils/formatting'
 import { Stat } from '@/components/stat'
-import { RichContent } from '@/components/editor'
 import { DonateBox } from '@/components/donate-box'
 import { UserAvatarAndBadge } from '@/components/user-link'
 import { Row } from '@/components/layout/row'
@@ -132,10 +131,7 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
           </p>
         )}
       </Col>
-      {fund.long_description && (
-        <RichContent content={fund.long_description} className="px-3 text-sm" />
-      )}
-      <div className="mt-6">
+      <div className="mt-2">
         <FundTabs
           fund={fund}
           grantProjects={grantProjects}

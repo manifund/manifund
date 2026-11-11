@@ -8,6 +8,7 @@ import { EmptyContent } from '@/components/empty-content'
 import { ProjectsDisplay } from '@/components/projects-display'
 import { DonationsHistory } from '@/components/donations-history'
 import { buttonClass } from '@/components/button'
+import { RichContent } from '@/components/editor'
 import { OutgoingDonationsHistory } from '@/app/[usernameSlug]/profile-donations'
 import { Profile } from '@/db/profile'
 import { FullTxn, TxnAndProfiles } from '@/db/txn'
@@ -40,6 +41,15 @@ export function FundTabs(props: {
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const grantCount = grantProjects.length + otherGrants.length
   const tabs: Tab[] = [
+    {
+      name: 'About',
+      id: 'about',
+      display: fund.long_description ? (
+        <RichContent content={fund.long_description} className="px-3 text-sm" />
+      ) : (
+        <p className="text-sm text-gray-500">No description yet.</p>
+      ),
+    },
     {
       name: 'Grants',
       id: 'grants',
