@@ -22,8 +22,10 @@ file, open a PR, and merging deploys it.
 - "Not included" section — funders deliberately excluded. Describe them; don't
   explain why they are excluded.
 - "Other resources" — external links. Keep the Trace figures rounded
-  ($3.5b, 4,900+ grants, 800+ funders); only change them when the rounded
+  ($3.5b, 5,000+ grants, 800+ funders); only change them when the rounded
   value changes, never swap in exact counts. Just bump the as-of date.
+  The homepage stat strip and the `/api/v0/grants?cause=ai-safety` totals
+  disagree; prefer a rounding that holds under both.
 
 ## Gotchas
 
@@ -112,6 +114,7 @@ Funder list with primary URLs (update this list too if funders change):
   (see footnotes on how to estimate money moved to AI in 2026)
 - OpenAI Foundation — https://openaifoundation.org/
 - Macroscopic — https://macroscopic.org/
+- Astralis Foundation — https://astralisfoundation.org/
 - Survival and Flourishing Fund (SFF) — https://survivalandflourishing.fund/
 - Lightcone Commons — https://www.lightconecommons.com/
 - Schmidt Sciences — https://www.schmidtsciences.org/focus-area-ai/
@@ -119,7 +122,9 @@ Funder list with primary URLs (update this list too if funders change):
 - Manifund — https://manifund.org/
   (you can get the exact funding numbers from https://manifund.org/about)
 - BlueDot Impact — https://bluedot.org/
-- Long-Term Future Fund (LTFF) — https://funds.effectivealtruism.org/funds/far-future
+- GTR AI Safety Fund — https://www.gtr-foundation.org/gtr-ai-safety-fund
+- Transformative AI Fund (TAIF), formerly the Long-Term Future Fund (LTFF) —
+  https://funds.effectivealtruism.org/funds/transformative-ai
 
 ## Editing rules
 
