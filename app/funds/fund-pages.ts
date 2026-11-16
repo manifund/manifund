@@ -10,7 +10,7 @@ export const FUND_PAGES: Record<string, FundPageExtras> = {
   'sunlight-fund': {
     // A stand-in until we pick a final image
     cover: 'https://cdn.midjourney.com/4fbfb224-177a-4614-8f72-f9caf39bc0a5/0_0.png',
-    mission: 'Fast, transparent, early-stage grants for AI safety.',
+    mission: 'Fast, transparent, early-stage grants for AI safety',
     facts: [
       { label: 'Grant sizes', value: '$1k to $50k' },
       { label: 'Decisions', value: 'Within a week' },
