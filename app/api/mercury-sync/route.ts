@@ -13,6 +13,9 @@ export const maxDuration = 300
 
 const STUCK_APPROVAL_DAYS = 2
 const RE_ALERT_DAYS = 3
+// Hourly, so 3 is a Mercury blip outlasting ~2 hours; then re-alert daily.
+const FAILURES_BEFORE_ALERT = 3
+const FAILURES_BETWEEN_ALERTS = 24
 
 // Advances every open withdrawal as far as Mercury lets it go. This poll -- not
 // the webhook -- is the source of truth for status, because Mercury's approval
@@ -53,9 +56,28 @@ async function handler(req: NextRequest) {
     try {
       await syncWithdrawalRequest(supabaseAdmin, request)
       advanced++
+      if (request.sync_failures > 0) {
+        await supabaseAdmin
+          .from('withdrawal_requests')
+          .update({ sync_failures: 0 })
+          .eq('id', request.id)
+          .throwOnError()
+      }
     } catch (e) {
       console.error('mercury-sync failed for', request.id, e)
-      await sendDiscordAlert(`⚠️ mercury-sync failed for withdrawal request ${request.id}: ${e}`)
+      const failures = request.sync_failures + 1
+      await supabaseAdmin
+        .from('withdrawal_requests')
+        .update({ sync_failures: failures })
+        .eq('id', request.id)
+      if (
+        failures >= FAILURES_BEFORE_ALERT &&
+        (failures - FAILURES_BEFORE_ALERT) % FAILURES_BETWEEN_ALERTS === 0
+      ) {
+        await sendDiscordAlert(
+          `⚠️ mercury-sync failed ${failures} times in a row for withdrawal request ${request.id}: ${e}`
+        )
+      }
     }
   }
 

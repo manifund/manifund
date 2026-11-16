@@ -1900,6 +1900,7 @@ export type Database = {
           sent_at: string | null
           status: string
           submitted_at: string | null
+          sync_failures: number
           txn_id: string | null
           updated_at: string
         }
@@ -1921,6 +1922,7 @@ export type Database = {
           sent_at?: string | null
           status?: string
           submitted_at?: string | null
+          sync_failures?: number
           txn_id?: string | null
           updated_at?: string
         }
@@ -1942,6 +1944,7 @@ export type Database = {
           sent_at?: string | null
           status?: string
           submitted_at?: string | null
+          sync_failures?: number
           txn_id?: string | null
           updated_at?: string
         }
