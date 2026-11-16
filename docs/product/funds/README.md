@@ -1,7 +1,7 @@
 # Funds
 
 A fund is a pot of money on Manifund that a few people grant from together: donors give to it, its admins give
-from it to projects. One page (`/funds/<slug>`) shows what it is, what it has raised and
+from it to projects. One page (`/funds/<username>`) shows what it is, what it has raised and
 given, and how to donate.
 
 Falcon Fund predates this and is still built from an individual profile, a fundraising project and a cause; it moves
@@ -18,9 +18,8 @@ over later.
 
 ## Rules
 
-- **F1** A fund's page is at `/funds/<slug>`, where the slug is its username less a trailing `-fund`
-  (`@sunlight-fund` is at `/funds/sunlight`). `/<username>` and `/funds/<username>` redirect there; a username that
-  isn't a fund's shows that profile as usual.
+- **F1** A fund's page is at `/funds/<username>` (Sunlight Fund is `@sunlight`, at `/funds/sunlight`). `/<username>`
+  redirects there; a username that isn't a fund's shows that profile as usual.
 - **F2** Only a fund's admins give from it: from any project's donate box, by choosing "Give as <fund>". It's an
   offer on a proposal or a donation on an active project, with the same limits as anyone's, checked against the
   fund's balance. Site admins aren't fund admins unless listed.
@@ -46,14 +45,14 @@ over later.
 
 ## Decisions
 
-| Date       | Decided by | Decision                                                                                                | Why                                                       |
-| ---------- | ---------- | ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| 2026-11-11 | Caroline   | Build on the existing `fund` profile type, with `fund_admins`, for the new fund                         | One page instead of a profile, a project and a cause      |
-| 2026-11-11 | Caroline   | Falcon Fund stays as it is for now                                                                      | Prove the model on the new fund before moving a live fund |
-| 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                                       | The create form already handles it                        |
-| 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                                         |                                                           |
-| 2026-11-11 | Caroline   | Admins withdraw fund offers and hear about donations (F8, F9); regrantor-style grants wait              |                                                           |
-| 2026-11-16 | Austin     | Funds at `/funds/<slug>`, with a `/funds` index; page redesigned along the lines of /orgs (F1, F5, F10) | A home for funds, and a page fit to raise money on        |
+| Date       | Decided by | Decision                                                                                                                                         | Why                                                       |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| 2026-11-11 | Caroline   | Build on the existing `fund` profile type, with `fund_admins`, for the new fund                                                                  | One page instead of a profile, a project and a cause      |
+| 2026-11-11 | Caroline   | Falcon Fund stays as it is for now                                                                                                               | Prove the model on the new fund before moving a live fund |
+| 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                                                                                | The create form already handles it                        |
+| 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                                                                                  |                                                           |
+| 2026-11-11 | Caroline   | Admins withdraw fund offers and hear about donations (F8, F9); regrantor-style grants wait                                                       |                                                           |
+| 2026-11-16 | Austin     | Funds at `/funds/<username>`, with a `/funds` index; @sunlight-fund renamed to @sunlight; page redesigned along the lines of /orgs (F1, F5, F10) | A home for funds, and a page fit to raise money on        |
 
 ## Open questions
 

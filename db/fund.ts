@@ -1,7 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js'
-import { MiniProfile, Profile, getFundByUsername } from '@/db/profile'
+import { MiniProfile, Profile } from '@/db/profile'
 import { FullTxn, getFullTxnsByUser, getTxnAndProjectsByUser } from '@/db/txn'
-import { fundUsernamesForSlug } from '@/utils/funds'
 import { getPendingBidsByUser } from '@/db/bid'
 import { calculateCharityBalance } from '@/utils/math'
 
@@ -58,15 +57,6 @@ export async function getGivingFunds(
   return await Promise.all(
     funds.map(async (fund) => ({ fund, balance: await getFundBalance(supabase, fund) }))
   )
-}
-
-// The fund at /funds/<slug> (F1): its username is the slug, or the slug plus "-fund".
-export async function getFundBySlug(supabase: SupabaseClient, slug: string) {
-  for (const username of fundUsernamesForSlug(slug)) {
-    const fund = await getFundByUsername(supabase, username)
-    if (fund) return fund
-  }
-  return null
 }
 
 export type FundSummary = {

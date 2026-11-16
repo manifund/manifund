@@ -7,7 +7,7 @@ export type FundPageExtras = {
 }
 
 export const FUND_PAGES: Record<string, FundPageExtras> = {
-  'sunlight-fund': {
+  sunlight: {
     // A stand-in until we pick a final image
     cover: 'https://cdn.midjourney.com/4fbfb224-177a-4614-8f72-f9caf39bc0a5/0_0.png',
     mission: 'Fast, transparent, early-stage grants for AI safety',

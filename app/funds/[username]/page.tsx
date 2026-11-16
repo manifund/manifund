@@ -1,8 +1,8 @@
 import Link from 'next/link'
-import { notFound, permanentRedirect } from 'next/navigation'
+import { notFound } from 'next/navigation'
 import { orderBy, uniqBy } from 'es-toolkit'
-import { getUser, getProfileById } from '@/db/profile'
-import { fundFigures, getFundAdmins, getFundBySlug } from '@/db/fund'
+import { getFundByUsername, getUser, getProfileById } from '@/db/profile'
+import { fundFigures, getFundAdmins } from '@/db/fund'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import {
   getTxnAndProjectsByUser,
@@ -14,7 +14,6 @@ import { getFullProjectsByCause, getFullProjectsByIds } from '@/db/project'
 import { listSimpleCauses } from '@/db/cause'
 import { calculateCharityBalance } from '@/utils/math'
 import { formatMoney } from '@/utils/formatting'
-import { fundSlug as slugFor } from '@/utils/funds'
 import { DonateBox } from '@/components/donate-box'
 import { Avatar } from '@/components/avatar'
 import { RichContent } from '@/components/editor'
@@ -29,10 +28,10 @@ import { SunlightAbout } from './sunlight-about'
 
 export const revalidate = 60
 
-export async function generateMetadata(props: { params: Promise<{ fundSlug: string }> }) {
-  const { fundSlug } = await props.params
+export async function generateMetadata(props: { params: Promise<{ username: string }> }) {
+  const { username } = await props.params
   const supabase = await createServerSupabaseClient()
-  const fund = await getFundBySlug(supabase, fundSlug)
+  const fund = await getFundByUsername(supabase, username)
   const extras = fund ? FUND_PAGES[fund.username] : undefined
   return {
     title: fund?.full_name ?? 'Fund not found',
@@ -40,16 +39,12 @@ export async function generateMetadata(props: { params: Promise<{ fundSlug: stri
   }
 }
 
-export default async function FundPage(props: { params: Promise<{ fundSlug: string }> }) {
-  const { fundSlug } = await props.params
+export default async function FundPage(props: { params: Promise<{ username: string }> }) {
+  const { username } = await props.params
   const supabase = await createServerSupabaseClient()
-  const [fund, user] = await Promise.all([getFundBySlug(supabase, fundSlug), getUser(supabase)])
+  const [fund, user] = await Promise.all([getFundByUsername(supabase, username), getUser(supabase)])
   if (!fund) {
     notFound()
-  }
-  // One address per fund (F1): /funds/sunlight-fund goes to /funds/sunlight
-  if (slugFor(fund.username) !== fundSlug) {
-    permanentRedirect(`/funds/${slugFor(fund.username)}`)
   }
   const extras = FUND_PAGES[fund.username] ?? {}
   const [
@@ -211,7 +206,7 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
       <div className="flex flex-col gap-7 pt-7 xl:flex-row xl:items-start">
         <main className="order-2 flex min-w-0 flex-1 flex-col gap-16 xl:order-1">
           <section id="about" className={sectionClass}>
-            {fund.username === 'sunlight-fund' ? (
+            {fund.username === 'sunlight' ? (
               <SunlightAbout admins={admins} applySlug={applySlug} />
             ) : fund.long_description ? (
               <RichContent
