@@ -8,6 +8,7 @@ import { HeartIcon, UserIcon, WrenchIcon, UserGroupIcon } from '@heroicons/react
 import { RelativeTime } from '@/components/relative-time'
 import { orderBy } from 'es-toolkit'
 import Link from 'next/link'
+import { fundPath } from '@/utils/funds'
 
 export function OutgoingDonationsHistory(props: {
   donations: FullTxn[]
@@ -31,7 +32,9 @@ export function OutgoingDonationsHistory(props: {
         ? `/projects/${donation.projects?.slug}`
         : donation.profiles?.type === 'individual'
           ? `/${donation.profiles?.username}`
-          : `/charity/${donation.profiles?.username}`
+          : type === 'fund'
+            ? fundPath(donation.profiles?.username ?? '')
+            : `/charity/${donation.profiles?.username}`
     return (
       <DonationRow
         key={donation.id}
