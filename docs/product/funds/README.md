@@ -1,7 +1,7 @@
 # Funds
 
 A fund is a pot of money on Manifund that a few people grant from together: donors give to it, its admins give
-from it to projects. One page (`/<username>`, also `/funds/<username>`) shows what it is, what it has raised and
+from it to projects. One page (`/funds/<username>`) shows what it is, what it has raised and
 given, and how to donate.
 
 Falcon Fund predates this and is still built from an individual profile, a fundraising project and a cause; it moves
@@ -18,7 +18,8 @@ over later.
 
 ## Rules
 
-- **F1** A fund's page is at its username; a username that isn't a fund's shows that profile as usual.
+- **F1** A fund's page is at `/funds/<username>` (Sunlight Fund is `@sunlight`, at `/funds/sunlight`). `/<username>`
+  redirects there; a username that isn't a fund's shows that profile as usual.
 - **F2** Only a fund's admins give from it: from any project's donate box, by choosing "Give as <fund>". It's an
   offer on a proposal or a donation on an active project, with the same limits as anyone's, checked against the
   fund's balance. Site admins aren't fund admins unless listed.
@@ -26,8 +27,12 @@ over later.
 - **F4** The page's figures: **raised** is every dollar given to the fund; **granted** is every dollar it has given
   out (project donations and profile donations); **available to grant** is its balance less its pending offers,
   never shown below $0 (ACX Grants paid grants with money that never came through Manifund).
-- **F5** Below the stats and donate box, tabs: **About** (the long description; the default tab), **Grants** (a card per project it paid or has a pending offer on, newest first, each topped by what the fund granted and offered; then rows for grants to people), **Applications** (when
-  the fund has a cause), **Donations** (who gave to the fund).
+- **F5** The page opens with a cover (the fund's image, else its avatar) carrying its name, one-line mission and admins.
+  A sticky bar jumps between its sections: **About** (a written section for Sunlight Fund, else the long description),
+  **Grants** (a card per project it paid or has a pending offer on, newest first, each topped by what the fund granted
+  and offered; then rows for grants to people), **Applications** (when the fund has a cause) and **Donations** (who
+  gave to the fund). Beside them: the figures (F4), the donate box and the fund's facts. Cover, mission and facts live
+  in `app/funds/fund-pages.ts`.
 - **F6** Applications are the projects tagged with any of the fund's causes, hidden and draft ones left out. While a
   cause is open, "Apply for a grant" opens the create form with it chosen. The cause's own page links to the fund.
 - **F7** Funds and their admins are created by hand (`scripts/create-fund.ts`).
@@ -35,16 +40,19 @@ over later.
   (`/api/withdraw-fund-bid`, which checks `fund_admins`).
 - **F9** A donation to a fund, from a balance or by card, notifies each of its admins in-app and by email right away
   (`donation_to_your_fund`, essential like other money to you).
+- **F10** `/funds` lists every fund as a card: cover, name, mission, admins, raised, granted and grant count, and
+  whether it's taking applications.
 
 ## Decisions
 
-| Date       | Decided by | Decision                                                                                   | Why                                                       |
-| ---------- | ---------- | ------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
-| 2026-11-11 | Caroline   | Build on the existing `fund` profile type, with `fund_admins`, for the new fund            | One page instead of a profile, a project and a cause      |
-| 2026-11-11 | Caroline   | Falcon Fund stays as it is for now                                                         | Prove the model on the new fund before moving a live fund |
-| 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                          | The create form already handles it                        |
-| 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                            |                                                           |
-| 2026-11-11 | Caroline   | Admins withdraw fund offers and hear about donations (F8, F9); regrantor-style grants wait |                                                           |
+| Date       | Decided by | Decision                                                                                                                                         | Why                                                       |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| 2026-11-11 | Caroline   | Build on the existing `fund` profile type, with `fund_admins`, for the new fund                                                                  | One page instead of a profile, a project and a cause      |
+| 2026-11-11 | Caroline   | Falcon Fund stays as it is for now                                                                                                               | Prove the model on the new fund before moving a live fund |
+| 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                                                                                | The create form already handles it                        |
+| 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                                                                                  |                                                           |
+| 2026-11-11 | Caroline   | Admins withdraw fund offers and hear about donations (F8, F9); regrantor-style grants wait                                                       |                                                           |
+| 2026-11-16 | Austin     | Funds at `/funds/<username>`, with a `/funds` index; @sunlight-fund renamed to @sunlight; page redesigned along the lines of /orgs (F1, F5, F10) | A home for funds, and a page fit to raise money on        |
 
 ## Open questions
 
