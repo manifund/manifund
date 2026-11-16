@@ -4,10 +4,12 @@ import { Avatar } from '@/components/avatar'
 import { buttonClass } from '@/components/button'
 import type { MiniProfile } from '@/db/profile'
 
-// Sunlight Fund's About section: the fund's announcement, as written.
-const ETHOS: { title: string; body: React.ReactNode }[] = [
+// Sunlight Fund's About section: the fund's announcement, as written, with each part of the ethos paired with
+// its line from "Why Sunlight?".
+const ETHOS: { title: string; light: string; body: React.ReactNode }[] = [
   {
     title: 'Fast',
+    light: 'Sunlight crosses vast distances to reach Earth in just 8 minutes.',
     body: (
       <p>
         We believe given rapid AI progress, delays of months waiting for funders to decide on grants
@@ -18,6 +20,7 @@ const ETHOS: { title: string; body: React.ReactNode }[] = [
   },
   {
     title: 'Transparent',
+    light: 'Sunlight is the best disinfectant.',
     body: (
       <p>
         All applications, grants, and reasoning will be public in real-time, so you can see exactly
@@ -29,6 +32,7 @@ const ETHOS: { title: string; body: React.ReactNode }[] = [
   },
   {
     title: 'Early-stage',
+    light: 'Sunlight nurtures and incubates seedlings.',
     body: (
       <>
         <p>
@@ -53,6 +57,7 @@ const ETHOS: { title: string; body: React.ReactNode }[] = [
   },
   {
     title: 'AI safety',
+    light: 'Sunlight is warm and makes people happy.',
     body: (
       <p>
         Our grants will be made within the basic framework that transformative AI is likely coming
@@ -119,6 +124,7 @@ export function SunlightAbout(props: { admins: MiniProfile[]; applySlug?: string
           {ETHOS.map((part) => (
             <div key={part.title} className="border-l-2 border-amber-400 pl-5">
               <dt className="text-lg font-normal text-gray-900">{part.title}</dt>
+              <dd className="mt-1 text-sm italic text-amber-800">{part.light}</dd>
               <dd className="mt-2.5 flex flex-col gap-3 text-[15px] leading-relaxed text-gray-700">
                 {part.body}
               </dd>
@@ -227,26 +233,6 @@ export function SunlightAbout(props: { admins: MiniProfile[]; applySlug?: string
             and fiscal sponsorship.
           </p>
         </div>
-      </section>
-
-      <section className="flex flex-col gap-4">
-        <h2 className={h2}>Why “Sunlight”?</h2>
-        <ul className="flex max-w-[68ch] flex-col gap-2 text-[15px] leading-relaxed text-gray-700">
-          {[
-            'Transparency: “sunlight is the best disinfectant”',
-            'Speed: sunlight crosses vast distances to reach Earth in just 8 minutes',
-            'Early-stage: sunlight nurtures and incubates seedlings',
-            'Vibes: sunlight is warm and makes people happy',
-          ].map((item) => (
-            <li key={item} className="flex gap-2.5">
-              <span
-                className="mt-[9px] h-1.5 w-1.5 flex-none rounded-full bg-amber-400"
-                aria-hidden
-              />
-              {item}
-            </li>
-          ))}
-        </ul>
       </section>
     </div>
   )
