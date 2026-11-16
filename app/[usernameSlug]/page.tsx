@@ -5,7 +5,7 @@ import { getFullTxnsByUser, getTxnsByUser } from '@/db/txn'
 import { getProjectsByUser } from '@/db/project'
 import { ProfileContent } from './profile-content'
 import { getBidsByUser } from '@/db/bid'
-import { getCommentsByTarget, getCommentsByUser } from '@/db/comment'
+import { getCommentsByUser } from '@/db/comment'
 import FundPage from '../funds/[fundSlug]/page'
 import { notFound } from 'next/navigation'
 import { getResponseByProfileId } from '@/db/donor-survey'
@@ -26,12 +26,11 @@ export default async function UserProfilePage(props: {
   } else if (profile.type !== 'individual') {
     return <div>Profile type not supported</div>
   }
-  const [bids, projects, txns, comments, profileComments, user, donorResponse] = await Promise.all([
+  const [bids, projects, txns, comments, user, donorResponse] = await Promise.all([
     getBidsByUser(supabase, profile.id),
     getProjectsByUser(supabase, profile.id),
     getFullTxnsByUser(supabase, profile.id),
     getCommentsByUser(supabase, profile.id),
-    getCommentsByTarget(supabase, { profile_id: profile.id }),
     getUser(supabase),
     getResponseByProfileId(profile.id),
   ])
@@ -65,7 +64,6 @@ export default async function UserProfilePage(props: {
         profile={profile}
         projects={projects}
         comments={comments}
-        profileComments={profileComments}
         bids={bids}
         txns={txns}
         userProfile={userProfile}

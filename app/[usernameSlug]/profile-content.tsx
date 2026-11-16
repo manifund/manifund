@@ -15,7 +15,6 @@ import { OutgoingDonationsHistory } from './profile-donations'
 import { CommentAndProjectAndRxns } from '@/db/comment'
 import { ProfileCommentTabs } from './profile-comment-tabs'
 import type { Following } from '@/db/profile-follows'
-import { CommentAndProfileAndRxns } from '@/db/comment'
 import { RichContent } from '@/components/editor'
 import { Row } from '@/components/layout/row'
 import { useState } from 'react'
@@ -37,7 +36,6 @@ export function ProfileContent(props: {
   profile: Profile
   projects: FullProject[]
   comments: CommentAndProjectAndRxns[]
-  profileComments: CommentAndProfileAndRxns[]
   bids: BidAndProject[]
   txns: FullTxn[]
   userProfile?: Profile
@@ -49,7 +47,6 @@ export function ProfileContent(props: {
     profile,
     projects,
     comments,
-    profileComments,
     bids,
     txns,
     userProfile,
@@ -125,7 +122,6 @@ export function ProfileContent(props: {
       {/* Where main had "Comments X wrote": the comment tabs keep the page's order (the user, 2026-10-01). */}
       <ProfileCommentTabs
         profile={profile}
-        profileComments={profileComments}
         comments={comments}
         userProfile={userProfile}
         userCharityBalance={userCharityBalance}
