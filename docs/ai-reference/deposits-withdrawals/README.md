@@ -149,8 +149,9 @@ A returning person (a Mercury recipient on file) starts at `ready_to_pay`. "Open
   already reversed is never turned back into `sent` (the team is alerted to reconcile by hand). Observed (code,
   2026-10-08).
 - **W23** The hourly sync (cron only, with the cron secret) advances every open request; the withdrawal page also
-  asks it to refresh the signed-in person's own request (only theirs) while it waits for bank details. Observed
-  (code, 2026-10-08).
+  asks it to refresh the signed-in person's own request (only theirs) while it waits for bank details. A request
+  the sync fails on alerts the team only after 3 failures in a row, then every 24 more; a success resets the count.
+  Observed (code, 2026-10-08; alert threshold 2026-11-16).
 - **W24** Reminders: someone who hasn't entered bank details 24 hours after asking is emailed, then at most every 3
   days until the invite expires; a request waiting for approval or a manual wire for 2 days or more alerts the team,
   at most every 3 days. Observed (code, 2026-10-08).
@@ -174,6 +175,7 @@ were reviewed for this doc.
 
 | Date       | Decided by                  | Decision                                                                                                                                                                                                                      | Why                                                                                       |
 | ---------- | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 2026-11-16 | Caroline                    | Sync failures alert only after 3 in a row, then every 24 (W23)                                                                                                                                                                | A brief Mercury 503 sent one alert per open request                                       |
 | 2026-10-16 | Vals (#314, #317)           | Each checkout session is credited once, in one transaction (W27); Stripe withdrawals in whole cents, $1 to $10,000, checked on the server (W12)                                                                               | Stripe redelivers events; the amount sent to Stripe must be exact                         |
 | 2026-09-16 | Caroline (PR #253)          | Mercury transitions are compare-and-swap; reusing an idempotency key recovers the already-queued payment (W19, W22)                                                                                                           | Two overlapping syncs could both submit one payment                                       |
 | 2026-09-11 | Caroline (PR #243)          | Checkout credits the signed-in caller; the webhook credits only paid sessions, for what Stripe charged (W1-W3)                                                                                                                | Credit only what was paid, to the person signed in                                        |
