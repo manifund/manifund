@@ -92,7 +92,7 @@ function DonationRow(props: {
           </Tooltip>
         )}
         {type === 'fund' && (
-          <Tooltip text="charity">
+          <Tooltip text="fund">
             <UserGroupIcon className="h-5 w-5 flex-shrink-0 text-emerald-500" />
           </Tooltip>
         )}
