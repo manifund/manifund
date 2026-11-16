@@ -1,6 +1,7 @@
 import { SupabaseClient } from '@supabase/supabase-js'
-import { MiniProfile, Profile } from '@/db/profile'
-import { getTxnAndProjectsByUser } from '@/db/txn'
+import { MiniProfile, Profile, getFundByUsername } from '@/db/profile'
+import { FullTxn, getFullTxnsByUser, getTxnAndProjectsByUser } from '@/db/txn'
+import { fundUsernamesForSlug } from '@/utils/funds'
 import { getPendingBidsByUser } from '@/db/bid'
 import { calculateCharityBalance } from '@/utils/math'
 
@@ -57,4 +58,62 @@ export async function getGivingFunds(
   return await Promise.all(
     funds.map(async (fund) => ({ fund, balance: await getFundBalance(supabase, fund) }))
   )
+}
+
+// The fund at /funds/<slug> (F1): its username is the slug, or the slug plus "-fund".
+export async function getFundBySlug(supabase: SupabaseClient, slug: string) {
+  for (const username of fundUsernamesForSlug(slug)) {
+    const fund = await getFundByUsername(supabase, username)
+    if (fund) return fund
+  }
+  return null
+}
+
+export type FundSummary = {
+  fund: Profile
+  admins: MiniProfile[]
+  raised: number
+  granted: number
+  grantCount: number
+  open: boolean
+}
+
+// Every fund, with its figures as its page counts them (F4), for /funds (F10).
+export async function listFundSummaries(supabase: SupabaseClient): Promise<FundSummary[]> {
+  const { data: funds } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('type', 'fund')
+    .order('created_at')
+    .throwOnError()
+  return await Promise.all(
+    (funds as Profile[]).map(async (fund) => {
+      const [admins, txns, causes] = await Promise.all([
+        getFundAdmins(supabase, fund.id),
+        getFullTxnsByUser(supabase, fund.id),
+        supabase.from('causes').select('open').eq('fund_id', fund.id).throwOnError(),
+      ])
+      const figures = fundFigures(fund.id, txns)
+      return {
+        fund,
+        admins,
+        raised: figures.raised,
+        granted: figures.granted,
+        grantCount: figures.grants.length,
+        open: (causes.data ?? []).some((cause) => cause.open),
+      }
+    })
+  )
+}
+
+// F4: raised is every dollar given to the fund, granted every dollar it has given out.
+export function fundFigures(fundId: string, txns: FullTxn[]) {
+  const usd = txns.filter((txn) => txn.token === 'USD' && txn.from_id !== txn.to_id)
+  const raised = usd.filter((txn) => txn.to_id === fundId).reduce((sum, txn) => sum + txn.amount, 0)
+  const grants = usd.filter(
+    (txn) =>
+      txn.from_id === fundId && (txn.type === 'project donation' || txn.type === 'profile donation')
+  )
+  const granted = grants.reduce((sum, txn) => sum + txn.amount, 0)
+  return { raised, granted, grants }
 }

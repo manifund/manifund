@@ -1,5 +1,8 @@
-import { getFundByUsername, getUser, getProfileById } from '@/db/profile'
-import { getFundAdmins } from '@/db/fund'
+import Link from 'next/link'
+import { notFound, permanentRedirect } from 'next/navigation'
+import { orderBy, uniqBy } from 'es-toolkit'
+import { getUser, getProfileById } from '@/db/profile'
+import { fundFigures, getFundAdmins, getFundBySlug } from '@/db/fund'
 import { createServerSupabaseClient } from '@/db/supabase-server'
 import {
   getTxnAndProjectsByUser,
@@ -11,30 +14,44 @@ import { getFullProjectsByCause, getFullProjectsByIds } from '@/db/project'
 import { listSimpleCauses } from '@/db/cause'
 import { calculateCharityBalance } from '@/utils/math'
 import { formatMoney } from '@/utils/formatting'
-import { Stat } from '@/components/stat'
+import { fundSlug as slugFor } from '@/utils/funds'
 import { DonateBox } from '@/components/donate-box'
-import { UserAvatarAndBadge } from '@/components/user-link'
-import { Row } from '@/components/layout/row'
-import { Col } from '@/components/layout/col'
-import Image from 'next/image'
-import { notFound } from 'next/navigation'
-import { orderBy, uniqBy } from 'es-toolkit'
-import { FundTabs, type GrantAmount } from './fund-tabs'
+import { Avatar } from '@/components/avatar'
+import { RichContent } from '@/components/editor'
+import { ProjectsDisplay } from '@/components/projects-display'
+import { DonationsHistory } from '@/components/donations-history'
+import { buttonClass } from '@/components/button'
+import { OutgoingDonationsHistory } from '@/app/[usernameSlug]/profile-donations'
+import { SectionNav, type Section } from '@/app/orgs/[slug]/section-nav'
+import { FUND_PAGES } from '../fund-pages'
+import { GrantCards, type GrantAmount } from './grant-cards'
+import { SunlightAbout } from './sunlight-about'
+
+export const revalidate = 60
 
 export async function generateMetadata(props: { params: Promise<{ fundSlug: string }> }) {
   const { fundSlug } = await props.params
   const supabase = await createServerSupabaseClient()
-  const fund = await getFundByUsername(supabase, fundSlug)
-  return { title: fund?.full_name ?? 'Fund not found', description: fund?.bio || undefined }
+  const fund = await getFundBySlug(supabase, fundSlug)
+  const extras = fund ? FUND_PAGES[fund.username] : undefined
+  return {
+    title: fund?.full_name ?? 'Fund not found',
+    description: extras?.mission ?? (fund?.bio || undefined),
+  }
 }
 
 export default async function FundPage(props: { params: Promise<{ fundSlug: string }> }) {
   const { fundSlug } = await props.params
   const supabase = await createServerSupabaseClient()
-  const [fund, user] = await Promise.all([getFundByUsername(supabase, fundSlug), getUser(supabase)])
+  const [fund, user] = await Promise.all([getFundBySlug(supabase, fundSlug), getUser(supabase)])
   if (!fund) {
     notFound()
   }
+  // One address per fund (F1): /funds/sunlight-fund goes to /funds/sunlight
+  if (slugFor(fund.username) !== fundSlug) {
+    permanentRedirect(`/funds/${slugFor(fund.username)}`)
+  }
+  const extras = FUND_PAGES[fund.username] ?? {}
   const [
     admins,
     fundTxns,
@@ -68,17 +85,7 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
   const hasCause = (causes.data ?? []).length > 0
   const applySlug = causes.data?.find((cause) => cause.open)?.slug
 
-  // F4: raised is every dollar given to the fund, granted every dollar it has given out.
-  const usdTxns = fundTxns.filter((txn) => txn.token === 'USD' && txn.from_id !== txn.to_id)
-  const raised = usdTxns
-    .filter((txn) => txn.to_id === fund.id)
-    .reduce((sum, txn) => sum + txn.amount, 0)
-  const grants = usdTxns.filter(
-    (txn) =>
-      txn.from_id === fund.id &&
-      (txn.type === 'project donation' || txn.type === 'profile donation')
-  )
-  const granted = grants.reduce((sum, txn) => sum + txn.amount, 0)
+  const { raised, granted, grants } = fundFigures(fund.id, fundTxns)
   const pendingOffers = fundBids.filter((bid) => bid.status === 'pending' && bid.type === 'donate')
   // What the fund gave or has offered each project, shown above its card (F5)
   const grantAmounts: Record<string, GrantAmount> = {}
@@ -101,6 +108,9 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
     [(project) => grantAmounts[project.id].latest],
     ['desc']
   )
+  const otherGrants = grants.filter((txn) => !txn.project)
+  const grantCount = grantProjects.length + otherGrants.length
+  const donations = incomingTxns.filter((txn) => txn.token === 'USD' && txn.from_id !== fund.id)
   const available = calculateCharityBalance(
     fundTxns,
     pendingOffers,
@@ -110,48 +120,199 @@ export default async function FundPage(props: { params: Promise<{ fundSlug: stri
   const userCharityBalance = userProfile
     ? calculateCharityBalance(userTxns, userBids, userProfile.id, userProfile.accreditation_status)
     : 0
+
+  const sections: Section[] = [
+    { id: 'about', label: 'About' },
+    { id: 'grants', label: 'Grants', stat: grantCount > 0 ? `${grantCount}` : undefined },
+    ...(hasCause
+      ? [
+          {
+            id: 'applications',
+            label: 'Applications',
+            stat: applications.length > 0 ? `${applications.length}` : undefined,
+          },
+        ]
+      : []),
+    {
+      id: 'donations',
+      label: 'Donations',
+      stat: donations.length > 0 ? `${donations.length}` : undefined,
+    },
+  ]
+  const cover = extras.cover ?? fund.avatar_url
+  const mission = extras.mission ?? fund.bio
+  const sectionClass = 'flex scroll-mt-20 flex-col gap-5'
+  const headingClass = 'text-2xl font-normal tracking-tight text-gray-900'
+  // F4: older funds paid some grants with money that never came through Manifund
+  const figures = [
+    { label: 'Raised', value: formatMoney(raised) },
+    { label: 'Granted', value: formatMoney(granted) },
+    { label: 'Available to grant', value: formatMoney(Math.max(available, 0)) },
+  ]
+
   return (
-    <div className="mx-auto max-w-4xl p-6">
-      {fund.avatar_url && (
-        <Image
-          src={fund.avatar_url}
-          width={1000}
-          height={250}
-          className="relative aspect-[4/1] w-full flex-shrink-0 rounded bg-white object-cover"
-          alt=""
-        />
-      )}
-      <h1 className="mb-1 mt-4 text-3xl font-bold lg:text-4xl">{fund.full_name}</h1>
-      {fund.bio && <p className="text-gray-600">{fund.bio}</p>}
-      {admins.length > 0 && (
-        <Row className="mt-3 flex-wrap items-center gap-3 text-sm text-gray-500">
-          Run by
-          {admins.map((admin) => (
-            <UserAvatarAndBadge key={admin.id} profile={admin} />
-          ))}
-        </Row>
-      )}
-      <Col className="my-4 gap-6 border-y border-gray-200 py-6">
-        <div className="flex justify-between">
-          <Stat value={formatMoney(raised)} label="raised" />
-          <Stat value={formatMoney(granted)} label="granted" />
-          {/* Older funds paid some grants with money that never came through Manifund */}
-          <Stat value={formatMoney(Math.max(available, 0))} label="available to grant" />
+    <div className="px-4 pb-16 pt-7 font-light">
+      <div className="flex gap-1.5 text-[13px] text-gray-500">
+        <Link href="/funds" className="hover:underline">
+          Funds
+        </Link>
+        <span>/</span>
+        <span className="text-gray-900">{fund.full_name}</span>
+      </div>
+
+      {/* The cover carries the name and mission; the gradient behind it shows if the image doesn't load. */}
+      <header className="relative mt-5 overflow-hidden rounded-2xl bg-gradient-to-br from-amber-200 via-orange-300 to-rose-400">
+        {cover && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={cover}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover"
+            referrerPolicy="no-referrer"
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+        <div className="relative flex min-h-[300px] flex-col justify-end px-6 pb-7 pt-24 sm:min-h-[380px] sm:px-10 sm:pb-9">
+          <h1 className="text-[40px] font-medium leading-none tracking-tight text-white sm:text-6xl">
+            {fund.full_name}
+          </h1>
+          {mission && (
+            <p className="mt-3 max-w-[38ch] text-pretty text-lg leading-snug text-white/90 sm:text-xl">
+              {mission}
+            </p>
+          )}
+          {admins.length > 0 && (
+            <div className="mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-white/80">
+              <span>Run by</span>
+              {admins.map((admin) => (
+                <Link
+                  key={admin.id}
+                  href={`/${admin.username}`}
+                  className="flex items-center gap-2 rounded-full bg-white/15 py-1 pl-1 pr-3 text-white backdrop-blur-sm transition-colors hover:bg-white/25"
+                >
+                  <Avatar
+                    username={admin.username}
+                    avatarUrl={admin.avatar_url}
+                    id={admin.id}
+                    size={6}
+                    noLink
+                  />
+                  {admin.full_name}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
-        <DonateBox charity={fund} profile={userProfile} maxDonation={userCharityBalance} />
-      </Col>
-      <div className="mt-2">
-        <FundTabs
-          fund={fund}
-          grantProjects={grantProjects}
-          grantAmounts={grantAmounts}
-          otherGrants={grants.filter((txn) => !txn.project)}
-          donations={incomingTxns.filter((txn) => txn.token === 'USD' && txn.from_id !== fund.id)}
-          applications={applications}
-          hasCause={hasCause}
-          applySlug={applySlug}
-          causesList={causesList}
-        />
+      </header>
+
+      <SectionNav sections={sections} />
+
+      {/* Below xl the rail's cards come first: donating, then the facts. */}
+      <div className="flex flex-col gap-7 pt-7 xl:flex-row xl:items-start">
+        <main className="order-2 flex min-w-0 flex-1 flex-col gap-16 xl:order-1">
+          <section id="about" className={sectionClass}>
+            {fund.username === 'sunlight-fund' ? (
+              <SunlightAbout admins={admins} applySlug={applySlug} />
+            ) : fund.long_description ? (
+              <RichContent
+                content={fund.long_description}
+                className="max-w-[720px] text-gray-700"
+              />
+            ) : (
+              <p className="text-gray-500">Nothing written about {fund.full_name} yet.</p>
+            )}
+          </section>
+
+          <section id="grants" className={sectionClass}>
+            <h2 className={headingClass}>Grants</h2>
+            {grantCount === 0 ? (
+              <p className="max-w-[60ch] text-[15px] leading-relaxed text-gray-500">
+                {fund.full_name} hasn’t made any grants yet. Each one will appear here, with how
+                much it was for, as soon as it’s made.
+              </p>
+            ) : (
+              <>
+                {grantProjects.length > 0 && (
+                  <GrantCards projects={grantProjects} amounts={grantAmounts} />
+                )}
+                {otherGrants.length > 0 && (
+                  <OutgoingDonationsHistory donations={otherGrants} pendingDonateBids={[]} />
+                )}
+              </>
+            )}
+          </section>
+
+          {hasCause && (
+            <section id="applications" className={sectionClass}>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className={headingClass}>Applications</h2>
+                {applySlug && (
+                  <Link href={`/create?prize=${applySlug}`} className={buttonClass('md', 'orange')}>
+                    Start an application
+                  </Link>
+                )}
+              </div>
+              {applications.length > 0 ? (
+                <div className="font-normal">
+                  <ProjectsDisplay projects={applications} causesList={causesList} noFilter />
+                </div>
+              ) : (
+                <p className="text-[15px] text-gray-500">
+                  {applySlug
+                    ? 'No applications yet. Every application is a public proposal, listed here.'
+                    : `${fund.full_name} isn’t taking applications yet.`}
+                </p>
+              )}
+            </section>
+          )}
+
+          <section id="donations" className={sectionClass}>
+            <h2 className={headingClass}>Donations</h2>
+            {donations.length > 0 ? (
+              <div className="font-normal">
+                <DonationsHistory donations={donations} />
+              </div>
+            ) : (
+              <p className="text-[15px] text-gray-500">No donations yet.</p>
+            )}
+          </section>
+        </main>
+
+        <aside className="contents xl:sticky xl:top-16 xl:order-2 xl:flex xl:w-80 xl:flex-none xl:flex-col xl:gap-4">
+          <div className="order-1 flex flex-col gap-4">
+            <dl className="grid grid-cols-3 rounded-lg bg-white shadow-sm xl:grid-cols-1">
+              {figures.map((figure, i) => (
+                <div
+                  key={figure.label}
+                  className={
+                    i > 0
+                      ? 'border-l border-gray-100 px-5 py-4 xl:flex xl:items-baseline xl:justify-between xl:border-l-0 xl:border-t'
+                      : 'px-5 py-4 xl:flex xl:items-baseline xl:justify-between'
+                  }
+                >
+                  <dt className="text-xs text-gray-500 xl:text-sm">{figure.label}</dt>
+                  <dd className="mt-1 text-xl font-normal tabular-nums text-gray-900 xl:mt-0 xl:text-lg">
+                    {figure.value}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+            <DonateBox charity={fund} profile={userProfile} maxDonation={userCharityBalance} />
+          </div>
+          {extras.facts && extras.facts.length > 0 && (
+            <div className="order-3 rounded-lg bg-white p-5 shadow-sm">
+              <div className="mb-3 text-[13px] font-medium text-gray-900">At a glance</div>
+              <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-4 gap-y-2 text-[13px]">
+                {extras.facts.map((fact) => (
+                  <div key={fact.label} className="contents">
+                    <dt className="text-gray-500">{fact.label}</dt>
+                    <dd className="text-gray-900">{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          )}
+        </aside>
       </div>
     </div>
   )

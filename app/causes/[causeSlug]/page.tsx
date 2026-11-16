@@ -12,6 +12,7 @@ import { getProfileById } from '@/db/profile'
 import { MATCH_END, MATCH_START } from './qf'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { fundPath } from '@/utils/funds'
 
 export const revalidate = 60
 
@@ -78,7 +79,7 @@ export default async function CausePage(props: { params: Promise<{ causeSlug: st
       {fund?.type === 'fund' && (
         <p className="my-3 rounded bg-orange-50 p-3 text-sm text-orange-800">
           These are applications to {fund.full_name}.{' '}
-          <Link href={`/${fund.username}`} className="font-semibold underline">
+          <Link href={fundPath(fund.username)} className="font-semibold underline">
             See the fund, its grants and how to donate
           </Link>
         </p>

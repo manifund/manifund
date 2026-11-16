@@ -6,8 +6,8 @@ import { getProjectsByUser } from '@/db/project'
 import { ProfileContent } from './profile-content'
 import { getBidsByUser } from '@/db/bid'
 import { getCommentsByUser } from '@/db/comment'
-import FundPage from '../funds/[fundSlug]/page'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
+import { fundPath } from '@/utils/funds'
 import { getResponseByProfileId } from '@/db/donor-survey'
 import { getFollowing, isFollowing } from '@/db/profile-follows'
 
@@ -22,7 +22,8 @@ export default async function UserProfilePage(props: {
   if (!profile) {
     notFound()
   } else if (profile.type === 'fund') {
-    return <FundPage params={Promise.resolve({ fundSlug: usernameSlug })} />
+    // A fund's page is at /funds/<slug> (F1)
+    permanentRedirect(fundPath(profile.username))
   } else if (profile.type !== 'individual') {
     return <div>Profile type not supported</div>
   }

@@ -19,7 +19,7 @@ export function ShellChrome(props: { children: ReactNode }) {
 
 // Routes whose pages have a right rail: the main column takes the grid's spare column, and on wide
 // screens the empty strip beside the sidebar.
-const WIDE_PREFIXES = ['/orgs']
+const WIDE_PREFIXES = ['/orgs', '/funds']
 
 export function MainColumn(props: { children: ReactNode }) {
   const standalone = useStandalone()
