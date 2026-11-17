@@ -159,7 +159,7 @@ export function ProjectTabs(props: {
     })
   }
 
-  return <Tabs tabs={tabs} currentTabId={currentTabId} />
+  return <Tabs tabs={tabs} currentTabId={currentTabId} look="section" />
 }
 
 export type Shareholder = {

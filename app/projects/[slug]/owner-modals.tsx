@@ -1,9 +1,8 @@
 'use client'
 import toast from 'react-hot-toast'
-import { Button, buttonClass } from '@/components/button'
-import { Row } from '@/components/layout/row'
-import { SimpleCause, Cause, LINK_ONLY_PRIZE_CAUSE_SLUGS } from '@/db/cause'
-import { FullProject, Project } from '@/db/project'
+import { Button } from '@/components/button'
+import { SimpleCause, LINK_ONLY_PRIZE_CAUSE_SLUGS } from '@/db/cause'
+import { Project } from '@/db/project'
 import {
   LockClosedIcon,
   PaperAirplaneIcon,
@@ -22,31 +21,10 @@ import { SelectCauses } from '@/components/select-causes'
 import { Modal } from '@/components/modal'
 import { Dialog } from '@headlessui/react'
 import { FireIcon } from '@heroicons/react/20/solid'
-import { checkReactivateEligible } from '@/utils/activate-project'
-import Link from 'next/link'
 
-export function CreatorActionPanel(props: {
-  project: FullProject
-  causesList: SimpleCause[]
-  prizeCause?: Cause
-}) {
-  const { project, causesList, prizeCause } = props
-  return (
-    <Row className="items-center gap-1" id="creator-actions">
-      {project.stage === 'draft' ? (
-        <Publish projectSlug={project.slug} />
-      ) : (
-        <Edit project={project} causesList={causesList} />
-      )}
-      {project.stage === 'active' && <ProgressUpdate project={project} />}
-      {project.stage === 'active' && <CloseProject projectId={project.id} />}
-      {checkReactivateEligible(project, prizeCause) && <Reactivate projectId={project.id} />}
-      {project.stage !== 'draft' && project.stage !== 'hidden' && (
-        <HideProject projectId={project.id} />
-      )}
-    </Row>
-  )
-}
+// The modals behind the project's owner actions; ProjectActions opens them from its menu. Each
+// keeps its open state with the caller, so closing the menu doesn't unmount an open modal.
+export type ModalControl = { open: boolean; setOpen: (open: boolean) => void }
 
 const PROGRESS_UPDATE_OUTLINE = `
 <h3>What progress have you made since your last update?</h3>
@@ -56,24 +34,15 @@ const PROGRESS_UPDATE_OUTLINE = `
 <h3>Is there anything others could help you with?</h3>
 </br>
 `
-function ProgressUpdate(props: { project: Project }) {
+export function ProgressUpdate(props: { project: Project } & ModalControl) {
   const { project } = props
-  const [modalOpen, setModalOpen] = useState(false)
+  const { open: modalOpen, setOpen: setModalOpen } = props
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const PROGRESS_UPDATE_KEY = `${project.id}ProgressUpdate`
   const editor = useTextEditor(PROGRESS_UPDATE_OUTLINE, PROGRESS_UPDATE_KEY)
   return (
     <>
-      <Button
-        className="flex items-center"
-        size="2xs"
-        color="light-orange"
-        onClick={() => setModalOpen(true)}
-      >
-        <PaperAirplaneIcon className="relative right-1 h-4 w-4" />
-        Post update
-      </Button>
       <Modal open={modalOpen} setOpen={setModalOpen}>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
           <PaperAirplaneIcon className="h-6 w-6 text-orange-600" />
@@ -137,24 +106,15 @@ const REPORT_OUTLINE = `
 <h3>Spending breakdown</h3>
 </br>
 `
-function CloseProject(props: { projectId: string }) {
+export function CloseProject(props: { projectId: string } & ModalControl) {
   const { projectId } = props
-  const [modalOpen, setModalOpen] = useState(false)
+  const { open: modalOpen, setOpen: setModalOpen } = props
   const [isSubmitting, setIsSubmitting] = useState(false)
   const REPORT_KEY = `${projectId}Report`
   const editor = useTextEditor(REPORT_OUTLINE, REPORT_KEY)
   const router = useRouter()
   return (
     <>
-      <Button
-        className="flex items-center"
-        size="2xs"
-        color="light-orange"
-        onClick={() => setModalOpen(true)}
-      >
-        <LockClosedIcon className="relative right-1 h-4 w-4" />
-        Close project
-      </Button>
       <Modal open={modalOpen} setOpen={setModalOpen}>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
           <LockClosedIcon className="h-6 w-6 text-orange-600" />
@@ -215,24 +175,13 @@ function CloseProject(props: { projectId: string }) {
   )
 }
 
-export function Reactivate(props: { projectId: string }) {
+export function Reactivate(props: { projectId: string } & ModalControl) {
   const { projectId } = props
-  const [modalOpen, setModalOpen] = useState(false)
+  const { open: modalOpen, setOpen: setModalOpen } = props
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   return (
     <>
-      <Button
-        className="flex items-center"
-        size="2xs"
-        color="light-orange"
-        onClick={() => {
-          setModalOpen(true)
-        }}
-      >
-        <FireIcon className="relative right-1 h-4 w-4" />
-        Reactivate project
-      </Button>
       <Modal open={modalOpen} setOpen={setModalOpen}>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
           <FireIcon className="h-6 w-6 text-orange-600" aria-hidden="true" />
@@ -281,9 +230,11 @@ export function Reactivate(props: { projectId: string }) {
   )
 }
 
-function Edit(props: { project: ProjectWithCauses; causesList: SimpleCause[] }) {
+export function Edit(
+  props: { project: ProjectWithCauses; causesList: SimpleCause[] } & ModalControl
+) {
   const { project, causesList } = props
-  const [modalOpen, setModalOpen] = useState(false)
+  const { open: modalOpen, setOpen: setModalOpen } = props
   const [title, setTitle] = useState(project.title)
   const [subtitle, setSubtitle] = useState(project.blurb ?? '')
   const [fundingGoal, setFundingGoal] = useState<number | undefined>(project.funding_goal)
@@ -332,15 +283,6 @@ function Edit(props: { project: ProjectWithCauses; causesList: SimpleCause[] }) 
   }
   return (
     <>
-      <Button
-        className="flex items-center"
-        size="2xs"
-        color="light-orange"
-        onClick={() => setModalOpen(true)}
-      >
-        <PencilIcon className="relative right-1 h-4 w-4" />
-        Edit project
-      </Button>
       <Modal open={modalOpen} setOpen={setModalOpen}>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
           <PencilIcon className="h-6 w-6 text-orange-600" aria-hidden="true" />
@@ -416,23 +358,14 @@ function Edit(props: { project: ProjectWithCauses; causesList: SimpleCause[] }) 
   )
 }
 
-function HideProject(props: { projectId: string }) {
+export function HideProject(props: { projectId: string } & ModalControl) {
   const { projectId } = props
-  const [modalOpen, setModalOpen] = useState(false)
+  const { open: modalOpen, setOpen: setModalOpen } = props
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
 
   return (
     <>
-      <Button
-        className="flex items-center"
-        size="2xs"
-        color="light-orange"
-        onClick={() => setModalOpen(true)}
-      >
-        <EyeSlashIcon className="relative right-1 h-4 w-4" />
-        Hide project
-      </Button>
       <Modal open={modalOpen} setOpen={setModalOpen}>
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-orange-100">
           <EyeSlashIcon className="h-6 w-6 text-orange-600" />
@@ -476,17 +409,6 @@ function HideProject(props: { projectId: string }) {
         </div>
       </Modal>
     </>
-  )
-}
-
-function Publish(props: { projectSlug: string }) {
-  return (
-    <Link
-      className={buttonClass('2xs', 'light-orange')}
-      href={`/projects/${props.projectSlug}/publish`}
-    >
-      Edit & publish
-    </Link>
   )
 }
 

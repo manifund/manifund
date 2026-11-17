@@ -58,3 +58,15 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
   `create_transfer_grant_v2`, which the REST API can call directly; test: `tests/db/grant-rpcs.test.ts`.
 - **P13** Each person has at most one vote per project, worth -1, 0 or 1, and casts it only as themselves. Enforced by
   a unique constraint, a check and the insert policy on `project_votes`; test: `tests/db/grant-rpcs.test.ts`.
+
+## Project page
+
+- **P14** A project's page has one column on narrow screens (header, funding card, description, tabs). From the
+  `xl` breakpoint, the funding card and an outline of the description's headings sit in a sticky rail on the right.
+- **P15** The header shows the vote arrows around the project's karma (no net vote count). A vote briefly shows the
+  karma it moved, the viewer's vote weight (`karmaWeight`), and the arrows' tooltips say what a vote is worth.
+- **P16** Everyone can share; signed-in visitors can follow. The owner sees one Edit button (Edit & publish for a
+  draft) and the rarer actions in a ⋯ menu. Admins get the same actions, all in the menu, and a banner when a proposal
+  is waiting for their verdict.
+- **P17** Tabs keep their `?tab=<id>` addresses, which emails, the digest and notifications link to
+  (`?tab=comments#<comment id>`, `?tab=bids`, `?tab=shareholders`). Switching to the first tab drops the parameter.

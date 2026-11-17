@@ -1,30 +1,40 @@
 'use client'
-import { Col } from '@/components/layout/col'
+import { Karma } from '@/components/karma'
+import { Tooltip } from '@/components/tooltip'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
 import clsx from 'clsx'
 import { useRouter } from 'next/navigation'
-import { ReactNode } from 'react'
+import { useState } from 'react'
 import { scrollToComments } from './project-display'
 
-export const revalidate = 60
-
-// Vote arrows around `children` (the net vote count). The parent owns the
-// viewer's vote so it can update karma and the count optimistically.
-export function Vote(props: {
+// Vote arrows around the project's karma: ▲ karma ▼. The parent owns the viewer's vote so karma
+// moves at once. The viewer's vote is worth `weight` karma (log of their own karma), so each vote
+// briefly shows what it changed, e.g. "+3", and the arrows say what they're worth.
+export function VoteKarma(props: {
   projectId: string
+  karma: number
+  breakdown: unknown
   magnitude: number
   setMagnitude: (magnitude: number) => void
   setCommentPrompt: (value: string) => void
+  weight: number
   userId?: string
-  children: ReactNode
+  isCreator?: boolean
 }) {
-  const { projectId, magnitude, setMagnitude, setCommentPrompt, userId, children } = props
+  const { projectId, karma, breakdown, magnitude, setMagnitude, setCommentPrompt, weight, userId } =
+    props
   const router = useRouter()
+  // Each vote gets a fresh key so the "+3" flash replays.
+  const [flash, setFlash] = useState<{ key: number; delta: number } | null>(null)
+  const canVote = !!userId
+  const worth = Math.round(weight * 10) / 10
 
   const vote = async (clicked: number) => {
     if (!userId) return
     const newMagnitude = magnitude === clicked ? 0 : clicked
+    const delta = (newMagnitude - magnitude) * weight
     setMagnitude(newMagnitude)
+    if (delta !== 0) setFlash({ key: Date.now(), delta })
     await fetch(`/api/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -35,25 +45,77 @@ export function Vote(props: {
       setCommentPrompt(`why did you ${clicked > 0 ? 'up' : 'down'}vote?`)
     }
   }
+
+  const hint = (direction: 1 | -1) => {
+    if (!userId) return 'Sign in to vote'
+    if (props.isCreator) return direction > 0 ? 'Upvote' : 'Downvote'
+    if (magnitude === direction) return 'Undo your vote'
+    return `${direction > 0 ? 'Upvote' : 'Downvote'}: ${direction > 0 ? '+' : '−'}${worth} karma`
+  }
+
   return (
-    <Col className="items-center">
-      <button aria-label="Upvote" disabled={!userId} onClick={async () => await vote(1)}>
-        <ChevronUpIcon
-          className={clsx(
-            '-my-1 h-7 w-7 stroke-2',
-            magnitude > 0 ? 'text-orange-500' : 'text-gray-400'
-          )}
-        />
+    <div className="flex w-12 flex-none flex-col items-center">
+      <VoteArrow
+        direction={1}
+        active={magnitude > 0}
+        disabled={!canVote}
+        hint={hint(1)}
+        onClick={() => vote(1)}
+      />
+      <div className="relative">
+        <Karma value={karma} breakdown={breakdown} kind="project" placement="right" />
+        {flash && (
+          <span
+            key={flash.key}
+            aria-hidden
+            onAnimationEnd={() => setFlash(null)}
+            className={clsx(
+              'pointer-events-none absolute left-full top-0 ml-1 animate-karma-flash text-xs font-medium tabular-nums motion-reduce:hidden',
+              flash.delta > 0 ? 'text-orange-600' : 'text-gray-500'
+            )}
+          >
+            {flash.delta > 0 ? '+' : '−'}
+            {Math.abs(Math.round(flash.delta * 10) / 10)}
+          </span>
+        )}
+      </div>
+      <VoteArrow
+        direction={-1}
+        active={magnitude < 0}
+        disabled={!canVote}
+        hint={hint(-1)}
+        onClick={() => vote(-1)}
+      />
+    </div>
+  )
+}
+
+function VoteArrow(props: {
+  direction: 1 | -1
+  active: boolean
+  disabled: boolean
+  hint: string
+  onClick: () => void
+}) {
+  const { direction, active, disabled, hint, onClick } = props
+  const Icon = direction > 0 ? ChevronUpIcon : ChevronDownIcon
+  return (
+    <Tooltip text={hint} placement="right" noTap>
+      <button
+        aria-label={hint}
+        aria-pressed={active}
+        disabled={disabled}
+        onClick={onClick}
+        className={clsx(
+          'flex h-7 w-7 items-center justify-center rounded-full transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400',
+          active
+            ? 'bg-orange-100 text-orange-600'
+            : 'text-gray-400 enabled:hover:bg-gray-100 enabled:hover:text-gray-700',
+          disabled && 'cursor-default'
+        )}
+      >
+        <Icon className="h-6 w-6" />
       </button>
-      {children}
-      <button aria-label="Downvote" disabled={!userId} onClick={async () => await vote(-1)}>
-        <ChevronDownIcon
-          className={clsx(
-            '-my-1 h-7 w-7 stroke-2',
-            magnitude < 0 ? 'text-orange-500' : 'text-gray-400'
-          )}
-        />
-      </button>
-    </Col>
+    </Tooltip>
   )
 }
