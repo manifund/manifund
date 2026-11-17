@@ -111,7 +111,7 @@ export function Karma(props: {
   value: number | null | undefined
   breakdown: unknown
   kind: 'project' | 'profile'
-  size?: 'sm' | 'md'
+  size?: 'sm' | 'md' | 'lg'
   placement?: Placement
   className?: string
 }) {
@@ -141,11 +141,11 @@ export function Karma(props: {
         {...getReferenceProps()}
         className={clsx(
           'inline-flex cursor-help items-center gap-1 font-semibold text-orange-500',
-          size === 'md' ? 'text-base' : 'text-sm',
+          size === 'lg' ? 'text-2xl tracking-tight' : size === 'md' ? 'text-base' : 'text-sm',
           className
         )}
       >
-        <Star className={size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
+        <Star className={size === 'lg' ? 'h-5 w-5' : size === 'md' ? 'h-4 w-4' : 'h-3.5 w-3.5'} />
         {fmt(value)}
       </span>
       {open && (

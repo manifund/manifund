@@ -3,12 +3,14 @@ import { Comments } from './comments'
 import { FullProject, FullProjectWithSimilarity, TOTAL_SHARES } from '@/db/project'
 import { Profile } from '@/db/profile'
 import { useSearchParams } from 'next/navigation'
+import { useEffect } from 'react'
 import { Bids } from './bids'
 import { BidAndProfile } from '@/db/bid'
 import { TxnAndProfiles } from '@/db/txn'
 import { Shareholders } from './shareholders'
 import { bundleTxns } from '@/utils/math'
-import { Tab, Tabs } from '@/components/tabs'
+import { Tab } from '@/components/tabs'
+import { SectionNav } from '@/components/section-nav'
 import { AI_HIGHLY_RATED_MIN_SCORE, latestAiEval } from '@/utils/karma'
 import { AiReview } from './ai-review'
 import { DonationsHistory } from '@/components/donations-history'
@@ -137,7 +139,7 @@ export function ProjectTabs(props: {
     tabs.push({ name: 'AI review', id: 'ai-review', display: <AiReview evaluation={aiEval} /> })
   }
 
-  // Disable predictions tab for now, as it's not getting any usage
+  // Disable predictions section for now, as it's not getting any usage
   // const markets = project.markets as string[]
   // tabs.push({
   //   name: 'Predictions',
@@ -159,7 +161,34 @@ export function ProjectTabs(props: {
     })
   }
 
-  return <Tabs tabs={tabs} currentTabId={currentTabId} look="section" />
+  // Old links name a tab (?tab=bids, ?tab=shareholders#tabs): every section is on the page now,
+  // so go to it. A comment link's own #<id> is left to the comment, which scrolls to itself.
+  useEffect(() => {
+    const hash = window.location.hash.slice(1)
+    if (!currentTabId || (hash && hash !== 'tabs')) return
+    document.getElementById(currentTabId)?.scrollIntoView()
+  }, [currentTabId])
+
+  return (
+    <div>
+      <SectionNav
+        className="mt-0"
+        sections={tabs.map((tab) => ({
+          id: tab.id,
+          label: tab.name,
+          stat: tab.count ? `${tab.count}` : undefined,
+        }))}
+      />
+      <div className="flex flex-col gap-16 pt-8">
+        {tabs.map((tab) => (
+          <section key={tab.id} id={tab.id} className="flex scroll-mt-16 flex-col gap-4">
+            <h2 className="text-2xl font-normal tracking-tight text-gray-900">{tab.name}</h2>
+            {tab.display}
+          </section>
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export type Shareholder = {

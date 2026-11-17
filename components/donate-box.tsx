@@ -107,7 +107,7 @@ export function DonateBox(props: {
     setAmount(0)
     router.refresh()
     if (setCommentPrompt) {
-      scrollToComments(router)
+      scrollToComments()
       setCommentPrompt('why did you donate?')
     }
   }
@@ -230,12 +230,6 @@ export function DonateBox(props: {
         </p>
       )}
       {profile && refusal && <p className="text-sm text-rose-600">{refusal}</p>}
-      {isBid && (
-        <p className="text-xs leading-normal text-gray-500">
-          An offer is charged only if the project reaches its minimum funding and is approved.
-          Otherwise the money stays in your balance.
-        </p>
-      )}
     </div>
   )
   return props.embedded ? body : <Card className="p-5">{body}</Card>

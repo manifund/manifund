@@ -3,7 +3,6 @@ import { Karma } from '@/components/karma'
 import { Tooltip } from '@/components/tooltip'
 import { ChevronDownIcon, ChevronUpIcon } from '@heroicons/react/20/solid'
 import clsx from 'clsx'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { scrollToComments } from './project-display'
 
@@ -23,7 +22,6 @@ export function VoteKarma(props: {
 }) {
   const { projectId, karma, breakdown, magnitude, setMagnitude, setCommentPrompt, weight, userId } =
     props
-  const router = useRouter()
   // Each vote gets a fresh key so the "+3" flash replays.
   const [flash, setFlash] = useState<{ key: number; delta: number } | null>(null)
   const canVote = !!userId
@@ -41,7 +39,7 @@ export function VoteKarma(props: {
       body: JSON.stringify({ projectId, newMagnitude }),
     })
     if (newMagnitude !== 0) {
-      scrollToComments(router)
+      scrollToComments()
       setCommentPrompt(`why did you ${clicked > 0 ? 'up' : 'down'}vote?`)
     }
   }
@@ -54,7 +52,7 @@ export function VoteKarma(props: {
   }
 
   return (
-    <div className="flex w-12 flex-none flex-col items-center">
+    <div className="flex min-w-[3.5rem] flex-none flex-col items-center">
       <VoteArrow
         direction={1}
         active={magnitude > 0}
@@ -63,7 +61,7 @@ export function VoteKarma(props: {
         onClick={() => vote(1)}
       />
       <div className="relative">
-        <Karma value={karma} breakdown={breakdown} kind="project" placement="right" />
+        <Karma value={karma} breakdown={breakdown} kind="project" size="lg" placement="right" />
         {flash && (
           <span
             key={flash.key}

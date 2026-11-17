@@ -172,7 +172,7 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
               <h1 className="text-balance text-2xl font-medium leading-tight tracking-tight text-gray-900 sm:text-[32px] sm:leading-[1.15]">
                 {project.title}
                 {isHighlyRatedByAi(project.project_ai_evals) && (
-                  <AiTrophy href="?tab=ai-review" className="ml-2 inline-block align-middle" />
+                  <AiTrophy href="#ai-review" className="ml-2 inline-block align-middle" />
                 )}
               </h1>
               {project.blurb && (
@@ -347,12 +347,7 @@ function CertPanels(props: {
   )
 }
 
-export function scrollToComments(router: any) {
-  router.push('?tab=comments')
-  const tabsElement = document.getElementById('tabs')
-  tabsElement?.scrollIntoView({
-    behavior: 'smooth',
-    block: 'start',
-    inline: 'start',
-  })
+// After a vote or donation, bring the comment box into view to ask why.
+export function scrollToComments() {
+  document.getElementById('comments')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }

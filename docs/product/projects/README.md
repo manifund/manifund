@@ -39,7 +39,7 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
   hides, whose karma plus the AI head start (P9) is above 3, highest first, up to 7. Rules in
   `utils/digest-projects.ts`.
 - **P11** A project whose AI score is 4 or 5 shows a trophy on its card and next to its title ("highly rated by our
-  experimental AI rating system"), and an _AI review_ tab after Comments, Offers, Shareholders and Donations with the score and Claude's
+  experimental AI rating system"), and an _AI review_ section after Comments, Offers, Shareholders and Donations with the score and Claude's
   opinion. Lower-rated projects show neither. The evaluation shown is the latest, as in P9.
 
 ## Stage
@@ -68,5 +68,7 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
 - **P16** Everyone can share; signed-in visitors can follow. The owner sees one Edit button (Edit & publish for a
   draft) and the rarer actions in a ⋯ menu. Admins get the same actions, all in the menu, and a banner when a proposal
   is waiting for their verdict.
-- **P17** Tabs keep their `?tab=<id>` addresses, which emails, the digest and notifications link to
-  (`?tab=comments#<comment id>`, `?tab=bids`, `?tab=shareholders`). Switching to the first tab drops the parameter.
+- **P17** Comments, offers, shareholders, donations, the AI review and similar projects are all sections of one long
+  page under a sticky section bar, as on org pages. Old tab links (`?tab=<id>`), which emails, the digest and
+  notifications use (`?tab=comments#<comment id>`, `?tab=bids`, `?tab=shareholders#tabs`), scroll to that section; a
+  comment's own `#<id>` scrolls to the comment.

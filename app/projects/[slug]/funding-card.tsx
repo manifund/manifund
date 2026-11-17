@@ -62,6 +62,14 @@ export function FundingCard(props: {
             {donors === 1 ? 'donor' : 'donors'}
           </span>
         )}
+        {showBar && minimum > 0 && minimum < goal && (
+          <span className={clsx(raised >= minimum && 'text-emerald-700')}>
+            <span className={clsx('tabular-nums', raised < minimum && 'text-gray-900')}>
+              {usd(minimum)}
+            </span>{' '}
+            min{raised >= minimum && ' reached'}
+          </span>
+        )}
         {isProposal && project.auction_close && <TimeLeft closeDate={project.auction_close} />}
         {isCert && (
           <span>
@@ -123,15 +131,6 @@ function FundingBar(props: { raised: number; minimum: number; goal: number }) {
           />
         )}
       </div>
-      {showMin && (
-        <div
-          className={clsx('mt-2 text-[13px]', reachedMin ? 'text-emerald-700' : 'text-gray-500')}
-        >
-          {reachedMin
-            ? `Minimum of ${usd(minimum)} reached`
-            : `${usd(minimum - raised)} more to reach the ${usd(minimum)} minimum`}
-        </div>
-      )}
     </div>
   )
 }
