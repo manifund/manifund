@@ -21,7 +21,7 @@ export function ShellChrome(props: { children: ReactNode }) {
 // screens the empty strip beside the sidebar.
 const WIDE_PREFIXES = ['/orgs', '/funds']
 // A project's own page (not its publish or agreement subpages) has the funding rail and outline.
-const WIDE_PATTERNS = [/^\/projects\/[^/]+\/?$/, /^\/zz-preview/]
+const WIDE_PATTERNS = [/^\/projects\/[^/]+\/?$/]
 
 export function MainColumn(props: { children: ReactNode }) {
   const standalone = useStandalone()
