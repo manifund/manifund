@@ -38,7 +38,6 @@ export function FundOgCard(props: FundOgCardProps) {
         <div tw="flex items-center">
           <img src={fox} width={44} height={44} />
           <span tw="ml-3 text-[30px] text-white">Manifund</span>
-          <span tw="ml-4 text-[24px] text-white/70">Funds</span>
         </div>
         {open && (
           <div tw="flex items-center rounded-full bg-white/90 px-5 py-2 text-[22px] text-emerald-700">
