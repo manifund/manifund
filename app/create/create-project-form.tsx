@@ -103,7 +103,12 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
   const certParams = projectParams.selectedPrize?.cert_params ?? null
   const showMinFunding = !projectParams.selectedPrize || !!certParams?.proposalPhase
   const showFundingGoal = !certParams
-  const errorMessage = getCreateProjectErrorMessage(projectParams, minMinFunding)
+  const [lobbyingDoubleChecked, setLobbyingDoubleChecked] = useState<boolean>(false)
+  const errorMessage =
+    getCreateProjectErrorMessage(projectParams, minMinFunding) ??
+    (projectParams.lobbying && !lobbyingDoubleChecked
+      ? 'Please double-check that your project involves lobbying.'
+      : null)
 
   const router = useRouter()
   const handleSubmit = async () => {
@@ -406,9 +411,10 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
         <label className="flex cursor-pointer items-center">
           <Checkbox
             checked={projectParams.lobbying}
-            onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+            onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
               updateProjectParams({ lobbying: event.target.checked })
-            }
+              setLobbyingDoubleChecked(false)
+            }}
           />
           <span className="ml-3 text-sm font-medium text-gray-900">
             This project will engage in{' '}
@@ -422,7 +428,7 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
           </span>
         </label>
         <Tooltip
-          text="Check this box if you will use this money to lobby (attempt to influence legislation, as defined by the IRS), within the US or internationally."
+          text="Check this box if you will use this money to lobby (attempt to influence legislation, as defined by the IRS), within the US or internationally. This won't apply to most projects--read the IRS definition if you're unsure."
           className="flex"
         >
           <QuestionMarkCircleIcon
@@ -431,6 +437,31 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
           />
         </Tooltip>
       </Row>
+      {projectParams.lobbying && (
+        <Col className="gap-2 rounded-md bg-orange-50 p-3 text-sm text-gray-900">
+          <p>
+            Are you sure this is lobbying? The{' '}
+            <a
+              href="https://www.irs.gov/charities-non-profits/lobbying"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-600 hover:underline"
+            >
+              IRS definition
+            </a>{' '}
+            is quite specific--please double-check.
+          </p>
+          <label className="flex cursor-pointer items-center">
+            <Checkbox
+              checked={lobbyingDoubleChecked}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                setLobbyingDoubleChecked(event.target.checked)
+              }
+            />
+            <span className="ml-3 font-medium">I double-checked</span>
+          </label>
+        </Col>
+      )}
       <Tooltip text={errorMessage}>
         <Button
           type="submit"
