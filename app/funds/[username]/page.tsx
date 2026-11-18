@@ -13,6 +13,7 @@ import { getBidsByUser, getPendingBidsByUser } from '@/db/bid'
 import { getFullProjectsByCause, getFullProjectsByIds } from '@/db/project'
 import { listSimpleCauses } from '@/db/cause'
 import { calculateCharityBalance } from '@/utils/math'
+import { findFundComment } from '@/utils/fund-comments'
 import { formatMoney } from '@/utils/formatting'
 import { DonateBox } from '@/components/donate-box'
 import { Avatar } from '@/components/avatar'
@@ -23,7 +24,7 @@ import { buttonClass } from '@/components/button'
 import { OutgoingDonationsHistory } from '@/app/[usernameSlug]/profile-donations'
 import { SectionNav, type Section } from '@/components/section-nav'
 import { FUND_PAGES } from '../fund-pages'
-import { GrantCards, type GrantAmount } from './grant-cards'
+import { GrantCards, type GrantAmount, type GrantComment } from './grant-cards'
 import { SunlightAbout } from './sunlight-about'
 
 export const revalidate = 60
@@ -98,11 +99,48 @@ export default async function FundPage(props: { params: Promise<{ username: stri
     if (txn.project) addGrant(txn.project, 'granted', txn.amount, txn.created_at)
   }
   for (const bid of pendingOffers) addGrant(bid.project, 'offered', bid.amount, bid.created_at)
+  const grantProjectIds = Object.keys(grantAmounts)
+  const adminIds = admins.map((admin) => admin.id)
+  const [unsortedGrantProjects, adminComments] = await Promise.all([
+    getFullProjectsByIds(supabase, grantProjectIds),
+    grantProjectIds.length > 0 && adminIds.length > 0
+      ? supabase
+          .from('comments')
+          .select(
+            'id, project, commenter, created_at, replying_to, deleted_at, held_at, profiles!comments_commenter_fkey(id, username, full_name, avatar_url)'
+          )
+          .in('project', grantProjectIds)
+          .in('commenter', adminIds)
+          .is('replying_to', null)
+          .throwOnError()
+          .then((res) => res.data ?? [])
+      : [],
+  ])
   const grantProjects = orderBy(
-    await getFullProjectsByIds(supabase, Object.keys(grantAmounts)),
+    unsortedGrantProjects,
     [(project) => grantAmounts[project.id].latest],
     ['desc']
   )
+  // F11: the comment an admin wrote about each grant, linked under its card
+  const firstGiftAt: Record<string, string> = {}
+  for (const at of [...grants, ...fundBids]) {
+    if (at.project && (!firstGiftAt[at.project] || at.created_at < firstGiftAt[at.project]))
+      firstGiftAt[at.project] = at.created_at
+  }
+  const grantComments: Record<string, GrantComment> = {}
+  for (const project of grantProjects) {
+    const comment = findFundComment(
+      adminComments.filter((c) => c.project === project.id),
+      adminIds,
+      firstGiftAt[project.id]
+    )
+    if (!comment) continue
+    const author = comment.profiles as unknown as GrantComment['author']
+    grantComments[project.id] = {
+      href: `/projects/${project.slug}?tab=comments#${comment.id}`,
+      author,
+    }
+  }
   const otherGrants = grants.filter((txn) => !txn.project)
   const grantCount = grantProjects.length + otherGrants.length
   const donations = incomingTxns.filter((txn) => txn.token === 'USD' && txn.from_id !== fund.id)
@@ -228,7 +266,11 @@ export default async function FundPage(props: { params: Promise<{ username: stri
             ) : (
               <>
                 {grantProjects.length > 0 && (
-                  <GrantCards projects={grantProjects} amounts={grantAmounts} />
+                  <GrantCards
+                    projects={grantProjects}
+                    amounts={grantAmounts}
+                    comments={grantComments}
+                  />
                 )}
                 {otherGrants.length > 0 && (
                   <OutgoingDonationsHistory donations={otherGrants} pendingDonateBids={[]} />

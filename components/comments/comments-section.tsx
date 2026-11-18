@@ -28,6 +28,7 @@ export function CommentsSection(props: {
   comments: CommentAndProfileAndRxns[]
   ownerId?: string // the project's creator: shown with a badge
   commenterTags?: Record<string, string> // e.g. "gave $500"
+  commentTags?: Record<string, string> // by comment id, over the commenter's tag (a fund's grant, F11)
   threadTag?: string // on every top-level comment, before the commenter's tag (org reviews: stars)
   userProfile?: Profile
   userCharityBalance?: number
@@ -42,6 +43,7 @@ export function CommentsSection(props: {
     comments,
     ownerId,
     commenterTags = {},
+    commentTags = {},
     threadTag,
     userProfile,
     userCharityBalance,
@@ -88,8 +90,9 @@ export function CommentsSection(props: {
               commentHref={`${basePath}#${thread.root.id}`}
               writtenByCreator={!!ownerId && thread.root.commenter === ownerId}
               contributionText={
-                [threadTag, commenterTags[thread.root.commenter]].filter(Boolean).join(' · ') ||
-                undefined
+                [threadTag, commentTags[thread.root.id] ?? commenterTags[thread.root.commenter]]
+                  .filter(Boolean)
+                  .join(' · ') || undefined
               }
               userProfile={userProfile}
             >
@@ -108,7 +111,7 @@ export function CommentsSection(props: {
                     userCharityBalance={userCharityBalance}
                     commentHref={`${basePath}#${reply.id}`}
                     writtenByCreator={!!ownerId && reply.commenter === ownerId}
-                    contributionText={commenterTags[reply.commenter]}
+                    contributionText={commentTags[reply.id] ?? commenterTags[reply.commenter]}
                     userProfile={userProfile}
                   >
                     {userProfile && replyButton(reply)}

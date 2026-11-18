@@ -26,6 +26,7 @@ const SIMILARITY_THRESHOLD = 0.6
 export function ProjectTabs(props: {
   project: FullProject
   comments: CommentAndProfileAndRxns[]
+  commentTags?: Record<string, string>
   bids: BidAndProfile[]
   txns: TxnAndProfiles[]
   userCharityBalance: number
@@ -39,6 +40,7 @@ export function ProjectTabs(props: {
   const {
     project,
     comments,
+    commentTags,
     bids,
     txns,
     userCharityBalance,
@@ -70,6 +72,7 @@ export function ProjectTabs(props: {
           userProfile={userProfile}
           userCharityBalance={userCharityBalance}
           commenterContributions={commenterContributions}
+          commentTags={commentTags}
           specialPrompt={specialCommentPrompt}
         />
       ),

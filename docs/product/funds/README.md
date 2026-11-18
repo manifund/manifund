@@ -42,6 +42,10 @@ over later.
   (`donation_to_your_fund`, essential like other money to you).
 - **F10** `/funds` lists every fund as a card: cover, name, mission, admins, raised, granted and grant count, and
   whether it's taking applications.
+- **F11** A fund's comment on a grant is the first top-level comment by one of its admins on the project, from a day
+  before the fund's first offer or donation there (nothing in the data links the two). On the fund page, each grant's
+  card links to that comment from below; on the project page, the comment is tagged "donated $X through
+  <fund>" (or "offering $X through <fund>") instead of the admin's own giving.
 
 ## Decisions
 
@@ -52,6 +56,7 @@ over later.
 | 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                                                                                | The create form already handles it                        |
 | 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                                                                                  |                                                           |
 | 2026-11-11 | Caroline   | Admins withdraw fund offers and hear about donations (F8, F9); regrantor-style grants wait                                                       |                                                           |
+| 2026-11-18 | Caroline   | Match a grant to its admin's comment by time, no new column (F11)                                                                                | Each Sunlight grant so far has its comment within an hour |
 | 2026-11-16 | Austin     | Funds at `/funds/<username>`, with a `/funds` index; @sunlight-fund renamed to @sunlight; page redesigned along the lines of /orgs (F1, F5, F10) | A home for funds, and a page fit to raise money on        |
 
 ## Open questions
