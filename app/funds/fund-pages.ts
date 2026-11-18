@@ -8,8 +8,9 @@ export type FundPageExtras = {
 
 export const FUND_PAGES: Record<string, FundPageExtras> = {
   sunlight: {
-    // A stand-in until we pick a final image
-    cover: 'https://cdn.midjourney.com/4fbfb224-177a-4614-8f72-f9caf39bc0a5/0_0.png',
+    // Rehosted from Midjourney, whose CDN refuses server fetches (the preview card needs one)
+    cover:
+      'https://fkousziwzbnkdkldjper.supabase.co/storage/v1/object/public/image-uploads/funds/sunlight-cover.jpg',
     mission: 'Fast, transparent, early-stage grants for AI safety',
     facts: [
       { label: 'Grant sizes', value: '$1k to $50k' },
