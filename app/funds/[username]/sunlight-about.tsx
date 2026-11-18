@@ -107,14 +107,14 @@ export function SunlightAbout(props: { admins: MiniProfile[]; applySlug?: string
     <div className="flex flex-col gap-14">
       <div className="flex max-w-[60ch] flex-col gap-4 text-pretty text-xl font-light leading-relaxed text-gray-800">
         <p>
-          Manifund is launching an AI safety fund, run by Austin Chen and Caroline Ellison. In one
-          sentence, our goal is to make fast, transparent, early-stage grants for AI safety.
+          Many people want to give money to AI safety, and many projects need money, but matching
+          these up is far from solved. A lot of current funding opportunities are optimized for
+          large donors and grantees, are private about information, and move slowly.
         </p>
         <p>
-          There are lots of people who want to give money to AI safety and lots of projects that
-          need money, but matching these up is far from a solved problem. A lot of current funding
-          opportunities are optimized for large donors and grantees, are private about information,
-          and move slowly. The Sunlight Fund wants to fill a gap in the funding ecosystem.
+          Through our work on Manifund, and related projects like Mox and Manifest, we often come
+          across great early-stage opportunities, which just need a small amount to flourish.
+          Sunlight aims to fill this need.
         </p>
       </div>
 
