@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { FullComment } from '@/db/comment'
 import { useSearchParams } from 'next/navigation'
 import { Pagination } from '@/components/pagination'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ProjectsDisplay } from '@/components/projects-display'
 import { NetworkFeed } from '@/components/follows/network-feed'
 import { NetworkContext, type NetworkActivity } from '@/components/follows/network-tag'
@@ -33,6 +33,8 @@ export function FeedTabs(props: {
   recentDonations: RecentTxn[]
   recentBids: RecentBid[]
   projects: FullProject[]
+  // the full list, streamed in after the hot projects in `projects` render
+  allProjects?: Promise<FullProject[] | null>
   causesList: SimpleCause[]
   userId?: string
   network?: NetworkActivity
@@ -43,7 +45,8 @@ export function FeedTabs(props: {
     commentsTotal,
     recentDonations,
     recentBids,
-    projects,
+    projects: hotProjects,
+    allProjects,
     causesList,
     userId,
     network,
@@ -52,6 +55,17 @@ export function FeedTabs(props: {
   const searchParams = useSearchParams() ?? new URLSearchParams()
   const currentTabId = searchParams.get('tab') ?? 'projects'
   const [page, setPage] = useState(1)
+  const [fullProjects, setFullProjects] = useState<FullProject[] | null>(null)
+  useEffect(() => {
+    let current = true
+    void allProjects?.then((all) => {
+      if (current && all) setFullProjects(all)
+    })
+    return () => {
+      current = false
+    }
+  }, [allProjects])
+  const projects = fullProjects ?? hotProjects
 
   const ProjectsTab = (
     // the network line on cards (F8)
