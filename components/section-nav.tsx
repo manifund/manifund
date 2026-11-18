@@ -10,6 +10,14 @@ export function SectionNav(props: { sections: Section[]; className?: string }) {
   const { sections, className } = props
   const [active, setActive] = useState(sections[0]?.id)
 
+  // A link to a section (/funds/sunlight#grants): the page streams in, so the section didn't exist
+  // yet when the browser tried to jump to it.
+  useEffect(() => {
+    const hash = decodeURIComponent(window.location.hash.slice(1))
+    if (sections.some((section) => section.id === hash))
+      document.getElementById(hash)?.scrollIntoView()
+  }, [])
+
   useEffect(() => {
     // The section in view is the last one whose top has passed under the bar.
     const onScroll = () => {
