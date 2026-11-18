@@ -420,6 +420,8 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
             This project will engage in{' '}
             <a
               href="https://www.irs.gov/charities-non-profits/lobbying"
+              target="_blank"
+              rel="noopener noreferrer"
               className="text-orange-600 hover:underline"
             >
               lobbying
