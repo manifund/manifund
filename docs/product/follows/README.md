@@ -57,11 +57,11 @@ email settings: `../notifications/README.md`.
   isn't sent. A match always lands in the notification list; its email follows the one email choice (instant,
   daily or never: docs/product/notifications N4), like other optional notifications.
 - **F8** When people you follow donated, offered or commented on a project, at any time, a line says so above its
-  home card, outside the card on a square orange band joined to its top-left edge (like the project box above
-  comments in the Comments feed; grey text, so it doesn't read as a link; team meeting, 2026-10-15), the way social
-  feeds put "reposted by" above a post (Vals, 2026-10-14), and above
+  home card, outside the card on the page background with no band (grey text, so it doesn't read as a link; Austin,
+  2026-11-18), the way social feeds put "reposted by" above a post (Vals, 2026-10-14), and above
   the title on the project page: "Maya donated and commented, Sam offered", up to two people, each named once,
-  then "and N more", after the two-people icon whatever they did (Vals, 2026-10-14). Cards side by side stay aligned
+  then "and N more", after the named people's small overlapping faces whatever they did (Austin, 2026-11-18; the
+  two-people icon only if no face is known). Cards side by side stay aligned
   whether or not they have a line. Drafts and hidden projects never count. No "From your network" label (Vals,
   2026-10-12); screen readers and the hover text say "People you follow". On a card the line stays on one line.
 - **F9** A profile's **Following** tab, after "About" and "By" (`/<username>?tab=following`; Vals, 2026-10-15),
@@ -82,6 +82,7 @@ Newest first.
 
 | Date       | Decided by                                 | Decision                                                                                                                                                                                                                         | Why                                                                                                                 |
 | ---------- | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| 2026-11-18 | Austin                                     | The network line drops the orange band and the two-people icon for the named people's faces, on the page background (F8; replaces the 2026-10-15 band)                                                                           | The pale orange band on grey looked faded; faces are recognisable at a glance                                       |
 | 2026-10-15 | Claude (QA pass)                           | One word and icon for removing a saved search, "Remove" with a trash icon, on home and the Following tab; the Network tab uses the notifications' verbs (F5, F10)                                                                | The same action looked different in two places                                                                      |
 | 2026-10-15 | Vals                                       | Following is a profile tab after About and By, with the same lists (F9)                                                                                                                                                          | A tab fits the profile better than a section                                                                        |
 | 2026-10-15 | Team meeting, Vals                         | The network line sits on a square orange band joined to the card's top-left edge, like the Comments feed's project box, text 8px in, grey text (F8)                                                                              | Ties the line to its card without reading as a link                                                                 |

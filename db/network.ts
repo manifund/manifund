@@ -1,12 +1,12 @@
 import { SupabaseClient } from '@supabase/supabase-js'
 import type { JSONContent } from '@tiptap/core'
-import type { NetworkActivity, NetworkKind } from '@/lib/follows/network'
+import type { NetworkActivity, NetworkAvatar, NetworkKind } from '@/lib/follows/network'
 import { log } from '@/lib/log'
 import { TARGET_EMBEDS, commentHref, isListed, targetTitle } from '@/lib/comments/links'
 import { toPlaintext } from '@/utils/tiptap-parsing'
 import { LISTED_STAGES, myFollowedIds } from './profile-follows'
 
-// What people the viewer follows did (docs/product/follows, F8, F10): home's band above cards and the Network
+// What people the viewer follows did (docs/product/follows, F8, F10): home's line above cards and the Network
 // tab, read with the viewer's own client. The shared types and wording are in lib/follows/network.ts, which browser
 // code imports too, so the queries live here.
 
@@ -133,13 +133,21 @@ export async function networkFor(
   supabase: SupabaseClient,
   me: string
 ): Promise<NetworkActivity | undefined> {
-  if (!(await myFollowedIds(supabase, me)).length) return undefined
-  // network_activity() reads the signed-in person's follows (auth.uid()), so `supabase` must be theirs
-  const { data, error } = await supabase.rpc('network_activity')
+  const followed = await myFollowedIds(supabase, me)
+  if (!followed.length) return undefined
+  // network_activity() reads the signed-in person's follows (auth.uid()), so `supabase` must be theirs. It returns
+  // display names only, so the faces come from the followed profiles, matched by the same name it uses.
+  const [{ data, error }, { data: profiles }] = await Promise.all([
+    supabase.rpc('network_activity'),
+    supabase.from('profiles').select(PROFILE).in('id', followed),
+  ])
   if (error) log.error('follows.network_activity_failed', { error })
+  const avatars = new Map<string, NetworkAvatar>()
+  for (const p of (profiles ?? []) as MiniProfile[])
+    avatars.set(p.full_name || p.username, { id: p.id, url: p.avatar_url })
   const out: NetworkActivity = {}
   for (const r of (data ?? []) as { project_id: string; name: string; kind: NetworkKind }[])
-    (out[r.project_id] ??= []).push({ name: r.name, kind: r.kind })
+    (out[r.project_id] ??= []).push({ name: r.name, kind: r.kind, avatar: avatars.get(r.name) })
   return out
 }
 

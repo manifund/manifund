@@ -2,6 +2,7 @@
 import { createContext, useContext } from 'react'
 import clsx from 'clsx'
 import { UsersIcon } from '@heroicons/react/16/solid'
+import { Avatar } from '@/components/avatar'
 import {
   andList,
   moreText,
@@ -17,27 +18,21 @@ export type { NetworkActivity }
 export const NetworkContext = createContext<NetworkActivity | null>(null)
 
 // A home card's context line, from the list's context (F8). It sits above the card, outside it, the way social
-// feeds put "reposted by" above a post, on a square orange band joined to the card's top-left edge, in the style of
-// the project box above comments in the Comments feed (text 8px in). The text keeps its greys, so it doesn't read as
-// a link. Always renders a row, so cards side by side stay aligned (ProjectGroup gives each card a two-row subgrid,
-// and squares the card's top-left corner under a band, found by the network-band class).
+// feeds put "reposted by" above a post: the people's faces and the sentence, on the page background with no band.
+// Always renders a row, so cards side by side stay aligned (ProjectGroup gives each card a two-row subgrid).
 export function NetworkTag(props: { projectId: string; className?: string }) {
   const network = useContext(NetworkContext)
   const items = network?.[props.projectId]
   return (
     <div className={clsx('flex min-w-0 items-end', props.className)}>
-      {networkPeople(items) && (
-        <div className="network-band min-w-0 max-w-full bg-orange-100 px-2 py-1">
-          <NetworkLine items={items} />
-        </div>
-      )}
+      {networkPeople(items) && <NetworkLine items={items} className="max-w-full px-1 pb-1.5" />}
     </div>
   )
 }
 
-// F8: "Maya donated and commented, Sam offered", names in a darker grey, after the two-people icon whatever they did.
-// No "From your network" label; screen readers and the hover text say "People you follow". A card keeps it to one
-// line; the project page wraps.
+// F8: "Maya donated and commented, Sam offered", names in a darker grey, after the shown people's faces (the
+// two-people icon stands in if no face is known). No "From your network" label; screen readers and the hover text
+// say "People you follow". A card keeps it to one line; the project page wraps.
 export function NetworkLine(props: {
   items: NetworkItem[] | undefined
   size?: 'xs' | 'sm'
@@ -46,19 +41,36 @@ export function NetworkLine(props: {
   const { items, size = 'xs', className } = props
   const n = networkPeople(items)
   if (!n) return null
+  const faces = n.shown.filter((p) => p.avatar)
   return (
     <p
       title={`People you follow: ${networkText(items)}`}
       className={clsx(
-        'flex min-w-0 items-center gap-1.5 text-gray-500',
+        'flex min-w-0 items-center gap-2 text-gray-500',
         size === 'sm' ? 'text-sm' : 'text-xs',
         className
       )}
     >
-      <UsersIcon
-        className={clsx('shrink-0 text-gray-400', size === 'sm' ? 'h-4 w-4' : 'h-3.5 w-3.5')}
-        aria-hidden="true"
-      />
+      {faces.length ? (
+        <span className="flex shrink-0 -space-x-1" aria-hidden="true">
+          {faces.map((p) => (
+            <Avatar
+              key={p.name}
+              username={p.name}
+              id={p.avatar!.id}
+              avatarUrl={p.avatar!.url}
+              size={size === 'sm' ? 5 : 'xxs'}
+              noLink
+              className="rounded-full ring-2 ring-gray-50"
+            />
+          ))}
+        </span>
+      ) : (
+        <UsersIcon
+          className={clsx('shrink-0 text-gray-400', size === 'sm' ? 'h-4 w-4' : 'h-3.5 w-3.5')}
+          aria-hidden="true"
+        />
+      )}
       <span className="sr-only">People you follow: </span>
       <span className={size === 'xs' ? 'truncate' : undefined}>
         {n.shown.map((p, i) => (
