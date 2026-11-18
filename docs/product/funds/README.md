@@ -41,7 +41,7 @@ over later.
   (`/api/withdraw-fund-bid`, which checks `fund_admins`).
 - **F9** A donation to a fund, from a balance or by card, notifies each of its admins in-app and by email right away
   (`donation_to_your_fund`, essential like other money to you).
-- **F10** `/funds` lists every fund as a card: cover, name, mission, admins, raised, granted and grant count, and
+- **F10** `/funds` lists every fund as a card: cover, name, mission, admins, raised, recommended and grant count, and
   whether it's taking applications.
 - **F11** A fund's comment on a grant is the first top-level comment by one of its admins on the project, from a day
   before the fund's first offer or donation there (nothing in the data links the two). On the fund page, the grant shows as that
