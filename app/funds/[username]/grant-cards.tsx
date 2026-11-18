@@ -9,11 +9,10 @@ export type GrantAmount = { granted: number; offered: number; latest: string }
 export type GrantComment = {
   href: string
   author: { id: string; username: string; full_name: string; avatar_url: string | null }
-  excerpt: string
 }
 
 // Like ProjectGroup, with a band above each card saying what the fund gave or offered (F5),
-// and below it the admin's comment on the grant (F11). The band links to that comment.
+// and below it a link to the admin's comment on the grant (F11).
 export function GrantCards(props: {
   projects: FullProject[]
   amounts: Record<string, GrantAmount>
@@ -27,10 +26,7 @@ export function GrantCards(props: {
         const comment = comments[project.id]
         return (
           <div key={project.id} className="flex flex-col">
-            <Link
-              href={comment?.href ?? `/projects/${project.slug}`}
-              className="w-fit rounded-t-md bg-amber-100 px-2.5 py-1 text-sm font-light text-amber-950 hover:bg-amber-200"
-            >
+            <div className="w-fit rounded-t-md bg-amber-100 px-2.5 py-1 text-sm font-light text-amber-950">
               {granted > 0 && (
                 <>
                   <span className="font-medium">{formatMoney(granted)}</span> granted
@@ -42,7 +38,7 @@ export function GrantCards(props: {
                   <span className="font-medium">{formatMoney(offered)}</span> offered, pending
                 </>
               )}
-            </Link>
+            </div>
             <div
               className={clsx(
                 'flex-1 [&>*]:h-full [&>*]:rounded-tl-none',
@@ -54,25 +50,18 @@ export function GrantCards(props: {
             {comment && (
               <Link
                 href={comment.href}
-                className="group flex flex-col gap-1.5 rounded-b-md border-t border-amber-100 bg-amber-50 px-4 py-3 text-sm shadow-sm"
+                className="group flex items-center gap-2 rounded-b-md border-t border-amber-100 bg-amber-50 px-4 py-2.5 text-sm text-gray-600 shadow-sm"
               >
-                <span className="flex items-center gap-2 text-gray-500">
-                  <Avatar
-                    username={comment.author.username}
-                    avatarUrl={comment.author.avatar_url}
-                    id={comment.author.id}
-                    size={5}
-                    noLink
-                  />
-                  <span className="font-medium text-gray-900">{comment.author.full_name}</span>
-                  on the grant
+                <Avatar
+                  username={comment.author.username}
+                  avatarUrl={comment.author.avatar_url}
+                  id={comment.author.id}
+                  size={5}
+                  noLink
+                />
+                <span className="group-hover:underline">
+                  {comment.author.full_name.split(' ')[0]}’s comment on the grant →
                 </span>
-                {comment.excerpt && (
-                  <span className="line-clamp-3 font-light leading-snug text-gray-700">
-                    {comment.excerpt}
-                  </span>
-                )}
-                <span className="text-orange-600 group-hover:underline">Read the comment →</span>
               </Link>
             )}
           </div>

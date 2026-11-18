@@ -14,8 +14,6 @@ import { getFullProjectsByCause, getFullProjectsByIds } from '@/db/project'
 import { listSimpleCauses } from '@/db/cause'
 import { calculateCharityBalance } from '@/utils/math'
 import { findFundComment } from '@/utils/fund-comments'
-import { toPlaintext } from '@/utils/tiptap-parsing'
-import { JSONContent } from '@tiptap/core'
 import { formatMoney } from '@/utils/formatting'
 import { DonateBox } from '@/components/donate-box'
 import { Avatar } from '@/components/avatar'
@@ -109,7 +107,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
       ? supabase
           .from('comments')
           .select(
-            'id, project, commenter, created_at, replying_to, deleted_at, held_at, content, profiles!comments_commenter_fkey(id, username, full_name, avatar_url)'
+            'id, project, commenter, created_at, replying_to, deleted_at, held_at, profiles!comments_commenter_fkey(id, username, full_name, avatar_url)'
           )
           .in('project', grantProjectIds)
           .in('commenter', adminIds)
@@ -123,7 +121,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
     [(project) => grantAmounts[project.id].latest],
     ['desc']
   )
-  // F11: the comment an admin wrote about each grant, linked and quoted under its card
+  // F11: the comment an admin wrote about each grant, linked under its card
   const firstGiftAt: Record<string, string> = {}
   for (const at of [...grants, ...fundBids]) {
     if (at.project && (!firstGiftAt[at.project] || at.created_at < firstGiftAt[at.project]))
@@ -141,7 +139,6 @@ export default async function FundPage(props: { params: Promise<{ username: stri
     grantComments[project.id] = {
       href: `/projects/${project.slug}?tab=comments#${comment.id}`,
       author,
-      excerpt: comment.content ? toPlaintext(comment.content as JSONContent).slice(0, 400) : '',
     }
   }
   const otherGrants = grants.filter((txn) => !txn.project)

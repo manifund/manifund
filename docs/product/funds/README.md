@@ -44,7 +44,7 @@ over later.
   whether it's taking applications.
 - **F11** A fund's comment on a grant is the first top-level comment by one of its admins on the project, from a day
   before the fund's first offer or donation there (nothing in the data links the two). On the fund page, each grant's
-  band links to that comment, quoted under the card; on the project page, the comment is tagged "donated $X through
+  card links to that comment from below; on the project page, the comment is tagged "donated $X through
   <fund>" (or "offering $X through <fund>") instead of the admin's own giving.
 
 ## Decisions
