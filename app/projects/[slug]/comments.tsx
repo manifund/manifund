@@ -9,6 +9,7 @@ export function Comments(props: {
   project: Project
   comments: CommentAndProfileAndRxns[]
   commenterContributions: Record<string, string>
+  commentTags?: Record<string, string>
   userProfile?: Profile
   userCharityBalance?: number
   specialPrompt?: string

@@ -170,7 +170,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 
 ### Display and data
 
-- **C29** Project comments keep the creator badge and "gave $X" tags; after donating or voting, the comment box
+- **C29** Project comments keep the creator badge and "gave $X" tags (a fund admin's comment on the fund's grant
+  says what the fund gave instead: F11 in `docs/product/funds/README.md`); after donating or voting, the comment box
   invites people to say why.
 - **C30** A profile shows the comments on it and, in a second tab, the comments the person wrote elsewhere (on every
   other target). Their replies on their own profile stay with their threads in the first tab.

@@ -8,6 +8,9 @@ import { createServerSupabaseClient } from '@/db/supabase-server'
 import { TxnAndProfiles, TxnAndProject } from '@/db/txn'
 import { ProjectTabs } from './project-tabs'
 import { getViewerFunds } from './viewer-funds'
+import { findFundComment } from '@/utils/fund-comments'
+import { formatMoneyPrecise } from '@/utils/formatting'
+import { SupabaseClient } from '@supabase/supabase-js'
 
 // The tabs below the description (comments, offers, shareholders, similar projects). The page
 // streams them in after the top: they need comments and similar projects, which the top doesn't.
@@ -33,10 +36,21 @@ export async function ProjectTabsSection(props: {
     adminFundIds,
   } = props
   const supabase = await createServerSupabaseClient()
-  const [comments, similarProjects] = await Promise.all([
+  const [comments, similarProjects, fundGifts] = await Promise.all([
     getCommentsByProject(supabase, project.id),
     getFullSimilarProjectsCached(project.id, 8),
+    getFundGifts(supabase, project.id, projectTxns, projectBids),
   ])
+  // F11: the fund's comment says what the fund gave, not what its admin gave personally
+  const commentTags: Record<string, string> = {}
+  for (const gift of fundGifts) {
+    const comment = findFundComment(comments, gift.adminIds, gift.firstAt)
+    if (!comment) continue
+    commentTags[comment.id] =
+      gift.donated > 0
+        ? `donated ${formatMoneyPrecise(gift.donated)} through ${gift.fundName}`
+        : `offering ${formatMoneyPrecise(gift.offered)} through ${gift.fundName}`
+  }
   const { userCharityBalance, userSpendableFunds, userSellableShares } = getViewerFunds(
     project,
     userProfile,
@@ -50,6 +64,7 @@ export async function ProjectTabsSection(props: {
       adminFundIds={adminFundIds}
       userProfile={userProfile}
       comments={comments}
+      commentTags={commentTags}
       bids={projectBids}
       txns={projectTxns}
       userCharityBalance={userCharityBalance}
@@ -59,4 +74,53 @@ export async function ProjectTabsSection(props: {
       similarProjects={similarProjects}
     />
   )
+}
+
+// What each fund gave or offered this project, and who runs it
+async function getFundGifts(
+  supabase: SupabaseClient,
+  projectId: string,
+  txns: TxnAndProfiles[],
+  pendingBids: BidAndProfile[]
+) {
+  const funds = new Map<string, { fundName: string; donated: number; offered: number }>()
+  const entry = (id: string, name: string) => {
+    if (!funds.has(id)) funds.set(id, { fundName: name, donated: 0, offered: 0 })
+    return funds.get(id)!
+  }
+  for (const txn of txns) {
+    if (txn.profiles?.type === 'fund' && txn.from_id && txn.token === 'USD' && !txn.bundle)
+      entry(txn.from_id, txn.profiles.full_name).donated += txn.amount
+  }
+  for (const bid of pendingBids) {
+    if (bid.profiles?.type === 'fund' && bid.type === 'donate')
+      entry(bid.bidder, bid.profiles.full_name).offered += bid.amount
+  }
+  if (funds.size === 0) return []
+  const fundIds = [...funds.keys()]
+  // Accepted offers count too: they're often when the admin explained the grant
+  const [{ data: admins }, { data: bids }] = await Promise.all([
+    supabase
+      .from('fund_admins')
+      .select('fund_id, profile_id')
+      .in('fund_id', fundIds)
+      .throwOnError(),
+    supabase
+      .from('bids')
+      .select('bidder, created_at')
+      .eq('project', projectId)
+      .in('bidder', fundIds)
+      .throwOnError(),
+  ])
+  return fundIds.map((id) => {
+    const times = [
+      ...txns.filter((txn) => txn.from_id === id).map((txn) => txn.created_at),
+      ...(bids ?? []).filter((bid) => bid.bidder === id).map((bid) => bid.created_at),
+    ].sort()
+    return {
+      ...funds.get(id)!,
+      adminIds: (admins ?? []).filter((a) => a.fund_id === id).map((a) => a.profile_id),
+      firstAt: times[0],
+    }
+  })
 }
