@@ -1,4 +1,5 @@
 'use client'
+import type { CommentTag } from '@/components/comments/comments-section'
 import { Profile } from '@/db/profile'
 import { CommentAndProfileAndRxns } from '@/db/comment'
 import { Project } from '@/db/project'
@@ -9,7 +10,7 @@ export function Comments(props: {
   project: Project
   comments: CommentAndProfileAndRxns[]
   commenterContributions: Record<string, string>
-  commentTags?: Record<string, string>
+  commentTags?: Record<string, CommentTag>
   userProfile?: Profile
   userCharityBalance?: number
   specialPrompt?: string

@@ -22,13 +22,16 @@ import toast from 'react-hot-toast'
 // Threads and composer for any target (project, profile or organization). The target-specific parts come in
 // as props: where comments link to, whose words get the owner badge, tags per commenter, and
 // whether the viewer may start a thread here (the server enforces the same rules).
+export type CommentTag = { text: string; href?: string }
+
 export function CommentsSection(props: {
   target: Target
   basePath: string // e.g. /projects/slug?tab=comments ; links are `${basePath}#<id>`
   comments: CommentAndProfileAndRxns[]
   ownerId?: string // the project's creator: shown with a badge
   commenterTags?: Record<string, string> // e.g. "gave $500"
-  commentTags?: Record<string, string> // by comment id, over the commenter's tag (a fund's grant, F11)
+  // by comment id, over the commenter's tag (a fund's grant, F11), linking where href is set
+  commentTags?: Record<string, CommentTag>
   threadTag?: string // on every top-level comment, before the commenter's tag (org reviews: stars)
   userProfile?: Profile
   userCharityBalance?: number
@@ -90,10 +93,14 @@ export function CommentsSection(props: {
               commentHref={`${basePath}#${thread.root.id}`}
               writtenByCreator={!!ownerId && thread.root.commenter === ownerId}
               contributionText={
-                [threadTag, commentTags[thread.root.id] ?? commenterTags[thread.root.commenter]]
+                [
+                  threadTag,
+                  commentTags[thread.root.id]?.text ?? commenterTags[thread.root.commenter],
+                ]
                   .filter(Boolean)
                   .join(' · ') || undefined
               }
+              contributionHref={commentTags[thread.root.id]?.href}
               userProfile={userProfile}
             >
               {userProfile && replyButton(thread.root)}
@@ -111,7 +118,8 @@ export function CommentsSection(props: {
                     userCharityBalance={userCharityBalance}
                     commentHref={`${basePath}#${reply.id}`}
                     writtenByCreator={!!ownerId && reply.commenter === ownerId}
-                    contributionText={commentTags[reply.id] ?? commenterTags[reply.commenter]}
+                    contributionText={commentTags[reply.id]?.text ?? commenterTags[reply.commenter]}
+                    contributionHref={commentTags[reply.id]?.href}
                     userProfile={userProfile}
                   >
                     {userProfile && replyButton(reply)}

@@ -24,13 +24,14 @@ over later.
   offer on a proposal or a donation on an active project, with the same limits as anyone's, checked against the
   fund's balance. Site admins aren't fund admins unless listed.
 - **F3** Donations to a fund (from a balance, by card or by wire) are grantable charity balance, never withdrawable.
-- **F4** The page's figures: **raised** is every dollar given to the fund; **granted** is every dollar it has given
-  out (project donations and profile donations); **available to grant** is its balance less its pending offers,
+- **F4** The page's figures: **raised** is every dollar given to the fund; **recommended** is every dollar it has given
+  out (project donations and profile donations) plus its pending offers; **available to grant** is its balance less its pending offers,
   never shown below $0 (ACX Grants paid grants with money that never came through Manifund).
 - **F5** The page opens with a cover (the fund's image, else its avatar) carrying its name, one-line mission and admins.
   A sticky bar jumps between its sections: **About** (a written section for Sunlight Fund, else the long description),
-  **Grants** (a card per project it paid or has a pending offer on, newest first, each topped by what the fund granted
-  and offered; then rows for grants to people), **Applications** (when the fund has a cause) and **Donations** (who
+  **Grants** (newest first: each grant with an admin's comment (F11) as that comment in full, tagged "$10k to <recipient>
+  for <project>" and linking to it on the project; then a card for each other project it paid or offered, topped by
+  what the fund granted and offered; then rows for grants to people), **Applications** (when the fund has a cause) and **Donations** (who
   gave to the fund). Beside them: the figures (F4), the donate box and the fund's facts. Cover, mission and facts live
   in `app/funds/fund-pages.ts`.
 - **F6** Applications are the projects tagged with any of the fund's causes, hidden and draft ones left out. While a
@@ -43,9 +44,9 @@ over later.
 - **F10** `/funds` lists every fund as a card: cover, name, mission, admins, raised, granted and grant count, and
   whether it's taking applications.
 - **F11** A fund's comment on a grant is the first top-level comment by one of its admins on the project, from a day
-  before the fund's first offer or donation there (nothing in the data links the two). On the fund page, each grant's
-  card links to that comment from below; on the project page, the comment is tagged "donated $X through
-  <fund>" (or "offering $X through <fund>") instead of the admin's own giving.
+  before the fund's first offer or donation there (nothing in the data links the two). On the fund page, the grant shows as that
+  comment (F5); on the project page, the comment is tagged "donated $10k through <fund>" (or "offering $10k through
+  <fund>"), linking to the fund's page, instead of the admin's own giving.
 
 ## Decisions
 

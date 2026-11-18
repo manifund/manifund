@@ -18,6 +18,11 @@ export function formatMoney(amount: number) {
   return `$${formatLargeNumber(amount)}`
 }
 
+// $500, $10k, $1.2M: for tags and labels
+export function formatMoneyShort(amount: number) {
+  return formatMoney(amount).replace(/K$/, 'k')
+}
+
 export function getMoneyNumber(amount: number) {
   // Handle 499.9999999999999 case
   const plusEpsilon = (amount > 0 ? Math.floor : Math.ceil)(

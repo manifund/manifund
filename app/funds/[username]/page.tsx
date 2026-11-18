@@ -24,7 +24,8 @@ import { buttonClass } from '@/components/button'
 import { OutgoingDonationsHistory } from '@/app/[usernameSlug]/profile-donations'
 import { SectionNav, type Section } from '@/components/section-nav'
 import { FUND_PAGES } from '../fund-pages'
-import { GrantCards, type GrantAmount, type GrantComment } from './grant-cards'
+import { GrantCards, type GrantAmount } from './grant-cards'
+import { GrantComments, type GrantComment } from './grant-comments'
 import { SunlightAbout } from './sunlight-about'
 
 export const revalidate = 60
@@ -107,7 +108,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
       ? supabase
           .from('comments')
           .select(
-            'id, project, commenter, created_at, replying_to, deleted_at, held_at, profiles!comments_commenter_fkey(id, username, full_name, avatar_url)'
+            '*, profiles!comments_commenter_fkey(*), comment_rxns(reactor_id, reaction, profiles!comment_rxns_reactor_id_fkey(id, username, avatar_url, full_name))'
           )
           .in('project', grantProjectIds)
           .in('commenter', adminIds)
@@ -121,7 +122,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
     [(project) => grantAmounts[project.id].latest],
     ['desc']
   )
-  // F11: the comment an admin wrote about each grant, linked under its card
+  // F11: the comment an admin wrote about each grant, shown in place of its card
   const firstGiftAt: Record<string, string> = {}
   for (const at of [...grants, ...fundBids]) {
     if (at.project && (!firstGiftAt[at.project] || at.created_at < firstGiftAt[at.project]))
@@ -135,12 +136,14 @@ export default async function FundPage(props: { params: Promise<{ username: stri
       firstGiftAt[project.id]
     )
     if (!comment) continue
-    const author = comment.profiles as unknown as GrantComment['author']
     grantComments[project.id] = {
+      comment: comment as unknown as GrantComment['comment'],
       href: `/projects/${project.slug}?tab=comments#${comment.id}`,
-      author,
     }
   }
+  const commentedGrants = grantProjects.filter((project) => grantComments[project.id])
+  const uncommentedGrants = grantProjects.filter((project) => !grantComments[project.id])
+  const recommended = granted + pendingOffers.reduce((sum, bid) => sum + bid.amount, 0)
   const otherGrants = grants.filter((txn) => !txn.project)
   const grantCount = grantProjects.length + otherGrants.length
   const donations = incomingTxns.filter((txn) => txn.token === 'USD' && txn.from_id !== fund.id)
@@ -179,7 +182,8 @@ export default async function FundPage(props: { params: Promise<{ username: stri
   // F4: older funds paid some grants with money that never came through Manifund
   const figures = [
     { label: 'Raised', value: formatMoney(raised) },
-    { label: 'Granted', value: formatMoney(granted) },
+    // Recommended: granted, plus offers still pending
+    { label: 'Recommended', value: formatMoney(recommended) },
     { label: 'Available to grant', value: formatMoney(Math.max(available, 0)) },
   ]
 
@@ -265,12 +269,18 @@ export default async function FundPage(props: { params: Promise<{ username: stri
               </p>
             ) : (
               <>
-                {grantProjects.length > 0 && (
-                  <GrantCards
-                    projects={grantProjects}
+                {commentedGrants.length > 0 && (
+                  <GrantComments
+                    projects={commentedGrants}
                     amounts={grantAmounts}
                     comments={grantComments}
+                    userId={user?.id}
+                    userProfile={userProfile ?? undefined}
+                    userCharityBalance={userCharityBalance}
                   />
+                )}
+                {uncommentedGrants.length > 0 && (
+                  <GrantCards projects={uncommentedGrants} amounts={grantAmounts} />
                 )}
                 {otherGrants.length > 0 && (
                   <OutgoingDonationsHistory donations={otherGrants} pendingDonateBids={[]} />
