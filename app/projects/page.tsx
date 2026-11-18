@@ -44,26 +44,12 @@ export default async function Projects(props: {
           {/* Or use <CausesWithFeatured /> to include active rounds */}
         </>
       )}
-      {/* Use nested suspense to load the full feed after the fast feed */}
-      <Suspense
-        fallback={
-          <Suspense fallback={<FeedTabsSkeleton />}>
-            <AsyncFeedTabs
-              searchParams={await props.searchParams}
-              userId={user?.id}
-              network={network}
-              mySearches={mySearches}
-              useHotProjects={true}
-            />
-          </Suspense>
-        }
-      >
+      <Suspense fallback={<FeedTabsSkeleton />}>
         <AsyncFeedTabs
           searchParams={await props.searchParams}
           userId={user?.id}
           network={network}
           mySearches={mySearches}
-          useHotProjects={false}
         />
       </Suspense>
     </Col>
@@ -76,13 +62,11 @@ async function AsyncFeedTabs({
   userId,
   network,
   mySearches,
-  useHotProjects,
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
   userId?: string
   network?: NetworkActivity
   mySearches: MySavedSearches | null
-  useHotProjects: boolean
 }) {
   const PAGE_SIZE = 20
   const page = parseInt(searchParams?.p as string) || 1
@@ -95,17 +79,18 @@ async function AsyncFeedTabs({
   const start = (page - 1) * PAGE_SIZE
 
   const supabase = createPublicSupabaseClient()
-  const loadProjects = async () => {
-    if (!shouldLoadProjects) return []
-    if (useHotProjects) {
-      return await getHotProjectsCached()
-    }
-    return await listProjects(supabase)
-  }
+  // The cached hot projects render first; the full list streams in to the same FeedTabs, so
+  // nothing remounts and a search being typed survives the swap.
+  const allProjects = shouldLoadProjects
+    ? listProjects(supabase).catch((error) => {
+        console.error('Failed to load all projects for the home feed', error)
+        return null
+      })
+    : undefined
 
   const [projects, recentComments, commentsTotal, recentDonations, recentBids, causesList] =
     await Promise.all([
-      loadProjects(),
+      shouldLoadProjects ? getHotProjectsCached() : Promise.resolve([]),
       getRecentFullComments(supabase, PAGE_SIZE, start, filter),
       tab === 'comments' ? countFeedComments(supabase, filter) : Promise.resolve(0),
       getRecentFullTxns(supabase, PAGE_SIZE, start),
@@ -120,6 +105,7 @@ async function AsyncFeedTabs({
       recentDonations={recentDonations}
       recentBids={recentBids}
       projects={projects}
+      allProjects={allProjects}
       causesList={causesList}
       userId={userId}
       network={network}
