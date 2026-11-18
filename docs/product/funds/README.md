@@ -28,7 +28,7 @@ over later.
   out (project donations and profile donations) plus its pending offers; **available to grant** is its balance less its pending offers,
   never shown below $0 (ACX Grants paid grants with money that never came through Manifund).
 - **F5** The page opens with a cover (the fund's image, else its avatar) carrying its name, one-line mission and admins.
-  A sticky bar jumps between its sections: **About** (a written section for Sunlight Fund, else the long description),
+  A sticky bar jumps between its sections, and a link to one (`#grants`) opens there: **About** (a written section for Sunlight Fund, else the long description),
   **Grants** (newest first: each grant with an admin's comment (F11) as that comment in full, tagged "$10k to <recipient>
   for <project>" and linking to it on the project; then a card for each other project it paid or offered, topped by
   what the fund granted and offered; then rows for grants to people), **Applications** (when the fund has a cause) and **Donations** (who
