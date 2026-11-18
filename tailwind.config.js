@@ -31,6 +31,7 @@ module.exports = {
       },
       animation: {
         marquee: 'marquee 25s linear infinite',
+        'karma-flash': 'karma-flash 1.4s ease-out forwards',
       },
       keyframes: {
         wiggle: {
@@ -40,6 +41,13 @@ module.exports = {
         marquee: {
           '0%': { transform: 'translateX(0%)' },
           '100%': { transform: 'translateX(-1000%)' },
+        },
+        // a vote's karma change rises off the number and fades
+        'karma-flash': {
+          '0%': { opacity: '0', transform: 'translateY(4px)' },
+          '15%': { opacity: '1', transform: 'translateY(0)' },
+          '70%': { opacity: '1' },
+          '100%': { opacity: '0', transform: 'translateY(-6px)' },
         },
       },
       colors: {

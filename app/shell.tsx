@@ -20,11 +20,15 @@ export function ShellChrome(props: { children: ReactNode }) {
 // Routes whose pages have a right rail: the main column takes the grid's spare column, and on wide
 // screens the empty strip beside the sidebar.
 const WIDE_PREFIXES = ['/orgs', '/funds']
+// A project's own page (not its publish or agreement subpages) has the funding rail and outline.
+const WIDE_PATTERNS = [/^\/projects\/[^/]+\/?$/]
 
 export function MainColumn(props: { children: ReactNode }) {
   const standalone = useStandalone()
   const pathname = usePathname() ?? ''
-  const wide = WIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))
+  const wide =
+    WIDE_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/')) ||
+    WIDE_PATTERNS.some((pattern) => pattern.test(pathname))
   // The body paints the app's gray canvas; standalone pages want white
   // edge to edge, beyond the main column's max width.
   useEffect(() => {

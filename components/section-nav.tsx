@@ -4,9 +4,10 @@ import { useEffect, useState } from 'react'
 
 export type Section = { id: string; label: string; stat?: string }
 
-// The page is one long scroll; this bar jumps between its sections and marks the one in view.
-export function SectionNav(props: { sections: Section[] }) {
-  const { sections } = props
+// A long page's sticky section bar (org, fund and project pages): it jumps between the page's
+// sections and marks the one in view with an orange underline; a pill carries each one's count.
+export function SectionNav(props: { sections: Section[]; className?: string }) {
+  const { sections, className } = props
   const [active, setActive] = useState(sections[0]?.id)
 
   useEffect(() => {
@@ -27,7 +28,10 @@ export function SectionNav(props: { sections: Section[] }) {
   return (
     <nav
       aria-label="Sections"
-      className="sticky top-0 z-10 -mx-4 mt-8 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-gray-200 bg-gray-50 px-4"
+      className={clsx(
+        'sticky top-0 z-10 -mx-4 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-gray-200 bg-gray-50 px-4',
+        className ?? 'mt-8'
+      )}
     >
       {sections.map((section) => {
         const on = section.id === active
@@ -37,7 +41,7 @@ export function SectionNav(props: { sections: Section[] }) {
             href={`#${section.id}`}
             aria-current={on ? 'location' : undefined}
             className={clsx(
-              '-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-4 pb-3 pt-3 font-light transition-colors hover:text-gray-900',
+              '-mb-px flex items-center gap-2 whitespace-nowrap border-b-2 px-4 pb-3 pt-3 font-light transition-colors hover:text-gray-900 focus:outline-none focus-visible:bg-orange-50',
               on ? 'border-orange-500 text-gray-900' : 'border-transparent text-gray-500'
             )}
           >

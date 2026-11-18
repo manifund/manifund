@@ -19,7 +19,9 @@ export function AiTrophy(props: { href?: string; className?: string }) {
           scroll={false}
           aria-label="AI review"
           onClick={() =>
-            document.getElementById('tabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+            document
+              .getElementById('ai-review')
+              ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
           }
         >
           {icon}

@@ -16,6 +16,9 @@ import { buttonClass } from './button'
 import { donationLimitError, MIN_DONATION, usd } from '@/utils/donation-limits'
 import clsx from 'clsx'
 
+const PRESETS = [50, 100, 500, 1000]
+const DEFAULT_AMOUNT = 100
+
 export function DonateBox(props: {
   charity?: Profile
   project?: Project
@@ -26,9 +29,18 @@ export function DonateBox(props: {
   setCommentPrompt?: (value: string) => void
   // Funds the viewer administers and can give as instead (F2).
   givingFunds?: GivingFund[]
+  // Inside another card that already shows the heading and what's left (the project page's rail)
+  embedded?: boolean
 }) {
   const { charity, project, profile, fundingLeft, setCommentPrompt, givingFunds = [] } = props
-  const [amount, setAmount] = useState<number>()
+  // A suggested amount to start from, when the viewer can give it and the project can take it.
+  const [amount, setAmount] = useState<number | undefined>(() =>
+    profile &&
+    props.maxDonation >= DEFAULT_AMOUNT &&
+    (fundingLeft === undefined || fundingLeft >= DEFAULT_AMOUNT)
+      ? DEFAULT_AMOUNT
+      : undefined
+  )
   const [asFundId, setAsFundId] = useState<string>()
   const asFund = givingFunds.find((g) => g.fund.id === asFundId)
   const maxDonation = asFund ? asFund.balance : props.maxDonation
@@ -95,100 +107,130 @@ export function DonateBox(props: {
     setAmount(0)
     router.refresh()
     if (setCommentPrompt) {
-      scrollToComments(router)
+      scrollToComments()
       setCommentPrompt('why did you donate?')
     }
   }
-  return (
-    <Card className="flex flex-col gap-3">
-      <div>
-        <Row className="justify-between">
-          <h2 className="text-lg font-bold">{isBid ? 'Offer to donate' : 'Donate'}</h2>
-          {isBid && <TimeLeftDisplay closeDate={project.auction_close ?? ''} />}
-        </Row>
-        {isBid && (
-          <p className="text-sm font-light text-gray-500">
-            You&apos;re pledging to donate if the project hits its minimum goal and gets approved.
-            If not, your funds will be returned.
-          </p>
-        )}
-        {fundingLeft !== undefined && (
-          <p className="text-sm text-gray-500">
-            {usd(fundingLeft)} left to reach the funding goal.
-          </p>
-        )}
-        {charity?.type === 'individual' && (
-          <p className="text-sm text-gray-500">
-            This is a donation to this user&apos;s regranting budget, which is not withdrawable.
-          </p>
-        )}
-      </div>
+  const verb = isBid ? 'Offer' : 'Donate'
+  const presets = PRESETS.filter((preset) => fundingLeft === undefined || preset <= fundingLeft)
+  const body = (
+    <div className="flex flex-col gap-3">
+      {!props.embedded && (
+        <div>
+          <Row className="items-baseline justify-between gap-2">
+            <h2 className="text-lg font-medium text-gray-900">
+              {isBid ? 'Offer to donate' : 'Donate'}
+            </h2>
+            {isBid && project.auction_close && (
+              <TimeLeftDisplay closeDate={project.auction_close} />
+            )}
+          </Row>
+          {fundingLeft !== undefined && (
+            <p className="text-sm text-gray-500">
+              {usd(fundingLeft)} left to reach the funding goal.
+            </p>
+          )}
+        </div>
+      )}
+      {charity?.type === 'individual' && (
+        <p className="text-sm text-gray-500">
+          This is a donation to this user&apos;s regranting budget, which is not withdrawable.
+        </p>
+      )}
       {profile && givingFunds.length > 0 && (
-        <Row className="flex-wrap items-center gap-2 text-sm">
+        <div className="flex flex-wrap items-center gap-2 text-sm">
           <span className="text-gray-500">Give as</span>
-          {[
-            { id: undefined, name: 'You' },
-            ...givingFunds.map((g) => ({ id: g.fund.id, name: g.fund.full_name })),
-          ].map((option) => (
-            <button
-              key={option.id ?? 'self'}
-              type="button"
-              onClick={() => setAsFundId(option.id)}
-              className={clsx(
-                'rounded-full px-3 py-1 ring-1',
-                asFundId === option.id
-                  ? 'bg-orange-500 text-white ring-orange-500'
-                  : 'text-gray-700 ring-gray-300 hover:bg-gray-50'
-              )}
-            >
-              {option.name}
-            </button>
-          ))}
-        </Row>
+          <div className="inline-flex rounded-md bg-gray-100 p-0.5">
+            {[
+              { id: undefined, name: 'You' },
+              ...givingFunds.map((g) => ({ id: g.fund.id, name: g.fund.full_name })),
+            ].map((option) => (
+              <button
+                key={option.id ?? 'self'}
+                type="button"
+                aria-pressed={asFundId === option.id}
+                onClick={() => setAsFundId(option.id)}
+                className={clsx(
+                  'rounded px-2.5 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400',
+                  asFundId === option.id
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-500 hover:text-gray-800'
+                )}
+              >
+                {option.name}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
       {profile && asFund && needsFunds ? (
-        <span className="text-sm text-gray-500">
+        <p className="text-sm text-gray-500">
           {asFund.fund.full_name} has {usd(available)} to give.
-        </span>
+        </p>
       ) : profile && needsFunds ? (
-        <Row className="items-center justify-between gap-2">
-          <span className="text-sm text-gray-500">You have {usd(available)} to give.</span>
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-gray-500">
+            You have {usd(available)} to give. Add funds to your balance to donate.
+          </p>
           <DepositButton userId={profile.id}>
-            <span className={buttonClass('md', 'orange')}>Add funds</span>
+            <span className={clsx(buttonClass('lg', 'orange'), 'w-full')}>Add funds</span>
           </DepositButton>
-        </Row>
+        </div>
       ) : profile ? (
-        <Row className="items-center justify-between gap-2">
+        <div className="flex flex-col gap-2">
+          {presets.length > 1 && (
+            <div className="grid grid-cols-4 gap-1.5">
+              {presets.map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  aria-pressed={amount === preset}
+                  onClick={() => setAmount(preset)}
+                  className={clsx(
+                    'rounded-md border py-2 text-sm tabular-nums transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400',
+                    amount === preset
+                      ? 'border-orange-500 bg-orange-50 text-orange-700'
+                      : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                  )}
+                >
+                  ${preset.toLocaleString()}
+                </button>
+              ))}
+            </div>
+          )}
           <AmountInput
             id="amount"
             amount={amount}
-            placeholder="Amount (USD)"
+            placeholder={presets.length > 1 ? 'Other amount' : 'Amount (USD)'}
             onChangeAmount={setAmount}
-            className="w-48 max-w-full"
+            error={!!errorMessage}
+            className="w-full"
           />
           <Button
             onClick={donate}
-            className="font-semibold"
+            size="lg"
+            className="mt-1 w-full"
             disabled={!amount || errorMessage !== null}
             loading={isSubmitting}
           >
-            Donate
+            {amount ? `${verb} ${usd(amount)}` : verb}
           </Button>
-        </Row>
+        </div>
       ) : (
-        <SignInButton buttonText="Sign in to donate" className="mx-auto my-4" />
+        <SignInButton buttonText="Sign in to donate" size="lg" color="orange" className="w-full" />
       )}
       {profile && errorMessage && (
         <p className="text-sm text-rose-600">
           {errorMessage}{' '}
           {overBalance && !asFund && (
             <DepositButton userId={profile.id}>
-              <span className="font-semibold underline">Add funds</span>
+              <span className="font-medium underline">Add funds</span>
             </DepositButton>
           )}
         </p>
       )}
       {profile && refusal && <p className="text-sm text-rose-600">{refusal}</p>}
-    </Card>
+    </div>
   )
+  return props.embedded ? body : <Card className="p-5">{body}</Card>
 }

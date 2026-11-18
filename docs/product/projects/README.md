@@ -39,7 +39,7 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
   hides, whose karma plus the AI head start (P9) is above 3, highest first, up to 7. Rules in
   `utils/digest-projects.ts`.
 - **P11** A project whose AI score is 4 or 5 shows a trophy on its card and next to its title ("highly rated by our
-  experimental AI rating system"), and an _AI review_ tab after Comments, Offers, Shareholders and Donations with the score and Claude's
+  experimental AI rating system"), and an _AI review_ section after Comments, Offers, Shareholders and Donations with the score and Claude's
   opinion. Lower-rated projects show neither. The evaluation shown is the latest, as in P9.
 
 ## Stage
@@ -58,3 +58,17 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
   `create_transfer_grant_v2`, which the REST API can call directly; test: `tests/db/grant-rpcs.test.ts`.
 - **P13** Each person has at most one vote per project, worth -1, 0 or 1, and casts it only as themselves. Enforced by
   a unique constraint, a check and the insert policy on `project_votes`; test: `tests/db/grant-rpcs.test.ts`.
+
+## Project page
+
+- **P14** A project's page has one column on narrow screens (header, funding card, description, tabs). From the
+  `xl` breakpoint, the funding card and an outline of the description's headings sit in a sticky rail on the right.
+- **P15** The header shows the vote arrows around the project's karma (no net vote count). A vote briefly shows the
+  karma it moved, the viewer's vote weight (`karmaWeight`), and the arrows' tooltips say what a vote is worth.
+- **P16** Everyone can share; signed-in visitors can follow. The owner sees one Edit button (Edit & publish for a
+  draft) and the rarer actions in a ⋯ menu. Admins get the same actions, all in the menu, and a banner when a proposal
+  is waiting for their verdict.
+- **P17** Comments, offers, shareholders, donations, the AI review and similar projects are all sections of one long
+  page under a sticky section bar, as on org pages. Old tab links (`?tab=<id>`), which emails, the digest and
+  notifications use (`?tab=comments#<comment id>`, `?tab=bids`, `?tab=shareholders#tabs`), scroll to that section; a
+  comment's own `#<id>` scrolls to the comment.
