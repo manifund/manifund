@@ -47,6 +47,8 @@ over later.
   before the fund's first offer or donation there (nothing in the data links the two). On the fund page, the grant shows as that
   comment (F5); on the project page, the comment is tagged "donated $10k through <fund>" (or "offering $10k through
   <fund>"), linking to the fund's page, instead of the admin's own giving.
+- **F12** A link to a fund's page unfurls as a card drawn like its cover (F5): cover, name, mission, admins, its first two
+  facts and whether it's taking applications. Without a cover image the card falls back to the cover's gradient.
 
 ## Decisions
 
@@ -57,6 +59,7 @@ over later.
 | 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                                                                                | The create form already handles it                        |
 | 2026-11-11 | Caroline   | Either admin gives alone; no approval step (F2)                                                                                                  |                                                           |
 | 2026-11-11 | Caroline   | Admins withdraw fund offers and hear about donations (F8, F9); regrantor-style grants wait                                                       |                                                           |
+| 2026-11-18 | Austin     | Fund links unfurl as a card drawn like the cover (F12)                                                                                           | A fund page is shared to raise money                      |
 | 2026-11-18 | Caroline   | Match a grant to its admin's comment by time, no new column (F11)                                                                                | Each Sunlight grant so far has its comment within an hour |
 | 2026-11-16 | Austin     | Funds at `/funds/<username>`, with a `/funds` index; @sunlight-fund renamed to @sunlight; page redesigned along the lines of /orgs (F1, F5, F10) | A home for funds, and a page fit to raise money on        |
 

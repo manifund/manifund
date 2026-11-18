@@ -24,6 +24,7 @@ import { buttonClass } from '@/components/button'
 import { OutgoingDonationsHistory } from '@/app/[usernameSlug]/profile-donations'
 import { SectionNav, type Section } from '@/components/section-nav'
 import { FUND_PAGES } from '../fund-pages'
+import { fundPath } from '@/utils/funds'
 import { GrantCards, type GrantAmount } from './grant-cards'
 import { GrantComments, type GrantComment } from './grant-comments'
 import { SunlightAbout } from './sunlight-about'
@@ -34,10 +35,22 @@ export async function generateMetadata(props: { params: Promise<{ username: stri
   const { username } = await props.params
   const supabase = await createServerSupabaseClient()
   const fund = await getFundByUsername(supabase, username)
-  const extras = fund ? FUND_PAGES[fund.username] : undefined
+  if (!fund) return { title: 'Fund not found' }
+  const extras = FUND_PAGES[fund.username]
+  const description = extras?.mission ?? (fund.bio || undefined)
+  // The preview image is ./opengraph-image.tsx, which Next adds to both (F12)
   return {
-    title: fund?.full_name ?? 'Fund not found',
-    description: extras?.mission ?? (fund?.bio || undefined),
+    title: fund.full_name,
+    description,
+    alternates: { canonical: fundPath(fund.username) },
+    openGraph: {
+      siteName: 'Manifund',
+      type: 'website',
+      url: fundPath(fund.username),
+      title: fund.full_name,
+      description,
+    },
+    twitter: { card: 'summary_large_image', title: fund.full_name, description },
   }
 }
 
