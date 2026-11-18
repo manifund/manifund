@@ -428,7 +428,7 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
           </span>
         </label>
         <Tooltip
-          text="Check this box if you will use this money to lobby (attempt to influence legislation, as defined by the IRS), within the US or internationally. This won't apply to most projects--read the IRS definition if you're unsure."
+          text="Check this box if you will use this money to lobby (attempt to influence legislation, as defined by the IRS), within the US or internationally. This won't apply to most projects—read the IRS definition if you're unsure."
           className="flex"
         >
           <QuestionMarkCircleIcon
@@ -449,7 +449,7 @@ export function CreateProjectForm(props: { causesList: Cause[] }) {
             >
               IRS definition
             </a>{' '}
-            is quite specific--please double-check.
+            is quite specific—please double-check.
           </p>
           <label className="flex cursor-pointer items-center">
             <Checkbox
