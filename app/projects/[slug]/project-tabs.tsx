@@ -1,4 +1,5 @@
 'use client'
+import type { CommentTag } from '@/components/comments/comments-section'
 import { Comments } from './comments'
 import { FullProject, FullProjectWithSimilarity, TOTAL_SHARES } from '@/db/project'
 import { Profile } from '@/db/profile'
@@ -26,7 +27,7 @@ const SIMILARITY_THRESHOLD = 0.6
 export function ProjectTabs(props: {
   project: FullProject
   comments: CommentAndProfileAndRxns[]
-  commentTags?: Record<string, string>
+  commentTags?: Record<string, CommentTag>
   bids: BidAndProfile[]
   txns: TxnAndProfiles[]
   userCharityBalance: number

@@ -63,7 +63,8 @@ export type FundSummary = {
   fund: Profile
   admins: MiniProfile[]
   raised: number
-  granted: number
+  // granted plus pending offers (F4)
+  recommended: number
   grantCount: number
   open: boolean
 }
@@ -78,18 +79,25 @@ export async function listFundSummaries(supabase: SupabaseClient): Promise<FundS
     .throwOnError()
   return await Promise.all(
     (funds as Profile[]).map(async (fund) => {
-      const [admins, txns, causes] = await Promise.all([
+      const [admins, txns, bids, causes] = await Promise.all([
         getFundAdmins(supabase, fund.id),
         getFullTxnsByUser(supabase, fund.id),
+        getPendingBidsByUser(supabase, fund.id),
         supabase.from('causes').select('open').eq('fund_id', fund.id).throwOnError(),
       ])
       const figures = fundFigures(fund.id, txns)
+      const offers = bids.filter((bid) => bid.type === 'donate')
+      // As the page counts its grants (F5): each project it paid or offered, plus each grant to a person
+      const grantProjects = new Set([
+        ...figures.grants.flatMap((txn) => (txn.project ? [txn.project] : [])),
+        ...offers.map((bid) => bid.project),
+      ])
       return {
         fund,
         admins,
         raised: figures.raised,
-        granted: figures.granted,
-        grantCount: figures.grants.length,
+        recommended: figures.granted + offers.reduce((sum, bid) => sum + bid.amount, 0),
+        grantCount: grantProjects.size + figures.grants.filter((txn) => !txn.project).length,
         open: (causes.data ?? []).some((cause) => cause.open),
       }
     })

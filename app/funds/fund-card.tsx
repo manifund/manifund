@@ -5,7 +5,7 @@ import { fundPath } from '@/utils/funds'
 import { FUND_PAGES } from './fund-pages'
 
 export function FundCard(props: { summary: FundSummary }) {
-  const { fund, admins, raised, granted, grantCount, open } = props.summary
+  const { fund, admins, raised, recommended, grantCount, open } = props.summary
   const extras = FUND_PAGES[fund.username] ?? {}
   const cover = extras.cover ?? fund.avatar_url
   const mission = extras.mission ?? fund.bio
@@ -44,7 +44,7 @@ export function FundCard(props: { summary: FundSummary }) {
       <dl className="grid grid-cols-3 border-t border-gray-100">
         {[
           ['Raised', formatCompactMoney(raised)],
-          ['Granted', formatCompactMoney(granted)],
+          ['Recommended', formatCompactMoney(recommended)],
           ['Grants', `${grantCount}`],
         ].map(([label, value], i) => (
           <div key={label} className="px-5 py-3">

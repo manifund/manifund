@@ -9,7 +9,9 @@ import { TxnAndProfiles, TxnAndProject } from '@/db/txn'
 import { ProjectTabs } from './project-tabs'
 import { getViewerFunds } from './viewer-funds'
 import { findFundComment } from '@/utils/fund-comments'
-import { formatMoneyPrecise } from '@/utils/formatting'
+import { formatMoneyShort } from '@/utils/formatting'
+import { fundPath } from '@/utils/funds'
+import type { CommentTag } from '@/components/comments/comments-section'
 import { SupabaseClient } from '@supabase/supabase-js'
 
 // The tabs below the description (comments, offers, shareholders, similar projects). The page
@@ -42,14 +44,17 @@ export async function ProjectTabsSection(props: {
     getFundGifts(supabase, project.id, projectTxns, projectBids),
   ])
   // F11: the fund's comment says what the fund gave, not what its admin gave personally
-  const commentTags: Record<string, string> = {}
+  const commentTags: Record<string, CommentTag> = {}
   for (const gift of fundGifts) {
     const comment = findFundComment(comments, gift.adminIds, gift.firstAt)
     if (!comment) continue
-    commentTags[comment.id] =
-      gift.donated > 0
-        ? `donated ${formatMoneyPrecise(gift.donated)} through ${gift.fundName}`
-        : `offering ${formatMoneyPrecise(gift.offered)} through ${gift.fundName}`
+    commentTags[comment.id] = {
+      text:
+        gift.donated > 0
+          ? `donated ${formatMoneyShort(gift.donated)} through ${gift.fundName}`
+          : `offering ${formatMoneyShort(gift.offered)} through ${gift.fundName}`,
+      href: fundPath(gift.fundUsername),
+    }
   }
   const { userCharityBalance, userSpendableFunds, userSellableShares } = getViewerFunds(
     project,
@@ -83,18 +88,22 @@ async function getFundGifts(
   txns: TxnAndProfiles[],
   pendingBids: BidAndProfile[]
 ) {
-  const funds = new Map<string, { fundName: string; donated: number; offered: number }>()
-  const entry = (id: string, name: string) => {
-    if (!funds.has(id)) funds.set(id, { fundName: name, donated: 0, offered: 0 })
+  const funds = new Map<
+    string,
+    { fundName: string; fundUsername: string; donated: number; offered: number }
+  >()
+  const entry = (id: string, name: string, username: string) => {
+    if (!funds.has(id))
+      funds.set(id, { fundName: name, fundUsername: username, donated: 0, offered: 0 })
     return funds.get(id)!
   }
   for (const txn of txns) {
     if (txn.profiles?.type === 'fund' && txn.from_id && txn.token === 'USD' && !txn.bundle)
-      entry(txn.from_id, txn.profiles.full_name).donated += txn.amount
+      entry(txn.from_id, txn.profiles.full_name, txn.profiles.username).donated += txn.amount
   }
   for (const bid of pendingBids) {
     if (bid.profiles?.type === 'fund' && bid.type === 'donate')
-      entry(bid.bidder, bid.profiles.full_name).offered += bid.amount
+      entry(bid.bidder, bid.profiles.full_name, bid.profiles.username).offered += bid.amount
   }
   if (funds.size === 0) return []
   const fundIds = [...funds.keys()]

@@ -30,8 +30,10 @@ export function Comment(props: {
   userCharityBalance?: number
   writtenByCreator?: boolean
   contributionText?: string
+  contributionHref?: string // makes the contribution tag a link, e.g. to the fund that gave (F11)
   targetLabel?: string // where it was posted, shown as a tag in feeds and lists
   contextNote?: string // beside the tag in feeds, e.g. "reply to Maya"
+  fullText?: boolean // show it all, never clamped behind "Show more"
   children?: React.ReactNode
   userProfile?: Profile
 }) {
@@ -44,8 +46,10 @@ export function Comment(props: {
     commentHref,
     writtenByCreator,
     contributionText,
+    contributionHref,
     targetLabel,
     contextNote,
+    fullText,
     children,
     userProfile,
   } = props
@@ -55,7 +59,7 @@ export function Comment(props: {
   const [showExpandButton, setShowExpandButton] = useState(false)
   const contentElement = useRef<any>(null)
   useSafeLayoutEffect(() => {
-    if (contentElement.current && contentElement.current.scrollHeight > 500) {
+    if (!fullText && contentElement.current && contentElement.current.scrollHeight > 500) {
       setShowExpandButton(true)
     }
   }, [contentElement])
@@ -118,7 +122,15 @@ export function Comment(props: {
         {targetLabel && contextNote && (
           <span className="ml-2 truncate text-xs text-gray-500">{contextNote}</span>
         )}
-        {contributionText && !targetLabel && <Tag text={contributionText} />}
+        {contributionText &&
+          !targetLabel &&
+          (contributionHref ? (
+            <Link href={contributionHref}>
+              <Tag text={contributionText} className="hover:bg-orange-200" />
+            </Link>
+          ) : (
+            <Tag text={contributionText} />
+          ))}
       </div>
       <Row className="w-full gap-2">
         <Link href={`/${commenter.username}`}>
