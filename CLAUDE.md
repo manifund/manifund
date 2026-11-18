@@ -53,6 +53,20 @@ tests name them) and update it in the same branch. How we work and write docs: `
 2026) and the team hasn't reviewed it. Ignore it unless asked: then use it or its tests (`bun run test:ai-reference`),
 and update it. When an area gets a real product doc, move what's still true into `docs/product/<area>/`.
 
+## Shipping changes
+
+Small, low-risk, or easily-reversible changes go straight to `main`: commit and push, no PR.
+This covers UI/copy/styling tweaks, small bug fixes, and docs, usually
+under ~150 lines and limited to presentation.
+Before pushing: `bun run build` (or typecheck + lint) passes, and any
+touched product doc is updated.
+
+Open a PR instead for anything involving:
+- DB schema, migrations, RLS, or `db/database.types.ts`
+- Money movement (txns, bids, Mercury, withdrawals, grants logic)
+- Auth, permissions, admin powers, or API/MCP contracts
+- Large refactors, new dependencies, or anything you're unsure about
+
 ## Code Style
 
 - **oxfmt:** 2-space indent, no semicolons, single quotes, trailing commas
