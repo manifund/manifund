@@ -7,7 +7,7 @@ export const metadata = {
   description: 'A digest of funders in the AI safety space.',
 }
 
-const LAST_UPDATED = 'November 1, 2026'
+const LAST_UPDATED = 'November 15, 2026'
 
 const LINK = 'text-orange-600 underline decoration-orange-500 decoration-dotted underline-offset-2'
 
@@ -41,7 +41,7 @@ const AT_A_GLANCE: Row[] = [
     grants2025: { v: '232', n: 2 },
     expected2026: { v: '$1B', n: 3 },
     fte: '75',
-    generalApps: false,
+    generalApps: true,
     openRfps: true,
     donations: true,
   },
@@ -51,7 +51,7 @@ const AT_A_GLANCE: Row[] = [
     donated2025: { v: '$0' },
     grants2025: { v: '0' },
     expected2026: { v: '$250M', n: 4 },
-    fte: '3',
+    fte: '4',
     generalApps: false,
     openRfps: false,
     donations: false,
@@ -84,7 +84,7 @@ const AT_A_GLANCE: Row[] = [
     donated2025: { v: '—' },
     grants2025: { v: '—' },
     expected2026: { v: '$100M', n: 9 },
-    fte: '12',
+    fte: '13',
     generalApps: false,
     openRfps: false,
     donations: true,
@@ -137,8 +137,8 @@ const AT_A_GLANCE: Row[] = [
     href: 'https://bluedot.org/',
     donated2025: { v: '$0', n: 19 },
     grants2025: { v: '0', n: 19 },
-    expected2026: { v: '$11M', n: 20 },
-    fte: '1',
+    expected2026: { v: '$13M', n: 20 },
+    fte: '3',
     generalApps: true,
     openRfps: false,
     donations: false,
@@ -150,7 +150,7 @@ const AT_A_GLANCE: Row[] = [
     grants2025: { v: '—' },
     expected2026: { v: '~$10M', n: 21 },
     fte: '2',
-    generalApps: true,
+    generalApps: false,
     openRfps: false,
     donations: true,
   },
@@ -182,16 +182,15 @@ const AT_A_GLANCE: Row[] = [
 // is the plain-text version shown in the hover tooltip on each superscript marker.
 const NOTES: { node: React.ReactNode; text: string }[] = [
   {
-    text: "Using the public grants lists on the fund pages under https://coefficientgiving.org/funds for the Navigating Transformative AI Fund ($324.3M in 2025) and the GCR Opportunities Fund ($85.0M), totalling $409.3M as of October 15, 2026. In the two weeks to October 1, 2026 the GCR Opportunities figure fell from $97.0M, so grants appear to get re-dated or reclassified as well as added. I don't know what the total of nonpublic AIS grants was; their 2025 letter from the CEO says they directed over $1B across all cause areas in 2025.",
+    text: "Using the public grants lists on the fund pages under https://coefficientgiving.org/funds for the Navigating Transformative AI Fund ($324.3M in 2025) and the GCR Opportunities Fund ($85.0M), totalling $409.3M as of October 15, 2026. These figures drift, because grants get re-dated and reclassified as well as added. I don't know what the total of nonpublic AIS grants was; their 2025 letter from the CEO says they directed over $1B across all cause areas in 2025.",
     node: (
       <>
         Using the public grants lists on the fund pages under{' '}
         <A href="https://coefficientgiving.org/funds">https://coefficientgiving.org/funds</A>
         &nbsp;for the Navigating Transformative AI Fund ($324.3M in 2025) and the GCR Opportunities
-        Fund ($85.0M), totalling $409.3M as of October 15, 2026. In the two weeks to October 1, 2026
-        the GCR Opportunities figure fell from $97.0M, so grants appear to get re-dated or
-        reclassified as well as added. I don&apos;t know what the total of nonpublic AIS grants was;
-        their{' '}
+        Fund ($85.0M), totalling $409.3M as of October 15, 2026. These figures drift, because grants
+        get re-dated and reclassified as well as added. I don&apos;t know what the total of
+        nonpublic AIS grants was; their{' '}
         <A href="https://coefficientgiving.org/research/2025-letter-from-the-ceo/">
           2025 letter from the CEO
         </A>{' '}
@@ -200,15 +199,14 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Filtering the grants list on each fund page under https://coefficientgiving.org/funds by year gives 189 grants in 2025 for the Navigating Transformative AI Fund and 43 for the GCR Opportunities Fund. These counts still grow as back-dated grants are published: over the two weeks to October 15, 2026 the GCR Opportunities 2026 count went from 12 grants ($45.1M) to 13 ($46.3M), while the Navigating Transformative AI 2026 count held at 75.',
+    text: 'Filtering the grants list on each fund page under https://coefficientgiving.org/funds by year gives 189 grants in 2025 for the Navigating Transformative AI Fund and 43 for the GCR Opportunities Fund. The lists hold 639 and 300 grants all-time as of November 15, 2026. These counts still grow as back-dated grants are published.',
     node: (
       <>
         Filtering the grants list on each fund page under{' '}
         <A href="https://coefficientgiving.org/funds">https://coefficientgiving.org/funds</A> by
         year gives 189 grants in 2025 for the Navigating Transformative AI Fund and 43 for the GCR
-        Opportunities Fund. These counts still grow as back-dated grants are published: over the two
-        weeks to October 15, 2026 the GCR Opportunities 2026 count went from 12 grants ($45.1M) to
-        13 ($46.3M), while the Navigating Transformative AI 2026 count held at 75.
+        Opportunities Fund. The lists hold 639 and 300 grants all-time as of November 15, 2026.
+        These counts still grow as back-dated grants are published.
       </>
     ),
   },
@@ -225,7 +223,7 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Estimate: as of June 2026 they said they were working to finalize more than $130M in grants through their AI resilience program, "to be shared publicly soon and with more to come," and planning to invest more than $1B across several programs over the next year. The Foundation has still not published an AI resilience grantee list. Inside Philanthropy reported on September 29, 2026 that the Foundation had announced seven commitments totalling $815M across all programs and had "disbursed nearly $200 million" in grants, with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved grant agreements rather than cash disbursed.',
+    text: 'Estimate: as of June 2026 they said they were working to finalize more than $130M in grants through their AI resilience program, "to be shared publicly soon and with more to come," and planning to invest more than $1B across several programs over the next year. The Foundation has still not published an AI resilience grantee list; the one grant from it that is public was announced by the grantee, $17.2M to SecureBio Detection in August 2026. A Foundation spokesperson told the Washington Post in October 2026 that it had distributed $855M since March 2026, across all programs rather than AI resilience specifically.',
     node: (
       <>
         Estimate: as of June 2026 they{' '}
@@ -233,19 +231,22 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         &nbsp;they were working to finalize more than $130M in grants through their AI resilience
         program, &ldquo;to be shared publicly soon and with more to come,&rdquo; and planning to
         invest more than $1B across several programs over the next year. The Foundation has still
-        not published an AI resilience grantee list.{' '}
-        <A href="https://www.insidephilanthropy.com/home/the-openai-foundation-pledged-1-billion-in-a-year-hows-that-going-six-months-in">
-          Inside Philanthropy
+        not published an AI resilience grantee list; the one grant from it that is public was
+        announced by the grantee,{' '}
+        <A href="https://securebio.substack.com/p/building-a-three-day-early-warning">
+          $17.2M to SecureBio Detection
         </A>{' '}
-        reported on September 29, 2026 that the Foundation had announced seven commitments totalling
-        $815M across all programs and had &ldquo;disbursed nearly $200 million&rdquo; in grants,
-        with over $750M in grant agreements approved; it notes the $1B one-year goal counts approved
-        grant agreements rather than cash disbursed.
+        in August 2026. A Foundation spokesperson{' '}
+        <A href="https://www.inquirer.com/business/openai-anthropic-elon-musk-philanthropy-ai-technology-public-society-20261025.html">
+          told
+        </A>{' '}
+        the Washington Post in October 2026 that it had distributed $855M since March 2026, across
+        all programs rather than AI resilience specifically.
       </>
     ),
   },
   {
-    text: 'Per this post from a Longview team member, they directed over $60M in 2025, more than 2x their 2024 figure. Their August 2026 COO job posting said "We directed over $75 million to high-impact organizations in 2025, and expect 2026 will be substantially bigger," but that figure covers all of Longview\'s giving rather than AI safety specifically. That posting has since been delisted and its URL now redirects to their careers page.',
+    text: 'Per this post from a Longview team member, they directed over $60M in 2025, more than 2x their 2024 figure. Their August 2026 COO job posting put the 2025 figure higher: "We directed over $75 million to high-impact organizations in 2025, and expect 2026 will be substantially bigger." That posting has since been delisted and its URL now redirects to their careers page. Neither figure is broken down by cause area.',
     node: (
       <>
         Per{' '}
@@ -253,16 +254,16 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
           this post from a Longview team member
         </A>
         , they directed over $60M in 2025, more than 2x their 2024 figure. Their August 2026 COO job
-        posting said &ldquo;We directed over $75 million to high-impact organizations in 2025, and
-        expect 2026 will be substantially bigger,&rdquo; but that figure covers all of
-        Longview&apos;s giving rather than AI safety specifically. That posting has since been
-        delisted and its URL now redirects to their{' '}
-        <A href="https://www.longview.org/careers/">careers page</A>.
+        posting put the 2025 figure higher: &ldquo;We directed over $75 million to high-impact
+        organizations in 2025, and expect 2026 will be substantially bigger.&rdquo; That posting has
+        since been delisted and its URL now redirects to their{' '}
+        <A href="https://www.longview.org/careers/">careers page</A>. Neither figure is broken down
+        by cause area.
       </>
     ),
   },
   {
-    text: 'Longview\'s hiring materials said "In 2026, we aim to move $200 million — making us the second largest funder in that field." That page has since been taken down; an archived copy survives. Re-checked across their sitemaps on October 15, 2026: no live Longview page states a 2026 target. Their now-delisted COO posting said only that they expect 2026 to be "substantially bigger" than 2025.',
+    text: 'Longview\'s hiring materials said "In 2026, we aim to move $200 million — making us the second largest funder in that field." That page has since been taken down; an archived copy survives. Re-checked across their sitemaps on November 15, 2026: no live Longview page states a 2026 target. Their now-delisted COO posting said only that they expect 2026 to be "substantially bigger" than 2025.',
     node: (
       <>
         Longview&apos;s{' '}
@@ -271,7 +272,7 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         </A>{' '}
         said &ldquo;In 2026, we aim to move $200 million — making us the second largest funder in
         that field.&rdquo; That page has since been taken down; an archived copy survives.
-        Re-checked across their sitemaps on October 15, 2026: no live Longview page states a 2026
+        Re-checked across their sitemaps on November 15, 2026: no live Longview page states a 2026
         target. Their now-delisted COO posting said only that they expect 2026 to be
         &ldquo;substantially bigger&rdquo; than 2025.
       </>
@@ -328,7 +329,7 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'SFF\'s 2026 Main Round recommendations say "The total funding recommended in this round is $63.13MM, exceeding our $14MM-$28MM estimate... The total funding expected to be distributed in association with this round is $63.64MM." Those figures were revised down from $64.58MM and $65.08MM after the round was announced on September 30, 2026; the page itself warns that "Details of some recommendations may change later." That is the Main Round alone; the three themed rounds, estimated at $6-12MM in total, are still pending. Their application page had estimated "$20MM - $40MM in funding will collectively be distributed across all rounds and tracks."',
+    text: 'SFF\'s 2026 Main Round recommendations say "The total funding recommended in this round is $63.13MM, exceeding our $14MM-$28MM estimate... The total funding expected to be distributed in association with this round is $63.64MM." The page warns that "Details of some recommendations may change later," and these figures have been revised more than once. That is the Main Round alone; the three themed rounds, estimated at $6-12MM in total, are still pending. Their application page had estimated "$20MM - $40MM in funding will collectively be distributed across all rounds and tracks."',
     node: (
       <>
         SFF&apos;s{' '}
@@ -337,35 +338,38 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
         </A>{' '}
         say &ldquo;The total funding recommended in this round is $63.13MM, exceeding our
         $14MM&ndash;$28MM estimate... The total funding expected to be distributed in association
-        with this round is $63.64MM.&rdquo; Those figures were revised down from $64.58MM and
-        $65.08MM after the round was announced on September 30, 2026; the page itself warns that
-        &ldquo;Details of some recommendations may change later.&rdquo; That is the Main Round
-        alone; the three themed rounds, estimated at $6&ndash;12MM in total, are still pending.
-        Their <A href="https://survivalandflourishing.fund/2026/application">application page</A>{' '}
-        had estimated &ldquo;$20MM - $40MM in funding will collectively be distributed across all
-        rounds and tracks.&rdquo;
+        with this round is $63.64MM.&rdquo; The page warns that &ldquo;Details of some
+        recommendations may change later,&rdquo; and these figures have been revised more than once.
+        That is the Main Round alone; the three themed rounds, estimated at $6&ndash;12MM in total,
+        are still pending. Their{' '}
+        <A href="https://survivalandflourishing.fund/2026/application">application page</A> had
+        estimated &ldquo;$20MM - $40MM in funding will collectively be distributed across all rounds
+        and tracks.&rdquo;
       </>
     ),
   },
   {
-    text: 'Lightcone Commons\' own site, as of November 1, 2026: "We expect ~$45M to be granted overall in the first round." Nathan Young had said on October 12, 2026: "Lightcone Commons looks set to advise on $50m this round. We are having a second round before Christmas."',
+    text: 'Lightcone Commons\' own site: "Round one is complete: $45.1M granted." Their round one report puts it at $45.1M across 147 projects, from 23 funders on 17 evaluators\' recommendations. No total has been published for the second round, which closes in December 2026.',
     node: (
       <>
-        <A href="https://www.lightconecommons.com/">Lightcone Commons&apos; own site</A>, as of
-        November 1, 2026: &ldquo;We expect ~$45M to be granted overall in the first round.&rdquo;
-        Nathan Young had said on{' '}
-        <A href="https://x.com/NathanpmYoung/status/2109700584693768321">October 12, 2026</A>:
-        &ldquo;Lightcone Commons looks set to advise on $50m this round. We are having a second
-        round before Christmas.&rdquo;
+        <A href="https://www.lightconecommons.com/">Lightcone Commons&apos; own site</A>:
+        &ldquo;Round one is complete: $45.1M granted.&rdquo; Their{' '}
+        <A href="https://www.lesswrong.com/posts/3ASLq8ePNqkbeGqdj/lightcone-commons-round-1-complete-round-2-underway">
+          round one report
+        </A>{' '}
+        puts it at $45.1M across 147 projects, from 23 funders on 17 evaluators&apos;
+        recommendations. No total has been published for the second round, which closes in December
+        2026.
       </>
     ),
   },
   {
-    text: 'Estimate. AISTOF publishes no year-by-year or itemised figures of its own, only the running totals on its Manifund account.',
+    text: "Estimate, from Manifund's Trace database. AISTOF publishes no year-by-year or itemised figures of its own, only the running totals on its Manifund account, which cover one channel of several.",
     node: (
       <>
-        Estimate. AISTOF publishes no year-by-year or itemised figures of its own, only the running
-        totals on its Manifund account.
+        Estimate, from Manifund&apos;s <A href="https://trace.manifund.org/orgs/aistof">Trace</A>{' '}
+        database. AISTOF publishes no year-by-year or itemised figures of its own, only the running
+        totals on its Manifund account, which cover one channel of several.
       </>
     ),
   },
@@ -413,10 +417,10 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Estimate: totals for their 2026 AI safety RFPs were not published, and as of November 1, 2026 none of the three had announced awardees. The 21 inference-time-compute awards appear to have landed in early 2026 but carry no published total, so the 2026 figure stays an estimate. The live page for the 2026 Science of Trustworthy AI RFP has since been taken down (it now 404s); an archived copy survives.',
+    text: 'Estimate: totals for their 2026 AI safety RFPs were not published, and as of November 15, 2026 none of the three had announced awardees. The 21 inference-time-compute awards appear to have landed in early 2026 but carry no published total, so the 2026 figure stays an estimate. The live page for the 2026 Science of Trustworthy AI RFP has since been taken down (it now 404s); an archived copy survives.',
     node: (
       <>
-        Estimate: totals for their 2026 AI safety RFPs were not published, and as of November 1,
+        Estimate: totals for their 2026 AI safety RFPs were not published, and as of November 15,
         2026 none of the three had announced awardees. The 21 inference-time-compute awards appear
         to have landed in early 2026 but carry no published total, so the 2026 figure stays an
         estimate. The live page for the{' '}
@@ -428,32 +432,31 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Treated as zero: their published list of rapid grants runs from April 2024 and shows only 17 grants totalling $9,516 in 2025, plus 10 grants totalling $2,496 in 2024, negligible at the scale of this table. They began granting at scale in 2026, and Career Transition Grants only launched in May 2026.',
+    text: 'Treated as zero: their published list of rapid grants runs from April 2024 and shows only 17 grants totalling $9,516 in 2025, plus 11 grants totalling $3,356 in 2024, negligible at the scale of this table. They began granting at scale in 2026, and Career Transition Grants only launched in May 2026.',
     node: (
       <>
         Treated as zero: their published list of{' '}
         <A href="https://bluedot.org/grants/rapid">rapid grants</A> runs from April 2024 and shows
-        only 17 grants totalling $9,516 in 2025, plus 10 grants totalling $2,496 in 2024, negligible
+        only 17 grants totalling $9,516 in 2025, plus 11 grants totalling $3,356 in 2024, negligible
         at the scale of this table. They began granting at scale in 2026, and Career Transition
         Grants only launched in May 2026.
       </>
     ),
   },
   {
-    text: 'Their grant pages reported 1,181 rapid grants ($3,498,551) and 95 career transition grants ($5,651,415) when checked on November 1, 2026 — the pages publish running totals with no as-of date — of which about $9.14M is 2026 giving, extrapolated here to a full year. In the 17 days from October 15 rapid grants grew by 104 grants and $468k and career transition grants by 9 grants and $712k, a combined $1.18M; the career transition figure had not moved over the previous two weeks. Their newer Seed Grants program publishes no running total, so it is not in this figure. Note also that the browsable grantee list is incomplete: it held 851 entries totalling $2.09M against the 1,181-grant headline.',
+    text: 'Their four grant pages reported 1,273 rapid grants ($4,035,294), 83 career transition grants ($5,252,665), 19 seed grants ($1,500,500) and 9 media grants ($452,500) when checked on November 15, 2026 — the pages publish running totals with no as-of date — for $11,240,959 across 1,384 grants, of which $11.23M is 2026 giving, extrapolated here to a full year. The totals are revised downwards as well as up: career transition grants stood at 95 grants and $5,651,415 two weeks earlier. Note also that the browsable rapid-grant list is incomplete: it held 923 entries totalling $2.32M against the 1,273-grant headline.',
     node: (
       <>
-        Their grant pages reported <A href="https://bluedot.org/grants/rapid">1,181 rapid grants</A>{' '}
-        ($3,498,551) and{' '}
-        <A href="https://bluedot.org/grants/career-transition">95 career transition grants</A>{' '}
-        ($5,651,415) when checked on November 1, 2026 — the pages publish running totals with no
-        as-of date — of which about $9.14M is 2026 giving, extrapolated here to a full year. In the
-        17 days from October 15 rapid grants grew by 104 grants and $468k and career transition
-        grants by 9 grants and $712k, a combined $1.18M; the career transition figure had not moved
-        over the previous two weeks. Their newer{' '}
-        <A href="https://bluedot.org/grants/seed">Seed Grants</A> program publishes no running
-        total, so it is not in this figure. Note also that the browsable grantee list is incomplete:
-        it held 851 entries totalling $2.09M against the 1,181-grant headline.
+        Their four grant pages reported{' '}
+        <A href="https://bluedot.org/grants/rapid">1,273 rapid grants</A> ($4,035,294),{' '}
+        <A href="https://bluedot.org/grants/career-transition">83 career transition grants</A>{' '}
+        ($5,252,665), <A href="https://bluedot.org/grants/seed">19 seed grants</A> ($1,500,500) and{' '}
+        <A href="https://bluedot.org/grants/media">9 media grants</A> ($452,500) when checked on
+        November 15, 2026 — the pages publish running totals with no as-of date — for $11,240,959
+        across 1,384 grants, of which $11.23M is 2026 giving, extrapolated here to a full year. The
+        totals are revised downwards as well as up: career transition grants stood at 95 grants and
+        $5,651,415 two weeks earlier. Note also that the browsable rapid-grant list is incomplete:
+        it held 923 entries totalling $2.32M against the 1,273-grant headline.
       </>
     ),
   },
@@ -487,16 +490,16 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
     ),
   },
   {
-    text: 'Around $7.05M donated between January 1 and November 1, 2026, per the data behind manifund.org/about, extrapolated to a full year.',
+    text: 'Around $7.09M donated between January 1 and November 15, 2026, per the data behind manifund.org/about, extrapolated to a full year.',
     node: (
       <>
-        Around $7.05M donated between January 1 and November 1, 2026, per the data behind{' '}
+        Around $7.09M donated between January 1 and November 15, 2026, per the data behind{' '}
         <A href="https://manifund.org/about">manifund.org/about</A>, extrapolated to a full year.
       </>
     ),
   },
   {
-    text: "LTFF grants recorded for 2025 in the EA Funds grants database. That database is incomplete: it lists 700 LTFF grants totalling $30.6M all-time, while the fund's own successor announcement says LTFF made 820+ grants totalling just under $35M since 2017. The payout chart carried in EA Funds' own fund-page data shows the higher figure — 823 grants totalling $35.5M, unchanged since October 15, 2026 — so roughly 123 grants and $4.9M are missing from the public database. That chart does not render on an LTFF or Transformative AI Fund page, though the Long-Term Future series is still carried in the page data across EA Funds' fund pages. For 2025 specifically the two sources agree exactly, at 20 grants and $1,156,340.",
+    text: "LTFF grants recorded for 2025 in the EA Funds grants database. That database is incomplete: it lists 700 LTFF grants totalling $30.6M all-time, while the fund's own successor announcement says LTFF made 820+ grants totalling just under $35M since 2017. The payout chart carried in EA Funds' own fund-page data shows the higher figure — 824 grants totalling $35.5M — so roughly 124 grants and $5.0M are missing from the public database. That chart does not render on an LTFF or Transformative AI Fund page, though the Long-Term Future series is still carried in the page data across EA Funds' fund pages. For 2025 specifically the two sources agree exactly, at 20 grants and $1,156,340.",
     node: (
       <>
         LTFF grants recorded for 2025 in the{' '}
@@ -507,12 +510,11 @@ const NOTES: { node: React.ReactNode; text: string }[] = [
           successor announcement
         </A>{' '}
         says LTFF made 820+ grants totalling just under $35M since 2017. The payout chart carried in
-        EA Funds&apos; own fund-page data shows the higher figure — 823 grants totalling $35.5M,
-        unchanged since October 15, 2026 — so roughly 123 grants and $4.9M are missing from the
-        public database. That chart does not render on an LTFF or Transformative AI Fund page,
-        though the Long-Term Future series is still carried in the page data across EA Funds&apos;
-        fund pages. For 2025 specifically the two sources agree exactly, at 20 grants and
-        $1,156,340.
+        EA Funds&apos; own fund-page data shows the higher figure — 824 grants totalling $35.5M — so
+        roughly 124 grants and $5.0M are missing from the public database. That chart does not
+        render on an LTFF or Transformative AI Fund page, though the Long-Term Future series is
+        still carried in the page data across EA Funds&apos; fund pages. For 2025 specifically the
+        two sources agree exactly, at 20 grants and $1,156,340.
       </>
     ),
   },
@@ -730,7 +732,7 @@ export default function AisFunderBulletinPage() {
                       Fund.
                     </li>
                     <li>
-                      staff: 217 total. 43 of the 119 staff working on grants are on AI-focused
+                      staff: 229 total. 43 of the 125 staff working on grants are on AI-focused
                       teams, and I estimated 75 total by amortizing the staff working on operations,
                       communications, and partnerships.
                     </li>
@@ -741,15 +743,15 @@ export default function AisFunderBulletinPage() {
                   <ul>
                     <li>
                       In a post on{' '}
-                      <A href="https://coefficientgiving.org/research/how-we-approach-investing-in-for-profits/">
+                      <A href="https://coefficientgiving.org/research/how-we-approach-impact-investments-in-for-profits/">
                         October 22, 2026
                       </A>{' '}
-                      they said that by default they and Good Ventures keep no stake in the
-                      for-profit AI and biosecurity companies they invest in: the equity is donated
-                      to the Against Malaria Foundation instead, so that their AI policy funding
-                      stays independent of any financial interest in companies that policy would
-                      affect. They expect several such investments over the coming years, and grants
-                      remain their main vehicle. AMF&apos;s own{' '}
+                      they said that by default they keep no stake in the for-profit AI and
+                      biosecurity companies they invest in: the equity is donated to the Against
+                      Malaria Foundation instead, so that their AI policy funding stays independent
+                      of any financial interest in companies that policy would affect. They expect
+                      several such investments over the coming years, and grants remain their main
+                      vehicle. AMF&apos;s own{' '}
                       <A href="https://www.againstmalaria.com/NewsItem.aspx?newsitem=Coefficient-Giving-supports-AMF-with-significant-gift">
                         page
                       </A>{' '}
@@ -759,13 +761,15 @@ export default function AisFunderBulletinPage() {
                       uncertain because it is equity.
                     </li>
                     <li>
-                      On October 30, 2026 they{' '}
-                      <A href="https://coefficientgiving.substack.com/p/october-2026-newsletter">
-                        announced
+                      In a November 12, 2026{' '}
+                      <A href="https://coefficientgiving.org/research/there-are-tons-of-amazing-ways-to-spend-money-to-improve-the-world/">
+                        post
                       </A>{' '}
-                      Joe Huston as Managing Director of Philanthropic Advisory, heading the
-                      Partnerships team and overseeing the expansion of their advisory practice for
-                      major philanthropists.
+                      they argued that philanthropy could absorb far more money than it currently
+                      receives, and that the problem &ldquo;may be particularly acute for AI
+                      safety&rdquo; because the field&apos;s infrastructure is smaller and newer.
+                      They say they deployed more than $1b across all cause areas in 2025 and expect
+                      to at least triple that in 2026.
                     </li>
                   </ul>
                 </li>
@@ -809,13 +813,16 @@ export default function AisFunderBulletinPage() {
                           they want funded. Funding runs from pre-seed ($200k-$2m) through seed
                           ($2m-$20m) to scale ($20m-$200m+); express interest{' '}
                           <A href="https://coefficientgiving.org/tailwind/get-involved/">here</A>.
-                          They automatically filter out submissions unrelated to catastrophic risks
-                          from AI, or that appear AI-generated. There is no deadline, though they{' '}
-                          <A href="https://coefficientgiving.org/tailwind/faqs/">say</A> they may
-                          stop accepting submissions if they receive a large volume.
+                          The expression of interest form closed on November 15, 2026 after a large
+                          volume of submissions; they say they are opening other routes in,
+                          including a talent scouts program and a bounty for founder referrals.
                         </li>
                         <li>
-                          Their GCR capacity building team also takes a{' '}
+                          The technical AI safety team takes{' '}
+                          <A href="https://airtable.com/appQ16Ch8vqUbqIpW/pagAN03p4OVKqzZ84/form">
+                            grant applications
+                          </A>{' '}
+                          on a rolling basis, and their GCR capacity building team takes a{' '}
                           <A href="https://op-gcrcb-general-form.paperform.co/">
                             general application
                           </A>{' '}
@@ -825,13 +832,14 @@ export default function AisFunderBulletinPage() {
                       </ul>
                     </li>
                     <li>
-                      Donate: they are recruiting funders giving &gt; $250k/year; reach out to{' '}
+                      Donate: they are recruiting philanthropic partners for large-scale giving, and
+                      state no minimum; reach out to{' '}
                       <A href="mailto:partnerwithus@coefficientgiving.org">
                         partnerwithus@coefficientgiving.org
                       </A>
                     </li>
                     <li>
-                      Apply for a job: as of October 15, 2026 their{' '}
+                      Apply for a job: as of November 15, 2026 their{' '}
                       <A href="https://coefficientgiving.org/about-us/careers/">careers page</A>{' '}
                       says &ldquo;There are no open roles at this time.&rdquo; You can still submit
                       a general{' '}
@@ -855,7 +863,13 @@ export default function AisFunderBulletinPage() {
                   <ul>
                     <li>
                       A nonprofit that owns a large stake in OpenAI, spun off in 2025. Their AI
-                      resilience team is run by OpenAI cofounder Wojciech Zaremba.
+                      resilience team is run by OpenAI cofounder Wojciech Zaremba. Paul Christiano,
+                      the founder of ARC, joined their board and its Safety and Security Committee
+                      in{' '}
+                      <A href="https://openaifoundation.org/news/paul-christiano-joins-openai-foundation-board">
+                        September 2026
+                      </A>
+                      .
                     </li>
                   </ul>
                 </li>
@@ -884,15 +898,22 @@ export default function AisFunderBulletinPage() {
                       that they said in June 2026 they were working to finalize
                     </li>
                     <li>
-                      staff: 3 publicly named in AI resilience — Wojciech Zaremba, Divya Siddarth,
-                      and Dan Wattendorf, whom Zaremba{' '}
-                      <A href="https://x.com/woj_zaremba/status/2083256852255736256">announced</A>{' '}
-                      on July 31, 2026 as Head of Bio-Resilience; they said in August 2026 that the
-                      team is &ldquo;still small&rdquo;
+                      staff: 4 publicly named in AI resilience — Wojciech Zaremba, Divya Siddarth,
+                      Dan Wattendorf as Head of Bio-Resilience, and Lennart Heim, who their{' '}
+                      <A href="https://openaifoundation.org/careers/program-officer-ai-resources-562009e7-2f9b-4ac0-93b2-9979c195ad0a">
+                        job postings
+                      </A>{' '}
+                      name as Director of AI Resources, a team within AI Resilience; they said in
+                      August 2026 that the team is &ldquo;still small&rdquo;
                     </li>
                     <li>
-                      as of November 1, 2026 the Foundation still hasn&apos;t published a list of
-                      the AI resilience grants it described as being finalized in June
+                      as of November 15, 2026 the Foundation still hasn&apos;t published a list of
+                      the AI resilience grants it described as being finalized in June. The one
+                      grant from that program that is public was announced by the grantee: $17.2m to{' '}
+                      <A href="https://securebio.substack.com/p/building-a-three-day-early-warning">
+                        SecureBio Detection
+                      </A>{' '}
+                      in August 2026
                     </li>
                   </ul>
                 </li>
@@ -900,13 +921,12 @@ export default function AisFunderBulletinPage() {
                   Get involved:
                   <ul>
                     <li>
-                      Apply for a job: they&apos;re hiring for 15 roles, all in San Francisco,
+                      Apply for a job: they&apos;re hiring for 14 roles, all in San Francisco,
                       listed <A href="https://openaifoundation.org/careers#open-roles">here</A>, and
-                      the page now also takes a general expression of interest. The most
-                      AI-safety-relevant are still the two AI Resilience roles, a Program Officer
-                      for AI Model Safety and a Program Officer for AI Resources; the Program
-                      Director for Formal Methods and Chief of Staff for AI Resilience postings
-                      listed in September 2026 remain delisted.
+                      the page also takes a general expression of interest. The most
+                      AI-safety-relevant are the three AI Resilience roles: a Director of Bio
+                      Partnerships, a Program Officer for AI Model Safety, and a Program Officer for
+                      AI Resources.
                     </li>
                     <li>
                       Apply for funding: the Foundation has no application route for AI safety work,
@@ -959,10 +979,10 @@ export default function AisFunderBulletinPage() {
                       December 2024 to September 2025.
                     </li>
                     <li>
-                      staff: 37 listed as of November 1, 2026, up from 34, with 10 of them in the AI
-                      program and 8 of those with AI in the title (a ninth, an AI Donor Advisor,
-                      sits in the advisory team); around half the org working on AIS gets 18. Katie
-                      Hearsum, previously COO, is now listed as President.
+                      staff: 36 listed as of November 15, 2026, with 10 of them in the AI program
+                      and 8 of those with AI in the title (a ninth, an AI Donor Advisor, sits in the
+                      advisory team); around half the org working on AIS gets 18. Katie Hearsum,
+                      previously COO, is now listed as President.
                     </li>
                   </ul>
                 </li>
@@ -972,8 +992,8 @@ export default function AisFunderBulletinPage() {
                     <li>
                       Apply for funding: they post periodic RFPs{' '}
                       <A href="https://www.longview.org/grantmaking/#funding-opportunities">here</A>
-                      , though none are open right now; otherwise opportunities are sourced via
-                      proactive research.
+                      , though the ones listed there have closed; otherwise opportunities are
+                      sourced via proactive research.
                     </li>
                     <li>
                       Donate: <A href="https://www.longview.org/contact/">contact form</A>;
@@ -1022,11 +1042,10 @@ export default function AisFunderBulletinPage() {
                     <li>donating: up to $100m this year</li>
                     <li>grant sizes: $100k to $15m</li>
                     <li>
-                      staff: 17 listed on their{' '}
-                      <A href="https://macroscopic.org/about">about page</A> as of November 1, 2026,
-                      up from 16. AI governance is the only named AI program and has one grants
-                      director; of three grants associates one works on animal welfare, and three
-                      roles are pure operations.
+                      staff: 16 listed on their{' '}
+                      <A href="https://macroscopic.org/about">about page</A> as of November 15,
+                      2026. AI governance is the only named AI program and has one grants director,
+                      alongside two grants associates; three roles are pure operations.
                     </li>
                   </ul>
                 </li>
@@ -1097,7 +1116,7 @@ export default function AisFunderBulletinPage() {
                       their own site publishes no totals
                     </li>
                     <li>
-                      staff: 12 listed on their{' '}
+                      staff: 13 listed on their{' '}
                       <A href="https://astralisfoundation.org/our-people">team page</A>, plus 6
                       board members across the UK and Swedish entities
                     </li>
@@ -1107,7 +1126,11 @@ export default function AisFunderBulletinPage() {
                   Get involved:
                   <ul>
                     <li>
-                      Apply for funding: they don&apos;t take unsolicited requests. You can email{' '}
+                      Apply for funding: they don&apos;t take unsolicited requests, but they run
+                      occasional RFPs &mdash; most recently a{' '}
+                      <A href="https://middlepowers.ai/">~$10m call</A> with Macroscopic Ventures on
+                      the role of middle powers in the AI transition, grants mostly $100k-$2m, which
+                      closed on October 23, 2026. You can email{' '}
                       <A href="mailto:ops@astralisfoundation.org">ops@astralisfoundation.org</A>{' '}
                       about funding, partnering, or ideas.
                     </li>
@@ -1168,8 +1191,7 @@ export default function AisFunderBulletinPage() {
                       (2025), rising to $64m in 2026, and says SFF &ldquo;has organized ~$216MM in
                       philanthropic gifts and grants&rdquo; to date; in 2025 they recommended
                       $34.33m across 88 grants, and the 2026 Main Round recommended $63.13m across
-                      115 grants. Both the lifetime total and the 2026 figures have been revised
-                      down since October 1, 2026
+                      115 grants. These figures get revised after a round is announced
                     </li>
                     <li>
                       staff: 10 people listed at Survival and Flourishing Corp, plus a 2-person
@@ -1188,17 +1210,15 @@ export default function AisFunderBulletinPage() {
                       <A href="https://survivalandflourishing.fund/2026/recommendations">
                         recommendations
                       </A>{' '}
-                      were published on September 30, 2026 and have since been revised down. As of
-                      October 15, 2026 the page shows $63.13m recommended across 115 grants to 114
-                      organizations, with $63.64m expected to be distributed in association with the
-                      round &mdash; roughly double their own $14-28m estimate, but about $1.4m below
-                      the figures the page carried two weeks earlier, and it warns that
-                      &ldquo;Details of some recommendations may change later.&rdquo; Jaan Tallinn
-                      funds $34.10m of it and Dustin Moskovitz $29.03m. The track totals inverted
-                      their expectations: the Freedom Track came in at $31.22m against a $2-4m
-                      estimate, making it the largest track, with the Main Track at $13.49m and the
-                      Fairness Track at $8.02m; a further $10.40m is attributed to a Synthetic Mean
-                      Recommender. In a September 9, 2026{' '}
+                      were published on September 30, 2026. The page shows $63.13m recommended
+                      across 115 grants to 114 organizations, with $63.64m expected to be
+                      distributed in association with the round &mdash; roughly double their own
+                      $14-28m estimate &mdash; and warns that &ldquo;Details of some recommendations
+                      may change later.&rdquo; Jaan Tallinn funds $34.10m of it and Dustin Moskovitz
+                      $29.03m. The track totals inverted their expectations: the Freedom Track came
+                      in at $31.22m against a $2-4m estimate, making it the largest track, with the
+                      Main Track at $13.49m and the Fairness Track at $8.02m; a further $10.40m is
+                      attributed to a Synthetic Mean Recommender. In a September 9, 2026{' '}
                       <A href="https://survivalandflourishing.com/2026-update">update</A>, SFC CEO
                       Ethan Ashkie said the round&apos;s process &ldquo;created confusion and
                       uncertainty, backlash from some Evaluators, delays in grant decisions, and
@@ -1209,13 +1229,12 @@ export default function AisFunderBulletinPage() {
                       discourse.
                     </li>
                     <li>
-                      On October 3, 2026 SFF publicly withdrew its grant recommendation to John
-                      Wentworth, saying that after the September 30 announcement &ldquo;public
-                      statements by Mr. Wentworth came to our attention which we found
-                      objectionable, disturbing, and contrary to the values of SFF,&rdquo; and that
-                      the Funders would not fulfil the remainder of the recommendation; an earlier
-                      Speculation Grant had already been disbursed. He no longer appears in the 2026
-                      recommendations.
+                      SFF has since withdrawn its grant recommendation to John Wentworth, saying
+                      that after the September 30 announcement &ldquo;public statements by Mr.
+                      Wentworth came to our attention which we found objectionable, disturbing, and
+                      contrary to the values of SFF,&rdquo; and that the Funders would not fulfil
+                      the remainder of the recommendation; an earlier Speculation Grant had already
+                      been disbursed. He no longer appears in the 2026 recommendations.
                     </li>
                     <li>
                       They have announced a{' '}
@@ -1231,8 +1250,9 @@ export default function AisFunderBulletinPage() {
                     <li>
                       They added three themed rounds for 2026 with $2-4m each — climate change
                       (closed June 10), animal welfare (closed June 24), and human self-enhancement
-                      and empowerment (closed July 8). Recommendations for these are expected in
-                      November 2026 and have not yet been published.
+                      and empowerment (closed July 8). Their application page says recommendations
+                      will be announced by the end of November 2026, with funding disbursed before
+                      the end of March 2027; nothing has been published yet.
                     </li>
                     <li>
                       Their programs list now includes an{' '}
@@ -1324,11 +1344,9 @@ export default function AisFunderBulletinPage() {
                       $10m coming from other funders), Dustin Moskovitz (~$5m for the first round,
                       $10m over the first year if it goes well), two anonymous donors ($3m+ and
                       $2m+), the LTFF and the AI Risk Mitigation Fund (~$2m each), Timothy
-                      Telleen-Lawton (~$200k), and Andreas Stuhlmüller (~$100k). The site itself no
-                      longer publishes per-funder amounts: as of November 1, 2026 it names the first
-                      round&apos;s funders as Tallinn, Moskovitz, the LTFF, the ARM Fund,
-                      Telleen-Lawton and Stuhlmüller, with only the LTFF and ARM Fund figures given
-                      (~$2m each), and drops the anonymous donors.
+                      Telleen-Lawton (~$200k), and Andreas Stuhlmüller (~$100k). In the event 23
+                      funders took part in the first round, three of them anonymous; the site no
+                      longer publishes a funder list with amounts.
                     </li>
                   </ul>
                 </li>
@@ -1338,10 +1356,11 @@ export default function AisFunderBulletinPage() {
                     <li>
                       Lightcone Commons is aiming for near-feature-parity with the S-process used by
                       SFF, with several parts redesigned to make the application and evaluation
-                      processes less time-intensive. They now say they are aiming for a round every
-                      month, up from every three months at launch. Invited &ldquo;direct
-                      grantors&rdquo; also get a budget to make immediate unilateral grants,
-                      reimbursed out of the next round&apos;s first allocations to that project.
+                      processes less time-intensive. They now run a round roughly every month, up
+                      from every three months at launch, and say rounds will be monthly through
+                      2027. Invited &ldquo;direct grantors&rdquo; also get a budget to make
+                      immediate unilateral grants, reimbursed out of the next round&apos;s first
+                      allocations to that project.
                     </li>
                   </ul>
                 </li>
@@ -1349,25 +1368,22 @@ export default function AisFunderBulletinPage() {
                   By the numbers:
                   <ul>
                     <li>
-                      first round: originally expected to be around $15-25m; on October 12, 2026
-                      Nathan Young said it{' '}
-                      <A href="https://x.com/NathanpmYoung/status/2109700584693768321">
-                        looked set to advise on around $50m
-                      </A>
-                      , and the site now says it expects ~$45m to be granted overall
+                      first round: $45.1m granted across 147 projects, from 23 funders on the
+                      recommendations of 17 evaluators, against an original expectation of $15-25m.
+                      Evaluators were paid $693k in total, and 79% of grants had more than one
+                      funder
                     </li>
                     <li>
                       fees: 5% on top of grants — 3% to Lightcone Commons and 2% to evaluators,
                       lowered for funders moving large amounts
                     </li>
                     <li>
-                      staff: recommendations done by part-time evaluators, fifteen confirmed as of
-                      November 1, 2026 — Zvi Mowshowitz, Yafah Edelman, Eliezer Yudkowsky, Nate
-                      Soares, Caleb Parikh, Elizabeth Van Nostrand, Oliver Habryka, Scott Alexander,
-                      Robert Mushkatblatt, Richard Ngo, Nathan Young, Tsvi Benson-Tilsen, Lowe
-                      Lundin (who also heads the Transformative AI Fund, below), Zach Stein-Perlman
-                      and Stuart Buck. Katja Grace, previously listed as confirmed for future
-                      rounds, is no longer named
+                      staff: recommendations done by part-time evaluators, seventeen of them in the
+                      first round. Eleven publish their funding orders on the{' '}
+                      <A href="https://www.lightconecommons.com/profiles">site</A> — Zvi Mowshowitz,
+                      Eliezer Yudkowsky, Nate Soares, Elizabeth Van Nostrand, Oliver Habryka, Scott
+                      Siskind, Robert Mushkatblat, Richard Ngo, Nathan Young, Lowe Lundin (who also
+                      heads the Transformative AI Fund, below) and Stuart Buck
                     </li>
                   </ul>
                 </li>
@@ -1375,23 +1391,26 @@ export default function AisFunderBulletinPage() {
                   Recent updates:
                   <ul>
                     <li>
-                      Applications for the first round closed on August 23, 2026 and recommendations
-                      were expected around October 23, 2026. As of November 1, 2026 Lightcone
-                      Commons has still published no results, grantee list or total — the only
-                      figure on the site is &ldquo;We expect ~$45M to be granted overall in the
-                      first round&rdquo; — but the round does appear decided and grantees notified:
-                      the site now describes the first round&apos;s funders in the past tense, and
-                      Manifold Markets said on{' '}
-                      <A href="https://manifold.markets/Gen/how-much-money-will-manifold-receiv">
-                        November 1, 2026
+                      The first round is complete. On November 10, 2026 Oliver Habryka{' '}
+                      <A href="https://www.lesswrong.com/posts/3ASLq8ePNqkbeGqdj/lightcone-commons-round-1-complete-round-2-underway">
+                        reported
                       </A>{' '}
-                      that &ldquo;funders on Lightcone Commons have decided to collectively grant
-                      $275,000 to Manifold Markets.&rdquo; Applications remain open on a rolling
-                      basis and roll into the second round, which the site now says will close
-                      mid-December, with evaluator recommendations due December 1 and a cutoff three
-                      weeks before the round closes. They say they are now aiming for a round every
-                      month; Oliver Habryka had said in September 2026 that he hoped to reach
-                      monthly rounds in Q1 2027, cutting average decision time to 2-3 weeks.
+                      that 17 evaluators made recommendations, 23 funders granted $45.1m and 147
+                      projects were funded, with $41.2m of it routed through evaluators. There is no
+                      full public grantee list, because most funders chose not to publish their
+                      grants; the eleven evaluators who did share their funding orders are on the
+                      site. Habryka also asks people not to say &ldquo;Lightcone Commons funded
+                      us&rdquo;, since the staff decide no grants.
+                    </li>
+                    <li>
+                      The second round is underway: applications closed on November 15, 2026,
+                      evaluators finalize their orders on December 7, funders confirm their grants
+                      on December 14, and payment is due by February 14, 2027. Funders can join
+                      until December 7. Later applications roll into the third round, whose
+                      applications close on January 1, 2027. Ought is also{' '}
+                      <A href="https://epistemic.fund/">sponsoring an Epistemics Fund</A> on the
+                      platform, organized by Nathan Young, planning grants of $500k-$5m to its
+                      evaluators&apos; top recommendations.
                     </li>
                     <li>
                       The{' '}
@@ -1399,24 +1418,22 @@ export default function AisFunderBulletinPage() {
                         Corrigibility Research Fund
                       </A>
                       , a Lightcone Infrastructure program managed by Max Harms that will award at
-                      least $200k in grants and prizes for corrigibility research in 2026, is moving
-                      onto Lightcone Commons for its second round, with applications due October 31,
-                      2026; as of November 1, 2026 the fund&apos;s site still lists that as its
-                      &ldquo;next deadline&rdquo; and has posted nothing about the round closing or
-                      its results, its update log ending September 30, 2026. Its first round was run
-                      over email and awarded $132k to eight of more than 100 applicants. Separately
-                      it has paid out retroactive prizes for existing work: $27k in July 2026 and a
-                      further $48k announced on September 30, 2026, for $75k so far, with more than
-                      $60k more hoped for in December 2026. So the fund has already passed its
-                      &ldquo;at least $200k&rdquo; floor for 2026. Note that October 31 is the
-                      CRF&apos;s own deadline, not a Lightcone Commons round deadline.
+                      least $200k in grants and prizes for corrigibility research in 2026, now runs
+                      its rounds on Lightcone Commons; applicants apply there and mention
+                      corrigibility. Its own site has posted no results since its October 31, 2026
+                      deadline, its update log ending September 30, 2026. Its first round awarded
+                      $132k to eight of more than 100 applicants. Separately it has paid out
+                      retroactive prizes for existing work: $27k in July 2026 and a further $48k
+                      announced on September 30, 2026, for $75k so far, with more than $60k more
+                      hoped for in December 2026. So the fund has already passed its &ldquo;at least
+                      $200k&rdquo; floor for 2026.
                     </li>
                     <li>
                       In August 2026 the Long-Term Future Fund announced it was closing, and that it
                       would spend down around $2.8m on existing applicants and longtermist projects,
-                      primarily through this first round. Lightcone&apos;s own funder list puts the
-                      LTFF contribution at around $2m; the LTFF&apos;s closure post says Lightcone
-                      agreed to waive its 3% platform and 2% evaluator fees on it.
+                      primarily through this first round. The launch post put the LTFF contribution
+                      at around $2m; the LTFF&apos;s closure post says Lightcone agreed to waive its
+                      3% platform and 2% evaluator fees on it.
                     </li>
                   </ul>
                 </li>
@@ -1427,7 +1444,12 @@ export default function AisFunderBulletinPage() {
                       Apply for funding: <A href="https://www.lightconecommons.com/apply">here</A>
                       <ul>
                         <li>
-                          They also import applications from grantmaking.ai, Manifund, and LTFF.
+                          They also import applications from grantmaking.ai, Manifund, and LTFF, and
+                          are{' '}
+                          <A href="https://www.lightconecommons.com/evaluate">
+                            looking for more evaluators
+                          </A>
+                          , especially ones representing worldviews not already on the platform.
                         </li>
                       </ul>
                     </li>
@@ -1467,8 +1489,8 @@ export default function AisFunderBulletinPage() {
                     <li>
                       their <A href="https://manifund.org/JueYan">Manifund account</A>, which is
                       only one of their channels, shows $1.75m across 17 grants in 2025 and $2.77m
-                      across 28 grants in 2026 through November 1; their most recent grant there was
-                      on October 4, 2026
+                      across 28 grants in 2026 through November 15; their most recent grant there
+                      was on October 4, 2026
                     </li>
                     <li>
                       Manifund&apos;s <A href="https://trace.manifund.org/orgs/aistof">Trace</A>{' '}
@@ -1492,7 +1514,7 @@ export default function AisFunderBulletinPage() {
                     <li>
                       Apply for funding: there&apos;s no open application, but consider posting a
                       proposal on <A href="https://manifund.org/">Manifund</A>. A site has appeared
-                      at aistof.org but as of November 1, 2026 it serves only a &ldquo;Coming
+                      at aistof.org but as of November 15, 2026 it serves only a &ldquo;Coming
                       Soon&rdquo; placeholder
                     </li>
                     <li>
@@ -1535,20 +1557,21 @@ export default function AisFunderBulletinPage() {
                       </A>
                     </li>
                     <li>
-                      staff: 11 listed under &ldquo;AI &amp; Advanced Computing&rdquo; on their{' '}
+                      staff: 12 listed under &ldquo;AI &amp; Advanced Computing&rdquo; on their{' '}
                       <A href="https://www.schmidtsciences.org/team/">team page</A>, mostly not
-                      focused on AI safety, estimate 2 in AIS. Michael Belinsky, who led the AI
-                      Safety Science program and directed the AI institute, left for the OpenAI
-                      Foundation in July 2026, and their site still names no successor: Mark Greaves
-                      is listed as a Vice President and his profile describes leading the AI and
-                      Advanced Computing Institute in the past tense, while open job postings report
-                      to an unnamed &ldquo;Director of the AI Institute&rdquo;.
+                      focused on AI safety, estimate 2 in AIS. James Fox, a Senior Science
+                      Associate, leads the Science of Trustworthy AI program. Michael Belinsky, who
+                      led the AI Safety Science program and directed the AI institute, left for the
+                      OpenAI Foundation in July 2026, and their site still names no institute
+                      director: Mark Greaves is listed as a Vice President and his profile describes
+                      leading the AI and Advanced Computing Institute in the past tense, while open
+                      job postings report to an unnamed &ldquo;Director of the AI Institute&rdquo;.
                     </li>
                     <li>
                       their AI safety work now runs under the &ldquo;Science of Trustworthy
-                      AI&rdquo; name; the old AI Safety Science URL is now a dead 404 rather than a
-                      redirect. That program also lists an advisory board: Percy Liang, Yonadav
-                      Shavit, Ajeya Cotra, JueYan Zhang (who runs AISTOF, above), and Mark Greaves.
+                      AI&rdquo; name, and the old AI Safety Science URL redirects there. That
+                      program also lists an advisory board: Percy Liang, Yonadav Shavit, Ajeya
+                      Cotra, JueYan Zhang (who runs AISTOF, above), and Mark Greaves.
                     </li>
                   </ul>
                 </li>
@@ -1559,22 +1582,14 @@ export default function AisFunderBulletinPage() {
                       All three of their 2026 AI safety RFPs have now closed: the science of
                       trustworthy AI (May 17), interpretability (May 26), and multi-agent safety
                       (August 9). Decisions on the first two were due in summer 2026 and the third
-                      in autumn 2026; as of November 1, 2026 no awardees from any of the three have
+                      in autumn 2026; as of November 15, 2026 no awardees from any of the three have
                       been announced, so both summer windows have slipped and the autumn one has
                       weeks left. The year filter on their awardees directory still stops at 2025,
                       and their{' '}
                       <A href="https://www.schmidtsciences.org/opportunities/">
                         opportunities page
                       </A>{' '}
-                      now lists a single open call, in urban-mobility decarbonization, with every AI
-                      opportunity page removed.
-                    </li>
-                    <li>
-                      In September 2026 they launched{' '}
-                      <A href="https://www.schmidtsciences.org/glossogen/">GlossoGen</A>, an
-                      open-source platform for studying the languages AI agents evolve to
-                      communicate with each other, framed around keeping agent communication
-                      monitorable. No new funding was attached.
+                      now lists no open calls at all, with every AI opportunity page removed.
                     </li>
                   </ul>
                 </li>
@@ -1605,25 +1620,27 @@ export default function AisFunderBulletinPage() {
                           <A href="https://www.schmidtsciences.org/ai-interpretability/">
                             interpretability page
                           </A>{' '}
-                          no longer points to a future funding round; it now describes a red-team
-                          versus blue-team interpretability competition they are running with NDIF
-                          and David Bau at Northeastern University, with no application route.
+                          no longer points to a future funding round; the red-team versus blue-team
+                          interpretability competition it describes, run with NDIF and David Bau at
+                          Northeastern University, concluded in August 2026 and its{' '}
+                          <A href="https://aletheias-quest.github.io/winners.html">winners</A> have
+                          been published.
                         </li>
                       </ul>
                     </li>
                     <li>
                       Apply for a job: their{' '}
-                      <A href="https://jobs.lever.co/schmidt-entities">job board</A> carries four
+                      <A href="https://jobs.lever.co/schmidt-entities">job board</A> carries five
                       AI-adjacent roles — an associate and a senior program scientist in AI and
-                      Advanced Computing, a GPU-compute solutions architect, and an AI
-                      communications manager. Their AI Institute{' '}
+                      Advanced Computing, a GPU-compute solutions architect, an AI communications
+                      manager, and an AI Institute{' '}
                       <A href="https://jobs.lever.co/schmidt-entities/6bef9879-f540-475e-ad26-5254fa4e1ad7">
                         fellow in residence
-                      </A>{' '}
-                      posting is live but not on that board: up to three fellows for 2027 at $160k,
-                      with &ldquo;trustworthy AI and alignment&rdquo; and &ldquo;AI
-                      interpretability&rdquo; among the priority domains and applications reviewed
-                      on a rolling basis, priority to those in by December 15, 2026.
+                      </A>
+                      : up to three fellows for 2027 at $160k, with &ldquo;trustworthy AI and
+                      alignment&rdquo; and &ldquo;AI interpretability&rdquo; among the priority
+                      domains and applications reviewed on a rolling basis, priority to those in by
+                      December 15, 2026.
                     </li>
                   </ul>
                 </li>
@@ -1657,18 +1674,17 @@ export default function AisFunderBulletinPage() {
                   By the numbers:
                   <ul>
                     <li>
-                      donated: $9.15m across 1,276 grants when checked on November 1, 2026, almost
-                      all of it in 2026 — only 27 grants and $12,012 predate it; their newer Seed
-                      Grants program publishes no running total, so is not included
+                      donated: $11.24m across 1,384 grants when checked on November 15, 2026, almost
+                      all of it in 2026 — only 28 grants and $12,872 predate it
                     </li>
                     <li>
-                      staff: 18 listed on their <A href="https://bluedot.org/about">about page</A>,
-                      which now carries the team list after the separate team page started 404ing;
-                      two of them &ldquo;Talent Investors&rdquo; but none with a grants title. Their
-                      own figures disagree — the about page says &ldquo;a global team of 20&rdquo;
-                      while their CEO said 15 in a September 12, 2026 post — and in an October 29,
-                      2026 post the CEO said they had grown from 6 to 20 people in six months and
-                      would grow to around 50 over the next year
+                      staff: 21 listed on their <A href="https://bluedot.org/about">about page</A>,
+                      which now carries the team list after the separate team page started 404ing,
+                      including a five-person &ldquo;Grants &amp; Special Projects&rdquo; team with
+                      leads for rapid and career transition grants, plus two &ldquo;Talent
+                      Investors&rdquo;. In an October 29, 2026 post their CEO said they had grown
+                      from 6 to 20 people in six months and would grow to around 50 over the next
+                      year
                     </li>
                     <li>
                       funders: Coefficient Giving made them a $25.6m three-year general support
@@ -1686,17 +1702,16 @@ export default function AisFunderBulletinPage() {
                         handed over its career development and transition funding program
                       </A>{' '}
                       to BlueDot, with a grant to support it; Coefficient now directs those
-                      applicants to BlueDot&apos;s two grant programs.
+                      applicants to BlueDot&apos;s grant programs.
                     </li>
                     <li>
                       In an October 29, 2026{' '}
                       <A href="https://blog.bluedot.org/p/principles">post</A> their CEO said they
                       had grown from 6 to 20 people in six months and plan to reach around 50 over
-                      the next year. Their about page now says they moved their headquarters to San
-                      Francisco in 2026. An earlier September 12, 2026{' '}
-                      <A href="https://blog.bluedot.org/p/owners">post</A> said they have raised
-                      $71m, make grants ranging from $100 to $200,000, and are building a downtown
-                      San Francisco campus for more than 200 people.
+                      the next year. Their about page says they moved their headquarters to San
+                      Francisco in 2026, and a September 12, 2026{' '}
+                      <A href="https://blog.bluedot.org/p/owners">post</A> said they are building a
+                      downtown San Francisco campus for more than 200 people.
                     </li>
                   </ul>
                 </li>
@@ -1704,7 +1719,7 @@ export default function AisFunderBulletinPage() {
                   Get involved:
                   <ul>
                     <li>
-                      Apply for funding: they have two grant programs:
+                      Apply for funding: they have four grant programs:
                       <ul>
                         <li>
                           <A href="https://bluedot.org/grants/career-transition">
@@ -1712,8 +1727,7 @@ export default function AisFunderBulletinPage() {
                           </A>{' '}
                           of up to $200k, generally starting at $20k, for people switching to work
                           full-time on AI safety or biosecurity — application: 45 minutes, decision
-                          time: 12 days on average (the page shows a live average with no as-of
-                          date, so it drifts)
+                          time: about 2 weeks
                         </li>
                         <li>
                           <A href="https://bluedot.org/grants/rapid">Rapid Grants</A>: up to $20k
@@ -1727,21 +1741,26 @@ export default function AisFunderBulletinPage() {
                           organization off the ground — application: about 45 minutes, decision
                           time: about 4 weeks. They also offer introductions to follow-on funders
                           including Coefficient Giving and Longview Philanthropy, and can fund
-                          for-profits in some cases. No grant count or total is published for this
-                          program. Their <A href="https://bluedot.org/missions">Missions</A> page
-                          lists concrete projects they would like someone to take on with Seed Grant
-                          funding; the ten listed as of November 2026 are still all biosecurity,
-                          with AI safety ones said to be coming, which is why it is not counted as
-                          an open RFP in the table above.
+                          for-profits in some cases. Their{' '}
+                          <A href="https://bluedot.org/research">research</A> page lists concrete
+                          projects they would like someone to take on with Seed Grant funding; the
+                          ten listed as of November 2026 are still all biosecurity, with AI safety
+                          ones said to be coming, which is why it is not counted as an open RFP in
+                          the table above.
+                        </li>
+                        <li>
+                          <A href="https://bluedot.org/grants/media">Media Grants</A> of $20k-$200k
+                          over 6-12 months, for journalists, writers and creators covering risks
+                          from advanced AI and biological threats — application: about 30 minutes,
+                          decision time: about 4 weeks.
                         </li>
                         <li>
                           They also run{' '}
                           <A href="https://bluedot.org/programs/incubator-week">Incubator Week</A>,
                           a 5-day expenses-paid program in San Francisco offering up to $200k in
-                          funding if they back your pitch, paid within two weeks of good progress.
-                          The next cohort runs November 16-20, 2026, with applications due November
-                          11. Past cohorts total 50 participants and $10m+ in external funding
-                          raised.
+                          funding within two weeks if they back your pitch. The next cohort is to be
+                          announced and the page takes expressions of interest; past cohorts total
+                          50 participants and $10m+ in external funding raised.
                         </li>
                         <li>
                           In October 2026 they and Entrepreneurs First announced{' '}
@@ -1811,15 +1830,17 @@ export default function AisFunderBulletinPage() {
                   Get involved:
                   <ul>
                     <li>
-                      Apply for funding:{' '}
-                      <A href="https://www.gtr-foundation.org/gtr-ai-safety-fund#ai-apply">
-                        rolling applications
-                      </A>
-                      , a 1–3 page proposal plus CV submitted through an on-page portal, with
-                      initial feedback — a decision or an invitation to a call — targeted within 21
-                      days. They say they may also set occasional deadlines for particular funding
-                      windows. Nominations go to{' '}
+                      Apply for funding: their{' '}
+                      <A href="https://www.gtr-foundation.org/gtr-ai-safety-fund">
+                        application portal
+                      </A>{' '}
+                      says they are &ldquo;not accepting any new submissions at this time,&rdquo;
+                      with no reopening date given, so candidates come through their own research
+                      and through referrals. Nominations go to{' '}
                       <A href="mailto:grants@gtr-foundation.org">grants@gtr-foundation.org</A>.
+                      Their stated process, when open, is a 1–3 page proposal plus CV reviewed on a
+                      rolling basis, with initial feedback — a decision or an invitation to a call —
+                      targeted within 21 days.
                     </li>
                     <li>
                       Donate: there is no donation page, but they explicitly invite co-funders. In
@@ -1861,10 +1882,10 @@ export default function AisFunderBulletinPage() {
                   By the numbers:
                   <ul>
                     <li>
-                      in 2026 so far (through November 1):
+                      in 2026 so far (through November 15):
                       <ul>
-                        <li>$7.05m donated</li>
-                        <li>~167 projects funded</li>
+                        <li>$7.09m donated</li>
+                        <li>~171 projects funded</li>
                       </ul>
                     </li>
                     <li>grant sizes between $0-$500k</li>
@@ -1887,10 +1908,8 @@ export default function AisFunderBulletinPage() {
                       on September 29, 2026 — $500k, grants primarily $25k-$150k, rolling with no
                       deadline, decisions on a one-week timescale, and $140k given away across 5
                       grants as of that post. It is still open: its{' '}
-                      <A href="https://manifund.org/causes/falcon-fund">cause page</A> showed 17
-                      proposals and $272k contributed on November 1, 2026, of which $163k is
-                      completed on-platform donations to three projects, and new proposals were
-                      still arriving on October 31.
+                      <A href="https://manifund.org/causes/falcon-fund">cause page</A> showed 11
+                      proposals and $221k contributed on November 15, 2026.
                     </li>
                     <li>
                       Donate: you can donate to projects yourself, or donate to regrantors{' '}
@@ -1942,14 +1961,13 @@ export default function AisFunderBulletinPage() {
                   By the numbers:
                   <ul>
                     <li>
-                      the LTFF donated around $5-6m/year through 2024, but only $1.2m in 2025 and
-                      $0.69m in 2026 as recorded in the public grants database, up from $0.3m two
-                      weeks earlier as seven back-dated 2026 Q1 grants were added; EA Funds&apos;
-                      own payout chart shows more for 2026, $1.52m across 18 grants
+                      the LTFF donated around $5-6m/year in 2023 and 2024, but only $1.2m in 2025
+                      and $0.69m in 2026 as recorded in the public grants database; EA Funds&apos;
+                      own payout chart shows more for 2026, $1.56m across 19 grants
                     </li>
                     <li>
-                      number of grants: 100-200/year through 2024, but 20 in 2025 and 13 in 2026 in
-                      the public database, which still runs only through 2026 Q2
+                      number of grants: 130-140/year in 2023 and 2024, but 20 in 2025 and 13 in 2026
+                      in the public database, which still runs only through 2026 Q2
                     </li>
                     <li>
                       grant size: typically $10k-$150k, rarely above $300k — now TAIF&apos;s stated
@@ -1973,17 +1991,17 @@ export default function AisFunderBulletinPage() {
                       March 2024, though the{' '}
                       <A href="https://funds.effectivealtruism.org/grants">grants database</A> is
                       updated through 2026 Q2. TAIF says it will publish its first quarterly report
-                      before the end of 2026. As of November 1, 2026 no TAIF grants appear in that
-                      database and the fund page lists no payout reports, so nearly three months
-                      after launch none of its grantmaking is public yet. In fairness, the database
-                      still holds no 2026 Q3 round for any EA Fund, and TAIF&apos;s first grants
-                      would fall in that quarter.
+                      before the end of 2026. As of November 15, 2026 no TAIF grants appear in that
+                      database and the fund page lists no payout reports, so three months after
+                      launch none of its grantmaking is public yet. In fairness, the database still
+                      holds no 2026 Q3 round for any EA Fund, and TAIF&apos;s first grants would
+                      fall in that quarter.
                     </li>
                     <li>
                       The LTFF is spending down around $3.7m: roughly $2.8m to existing applicants,
                       mostly through the first{' '}
-                      <A href="https://www.lightconecommons.com/">Lightcone Commons</A> round, and
-                      around $0.9m as a seed grant to TAIF.
+                      <A href="https://www.lightconecommons.com/">Lightcone Commons</A> round, which
+                      completed in November 2026, and around $0.9m as a seed grant to TAIF.
                     </li>
                   </ul>
                 </li>
@@ -2008,12 +2026,9 @@ export default function AisFunderBulletinPage() {
                     <li>
                       Apply for a job: the Associate Program Officer search has closed. CEA&apos;s{' '}
                       <A href="https://jobs.ashbyhq.com/centreforeffectivealtruism">job board</A>{' '}
-                      has no TAIF-specific role open; its grantmaking openings as of November 1,
-                      2026 are Head of the EA Infrastructure Fund and a Grants Associate posted
-                      October 15, 2026, a grants-operations role spanning CEA&apos;s grantmaking
-                      rather than TAIF specifically, whose applications closed on October 30, 2026
-                      though the posting is still listed. The Head of Grantmaking Operations posting
-                      has since been delisted.
+                      has no TAIF-specific role open; its one grantmaking opening as of November 15,
+                      2026 is Head of the EA Infrastructure Fund. The Grants Associate and Head of
+                      Grantmaking Operations postings have since been delisted.
                     </li>
                   </ul>
                 </li>
@@ -2046,13 +2061,12 @@ export default function AisFunderBulletinPage() {
               not sell AI training data.&rdquo;
             </li>
             <li>
-              <A href="https://www.halcyonfutures.org/">Halcyon Futures</A>: An incubator-grantmaker
-              for new organizations in AI safety, cybersecurity and biosecurity. They offer career
-              transition grants up to $500k, nonprofit seed grants up to $3m, and VC investments
-              &ldquo;up to $5M, and sometimes much more&rdquo;; the only route given is email. They
-              publish three cumulative stats — 30 new orgs and companies launched, $500m in
-              follow-on funding raised, and 200 career transitions supported. They also appear as a
-              cofunder of the UK AI Security Institute&apos;s Alignment Project.
+              <A href="https://www.halcyonfutures.org/">Halcyon Futures</A>: &ldquo;a grant-maker,
+              incubator and investment firm&rdquo; backing founders in AI safety, cybersecurity and
+              biosecurity. Their site was rebuilt in November 2026 and now publishes no grant sizes,
+              totals or application route — only a portfolio of 24 organizations and an email
+              address. They also appear as a cofunder of the UK AI Security Institute&apos;s
+              Alignment Project.
             </li>
             <li>
               <A href="https://www.navigation.org/">Navigation Fund</A>: Jed McCaleb&apos;s
@@ -2065,9 +2079,10 @@ export default function AisFunderBulletinPage() {
             </li>
             <li>
               <A href="https://www.airiskfund.com/">AI Risk Mitigation Fund</A>: They announced a
-              spinoff from LTFF in 2023, but haven&apos;t made any updates or grant announcements on
-              their website. They&apos;re one of the funders of Lightcone Commons, contributing
-              around $2m to its first round. Their{' '}
+              spinoff from LTFF in 2023. Their site says they are &ldquo;now actively supporting
+              projects&rdquo; and preparing detailed grant announcements, but none have been
+              published. They&apos;re one of the funders of Lightcone Commons, contributing around
+              $2m to its first round. Their{' '}
               <A href="https://www.airiskfund.com/apply">apply page</A> says they have no set date
               for opening applications and currently fund only opportunities they source themselves.
             </li>
@@ -2107,15 +2122,14 @@ export default function AisFunderBulletinPage() {
                 Foresight AI for Science &amp; Safety Nodes RFP
               </A>
               : Their standalone AI for Safety and Science program page now redirects here, so the
-              Nodes RFP is the whole of their current AI offering. The RFP closed on October 31,
-              2026 at 23:59 PDT; as of November 1, 2026 the page is unchanged and no extension or
-              new round has been announced, with decisions expected about three months after the
-              deadline. It funded work on local compute, coordination and accountability, and
-              AI-first science, &ldquo;typically $30,000 – $100,000 for this RFP but larger amounts
-              are possible for the right project&rdquo;, with overhead capped at 10%. All funded
-              work must be open-sourced. They strongly prefer applicants who will be in-person
-              members of their SF or Berlin hubs; they have also added a community xNode in Cape
-              Town.
+              Nodes RFP is the whole of their current AI offering. Its October 31, 2026 deadline has
+              passed, with decisions expected about three months later; the page is otherwise
+              unchanged and no new round has been announced. It funded work on local compute,
+              coordination and accountability, and AI-first science, &ldquo;typically $30,000 –
+              $100,000 for this RFP but larger amounts are possible for the right project&rdquo;,
+              with overhead capped at 10%. All funded work must be open-sourced. They strongly
+              prefer applicants who will be in-person members of their SF or Berlin hubs; they have
+              also added a community xNode in Cape Town.
             </li>
             <li>
               <A href="https://astera.org/ai-safety/">Astera</A>: Their webpage mentions that
@@ -2138,18 +2152,43 @@ export default function AisFunderBulletinPage() {
               plans will take time to finalize. No second round has been announced.
             </li>
             <li>
-              <A href="https://www.darpa.mil/research/programs/ai-forge">AI Forge</A>: A joint
-              DARPA/NSF program, working with CAISI at NIST, funding university-led research on AI
-              interpretability, control, robustness and assurance. Its{' '}
-              <A href="https://aiforge.govsignals.ai/">Cycle 2 Request for Abstracts</A> is open to
-              US universities, with abstracts due November 6, 2026 and awards of about $1.5m over
-              one year.
+              <A href="https://www.darpa.mil/research/programs/si-forge">SI Forge</A> (formerly AI
+              Forge): A joint DARPA/NSF program, working with CAISSI at NIST, funding university-led
+              research on interpretability, control and adversarial robustness. Its{' '}
+              <A href="https://aiforge.govsignals.ai/">Cycle 2</A> abstract deadline of November 6,
+              2026 has passed; invited pitches are due in December, and awards are about $1.5m over
+              one year. Open to US universities.
+            </li>
+            <li>
+              <A href="https://alignmentproject.aisi.gov.uk/">UK AI Security Institute</A>: Their
+              Alignment Project is an international pooled fund — cofunded by Schmidt Sciences,
+              AISTOF, Halcyon Futures, Anthropic, OpenAI, Microsoft, AWS, ARIA and others — which
+              awarded over £27m to more than 60 projects in its first round, in grants of £50k to
+              £1m. Applications are closed, and they say they are unlikely to run a similar program
+              in 2026, though AISI expects to run further academic grant programs. Their{' '}
+              <A href="https://www.aisi.gov.uk/grants">two other grant programs</A>, the Challenge
+              Fund (up to £200k per project) and Systemic Safety Grants, are also closed.
+            </li>
+            <li>
+              <A href="https://www.aria.org.uk/funding-opportunities">ARIA</A>: The UK&apos;s
+              Advanced Research and Invention Agency has two open rolling calls relevant to AI
+              safety, both reviewed in quarterly batches: Safeguarded AI: Cybersecurity, a £20m call
+              for 3-6 teams at roughly £2.5-3.5m each to build security-critical software with
+              machine-checked proofs; and Scaling Trust Tracks 2 and 3, a £49.8m programme for tools
+              letting AI agents interact securely in untrusted environments, at £200k-£2m and
+              £100k-£3m per team.
+            </li>
+            <li>
+              <A href="https://www.far.ai/programs">FAR.AI</A>: Their grantmaking program supports
+              academics and independent researchers, funded by a $12m grant from Coefficient Giving.
+              For now they only consider researchers nominated by experts with a strong track
+              record, but they say public RFPs are coming.
             </li>
             <li>
               <A href="https://www.iliad.ac/funding">ILIAD</A>: They fund &ldquo;ambitious research
               organizations and projects that can raise the scientific standard of foundational AI
               alignment,&rdquo; including individual researchers outside conventional academic
-              pathways. As of November 1, 2026 their funding page lists only a rolling{' '}
+              pathways. As of November 15, 2026 their funding page lists only a rolling{' '}
               <A href="https://www.iliad.ac/opportunity/open-call-fund-your-bet">
                 open call for research projects
               </A>{' '}
@@ -2185,8 +2224,8 @@ export default function AisFunderBulletinPage() {
         </p>
         <p className="mt-3 text-sm text-gray-600 [&_a]:text-orange-600">
           Manifund also launched <A href="https://trace.manifund.org">Trace</A> in August 2026, a
-          database tracking $3.5b of AI safety funding across 4,900+ grants and 800+ funders as of
-          November 1, 2026, with dated grants going back to 2007.
+          database tracking $3.5b of AI safety funding across 5,000+ grants and 800+ funders as of
+          November 15, 2026, with dated grants going back to 2007.
         </p>
       </div>
     </div>
