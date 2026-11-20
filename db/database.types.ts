@@ -1344,6 +1344,53 @@ export type Database = {
           },
         ]
       }
+      project_autograntor_evals: {
+        Row: {
+          created_at: string
+          id: string
+          ledger_csv: string
+          milestones_version: string
+          models: string
+          project_content_hash: string
+          project_id: string
+          prompt_version: string
+          report_md: string
+          results: Json
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ledger_csv: string
+          milestones_version: string
+          models: string
+          project_content_hash: string
+          project_id: string
+          prompt_version: string
+          report_md: string
+          results: Json
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ledger_csv?: string
+          milestones_version?: string
+          models?: string
+          project_content_hash?: string
+          project_id?: string
+          prompt_version?: string
+          report_md?: string
+          results?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'project_autograntor_evals_project_id_fkey'
+            columns: ['project_id']
+            isOneToOne: false
+            referencedRelation: 'projects'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       project_causes: {
         Row: {
           application_stage: Database['public']['Enums']['project_stage'] | null
