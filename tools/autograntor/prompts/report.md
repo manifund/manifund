@@ -9,7 +9,7 @@ Write `grant_eval/<slug>/final_ledger.csv`, run the simulator on it, then write 
 The headline numbers stored on Manifund come from re-running the simulator on `final_ledger.csv`, so the report and
 the ledger must agree.
 
-`report.md` is shown to Manifund admins on the project's autograntor page, below a table of the numbers. Write it for
+`report.md` is shown publicly on the project's autograntor page, below a table of the numbers. Write it for
 a grantmaker who hasn't seen the proposal in a while. Plain markdown, with these sections:
 
 ## Summary

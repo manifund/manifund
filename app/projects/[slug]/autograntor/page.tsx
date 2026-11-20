@@ -13,13 +13,15 @@ const points = (n: number) => Math.round(n).toLocaleString('en-US')
 const usd = (n: number) => `$${n.toLocaleString('en-US')}`
 const date = (d: string) => formatDateUtc(d, { month: 'short', day: 'numeric', year: 'numeric' })
 
-// Admin-only for now (P17): everyone else gets a 404, so the page's existence isn't revealed.
+// Public (P21), except for hidden and draft projects, which only their owner and admins can see.
 export default async function AutograntorPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params
   const supabase = await createServerSupabaseClient()
   const [user, project] = await Promise.all([getUser(supabase), getProjectBySlug(supabase, slug)])
-  if (!isAdmin(user) || !project) notFound()
-  const evals = await getAutograntorEvals(project.id)
+  if (!project) notFound()
+  const isPrivate = project.stage === 'hidden' || project.stage === 'draft'
+  if (isPrivate && user?.id !== project.creator && !isAdmin(user)) notFound()
+  const evals = await getAutograntorEvals(supabase, project.id)
   const [latest, ...earlier] = evals
 
   return (
@@ -31,7 +33,7 @@ export default async function AutograntorPage(props: { params: Promise<{ slug: s
         <h1 className="mt-1 text-xl font-semibold">Autograntor report</h1>
         <p className="text-sm text-gray-500">
           Expected utility of funding this project, in milestone points (a Plan A US–China pause =
-          1,000,000). Visible to admins only.
+          1,000,000), estimated by Claude as part of an experimental rating system.
         </p>
       </div>
       {latest ? <Run evaluation={latest} /> : <p className="text-sm">No autograntor runs yet.</p>}

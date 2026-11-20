@@ -50,12 +50,12 @@ independent Claude estimators each build a ledger of consequences. They debate w
 is simulated for the mean, median, p10 and p90. An admin runs it by hand from Claude Code (`/autograntor <slug>`,
 `tools/autograntor/README.md`).
 
-- **P14** For now an admin picks which proposals to run. Once it's automated, it will run on proposals whose latest
+- **P18** For now an admin picks which proposals to run. Once it's automated, it will run on proposals whose latest
   AI evaluation (P9) scores 3 or more, to keep costs down.
-- **P15** Each run scores the minimum, the goal, and $10,000 when it lies strictly between them (`grantAmounts`).
-- **P16** Edits don't trigger a new run, and a later run adds a row rather than replacing one. Each row keeps the prompt and milestone versions and the ledger it was simulated from.
-- **P17** Results are visible to admins only, on `/projects/<slug>/autograntor`, linked from the project page.
-  The table has no read policy; everyone else gets a 404.
+- **P19** Each run scores the minimum, the goal, and $10,000 when it lies strictly between them (`grantAmounts`).
+- **P20** Edits don't trigger a new run, and a later run adds a row rather than replacing one. Each row keeps the prompt and milestone versions and the ledger it was simulated from.
+- **P21** Results are public, like the AI evaluation (P5): the page `/projects/<slug>/autograntor` is linked from the
+  project page once a project has a run, and it 404s for hidden and draft projects, except for their owner and admins.
 
 ## Stage
 

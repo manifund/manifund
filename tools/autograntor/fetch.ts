@@ -1,4 +1,4 @@
-// Stages a proposal for an autograntor run: works out the amounts (P15) and writes
+// Stages a proposal for an autograntor run: works out the amounts (P19) and writes
 // grant_eval/<slug>/source/application.md for the estimators.
 //
 //   bun tools/autograntor/fetch.ts <slug>

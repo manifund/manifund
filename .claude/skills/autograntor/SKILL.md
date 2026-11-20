@@ -1,6 +1,6 @@
 ---
 name: autograntor
-description: Score one Manifund proposal with the autograntor (expected utility in milestone points at its minimum, goal and $10k), with two independent estimators, a debate when they diverge, and a final ledger saved to the project's admin-only autograntor page. Use when asked to run the autograntor on a project slug or URL.
+description: Score one Manifund proposal with the autograntor (expected utility in milestone points at its minimum, goal and $10k), with two independent estimators, a debate when they diverge, and a final ledger saved to the project's public autograntor page. Use when asked to run the autograntor on a project slug or URL.
 ---
 
 # Autograntor

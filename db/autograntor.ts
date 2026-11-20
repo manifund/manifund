@@ -1,5 +1,4 @@
-import 'server-only'
-import { createAdminClient } from '@/db/edge'
+import { SupabaseClient } from '@supabase/supabase-js'
 import { Tables } from '@/db/database.types'
 
 export type AutograntorResult = {
@@ -15,19 +14,18 @@ export type AutograntorEval = Omit<Tables<'project_autograntor_evals'>, 'results
   results: AutograntorResult[]
 }
 
-// Admin-only (P17): the table has no RLS policies, so these read with the service role. Callers check isAdmin.
-export async function getAutograntorEvals(projectId: string) {
-  const { data } = await createAdminClient()
+export async function getAutograntorEvals(supabase: SupabaseClient, projectId: string) {
+  const { data } = await supabase
     .from('project_autograntor_evals')
     .select('*')
     .eq('project_id', projectId)
     .order('created_at', { ascending: false })
     .throwOnError()
-  return (data ?? []) as unknown as AutograntorEval[]
+  return (data ?? []) as AutograntorEval[]
 }
 
-export async function getLatestAutograntorRunAt(projectId: string) {
-  const { data } = await createAdminClient()
+export async function getLatestAutograntorRunAt(supabase: SupabaseClient, projectId: string) {
+  const { data } = await supabase
     .from('project_autograntor_evals')
     .select('created_at')
     .eq('project_id', projectId)
@@ -35,5 +33,5 @@ export async function getLatestAutograntorRunAt(projectId: string) {
     .limit(1)
     .maybeSingle()
     .throwOnError()
-  return data?.created_at ?? null
+  return (data?.created_at as string | undefined) ?? null
 }

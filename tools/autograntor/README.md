@@ -2,7 +2,7 @@
 
 Estimates the utility of funding a Manifund proposal, in milestone points: a Plan A US–China pause = 1,000,000
 (`milestones.md`, Caroline's values). It scores the minimum, the goal, and $10k if $10k falls between them. Modeled on
-Scott Alexander's autograntor, simplified: no Common Law, and this folder's own ledger simulator. Rules P14–P17 in
+Scott Alexander's autograntor, simplified: no Common Law, and this folder's own ledger simulator. Rules P18–P21 in
 `docs/product/projects/README.md`.
 
 Run it from Claude Code in the repo: `/autograntor <slug>` (`.claude/skills/autograntor/SKILL.md`). The skill:
@@ -11,7 +11,7 @@ Run it from Claude Code in the repo: `/autograntor <slug>` (`.claude/skills/auto
 2. runs two independent estimators (Opus and Fable) with `prompts/estimator.md`
 3. compares their ledgers, with a critique round only if they diverge (`prompts/critique.md`)
 4. writes a final ledger and report (`prompts/report.md`)
-5. saves them with `publish.ts` to `project_autograntor_evals`, shown to admins at `/projects/<slug>/autograntor`
+5. saves them with `publish.ts` to `project_autograntor_evals`, shown publicly at `/projects/<slug>/autograntor`
 
 Working files go to `grant_eval/<slug>/` (gitignored).
 

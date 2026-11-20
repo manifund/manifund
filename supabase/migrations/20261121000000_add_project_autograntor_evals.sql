@@ -19,5 +19,5 @@ create table public.project_autograntor_evals (
 create index project_autograntor_evals_project_created_idx
   on public.project_autograntor_evals (project_id, created_at desc);
 
--- Admin-only for now (P17): no policies, so only the service role can read or write.
+-- Only the service role writes; reads are opened in 20261121010000_autograntor_evals_public.sql.
 alter table public.project_autograntor_evals enable row level security;

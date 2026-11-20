@@ -5,7 +5,7 @@ import { compareLedgers, parseLedger, simulateSize } from '@/tools/autograntor/s
 const HEADER = 'name,size,kind,weight,p1,p0,ev,p10,p90,exec,exec_mode,group,post2030,note'
 const ledger = (...rows: string[]) => parseLedger([HEADER, ...rows].join('\n'))
 
-describe('P15: grant amounts', () => {
+describe('P19: grant amounts', () => {
   test('min, goal and $10k when strictly between', () => {
     expect(grantAmounts(5000, 50000)).toEqual([5000, 10000, 50000])
   })

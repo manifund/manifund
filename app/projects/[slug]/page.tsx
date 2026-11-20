@@ -81,7 +81,7 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     // what people the viewer follows did on this project (F8)
     user ? networkFor(supabase, user.id) : undefined,
     user ? getGivingFunds(supabase, user.id) : [],
-    userIsAdmin ? getLatestAutograntorRunAt(project.id) : null,
+    getLatestAutograntorRunAt(supabase, project.id),
   ])
   const creatorEmail = userProfile?.regranter_status
     ? await getUserEmail(createAdminClient(), project.creator)
