@@ -9,8 +9,6 @@ import { formatDateUtc } from '@/utils/formatting'
 
 export const revalidate = 0
 
-const points = (n: number) => Math.round(n).toLocaleString('en-US')
-const usd = (n: number) => `$${n.toLocaleString('en-US')}`
 const date = (d: string) => formatDateUtc(d, { month: 'short', day: 'numeric', year: 'numeric' })
 
 // Public (P21), except for hidden and draft projects, which only their owner and admins can see.
@@ -58,35 +56,6 @@ function Run(props: { evaluation: AutograntorEval }) {
   const { evaluation } = props
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-x-auto">
-        <table className="text-sm">
-          <thead>
-            <tr className="text-left text-gray-500">
-              {['Grant', 'Mean', 'Median', 'p10', 'p90', 'Per $1M', 'P(negative)', 'Post-2030'].map(
-                (h) => (
-                  <th key={h} className="pr-5 font-medium">
-                    {h}
-                  </th>
-                )
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {evaluation.results.map((r) => (
-              <tr key={r.amount}>
-                <td className="pr-5">{usd(r.amount)}</td>
-                <td className="pr-5 font-semibold">{points(r.mean)}</td>
-                <td className="pr-5">{points(r.median)}</td>
-                <td className="pr-5">{points(r.p10)}</td>
-                <td className="pr-5">{points(r.p90)}</td>
-                <td className="pr-5">{points((r.mean / r.amount) * 1e6)}</td>
-                <td className="pr-5">{Math.round(r.p_negative * 100)}%</td>
-                <td className="pr-5">{Math.round(r.post2030_share * 100)}%</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
       <p className="text-xs text-gray-500">
         {date(evaluation.created_at)} · prompt {evaluation.prompt_version} ·{' '}
         {evaluation.milestones_version} · {evaluation.models}

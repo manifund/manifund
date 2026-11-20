@@ -1,6 +1,6 @@
 # Milestone values
 
-Version: `milestones-2026-11-20` (Caroline's values). Snapshot of the
+Version: `milestones-2026-11-20b` (Caroline's values). Snapshot of the
 [Manifund AI Safety Milestone Values sheet](https://docs.google.com/spreadsheets/d/1utsGshqF2W_DCdQIqp6KvM9nyAEuiIq5SaoeLvwulek/edit).
 When the sheet changes, re-export it here and bump the version, in this file and in `lib.ts`.
 
@@ -119,5 +119,6 @@ These are the rows most grants will be priced against.
 | 78  | One extra alignment-researcher-year (marginal MATS graduate)                                             |     15 |  $10,000 |                                                                                                                                                                                             |
 | 79  | 1,000,000 PERCYs (see `percys.md`)                                                                       |  1,200 |          |                                                                                                                                                                                             |
 
-Implied rates worth keeping in mind: $1M to SFF is worth about 7 points and $1M to Coefficient Giving about 2. A
-marginal researcher-year is 15 points, and 1 PERCY is 0.0012 points.
+Marginal money vs. these rows: rows 74–75 price an extra **$1B**, and both funds would struggle to absorb that, so
+the per-dollar rate is far lower than for a small amount. Caroline's view: a marginal **$1M to SFF is worth about 50
+points**, not the ~7 that row 75 implies. A marginal researcher-year is 15 points, and 1 PERCY is 0.0012 points.
