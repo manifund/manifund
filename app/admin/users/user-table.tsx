@@ -1,7 +1,10 @@
 'use client'
 
 import { useState, useMemo, memo } from 'react'
+import clsx from 'clsx'
 import { supabaseProfileRowUrl } from '@/utils/supabase-admin-url'
+import { calculateDonorFee } from '@/utils/math'
+import type { PayUserProps } from '@/pages/api/pay-user'
 
 type UserRow = {
   id: string
@@ -9,6 +12,7 @@ type UserRow = {
   username: string | null
   accredited: boolean
   balance: number
+  lifetimeDeposits: number
 }
 
 export function UserTable(props: { users: UserRow[] }) {
@@ -39,7 +43,7 @@ export function UserTable(props: { users: UserRow[] }) {
           <col style={{ width: 300 }} />
           <col style={{ width: 210 }} />
           <col style={{ width: 28 }} />
-          <col style={{ width: 380 }} />
+          <col style={{ width: 460 }} />
         </colgroup>
         <thead className="border-b text-[10px] uppercase tracking-wide text-zinc-400">
           <tr>
@@ -97,7 +101,11 @@ const MemoRow = memo(function UserRowComponent({ user, odd }: { user: UserRow; o
         <AccreditedToggle userId={user.id} accredited={user.accredited} />
       </td>
       <td className="py-px">
-        <PayControls userId={user.id} balance={user.balance} />
+        <PayControls
+          userId={user.id}
+          balance={user.balance}
+          lifetimeDeposits={user.lifetimeDeposits}
+        />
       </td>
     </tr>
   )
@@ -123,19 +131,38 @@ function AccreditedToggle({ userId, accredited }: { userId: string; accredited: 
   )
 }
 
-function PayControls({ userId, balance }: { userId: string; balance: number }) {
+function PayControls({
+  userId,
+  balance,
+  lifetimeDeposits,
+}: {
+  userId: string
+  balance: number
+  lifetimeDeposits: number
+}) {
   const [amount, setAmount] = useState('')
   const [receipt, setReceipt] = useState(false)
+  // null = use the suggested fee; cleared whenever the amount changes
+  const [feeInput, setFeeInput] = useState<string | null>(null)
+  const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
   const parsed = parseFloat(amount)
   const hasAmount = !isNaN(parsed) && parsed !== 0
+  const isDonation = hasAmount && parsed > 0 && receipt
+  const suggestedFee = isDonation ? calculateDonorFee(lifetimeDeposits, parsed) : 0
+  const feeText = feeInput ?? (suggestedFee ? suggestedFee.toString() : '')
+  const fee = isDonation ? Number(feeText) || 0 : 0
+  const feeInvalid = fee < 0 || (fee > 0 && fee >= parsed)
 
   return (
     <div className="flex items-center gap-1.5">
       <button
         className="w-14 cursor-pointer text-right font-mono text-xs tabular-nums hover:text-orange-600"
-        onClick={() => setAmount((-balance).toString())}
+        onClick={() => {
+          setAmount((-balance).toString())
+          setFeeInput(null)
+        }}
         title="Click to prefill withdrawal"
       >
         {Number(balance.toFixed(2))}
@@ -146,7 +173,10 @@ function PayControls({ userId, balance }: { userId: string; balance: number }) {
         className="w-16 rounded border border-gray-300 px-1.5 py-0.5 text-xs tabular-nums focus:border-orange-500 focus:outline-none"
         placeholder="0"
         value={amount}
-        onChange={(e) => setAmount(e.target.value.replace(/[^\d.\-]/g, ''))}
+        onChange={(e) => {
+          setAmount(e.target.value.replace(/[^\d.\-]/g, ''))
+          setFeeInput(null)
+        }}
       />
       <label className="flex items-center gap-0.5">
         <input
@@ -157,27 +187,56 @@ function PayControls({ userId, balance }: { userId: string; balance: number }) {
         />
         <span className="text-[10px] text-gray-500">Receipt</span>
       </label>
+      {isDonation && (
+        <label
+          className="flex items-center gap-0.5"
+          title={`Lifetime deposits so far: $${Math.round(lifetimeDeposits).toLocaleString()}`}
+        >
+          <span className="text-[10px] text-gray-500">Fee</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            className={clsx(
+              'w-14 rounded border px-1.5 py-0.5 text-xs tabular-nums focus:outline-none',
+              feeInvalid
+                ? 'border-red-400 focus:border-red-500'
+                : 'border-gray-300 focus:border-orange-500'
+            )}
+            placeholder="0"
+            value={feeText}
+            onChange={(e) => setFeeInput(e.target.value.replace(/[^\d.]/g, ''))}
+          />
+        </label>
+      )}
       <button
         className="rounded bg-orange-500 px-1.5 py-0.5 text-xs font-medium text-white hover:bg-orange-600 disabled:cursor-not-allowed disabled:bg-gray-200"
-        disabled={!hasAmount || loading}
+        disabled={!hasAmount || feeInvalid || loading}
         onClick={async () => {
           setLoading(true)
-          await fetch('/api/pay-user', {
+          setError('')
+          const res = await fetch('/api/pay-user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               userId,
               amount: parsed,
               sendDonationReceipt: receipt,
-            }),
+              fee,
+            } satisfies PayUserProps),
           })
           setLoading(false)
+          if (!res.ok) {
+            setError((await res.json().catch(() => null))?.error ?? 'Failed')
+            return
+          }
           setAmount('')
+          setFeeInput(null)
           window.location.reload()
         }}
       >
         {loading ? '...' : 'Add'}
       </button>
+      {error && <span className="text-[10px] text-red-500">{error}</span>}
     </div>
   )
 }

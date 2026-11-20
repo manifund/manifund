@@ -2225,6 +2225,7 @@ export type Database = {
         | 'mana deposit'
         | 'tip'
         | 'return bank funds'
+        | 'fee'
     }
     CompositeTypes: {
       bid_row: {
@@ -2406,6 +2407,7 @@ export const Constants = {
         'mana deposit',
         'tip',
         'return bank funds',
+        'fee',
       ],
     },
   },

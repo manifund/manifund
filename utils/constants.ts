@@ -37,6 +37,10 @@ export function mercuryMinWithdrawal(withdrawBalance: number) {
   return Math.min(MERCURY_MIN_WITHDRAWAL, withdrawBalance)
 }
 
+// Donors pay 5% on lifetime deposits above the threshold, as 5/105 of the deposit ("send $105k to grant $100k").
+export const DONOR_FEE_THRESHOLD = 50_000
+export const DONOR_FEE_RATE = 5 / 105
+
 export function getURL() {
   let url =
     process?.env?.NEXT_PUBLIC_SITE_URL ?? // Set this to your site URL in production env.

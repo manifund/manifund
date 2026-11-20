@@ -4,7 +4,7 @@ import { TOTAL_SHARES } from '@/db/project'
 import { FullTxn, Txn, TxnAndProject } from '@/db/txn'
 import { isBefore } from 'date-fns'
 import { sortBy } from 'es-toolkit'
-import { isCharitableDeposit } from './constants'
+import { DONOR_FEE_RATE, DONOR_FEE_THRESHOLD, isCharitableDeposit } from './constants'
 import { calculateAMMPorfolio, calculateValuation } from './amm'
 
 const IGNORE_ACCREDITATION_DATE = new Date('2023-11-02')
@@ -71,6 +71,15 @@ function getActiveValuation(
     return calculateValuation(ammShares, ammUSD)
   }
 }
+
+// Fee on a new deposit, charged only on the part that lands above the lifetime threshold, in whole dollars
+export function calculateDonorFee(priorDeposits: number, amount: number) {
+  if (amount <= 0) return 0
+  const over = (total: number) => Math.max(0, total - DONOR_FEE_THRESHOLD)
+  const taxable = over(priorDeposits + amount) - over(priorDeposits)
+  return Math.floor(taxable * DONOR_FEE_RATE)
+}
+
 export function calculateUserBalance(txns: Txn[], userId: string) {
   let balance = 0
   txns.forEach((txn) => {
@@ -246,6 +255,9 @@ export function getTxnCharityMultiplier(txn: TxnAndProject, userId: string, accr
   if (txn.type === 'cash to charity transfer' || txn.type === 'mana deposit') {
     return 1
   }
+  if (txn.type === 'fee') {
+    return isIncoming ? 0 : -1
+  }
   if (isIncoming && txn.from_id === userId) {
     // Donations to own project should decrement charity balance
     return isOwnProject ? -1 : 0
@@ -296,7 +308,8 @@ export function getTxnCashMultiplierRaw(
     (txn.from_id !== userId && txn.to_id !== userId) ||
     txn.type === 'profile donation' ||
     txn.type === 'tip' ||
-    txn.type === 'return bank funds'
+    txn.type === 'return bank funds' ||
+    txn.type === 'fee'
   ) {
     return 0
   }
