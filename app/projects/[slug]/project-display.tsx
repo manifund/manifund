@@ -49,7 +49,6 @@ type ProjectDisplayProps = {
   userProfile?: Profile
   creatorEmail?: string
   userIsAdmin?: boolean
-  autograntorRunAt?: string | null // latest autograntor run, if any (P21)
   network?: NetworkItem[] // what people the viewer follows did here (F8)
   givingFunds?: GivingFund[] // funds the viewer can give as (F2)
   // The tabs (comments, offers, similar projects), rendered by the page and streamed in later.
@@ -123,20 +122,6 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
     <div className="pb-16 pt-2 font-light">
       {userIsAdmin && (
         <AdminBanner project={project} projectBids={projectBids} projectTxns={projectTxns} />
-      )}
-      {props.autograntorRunAt && (
-        <Link
-          href={`/projects/${project.slug}/autograntor`}
-          className="mb-4 inline-block text-sm text-orange-600 hover:underline"
-        >
-          Autograntor report (
-          {formatDateUtc(props.autograntorRunAt, {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-          })}
-          ) →
-        </Link>
       )}
       {showExpandedTimeline ? (
         <ProjectTimeline

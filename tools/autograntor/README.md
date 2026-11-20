@@ -11,7 +11,7 @@ Run it from Claude Code in the repo: `/autograntor <slug>` (`.claude/skills/auto
 2. runs two independent estimators (Opus and Fable) with `prompts/estimator.md`
 3. compares their ledgers, with a critique round only if they diverge (`prompts/critique.md`)
 4. writes a final ledger and report (`prompts/report.md`)
-5. saves them with `publish.ts` to `project_autograntor_evals`, shown publicly at `/projects/<slug>/autograntor`
+5. saves them with `publish.ts` to `project_autograntor_evals`, shown publicly at `/projects/<slug>/autograntor` (not yet linked from the project page)
 
 Working files go to `grant_eval/<slug>/` (gitignored).
 

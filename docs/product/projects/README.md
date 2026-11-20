@@ -54,8 +54,8 @@ is simulated for the mean, median, p10 and p90. An admin runs it by hand from Cl
   AI evaluation (P9) scores 3 or more, to keep costs down.
 - **P19** Each run scores the minimum, the goal, and $10,000 when it lies strictly between them (`grantAmounts`).
 - **P20** Edits don't trigger a new run, and a later run adds a row rather than replacing one. Each row keeps the prompt and milestone versions and the ledger it was simulated from.
-- **P21** Results are public, like the AI evaluation (P5): the page `/projects/<slug>/autograntor` is linked from the
-  project page once a project has a run, and it 404s for hidden and draft projects, except for their owner and admins.
+- **P21** Results are public, like the AI evaluation (P5), at `/projects/<slug>/autograntor`, which 404s for hidden
+  and draft projects except for their owner and admins. The project page doesn't link to it yet.
 
 ## Stage
 

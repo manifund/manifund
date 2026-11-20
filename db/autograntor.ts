@@ -23,15 +23,3 @@ export async function getAutograntorEvals(supabase: SupabaseClient, projectId: s
     .throwOnError()
   return (data ?? []) as AutograntorEval[]
 }
-
-export async function getLatestAutograntorRunAt(supabase: SupabaseClient, projectId: string) {
-  const { data } = await supabase
-    .from('project_autograntor_evals')
-    .select('created_at')
-    .eq('project_id', projectId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle()
-    .throwOnError()
-  return (data?.created_at as string | undefined) ?? null
-}

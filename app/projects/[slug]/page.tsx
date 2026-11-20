@@ -15,7 +15,6 @@ import NoAccess from '@/app/no-access'
 import { notFound } from 'next/navigation'
 import { networkFor } from '@/db/network'
 import { getGivingFunds } from '@/db/fund'
-import { getLatestAutograntorRunAt } from '@/db/autograntor'
 
 export const revalidate = 0
 
@@ -53,7 +52,6 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
   if (!project) {
     notFound()
   }
-  const userIsAdmin = user ? isAdmin(user) : false
   // What the top of the page needs, in one round. Comments and similar projects load in
   // ProjectTabsSection, streamed in below once the top is on screen.
   const [
@@ -66,7 +64,6 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     prizeCause,
     network,
     givingFunds,
-    autograntorRunAt,
   ] = await Promise.all([
     user ? getProfileAndBidsById(supabase, user.id) : null,
     user ? getTxnAndProjectsByUser(supabase, user.id) : [],
@@ -81,11 +78,11 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
     // what people the viewer follows did on this project (F8)
     user ? networkFor(supabase, user.id) : undefined,
     user ? getGivingFunds(supabase, user.id) : [],
-    getLatestAutograntorRunAt(supabase, project.id),
   ])
   const creatorEmail = userProfile?.regranter_status
     ? await getUserEmail(createAdminClient(), project.creator)
     : undefined
+  const userIsAdmin = user ? isAdmin(user) : false
   const userIsOwner = user?.id === project.creator
   const projectIsPrivate = project.stage === 'hidden' || project.stage === 'draft'
   return (
@@ -104,7 +101,6 @@ export default async function ProjectPage(props: { params: Promise<{ slug: strin
           causesList={causesList}
           prizeCause={prizeCause}
           userIsAdmin={userIsAdmin}
-          autograntorRunAt={autograntorRunAt}
           network={network?.[project.id]}
           givingFunds={givingFunds}
           tabs={
