@@ -42,6 +42,21 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
   experimental AI rating system"), and an _AI review_ section after Comments, Offers, Shareholders and Donations with the score and Claude's
   opinion. Lower-rated projects show neither. The evaluation shown is the latest, as in P9.
 
+## Autograntor
+
+An experimental second rater, modeled on Scott Alexander's autograntor. It estimates the expected utility of funding a
+proposal in milestone points, where a Plan A US–China pause = 1,000,000 (`tools/autograntor/milestones.md`). Two
+independent Claude estimators each build a ledger of consequences. They debate when they diverge, and a final ledger
+is simulated for the mean, median, p10 and p90. An admin runs it by hand from Claude Code (`/autograntor <slug>`,
+`tools/autograntor/README.md`).
+
+- **P18** For now an admin picks which proposals to run. Once it's automated, it will run on proposals whose latest
+  AI evaluation (P9) scores 3 or more, to keep costs down.
+- **P19** Each run scores the minimum, the goal, and $10,000 when it lies strictly between them (`grantAmounts`).
+- **P20** Edits don't trigger a new run, and a later run adds a row rather than replacing one. Each row keeps the prompt and milestone versions and the ledger it was simulated from.
+- **P21** Results are public, like the AI evaluation (P5), at `/projects/<slug>/autograntor`, which 404s for hidden
+  and draft projects except for their owner and admins. The project page doesn't link to it yet.
+
 ## Stage
 
 - **P7** Only the server moves a project into a stage that follows a decision or a funding outcome: active, not

@@ -1,6 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-.claude/
+.claude/*
+!.claude/skills/
 
 # dependencies
 /node_modules
@@ -47,3 +48,6 @@ tools/recon/data/
 
 # proposal-eval run outputs
 tools/proposal-eval/results/
+
+# autograntor working files
+/grant_eval/
