@@ -1,40 +1,68 @@
-import { PayUserProps } from '@/app/admin/pay-user'
 import { getProfileById, isAdmin } from '@/db/profile'
 import { getUserEmail, TEMPLATE_IDS } from '@/utils/email'
 import { notify, templateEmail } from '@/lib/notifications/notify'
 import { NextRequest, NextResponse } from 'next/server'
 import uuid from 'react-uuid'
 import { createAdminClient, getUserAndClient } from '@/db/edge'
+import type { TablesInsert } from '@/db/database.types'
 
 export const config = {
   runtime: 'edge',
   regions: ['sfo1'],
 }
 
+export type PayUserProps = {
+  userId: string
+  amount: number
+  sendDonationReceipt?: boolean
+  // Donor fee taken straight back out of a deposit; the receipt still covers the full amount
+  fee?: number
+}
+
 export default async function handler(req: NextRequest) {
-  const { supabase: supabaseEdge, user } = await getUserAndClient(req)
+  const { user } = await getUserAndClient(req)
   if (!user || !isAdmin(user)) return Response.error()
 
-  const { userId, amount, sendDonationReceipt } = (await req.json()) as PayUserProps
+  const { userId, amount, sendDonationReceipt, fee = 0 } = (await req.json()) as PayUserProps
+  if (!Number.isFinite(amount) || amount === 0) {
+    return NextResponse.json({ error: 'amount must be a nonzero number' }, { status: 400 })
+  }
+  if (fee !== 0 && !(amount > 0 && Number.isFinite(fee) && fee > 0 && fee < amount)) {
+    return NextResponse.json(
+      { error: 'fee must be positive and less than a positive amount' },
+      { status: 400 }
+    )
+  }
+  const bankId = process.env.NEXT_PUBLIC_PROD_BANK_ID as string
   // Interpret negative amounts as payments to the bank
-  const positiveAmount = Math.abs(amount)
-  const from_id = amount > 0 ? (process.env.NEXT_PUBLIC_PROD_BANK_ID as string) : userId
-  const to_id = amount > 0 ? userId : (process.env.NEXT_PUBLIC_PROD_BANK_ID as string)
+  const isDeposit = amount > 0
+  const txnId = uuid()
+  const bundle = fee ? uuid() : null
+  const txns: TablesInsert<'txns'>[] = [
+    {
+      id: txnId,
+      amount: Math.abs(amount),
+      from_id: isDeposit ? bankId : userId,
+      to_id: isDeposit ? userId : bankId,
+      token: 'USD',
+      type: isDeposit ? 'deposit' : 'withdraw',
+      bundle,
+    },
+  ]
+  if (fee) {
+    txns.push({
+      id: uuid(),
+      amount: fee,
+      from_id: userId,
+      to_id: bankId,
+      token: 'USD',
+      type: 'fee',
+      bundle,
+    })
+  }
 
   const supabaseAdmin = createAdminClient()
-  // Create a new txn paying this user
-  const txnId = uuid()
-  const { data: txn } = await supabaseAdmin
-    .from('txns')
-    .insert({
-      amount: positiveAmount,
-      from_id,
-      to_id,
-      token: 'USD',
-      type: amount > 0 ? 'deposit' : 'withdraw',
-    })
-    .throwOnError()
-  // Send donation receipt if applicable
+  const { data } = await supabaseAdmin.from('txns').insert(txns).select().throwOnError()
   if (sendDonationReceipt) {
     const profile = await getProfileById(supabaseAdmin, userId)
     const userEmail = await getUserEmail(supabaseAdmin, userId)
@@ -59,5 +87,5 @@ export default async function handler(req: NextRequest) {
     }
   }
 
-  return NextResponse.json(txn)
+  return NextResponse.json(data)
 }

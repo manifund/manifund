@@ -751,7 +751,7 @@ export function registerAdminTools(server: McpServer) {
         return jsonResult({
           notes: [
             'txns: money movements. token = "USD" for dollars; other tokens are impact cert shares. from_id/to_id reference profiles(id); from_id is null for deposits (money entering from outside).',
-            `txn types: profile donation, project donation, user to user trade, user to amm trade, withdraw, deposit, cash to charity transfer, inject amm liquidity, mint cert, mana deposit, tip, return bank funds.`,
+            `txn types: profile donation, project donation, user to user trade, user to amm trade, withdraw, deposit, cash to charity transfer, inject amm liquidity, mint cert, mana deposit, tip, return bank funds, fee.`,
             'projects.stage: proposal, active, not funded, complete, hidden, draft. projects.creator references profiles(id).',
             'profiles: all users and orgs. The users view maps profile id -> auth email.',
             'bids: pending offers/donations that have not yet become txns.',

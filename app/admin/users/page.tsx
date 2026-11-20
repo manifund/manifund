@@ -20,6 +20,12 @@ export default async function UsersPage() {
     }) ?? []
 
   const balances = userBalances(txns ?? [])
+  const lifetimeDeposits = new Map<string, number>()
+  for (const txn of txns ?? []) {
+    if (txn.type === 'deposit') {
+      lifetimeDeposits.set(txn.to_id, (lifetimeDeposits.get(txn.to_id) ?? 0) + txn.amount)
+    }
+  }
 
   const usersCSV =
     'email,name,username,id,balance\n' +
@@ -41,6 +47,7 @@ export default async function UsersPage() {
     username: user.profile?.username ?? null,
     accredited: (user.profile?.accreditation_status as boolean) ?? false,
     balance: balances.get(user.id ?? '') ?? 0,
+    lifetimeDeposits: lifetimeDeposits.get(user.id ?? '') ?? 0,
   }))
 
   return (
