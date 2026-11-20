@@ -149,10 +149,10 @@ function PayControls({
 
   const parsed = parseFloat(amount)
   const hasAmount = !isNaN(parsed) && parsed !== 0
-  const isDonation = hasAmount && parsed > 0 && receipt
-  const suggestedFee = isDonation ? calculateDonorFee(lifetimeDeposits, parsed) : 0
+  const isDeposit = hasAmount && parsed > 0
+  const suggestedFee = isDeposit ? calculateDonorFee(lifetimeDeposits, parsed) : 0
   const feeText = feeInput ?? (suggestedFee ? suggestedFee.toString() : '')
-  const fee = isDonation ? Number(feeText) || 0 : 0
+  const fee = isDeposit ? Number(feeText) || 0 : 0
   const feeInvalid = fee < 0 || (fee > 0 && fee >= parsed)
 
   return (
@@ -187,7 +187,7 @@ function PayControls({
         />
         <span className="text-[10px] text-gray-500">Receipt</span>
       </label>
-      {isDonation && (
+      {isDeposit && (
         <label
           className="flex items-center gap-0.5"
           title={`Lifetime deposits so far: $${Math.round(lifetimeDeposits).toLocaleString()}`}

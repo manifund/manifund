@@ -41,8 +41,8 @@ rules. The overview of the code and services is in `../README.md`.
   project, it transfers right away. Donors can also give to a regrantor's budget.
 - Balances are computed from the ledger of every transaction, never stored, so the history explains every number.
 - Manifund asks donors to cover a 5% fee for operations and fiscal sponsorship, on lifetime deposits above $50k
-  (5/105 of the deposit: send $105k to give $100k, rounded down to the dollar). When an admin credits a deposit, the
-  fee is suggested from the donor's past deposits and can be edited. It is recorded as a separate `fee` transaction
+  (5/105 of the deposit: send $105k to give $100k, rounded down to the dollar). When an admin credits a deposit (with or without a
+  receipt, e.g. from a DAF), the fee is suggested from the donor's past deposits and can be edited. It is recorded as a separate `fee` transaction
   out of the charity balance, so the deposit and its receipt show the full amount.
 - **Why:** separating charity and cash money keeps donated money for charitable use (once deposited, it can only be
   given), and the ledger makes every balance auditable.
