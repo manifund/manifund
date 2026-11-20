@@ -37,7 +37,7 @@ export function mercuryMinWithdrawal(withdrawBalance: number) {
   return Math.min(MERCURY_MIN_WITHDRAWAL, withdrawBalance)
 }
 
-// Donors pay 5% on lifetime deposits above the threshold, as 5/105 of the deposit ("send $105k to grant $100k").
+// Donors pay 5% on any deposit that takes lifetime deposits above the threshold (the whole deposit, not just the excess), as 5/105 of the deposit ("send $105k to grant $100k").
 export const DONOR_FEE_THRESHOLD = 50_000
 export const DONOR_FEE_RATE = 5 / 105
 

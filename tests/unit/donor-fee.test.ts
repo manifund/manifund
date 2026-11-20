@@ -1,4 +1,4 @@
-// Donor fee: 5/105 of the part of lifetime deposits above $50k, in whole dollars, and a `fee` txn comes out of the
+// Donor fee: 5/105 of any deposit that takes lifetime deposits above $50k (a cliff), in whole dollars, and a `fee` txn comes out of the
 // donor's charity balance only (utils/math.ts). Local, no services needed.
 import { describe, expect, test } from 'bun:test'
 import { calculateDonorFee, getTxnCashMultiplierRaw, getTxnCharityMultiplier } from '@/utils/math'
@@ -9,9 +9,15 @@ describe('donor fee amount', () => {
     expect(calculateDonorFee(0, 40_000)).toBe(0)
     expect(calculateDonorFee(10_000, 40_000)).toBe(0)
   })
-  test('only the part above $50k is charged, rounded down to the dollar', () => {
-    // $20k of the $30k lands above the line: 20000 * 5/105 = 952.38
-    expect(calculateDonorFee(40_000, 30_000)).toBe(952)
+  test('crossing $50k charges the whole deposit, rounded down to the dollar', () => {
+    // 52500 * 5/105 = 2500
+    expect(calculateDonorFee(0, 52_500)).toBe(2_500)
+    // 30000 * 5/105 = 1428.57
+    expect(calculateDonorFee(40_000, 30_000)).toBe(1_428)
+  })
+  test('landing exactly on $50k is not over the line', () => {
+    expect(calculateDonorFee(0, 50_000)).toBe(0)
+    expect(calculateDonorFee(49_999, 1)).toBe(0)
   })
   test('a donor already over the line pays on the whole deposit', () => {
     expect(calculateDonorFee(60_000, 105_000)).toBe(5_000)

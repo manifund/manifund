@@ -72,12 +72,10 @@ function getActiveValuation(
   }
 }
 
-// Fee on a new deposit, charged only on the part that lands above the lifetime threshold, in whole dollars
+// Cliff: once lifetime deposits (including this one) pass the threshold, the whole deposit is charged, in whole dollars
 export function calculateDonorFee(priorDeposits: number, amount: number) {
-  if (amount <= 0) return 0
-  const over = (total: number) => Math.max(0, total - DONOR_FEE_THRESHOLD)
-  const taxable = over(priorDeposits + amount) - over(priorDeposits)
-  return Math.floor(taxable * DONOR_FEE_RATE)
+  if (amount <= 0 || priorDeposits + amount <= DONOR_FEE_THRESHOLD) return 0
+  return Math.floor(amount * DONOR_FEE_RATE)
 }
 
 export function calculateUserBalance(txns: Txn[], userId: string) {
