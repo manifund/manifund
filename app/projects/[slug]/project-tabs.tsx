@@ -11,7 +11,7 @@ import { TxnAndProfiles } from '@/db/txn'
 import { Shareholders } from './shareholders'
 import { bundleTxns } from '@/utils/math'
 import { Tab } from '@/components/tabs'
-import { SectionNav } from '@/components/section-nav'
+import { SectionNav, type Section } from '@/components/section-nav'
 import { AI_HIGHLY_RATED_MIN_SCORE, latestAiEval } from '@/utils/karma'
 import { AiReview } from './ai-review'
 import { DonationsHistory } from '@/components/donations-history'
@@ -21,6 +21,7 @@ import { compareDesc } from 'date-fns'
 import { formatMoneyPrecise, formatPercent } from '@/utils/formatting'
 import { SimilarProjects } from './similar-projects'
 import { useCommentPrompt } from './comment-prompt'
+import { useOutlineSections } from './project-outline'
 
 const SIMILARITY_THRESHOLD = 0.6
 
@@ -61,7 +62,8 @@ export function ProjectTabs(props: {
       ? getShareholders(txns)
       : undefined
   const commenterContributions = getCommenterContributions(comments, bids, txns, shareholders)
-  const tabs: Tab[] = [
+  // stat: what the section's pill says, when it isn't the count (the AI review's "4/5")
+  const tabs: (Tab & { stat?: string })[] = [
     {
       name: 'Comments',
       id: 'comments',
@@ -140,7 +142,12 @@ export function ProjectTabs(props: {
 
   const aiEval = latestAiEval(project.project_ai_evals)
   if (aiEval && (aiEval.score ?? 0) >= AI_HIGHLY_RATED_MIN_SCORE && aiEval.opinion) {
-    tabs.push({ name: 'AI review', id: 'ai-review', display: <AiReview evaluation={aiEval} /> })
+    tabs.push({
+      name: 'AI review',
+      id: 'ai-review',
+      stat: `${aiEval.score}/5`,
+      display: <AiReview evaluation={aiEval} />,
+    })
   }
 
   // Disable predictions section for now, as it's not getting any usage
@@ -173,16 +180,17 @@ export function ProjectTabs(props: {
     document.getElementById(currentTabId)?.scrollIntoView()
   }, [currentTabId])
 
+  const sections: Section[] = tabs.map((tab) => ({
+    id: tab.id,
+    label: tab.name,
+    stat: tab.stat ?? (tab.count ? `${tab.count}` : undefined),
+  }))
+  // The outline in the rail lists these sections too, after the description's headings.
+  useOutlineSections(sections)
+
   return (
     <div>
-      <SectionNav
-        className="mt-0"
-        sections={tabs.map((tab) => ({
-          id: tab.id,
-          label: tab.name,
-          stat: tab.count ? `${tab.count}` : undefined,
-        }))}
-      />
+      <SectionNav className="mt-0" sections={sections} />
       <div className="flex flex-col gap-16 pt-8">
         {tabs.map((tab) => (
           <section key={tab.id} id={tab.id} className="flex scroll-mt-16 flex-col gap-4">

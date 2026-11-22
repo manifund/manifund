@@ -30,7 +30,7 @@ import { RichContent } from '@/components/editor'
 import { ProjectActions } from './project-actions'
 import { AdminBanner } from './admin-banner'
 import { FundingCard } from './funding-card'
-import { ProjectOutline } from './project-outline'
+import { OutlineSectionsProvider, ProjectOutline } from './project-outline'
 import clsx from 'clsx'
 import { UserAvatarAndBadge } from '@/components/user-link'
 import { ProjectScoreFlags } from '@/components/slop-flag'
@@ -58,7 +58,9 @@ type ProjectDisplayProps = {
 export function ProjectDisplay(props: ProjectDisplayProps) {
   return (
     <CommentPromptProvider>
-      <ProjectDisplayInner {...props} />
+      <OutlineSectionsProvider>
+        <ProjectDisplayInner {...props} />
+      </OutlineSectionsProvider>
     </CommentPromptProvider>
   )
 }

@@ -40,7 +40,7 @@ digest; highly rated projects show it on their pages. The prompt was chosen by t
   `utils/digest-projects.ts`.
 - **P11** A project whose AI score is 4 or 5 shows a trophy on its card and next to its title ("highly rated by our
   experimental AI rating system"), and an _AI review_ section after Comments, Offers, Shareholders and Donations with the score and Claude's
-  opinion. Lower-rated projects show neither. The evaluation shown is the latest, as in P9.
+  opinion; its pill in the section bar says the score ("4/5"). Lower-rated projects show neither. The evaluation shown is the latest, as in P9.
 
 ## Autograntor
 
@@ -77,7 +77,8 @@ is simulated for the mean, median, p10 and p90. An admin runs it by hand from Cl
 ## Project page
 
 - **P14** A project's page has one column on narrow screens (header, funding card, description, tabs). From the
-  `xl` breakpoint, the funding card and an outline of the description's headings sit in a sticky rail on the right.
+  `xl` breakpoint, the funding card and an outline sit in a sticky rail on the right: the description's headings
+  (when there are at least two), then the sections below (P17) with the same pills as the section bar.
 - **P15** The header shows the vote arrows around the project's karma (no net vote count). A vote briefly shows the
   karma it moved, the viewer's vote weight (`karmaWeight`), and the arrows' tooltips say what a vote is worth.
 - **P16** Everyone can share; signed-in visitors can follow. The owner sees one Edit button (Edit & publish for a
