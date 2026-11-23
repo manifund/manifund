@@ -11,6 +11,8 @@ import { sendDiscordAlert } from '@/utils/discord'
 
 export const maxDuration = 300
 
+// Both in business days (Mon-Fri, Pacific time; holidays not excluded), so a
+// withdrawal submitted Friday doesn't page us over the weekend.
 const STUCK_APPROVAL_DAYS = 2
 const RE_ALERT_DAYS = 3
 // Hourly, so 3 is a Mercury blip outlasting ~2 hours; then re-alert daily.
@@ -91,9 +93,9 @@ async function handler(req: NextRequest) {
   // 'pending_approval' and 'needs_manual', so the two can never write to the
   // same row.
   if (!requestId) {
-    const now = Date.now()
-    const stuckCutoff = new Date(now - STUCK_APPROVAL_DAYS * 86400 * 1000).toISOString()
-    const reAlertCutoff = new Date(now - RE_ALERT_DAYS * 86400 * 1000).toISOString()
+    const now = new Date()
+    const stuckCutoff = businessDaysBefore(now, STUCK_APPROVAL_DAYS).toISOString()
+    const reAlertCutoff = businessDaysBefore(now, RE_ALERT_DAYS).toISOString()
     const stuck = requests.filter(
       (r) =>
         (r.status === 'pending_approval' || r.status === 'needs_manual') &&
@@ -103,9 +105,9 @@ async function handler(req: NextRequest) {
     for (const r of stuck) {
       await sendDiscordAlert(
         r.status === 'pending_approval'
-          ? `⚠️ Withdrawal awaiting approval in Mercury for ${STUCK_APPROVAL_DAYS}+ days: ` +
+          ? `⚠️ Withdrawal awaiting approval in Mercury for ${STUCK_APPROVAL_DAYS}+ business days: ` +
               `$${r.amount} (request ${r.id})`
-          : `⚠️ Manual wire still open after ${STUCK_APPROVAL_DAYS}+ days: ` +
+          : `⚠️ Manual wire still open after ${STUCK_APPROVAL_DAYS}+ business days: ` +
               `$${r.amount} (request ${r.id}). If it already went out, the sync couldn't ` +
               `match it — set status='sent' and sent_at in SQL and email the grantee.`
       )
@@ -118,6 +120,25 @@ async function handler(req: NextRequest) {
   }
 
   return NextResponse.json({ checked: requests.length, advanced })
+}
+
+const PACIFIC_WEEKDAY = new Intl.DateTimeFormat('en-US', {
+  timeZone: 'America/Los_Angeles',
+  weekday: 'short',
+})
+
+// The instant `days` business days before `end`: walks back an hour at a time,
+// counting only hours that fall on a weekday in Pacific time.
+function businessDaysBefore(end: Date, days: number): Date {
+  const HOUR = 3600 * 1000
+  let t = end.getTime()
+  let hours = 0
+  while (hours < days * 24) {
+    t -= HOUR
+    const weekday = PACIFIC_WEEKDAY.format(new Date(t))
+    if (weekday !== 'Sat' && weekday !== 'Sun') hours++
+  }
+  return new Date(t)
 }
 
 // Cron hits GET; the withdrawal page refreshes one row via POST.
