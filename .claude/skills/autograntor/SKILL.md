@@ -6,8 +6,7 @@ description: Score one Manifund proposal with the autograntor (expected utility 
 # Autograntor
 
 Score one proposal. Argument: a project slug (or a manifund.org/projects/<slug> URL). You are the coordinator. Everything lives in
-`tools/autograntor/` (see its README), and working files go in `grant_eval/<slug>/`, which is gitignored. Use
-`~/.bun/bin/bun` because bun isn't on the PATH.
+`tools/autograntor/` (see its README), and working files go in `grant_eval/<slug>/`, which is gitignored.
 
 Keep the run cheap. Cost scales with the number of model calls, so:
 
@@ -18,7 +17,7 @@ Keep the run cheap. Cost scales with the number of model calls, so:
 
 ## 1. Stage
 
-Run `~/.bun/bin/bun tools/autograntor/fetch.ts <slug>`.
+Run `bun tools/autograntor/fetch.ts <slug>`.
 
 It prints the AI score, stage and number of earlier runs; mention them to the user, but carry on. Then read `grant_eval/<slug>/source/application.md` yourself.
 
@@ -36,7 +35,7 @@ would break independence.
 When both reply, run:
 
 ```
-~/.bun/bin/bun tools/autograntor/simulate.ts --diff grant_eval/<slug>/A_ledger.csv grant_eval/<slug>/B_ledger.csv --size <smallest amount>
+bun tools/autograntor/simulate.ts --diff grant_eval/<slug>/A_ledger.csv grant_eval/<slug>/B_ledger.csv --size <smallest amount>
 ```
 
 If an estimator didn't produce a valid ledger, send it the simulator's error with SendMessage once.
@@ -57,7 +56,7 @@ Read both estimates, both ledgers and any critiques in one step. Follow `tools/a
 
 ## 5. Publish
 
-1. Run `~/.bun/bin/bun tools/autograntor/publish.ts <slug>`, a dry run that re-simulates `final_ledger.csv`. If it
+1. Run `bun tools/autograntor/publish.ts <slug>`, a dry run that re-simulates `final_ledger.csv`. If it
    refuses or its numbers don't match the report, fix that first.
 2. Then run it again with `--execute` straight away; don't wait for the user's OK. This writes to production.
 3. Show the user the simulator's summary table, the three decisions that mattered most, and the link it prints.

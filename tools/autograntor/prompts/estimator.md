@@ -68,7 +68,7 @@ Write `grant_eval/<slug>/<X>_ledger.csv` (X is your letter) in the format descri
 - `exec_mode` on every event row that uses it: `credit` when p0 is the chance the same work happens anyway, `p1`
   when p0 is a base rate from other causes
 
-Run `~/.bun/bin/bun tools/autograntor/simulate.ts grant_eval/<slug>/<X>_ledger.csv` at most three times (first run,
+Run `bun tools/autograntor/simulate.ts grant_eval/<slug>/<X>_ledger.csv` at most three times (first run,
 one revision, a final check). Fix several rows per revision.
 
 ## Output
