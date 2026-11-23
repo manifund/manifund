@@ -31,9 +31,11 @@ async function classifyWithModel<T>(
   const raw = completion.choices[0]?.message?.content ?? ''
   // An empty body means the model refused (Anthropic safety classifier): fall back.
   const match = raw.match(/\{[\s\S]*\}/)
-  if (!match) throw new Error(`classifier returned no JSON (model=${model}): "${raw.slice(0, 120)}"`)
+  if (!match)
+    throw new Error(`classifier returned no JSON (model=${model}): "${raw.slice(0, 120)}"`)
   const valid = validate(JSON.parse(match[0]))
-  if (!valid) throw new Error(`classifier returned invalid JSON (model=${model}): ${match[0].slice(0, 120)}`)
+  if (!valid)
+    throw new Error(`classifier returned invalid JSON (model=${model}): ${match[0].slice(0, 120)}`)
   return { ...valid, model }
 }
 
@@ -135,7 +137,7 @@ function accountSystemPrompt(teamNames: string[]) {
   return `You check new account names on Manifund, a grant-funding platform. A flagged account can't post until an admin reviews it, so be conservative: flag only clear cases.
 
 Flag the account ONLY if its username or display name:
-- impersonation: poses as Manifund itself or its staff ("Manifund", "Manifund Support", "Manifund Team", "Trust & Safety", "Admin", "Official", "Moderator", and close variants or misspellings), or as one of the Manifund team members listed below, or as a well-known public figure or organization in a way meant to deceive.
+- impersonation: poses as Manifund itself or its staff ("Manifund", "Manifund Support", "Manifund Team", "Trust & Safety", and close variants or misspellings; or a role word styled as this site's own staff, like "Site Admin", "Platform Moderator", "Grants Team Support", "Official Support"), or as one of the Manifund team members listed below, or as a well-known public figure or organization in a way meant to deceive.
 - offensive: contains slurs, hate speech, sexual content, or harassment of a person.
 
 Manifund team members: ${teamNames.length ? teamNames.join('; ') : '(none listed)'}
@@ -144,6 +146,7 @@ Do NOT flag:
 - Ordinary names, even if they share a first name or a common surname with a team member. Only flag a name that matches a team member's full name or is clearly styled to pass as them.
 - Names of organizations, labs, or projects the person may genuinely represent.
 - Nicknames, handles, email-like usernames, or random strings.
+- Role words like "admin", "moderator", "official" or "support" on their own or as part of an ordinary handle ("sysadmin", "admin123", "jane_admin", "Official Jane"). Flag them only when the name presents as Manifund's or this site's staff.
 
 When in doubt, do not flag.
 

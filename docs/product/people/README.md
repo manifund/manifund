@@ -18,7 +18,9 @@ Until then: the overview is in `../intent.md` ("People"); comments on profiles a
 - **U2** A new account's username and display name are checked for impersonation (of Manifund, its staff, or the
   team members, whose names come from the admins' profiles) and for offensive names. A name with "Manifund" or
   "Trust & Safety" in it is held without asking the model; otherwise Claude (Sonnet, with Haiku as a fallback)
-  decides. If the check can't run, the account isn't held. Admins' accounts aren't checked.
+  decides. A role word like "admin" or "moderator" alone isn't impersonation; it is only when the name presents as
+  Manifund's or the site's staff ("Site Admin", "Manifund Support"). If the check can't run, the account isn't held.
+  Admins' accounts aren't checked.
 - **U3** The check runs right after sign-up, again after a rename on the profile form, and again on the next post
   if the names changed since the last check (the profile is saved from the browser, so the post is where a rename is
   always caught).
@@ -29,6 +31,7 @@ Until then: the overview is in `../intent.md` ("People"); comments on profiles a
   post; the same names aren't held again) or ban (superban: the account and everything it posted are deleted).
 - **U6** The hold and its reason are visible to the person and admins only; nobody can lift their own hold.
 
-| Date | Decided by | Decision | Why |
-|---|---|---|---|
-| 2026-11-05 | Carol | Hold accounts whose names look like impersonation or are offensive until an admin reviews them; enforced from the start (U2-U6) | The 2026-11-04 phishing account was named "Manifund_Support" and nothing stopped the name |
+| Date       | Decided by | Decision                                                                                                                        | Why                                                                                       |
+| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 2026-11-05 | Carol      | Hold accounts whose names look like impersonation or are offensive until an admin reviews them; enforced from the start (U2-U6) | The 2026-11-04 phishing account was named "Manifund_Support" and nothing stopped the name |
+| 2026-11-23 | Caroline   | Don't hold names just for containing "admin", "moderator" or similar; only when they present as Manifund staff (U2)             | Ordinary handles like "sysadmin" were being held                                          |
