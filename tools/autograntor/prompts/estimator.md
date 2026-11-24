@@ -34,8 +34,10 @@ own pages for this project (comments, votes or other evaluations); judge the pro
 Start skeptical: most proposals with no outside validation produce nothing the AI safety field uses. The strongest
 warning signs are no outside validation (users, citations, stars, endorsements, acceptance by a program or venue),
 little engagement with AI safety research and people, and claims that outrun the evidence. Moderate signs are an
-AI-written application (the Pangram line in the application file, if present) and no relevant background. When the strong signs are present, keep the execution factor
-around 0.1–0.2, and apply it to career and field-building rows too.
+AI-written application (the Pangram line in the application file, if present) and no relevant background. Put all of
+this into the probabilities and ev values themselves. When the strong signs are present, outcomes that need the field to
+take notice (citation, uptake, a career in AI safety) should usually come out well under 1%: the signs lower both the
+chance the work is done well and the chance anyone in the field would see or trust it.
 
 **Counterfactuals.** Treat the grant as buying the impact of the project, so you don't have to worry much about
 counterfactuals:
@@ -72,9 +74,9 @@ Write `grant_eval/<slug>/<X>_ledger.csv` (X is your letter) in the format descri
 
 - one row per consequence per amount
 - `group` on every row, filed by causal path
-- an `exec` row for the team's execution factor, applied to program rows
-- `exec_mode` on every event row that uses it: `credit` when p0 is the chance the same work happens anyway, `p1`
-  when p0 is a base rate from other causes
+- a `spread` row for how uncertain the team's execution is, put in `exec` on its program rows so they succeed or
+  fail together. Its mean is always 1, so it never discounts anything: how well the team will do goes in the
+  probabilities.
 
 Run `bun tools/autograntor/simulate.ts grant_eval/<slug>/<X>_ledger.csv` at most three times (first run,
 one revision, a final check). Fix several rows per revision.

@@ -19,7 +19,9 @@ export const GROUPS = [
 ] as const
 type Group = (typeof GROUPS)[number]
 
-export type ExecSpec = { mean: number; p10: number; p90: number }
+// `exec` (v0-v1 ledgers): a beta factor with mean < 1 that discounts its rows. `spread` (v2+): a lognormal factor
+// with mean 1 that leaves every row's mean alone and only makes its rows succeed or fail together.
+export type ExecSpec = { kind: 'exec' | 'spread'; mean: number; p10: number; p90: number }
 
 export type LedgerRow = {
   name: string
@@ -120,8 +122,19 @@ export function parseLedger(text: string): Ledger {
     const where = `line ${i + 2} (${get('name') || 'unnamed'})`
     const kind = get('kind')
 
+    if (kind === 'spread') {
+      const spec = { kind, mean: 1, p10: num('p10'), p90: num('p90') }
+      if (
+        spec.p10 === null ||
+        spec.p90 === null ||
+        !(0 < spec.p10 && spec.p10 < 1 && 1 < spec.p90)
+      ) {
+        errors.push(`${where}: a spread row needs 0 < p10 < 1 < p90 (its mean is always 1)`)
+      } else exec[get('name')] = spec as ExecSpec
+      return
+    }
     if (kind === 'exec') {
-      const spec = { mean: num('ev'), p10: num('p10'), p90: num('p90') }
+      const spec = { kind, mean: num('ev'), p10: num('p10'), p90: num('p90') }
       if (
         spec.mean === null ||
         spec.p10 === null ||
@@ -133,7 +146,7 @@ export function parseLedger(text: string): Ledger {
       return
     }
     if (kind !== 'event' && kind !== 'continuous' && kind !== 'charge') {
-      errors.push(`${where}: kind must be event, continuous, charge or exec`)
+      errors.push(`${where}: kind must be event, continuous, charge, spread or exec`)
       return
     }
     const size = num('size')
@@ -164,8 +177,13 @@ export function parseLedger(text: string): Ledger {
       if (num('weight') === null) errors.push(`${where}: an event needs weight`)
       for (const p of [row.p1, row.p0])
         if (!(p >= 0 && p <= 1)) errors.push(`${where}: p1 and p0 must be between 0 and 1`)
-      if (execName && execMode !== 'credit' && execMode !== 'p1')
-        errors.push(`${where}: an event with exec needs exec_mode credit or p1`)
+      if (
+        execName &&
+        execMode !== 'credit' &&
+        execMode !== 'p1' &&
+        exec[execName]?.kind !== 'spread'
+      )
+        errors.push(`${where}: an event with an exec factor needs exec_mode credit or p1`)
     } else {
       if (num('ev') === null) errors.push(`${where}: a ${kind} row needs ev`)
       if ((row.p10 === null) !== (row.p90 === null))
@@ -173,7 +191,7 @@ export function parseLedger(text: string): Ledger {
       if (row.p10 !== null && row.p90 !== null && !(row.p10 <= row.p90))
         errors.push(`${where}: p10 must be <= p90`)
       if (kind === 'charge' && execName)
-        errors.push(`${where}: charges never take an execution factor`)
+        errors.push(`${where}: charges never take an exec or spread factor`)
     }
     rows.push(row)
   })
@@ -189,7 +207,8 @@ export function parseLedger(text: string): Ledger {
 export function rowMean(r: LedgerRow, exec: Record<string, ExecSpec>): number {
   const x = r.exec ? exec[r.exec].mean : 1
   if (r.kind === 'event') {
-    if (r.exec && r.execMode === 'p1') return r.weight * (x * r.p1 - r.p0)
+    if (r.exec && exec[r.exec].kind === 'exec' && r.execMode === 'p1')
+      return r.weight * (x * r.p1 - r.p0)
     return r.weight * x * (r.p1 - r.p0)
   }
   if (r.kind === 'continuous') return r.ev * x
@@ -288,21 +307,33 @@ export function simulateSize(ledger: Ledger, size: number, draws = 200_000, seed
   const post = rows.reduce((s, r, i) => s + means[i] * r.post2030, 0)
 
   const execNames = [...new Set(rows.map((r) => r.exec).filter(Boolean))] as string[]
-  const betas = Object.fromEntries(execNames.map((n) => [n, fitBeta(ledger.exec[n])]))
+  const factorDraws = Object.fromEntries(
+    execNames.map((n) => {
+      const spec = ledger.exec[n]
+      if (spec.kind === 'spread') {
+        // lognormal whose p10-p90 width matches, shifted so its mean is exactly 1
+        const s = (Math.log(spec.p90) - Math.log(spec.p10)) / (2 * Z90)
+        return [n, (u: () => number) => Math.exp(-(s * s) / 2 + s * normal(u))]
+      }
+      const { a, b } = fitBeta(spec)
+      return [n, (u: () => number) => beta(u, a, b)]
+    })
+  )
   const samplers = rows.map((r) => (r.kind === 'event' ? null : amountSampler(r)))
   const u = rng(seed)
   const totals = new Float64Array(draws)
   const x: Record<string, number> = {}
   for (let d = 0; d < draws; d++) {
-    for (const n of execNames) x[n] = beta(u, betas[n].a, betas[n].b)
+    for (const n of execNames) x[n] = factorDraws[n](u)
     let total = 0
     for (let i = 0; i < rows.length; i++) {
       const r = rows[i]
       const xi = r.exec ? x[r.exec] : 1
       if (r.kind === 'event') {
         const v = u()
-        const p1 = r.exec && r.execMode === 'p1' ? xi * r.p1 : r.p1
-        const factor = r.exec && r.execMode === 'credit' ? xi : 1
+        const isP1 = r.exec && ledger.exec[r.exec].kind === 'exec' && r.execMode === 'p1'
+        const p1 = isP1 ? xi * r.p1 : r.p1
+        const factor = r.exec && !isP1 ? xi : 1
         total += r.weight * factor * ((v < p1 ? 1 : 0) - (v < r.p0 ? 1 : 0))
       } else total += samplers[i]!(u) * (r.kind === 'continuous' ? xi : 1)
     }

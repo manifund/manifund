@@ -32,23 +32,27 @@ One CSV per estimate, one row per consequence per grant amount. Columns:
 
 | column               | meaning                                                                                                                                                                                                                                           |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `name`               | short label for the consequence (or the execution factor's name, for an `exec` row)                                                                                                                                                               |
-| `size`               | grant amount in dollars this row belongs to (blank for `exec` rows)                                                                                                                                                                               |
-| `kind`               | `event`, `continuous`, `charge` or `exec`                                                                                                                                                                                                         |
+| `name`               | short label for the consequence (or the factor's name, for a `spread` row)                                                                                                                                                                        |
+| `size`               | grant amount in dollars this row belongs to (blank for `spread` rows)                                                                                                                                                                             |
+| `kind`               | `event`, `continuous`, `charge` or `spread`                                                                                                                                                                                                       |
 | `weight`, `p1`, `p0` | events: points if it happens; probability by 2030 with the grant and without                                                                                                                                                                      |
-| `ev`, `p10`, `p90`   | continuous and charge rows: expected points and an 80% range (optional); `exec` rows: mean, p10, p90 of the factor                                                                                                                                |
-| `exec`               | name of the execution factor applied to this row (program rows only, never charges)                                                                                                                                                               |
-| `exec_mode`          | events with an execution factor: `credit` if p0 is the chance this same work happens anyway, `p1` if p0 is a base rate from other causes                                                                                                          |
+| `ev`, `p10`, `p90`   | continuous and charge rows: expected points and an 80% range (optional); `spread` rows: p10, p90 of the factor                                                                                                                                    |
+| `exec`               | name of the `spread` factor applied to this row (program rows only, never charges)                                                                                                                                                                |
+| `exec_mode`          | leave blank (only used by the old `exec` factor)                                                                                                                                                                                                  |
 | `group`              | causal path: `research`, `uptake`, `policy`, `people`, `audience` (PERCYs), `community`, `money`, `exposure` (press, scandal, partisan coding), `values` (pure signalling), `other`. A harm that mirrors a positive row goes in that row's group. |
 | `post2030`           | fraction (0–1) of the row's value that comes from effects after 2030                                                                                                                                                                              |
 | `note`               | free text, quoted if it has commas                                                                                                                                                                                                                |
 
 Lines starting with `#` are ignored.
 
+Ledgers from prompt v0–v1 used an `exec` row instead: a beta factor with mean below 1 (`ev`, `p10`, `p90` all
+between 0 and 1) that discounted its rows, with `exec_mode` `credit` (multiply the points) or `p1` (multiply p1). The
+simulator still reads them. It was dropped because estimators shifted doubt between the factor and the probabilities.
+
 ```csv
 name,size,kind,weight,p1,p0,ev,p10,p90,exec,exec_mode,group,post2030,note
-team,,exec,,,,0.6,0.3,0.85,,,,,"execution: first-time team, strong advisors"
-eval paper adopted by a lab,10000,event,500,0.15,0.05,,,,team,credit,uptake,0.2,
+team,,spread,,,,,0.3,1.6,,,,,"first-time team: could go well or badly"
+eval paper adopted by a lab,10000,event,500,0.1,0.03,,,,team,,uptake,0.2,
 researcher-years produced,10000,continuous,,,,12,5,20,team,,people,0,0.8 FTE-yr x 15 points
 bad press for the field,10000,charge,,,,-10,-40,0,,,exposure,0,
 ```
@@ -56,11 +60,11 @@ bad press for the field,10000,charge,,,,-10,-40,0,,,exposure,0,
 **How it computes:**
 
 - **Mean (the headline), exact:**
-  - events: `weight × (p1 − p0)`, times E[x] in `credit` mode, or `weight × (E[x]·p1 − p0)` in `p1` mode
-  - continuous rows: `ev × E[x]`
-  - charges: `ev`
+  - events: `weight × (p1 − p0)`
+  - continuous rows and charges: `ev`
 - **Monte Carlo quantiles (200k draws, fixed seed), descriptive only:**
-  - each execution factor is one beta draw per world, shared by all its rows, so they succeed or fail together
+  - each `spread` factor is one lognormal draw per world with mean 1, shared by all its rows, so they succeed or fail
+    together; it multiplies their points and never changes a mean
   - each event uses one uniform draw for both the with-grant and without-grant cases
   - continuous and charge rows are lognormal when p10 and p90 have the same sign, normal when the range straddles zero
   - each row is then scaled so its mean is exactly `ev`
