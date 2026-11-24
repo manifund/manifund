@@ -63,6 +63,8 @@ bottleneck. Put that number in the row's note, and price the direction against a
 similarly.
 
 **People.** A person moving into AI safety is worth Δp × years × (their value per year − the cost of funding them).
+Estimate p0 first, as a realistic base rate for this person going into AI safety anyway (high for someone already
+committed), then judge how much the grant moves it from there.
 Funding costs 40 points per $1M (row 80): 8 points a year at a $200k salary, 16 at $400k. Researcher value per year
 is roughly lognormal with median 20 and σ 1.4: a 40th-percentile researcher (marginal MATS graduate) is about 15, a
 75th-percentile one (respected first-author work that others build on) about 50, and a 90th-percentile one
