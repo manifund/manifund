@@ -19,8 +19,8 @@ median, p10, p90, P(negative), per $1M, % post-2030, pasted from the simulator.
 
 ## Expected value calculation
 
-The final ledger as a table: milestone or outcome, points, p with and without the grant (or ev and range), exec
-factor, contribution. Add one line of reasoning per row. Follow it with any subjective adjustments and where they
+The final ledger as a table: milestone or outcome, points, p with and without the grant (or ev and range),
+contribution. Add one line of reasoning per row. Follow it with any subjective adjustments and where they
 went.
 
 ## How the estimates moved
