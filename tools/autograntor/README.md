@@ -40,8 +40,7 @@ One CSV per estimate, one row per consequence per grant amount. Columns:
 | `exec`               | name of the `spread` factor applied to this row (program rows only, never charges)                                                                                                                                                                |
 | `exec_mode`          | leave blank (only used by the old `exec` factor)                                                                                                                                                                                                  |
 | `group`              | causal path: `research`, `uptake`, `policy`, `people`, `audience` (PERCYs), `community`, `money`, `exposure` (press, scandal, partisan coding), `values` (pure signalling), `other`. A harm that mirrors a positive row goes in that row's group. |
-| `post2030`           | fraction (0–1) of the row's value that comes from effects after 2030                                                                                                                                                                              |
-| `years`              | how many years from now the row's value mostly lands; discounted at 20% a year (`DISCOUNT_RATE` in `simulate.ts`)                                                                                                                                 |
+| `start`, `end`       | calendar years (decimals allowed) when the value arrives: `start` only for a point outcome, both for a span                                                                                                                                       |
 | `note`               | free text, quoted if it has commas                                                                                                                                                                                                                |
 
 Lines starting with `#` are ignored.
@@ -50,12 +49,15 @@ Ledgers from prompt v0–v1 used an `exec` row instead: a beta factor with mean 
 between 0 and 1) that discounted its rows, with `exec_mode` `credit` (multiply the points) or `p1` (multiply p1). The
 simulator still reads them. It was dropped because estimators shifted doubt between the factor and the probabilities.
 
+Older timing columns, still read: v3–v4 ledgers have `years` (one point, in years from now) and a hand-set `post2030`
+fraction; v0–v2 have only `post2030` and no discount. A ledger with a `start` column must leave both blank.
+
 ```csv
-name,size,kind,weight,p1,p0,ev,p10,p90,exec,exec_mode,group,post2030,years,note
+name,size,kind,weight,p1,p0,ev,p10,p90,exec,exec_mode,group,start,end,note
 team,,spread,,,,,0.3,1.6,,,,,,"first-time team: could go well or badly"
-eval paper adopted by a lab,10000,event,500,0.1,0.03,,,,team,,uptake,0.2,2,
-researcher-years produced,10000,continuous,,,,12,5,20,team,,people,0,1,0.8 FTE-yr x 15 points
-bad press for the field,10000,charge,,,,-10,-40,0,,,exposure,0,1,
+eval paper adopted by a lab,10000,event,500,0.1,0.03,,,,team,,uptake,2028,,
+researcher-years produced,10000,continuous,,,,12,5,20,team,,people,2027,2028,0.8 FTE-yr x 15 points
+bad press for the field,10000,charge,,,,-10,-40,0,,,exposure,2027,,
 ```
 
 **How it computes:**
@@ -63,14 +65,16 @@ bad press for the field,10000,charge,,,,-10,-40,0,,,exposure,0,1,
 - **Mean (the headline), exact:**
   - events: `weight × (p1 − p0)`
   - continuous rows and charges: `ev`
-  - each then times `1.2^−years`. Ledgers without a `years` column (prompt v0–v2) aren't discounted
+  - each then times its discount, counted from the run date: `1.2^−t` for a point `t` years out, or for a span from
+    `a` to `b` years out the average of `1.2^−t` over it, `(1.2^−a − 1.2^−b) / ((b − a) ln 1.2)`, assuming value
+    arrives at a steady rate
 - **Monte Carlo quantiles (200k draws, fixed seed), descriptive only:**
   - each `spread` factor is one lognormal draw per world with mean 1, shared by all its rows, so they succeed or fail
     together; it multiplies their points and never changes a mean
   - each event uses one uniform draw for both the with-grant and without-grant cases
   - continuous and charge rows are lognormal when p10 and p90 have the same sign, normal when the range straddles zero
   - each row is then scaled so its mean is exactly `ev`
-- **post2030 share:** Σ(row mean × post2030) / mean
+- **post2030 share:** the part of each row's discounted value after 1 Jan 2030, summed over rows, divided by the mean
 - **The `--diff` agreement test:** the means are within 30% of the larger (or both within 50 points of zero), the
   largest group is the same, and no group differs by more than 30% of the larger mean.
 

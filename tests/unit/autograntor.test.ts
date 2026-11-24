@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test'
 import { grantAmounts } from '@/tools/autograntor/lib'
-import { compareLedgers, parseLedger, simulateSize } from '@/tools/autograntor/simulate'
+import { compareLedgers, parseLedger, simulateSize, spanTiming } from '@/tools/autograntor/simulate'
 
 const HEADER = 'name,size,kind,weight,p1,p0,ev,p10,p90,exec,exec_mode,group,post2030,note'
 const ledger = (...rows: string[]) => parseLedger([HEADER, ...rows].join('\n'))
@@ -33,6 +33,32 @@ describe('spread factor and time discount (prompt v3)', () => {
     const r = simulateSize(l, 10000, 20000)
     expect(r.mean).toBeCloseTo(10 + (100 * 0.1) / 1.2 ** 3, 6)
     expect(Math.abs(r.mc_mean - r.mean) / r.mean).toBeLessThan(0.05)
+  })
+})
+
+describe('start/end timing (prompt v5)', () => {
+  test('a span is discounted by the average of 1.2^-t over it, not at its midpoint', () => {
+    const { discount } = spanTiming(1, 4, 3)
+    expect(discount).toBeCloseTo((1.2 ** -1 - 1.2 ** -4) / (3 * Math.log(1.2)), 9)
+    expect(discount).toBeGreaterThan(1.2 ** -2.5)
+  })
+  test('post-2030 share is the discounted value after 2030', () => {
+    expect(spanTiming(1, 1, 3).post2030).toBe(0)
+    expect(spanTiming(4, 4, 3).post2030).toBe(1)
+    const { post2030 } = spanTiming(1, 5, 3)
+    expect(post2030).toBeCloseTo((1.2 ** -3 - 1.2 ** -5) / (1.2 ** -1 - 1.2 ** -5), 9)
+  })
+  test('rows use calendar years from the run date', () => {
+    const l = parseLedger(
+      [
+        'name,size,kind,weight,p1,p0,ev,p10,p90,exec,exec_mode,group,start,end,note',
+        'paper,10000,event,100,0.1,0,,,,,,research,2028,,',
+        'career,10000,continuous,,,,10,,,,,people,2028,2031,',
+      ].join('\n'),
+      new Date(Date.UTC(2027, 0, 1))
+    )
+    const r = simulateSize(l, 10000, 1000)
+    expect(r.mean).toBeCloseTo(10 / 1.2 + 10 * spanTiming(1, 4, 3).discount, 6)
   })
 })
 
