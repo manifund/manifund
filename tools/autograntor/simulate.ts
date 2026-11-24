@@ -5,9 +5,23 @@
 //   bun tools/autograntor/simulate.ts <ledger.csv> [--size <amount>] [--draws N]
 //   bun tools/autograntor/simulate.ts --diff <a.csv> <b.csv> --size <amount>
 
-// Value that lands `years` from now is divided by (1 + DISCOUNT_RATE)^years. Ledgers without a `years` column
-// (prompt v0-v2) are not discounted.
+// Time discount at DISCOUNT_RATE a year from the run date. Prompt v5+ ledgers give each row `start` and optionally
+// `end` (calendar years, decimals allowed): a point outcome has only `start`; a career or audience has a span, over
+// which its value is assumed to arrive at a steady rate. The post-2030 share is derived from the same timing.
+// Older ledgers: v3-v4 used `years` (one point, in years from now) plus a hand-set `post2030` fraction; v0-v2 have
+// only `post2030` and no discount.
 export const DISCOUNT_RATE = 0.2
+const LOG_R = Math.log(1 + DISCOUNT_RATE)
+const decimalYear = (d: Date) =>
+  d.getUTCFullYear() + (d.getTime() - Date.UTC(d.getUTCFullYear(), 0, 1)) / (365.25 * 86_400_000)
+
+// Average discount factor over [t0, t1] years from now, and the share of the discounted value after year T.
+export function spanTiming(t0: number, t1: number, T: number) {
+  const f = (t: number) => (1 + DISCOUNT_RATE) ** -t
+  const discount = t1 - t0 < 1e-9 ? f(t0) : (f(t0) - f(t1)) / ((t1 - t0) * LOG_R)
+  const post2030 = t1 <= T ? 0 : t0 >= T ? 1 : (f(T) - f(t1)) / (f(t0) - f(t1))
+  return { discount, post2030 }
+}
 
 export const GROUPS = [
   'research',
@@ -41,7 +55,7 @@ export type LedgerRow = {
   execMode: 'credit' | 'p1' | null
   group: Group
   post2030: number
-  years: number
+  discount: number
 }
 
 export type Ledger = { rows: LedgerRow[]; exec: Record<string, ExecSpec> }
@@ -108,11 +122,12 @@ const COLUMNS = [
   'exec',
   'exec_mode',
   'group',
-  'post2030',
   'note',
 ]
 
-export function parseLedger(text: string): Ledger {
+// asOf: the run date that discounting counts from (publish passes the run's start date).
+export function parseLedger(text: string, asOf: Date = new Date()): Ledger {
+  const now = decimalYear(asOf)
   const [header, ...lines] = parseCsv(text)
   const cols = header.map((h) => h.trim())
   const missing = COLUMNS.filter((c) => !cols.includes(c))
@@ -158,11 +173,30 @@ export function parseLedger(text: string): Ledger {
     if (size === null || !Number.isFinite(size)) errors.push(`${where}: size must be a number`)
     const group = get('group') as Group
     if (!GROUPS.includes(group)) errors.push(`${where}: group must be one of ${GROUPS.join(', ')}`)
-    const post2030 = num('post2030') ?? 0
-    const years = cols.includes('years') ? num('years') : 0
-    if (years === null || !(years >= 0 && years <= 30))
-      errors.push(`${where}: years (how far off the value lands) must be between 0 and 30`)
-    if (!(post2030 >= 0 && post2030 <= 1)) errors.push(`${where}: post2030 must be between 0 and 1`)
+    let post2030 = 0
+    let discount = 1
+    if (cols.includes('start')) {
+      const start = num('start')
+      const end = num('end') ?? start
+      if (get('post2030') !== '' || get('years') !== '')
+        errors.push(`${where}: with start/end, leave post2030 and years blank (they're derived)`)
+      if (start === null || end === null || !(2000 <= start && start <= end && end <= 2100))
+        errors.push(`${where}: start (and end, if a span) must be calendar years with start <= end`)
+      else
+        ({ discount, post2030 } = spanTiming(
+          Math.max(0, start - now),
+          Math.max(0, end - now),
+          Math.max(0, 2030 - now)
+        ))
+    } else {
+      post2030 = num('post2030') ?? 0
+      const years = cols.includes('years') ? num('years') : 0
+      if (years === null || !(years >= 0 && years <= 30))
+        errors.push(`${where}: years (how far off the value lands) must be between 0 and 30`)
+      else discount = (1 + DISCOUNT_RATE) ** -years
+      if (!(post2030 >= 0 && post2030 <= 1))
+        errors.push(`${where}: post2030 must be between 0 and 1`)
+    }
     const execName = get('exec') || null
     const execMode = (get('exec_mode') || null) as LedgerRow['execMode']
 
@@ -180,7 +214,7 @@ export function parseLedger(text: string): Ledger {
       execMode,
       group,
       post2030,
-      years: years ?? 0,
+      discount,
     }
     if (kind === 'event') {
       if (num('weight') === null) errors.push(`${where}: an event needs weight`)
@@ -213,10 +247,8 @@ export function parseLedger(text: string): Ledger {
 
 // --- analytic mean ---
 
-export const discount = (r: LedgerRow) => (1 + DISCOUNT_RATE) ** -r.years
-
 export function rowMean(r: LedgerRow, exec: Record<string, ExecSpec>): number {
-  return discount(r) * undiscountedMean(r, exec)
+  return r.discount * undiscountedMean(r, exec)
 }
 
 function undiscountedMean(r: LedgerRow, exec: Record<string, ExecSpec>): number {
@@ -335,7 +367,7 @@ export function simulateSize(ledger: Ledger, size: number, draws = 200_000, seed
     })
   )
   const samplers = rows.map((r) => (r.kind === 'event' ? null : amountSampler(r)))
-  const discounts = rows.map(discount)
+  const discounts = rows.map((r) => r.discount)
   const u = rng(seed)
   const totals = new Float64Array(draws)
   const x: Record<string, number> = {}

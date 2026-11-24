@@ -23,9 +23,10 @@ intuitive factors.
 would look from 2030:
 
 - Count milestones reached by then, plus changes in the probability of later milestones that are already evident by 2030.
-- Time-discount at 20% a year. Give each row its `years`: roughly how many years from now its value lands (about 1
-  for this project's own output, 2–5 for a career). The simulator applies the discount, so don't discount yourself.
-- Give the share of your estimate that comes from post-2030 effects. The ledger's `post2030` column does this per row.
+- Time-discount at 20% a year. Give each row its timing in calendar years: `start` alone for a point outcome (a
+  result, a law, a paper), or `start` and `end` for value spread over time (a career, an audience), e.g. 2027 to
+  2030 for three researcher-years starting next year. The simulator applies the discount and works out the post-2030
+  share, so do neither yourself.
 
 **Competence.** When estimating the likelihood of reaching milestones, consider how competent the applicant seems,
 from evidence like credentials, past accomplishments, endorsements, and the quality of their proposal. Research them
@@ -94,7 +95,7 @@ Write `grant_eval/<slug>/<X>_ledger.csv` (X is your letter) in the format descri
 
 - one row per consequence per amount
 - `group` on every row, filed by causal path
-- `years` on every row, for the time discount
+- `start`, and `end` for a span, on every row
 - a `spread` row for how uncertain the team's execution is, put in `exec` on its program rows so they succeed or
   fail together. Its mean is always 1, so it never discounts anything: how well the team will do goes in the
   probabilities.

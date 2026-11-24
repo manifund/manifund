@@ -26,7 +26,7 @@ const [run, reportMd, ledgerCsv] = await Promise.all([
   read('final_ledger.csv'),
 ])
 
-const results = resultSummary(simulateLedger(parseLedger(ledgerCsv)))
+const results = resultSummary(simulateLedger(parseLedger(ledgerCsv, new Date(run.started_at))))
 const problems: string[] = []
 const scored = results.map((r) => r.amount)
 for (const a of run.amounts as number[])
