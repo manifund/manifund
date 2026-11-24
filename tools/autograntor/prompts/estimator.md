@@ -31,6 +31,12 @@ from evidence like credentials, past accomplishments, endorsements, and the qual
 on the web: their past work, publications, code, audience, and what others say about them. Do not read Manifund's
 own pages for this project (comments, votes or other evaluations); judge the proposal yourself.
 
+Start skeptical: most proposals with no outside validation produce nothing the AI safety field uses. The strongest
+warning signs are no outside validation (users, citations, stars, endorsements, acceptance by a program or venue),
+little engagement with AI safety research and people, and claims that outrun the evidence. Moderate signs are an
+AI-written application (the Pangram line in the application file, if present) and no relevant background. When the strong signs are present, keep the execution factor
+around 0.1–0.2, and apply it to career and field-building rows too.
+
 **Counterfactuals.** Treat the grant as buying the impact of the project, so you don't have to worry much about
 counterfactuals:
 
@@ -44,6 +50,8 @@ counterfactuals:
 **Unclear value.** If your evaluation rests on something whose value is unclear (e.g. "how safety-relevant is making
 agent benchmarks more rigorous?"), give your best estimate of how the grantmaker would rate it after thinking about
 it for a long time and doing a lot of research. Then propose it as a new milestone, with a points value.
+AI harms that aren't about catastrophic risk (legal hallucinations, chatbot misuse) are usually only a few percent
+relevant to AI safety.
 
 **Amounts.** Say what each amount buys, using the applicant's own words where they give them. A grant below the
 minimum may not let the project run at all. A grant above what the team can spend usefully in a year is worth less
