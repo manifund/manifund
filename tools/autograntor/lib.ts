@@ -1,8 +1,8 @@
 import path from 'path'
 
 // Bump PROMPT_VERSION when anything in prompts/ or SKILL.md changes, MILESTONES_VERSION when milestones.md does.
-export const PROMPT_VERSION = 'v2'
-export const MILESTONES_VERSION = 'milestones-2026-11-20b'
+export const PROMPT_VERSION = 'v3'
+export const MILESTONES_VERSION = 'milestones-2026-11-24'
 export const MID_AMOUNT = 10_000
 
 export const TOOL_DIR = import.meta.dir

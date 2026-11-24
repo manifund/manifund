@@ -20,6 +20,22 @@ describe('P19: grant amounts', () => {
   })
 })
 
+describe('spread factor and time discount (prompt v3)', () => {
+  const l = parseLedger(
+    [
+      HEADER.replace('post2030,note', 'post2030,years,note'),
+      'team,,spread,,,,,0.3,1.8,,,,,,',
+      'post,10000,continuous,,,,10,5,20,team,,research,0,0,',
+      'career,10000,event,100,0.1,0,,,,team,,people,0.5,3,',
+    ].join('\n')
+  )
+  test('spread keeps means; years discounts at 20% a year', () => {
+    const r = simulateSize(l, 10000, 20000)
+    expect(r.mean).toBeCloseTo(10 + (100 * 0.1) / 1.2 ** 3, 6)
+    expect(Math.abs(r.mc_mean - r.mean) / r.mean).toBeLessThan(0.05)
+  })
+})
+
 describe('ledger simulator', () => {
   const l = ledger(
     'team,,exec,,,,0.6,0.3,0.85,,,,,',

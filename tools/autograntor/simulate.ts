@@ -5,6 +5,10 @@
 //   bun tools/autograntor/simulate.ts <ledger.csv> [--size <amount>] [--draws N]
 //   bun tools/autograntor/simulate.ts --diff <a.csv> <b.csv> --size <amount>
 
+// Value that lands `years` from now is divided by (1 + DISCOUNT_RATE)^years. Ledgers without a `years` column
+// (prompt v0-v2) are not discounted.
+export const DISCOUNT_RATE = 0.2
+
 export const GROUPS = [
   'research',
   'uptake',
@@ -37,6 +41,7 @@ export type LedgerRow = {
   execMode: 'credit' | 'p1' | null
   group: Group
   post2030: number
+  years: number
 }
 
 export type Ledger = { rows: LedgerRow[]; exec: Record<string, ExecSpec> }
@@ -154,6 +159,9 @@ export function parseLedger(text: string): Ledger {
     const group = get('group') as Group
     if (!GROUPS.includes(group)) errors.push(`${where}: group must be one of ${GROUPS.join(', ')}`)
     const post2030 = num('post2030') ?? 0
+    const years = cols.includes('years') ? num('years') : 0
+    if (years === null || !(years >= 0 && years <= 30))
+      errors.push(`${where}: years (how far off the value lands) must be between 0 and 30`)
     if (!(post2030 >= 0 && post2030 <= 1)) errors.push(`${where}: post2030 must be between 0 and 1`)
     const execName = get('exec') || null
     const execMode = (get('exec_mode') || null) as LedgerRow['execMode']
@@ -172,6 +180,7 @@ export function parseLedger(text: string): Ledger {
       execMode,
       group,
       post2030,
+      years: years ?? 0,
     }
     if (kind === 'event') {
       if (num('weight') === null) errors.push(`${where}: an event needs weight`)
@@ -204,7 +213,13 @@ export function parseLedger(text: string): Ledger {
 
 // --- analytic mean ---
 
+export const discount = (r: LedgerRow) => (1 + DISCOUNT_RATE) ** -r.years
+
 export function rowMean(r: LedgerRow, exec: Record<string, ExecSpec>): number {
+  return discount(r) * undiscountedMean(r, exec)
+}
+
+function undiscountedMean(r: LedgerRow, exec: Record<string, ExecSpec>): number {
   const x = r.exec ? exec[r.exec].mean : 1
   if (r.kind === 'event') {
     if (r.exec && exec[r.exec].kind === 'exec' && r.execMode === 'p1')
@@ -320,6 +335,7 @@ export function simulateSize(ledger: Ledger, size: number, draws = 200_000, seed
     })
   )
   const samplers = rows.map((r) => (r.kind === 'event' ? null : amountSampler(r)))
+  const discounts = rows.map(discount)
   const u = rng(seed)
   const totals = new Float64Array(draws)
   const x: Record<string, number> = {}
@@ -334,8 +350,8 @@ export function simulateSize(ledger: Ledger, size: number, draws = 200_000, seed
         const isP1 = r.exec && ledger.exec[r.exec].kind === 'exec' && r.execMode === 'p1'
         const p1 = isP1 ? xi * r.p1 : r.p1
         const factor = r.exec && !isP1 ? xi : 1
-        total += r.weight * factor * ((v < p1 ? 1 : 0) - (v < r.p0 ? 1 : 0))
-      } else total += samplers[i]!(u) * (r.kind === 'continuous' ? xi : 1)
+        total += discounts[i] * r.weight * factor * ((v < p1 ? 1 : 0) - (v < r.p0 ? 1 : 0))
+      } else total += discounts[i] * samplers[i]!(u) * (r.kind === 'continuous' ? xi : 1)
     }
     totals[d] = total
   }
