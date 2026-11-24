@@ -26,9 +26,6 @@ bun tools/autograntor/publish.ts <slug> [--execute]   # dry run unless --execute
 `milestones.md` from the sheet when values change and bump `MILESTONES_VERSION`. Every saved run records both, plus
 the ledger it was simulated from.
 
-`calibration.md` holds past runs the grantmaker disagreed with. Add a short entry when you disagree with a result;
-the estimators and the coordinator read it.
-
 ## Ledger format
 
 One CSV per estimate, one row per consequence per grant amount. Columns:

@@ -7,7 +7,6 @@ Manifund proposal will provide at each of the grant amounts listed in the applic
 
 - `tools/autograntor/milestones.md`: milestone values. The anchor is a Plan A US–China pause = 1,000,000.
 - `tools/autograntor/percys.md`: how to price opinion change.
-- `tools/autograntor/calibration.md`: past runs the grantmaker disagreed with, and why.
 - `tools/autograntor/README.md`, section "Ledger format": the ledger CSV and the simulator.
 - `grant_eval/<slug>/source/application.md`: the proposal and the amounts to score.
 

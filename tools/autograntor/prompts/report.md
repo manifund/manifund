@@ -3,7 +3,7 @@
 The coordinator writes this after reading both estimates and any critiques. Decide each difference that moves a mean
 by more than about 10%: take A's value, B's value, or your own, with one line of reasoning. Judge by evidence, not
 by confidence, length or tone, and don't default to the midpoint. Web-check any unsourced fact that moves the result
-by more than 10%. Check the result against `tools/autograntor/calibration.md`.
+by more than 10%.
 
 Write `grant_eval/<slug>/final_ledger.csv`, run the simulator on it, then write `grant_eval/<slug>/report.md` once.
 The headline numbers stored on Manifund come from re-running the simulator on `final_ledger.csv`, so the report and
