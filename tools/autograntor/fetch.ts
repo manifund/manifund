@@ -7,6 +7,7 @@ import { mkdir } from 'fs/promises'
 import path from 'path'
 import { createAdminClient } from '@/db/edge'
 import { toMarkdown } from '@/utils/tiptap-parsing'
+import { PANGRAM_MAX_WORDS } from '@/app/utils/project-scores'
 import { MILESTONES_VERSION, PROMPT_VERSION, grantAmounts, runDir } from '@/tools/autograntor/lib'
 
 const args = process.argv.slice(2)
@@ -30,7 +31,7 @@ if (!project) {
   process.exit(1)
 }
 
-const [{ data: aiEval }, { data: prior }] = await Promise.all([
+const [{ data: aiEval }, { data: prior }, { data: scores }] = await Promise.all([
   supabase
     .from('project_ai_evals')
     .select('score, created_at')
@@ -45,7 +46,14 @@ const [{ data: aiEval }, { data: prior }] = await Promise.all([
     .select('id, created_at')
     .eq('project_id', project.id)
     .throwOnError(),
+  supabase
+    .from('project_scores')
+    .select('pangram_fraction_ai')
+    .eq('project_id', project.id)
+    .maybeSingle()
+    .throwOnError(),
 ])
+const aiFraction = scores?.pangram_fraction_ai
 
 const amounts = grantAmounts(project.min_funding, project.funding_goal)
 const usd = (n: number) => `$${n.toLocaleString('en-US')}`
@@ -60,6 +68,9 @@ const application = [
   `- Minimum funding: ${usd(project.min_funding)}`,
   `- Funding goal: ${usd(project.funding_goal)}`,
   `- **Amounts to score: ${amounts.map(usd).join(', ')}**`,
+  aiFraction != null
+    ? `- Pangram: ${Math.round(aiFraction * 100)}% of the text reads as AI-written (first ${PANGRAM_MAX_WORDS} words only)`
+    : null,
   '',
   project.blurb ? `> ${project.blurb}` : null,
   '',
