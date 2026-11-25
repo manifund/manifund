@@ -443,6 +443,7 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
       'The 501(c)(3) sister of Secure AI Project, which develops and advocates for policies that reduce the risk of severe harm from advanced AI.',
     city: 'San Francisco, CA',
     donation_url: 'https://donorbox.org/foundation-for-secure-ai',
+    trace_slug: 'foundation-for-secure-ai',
     sources: ['https://secureaiproject.org/donate/'],
   },
 ]
