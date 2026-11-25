@@ -72,7 +72,7 @@ export default async function GrantAgreementPage(props: { params: Promise<{ slug
         />
       )}
       {agreement?.signed_at && !agreement.signed_off_site && agreement.project_description && (
-        <section className="mt-10 border-t border-gray-200 pt-6">
+        <section id="as-signed" className="mt-10 scroll-mt-6 border-t border-gray-200 pt-6">
           <h2 className="text-lg font-semibold">The project as signed</h2>
           <p className="mb-4 text-sm text-gray-500">
             The project&apos;s title and description when this agreement was signed on{' '}

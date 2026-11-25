@@ -95,5 +95,5 @@ is simulated for the mean, median, p10 and p90. An admin runs it by hand from Cl
 
 - **P22** A signed grant agreement keeps what was signed: the agreement page shows the recipient's name, the project
   title and description as saved at signing (`grant_agreements`), not the current profile or project, so renaming or
-  editing later doesn't change it. An approved project with a signed agreement links to it from its byline.
+  editing later doesn't change it. An approved project with a signed agreement links to it from its byline ("Grant agreement", and "Project as signed" to the saved title and description).
   Deleting the countersigning admin's profile keeps the agreement (`approved_by` is set to null).
