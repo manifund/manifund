@@ -62,7 +62,7 @@ is simulated for the mean, median, p10 and p90. An admin runs it by hand from Cl
 - **P7** Only the server moves a project into a stage that follows a decision or a funding outcome: active, not
   funded, or back to proposal. People publish their draft as a proposal, close their active project (complete) and
   hide their project until Manifund approves it; an approved project stays public as the record of what was funded
-  (admins can still hide one). A project they create starts as a draft or a proposal. A certificate program without a
+  (admins can still hide one). Its owner still sees Hide in the ⋯ menu, greyed out, with the reason on hover. A project they create starts as a draft or a proposal. A certificate program without a
   proposal phase starts its projects active only while it's open, as stored in the database. Regrants always create a
   grant proposal. Enforced by the trigger `protect_project_stage` (and `pages/api/hide-project.ts` for the hide rule); test:
   `tests/db/project-stage.test.ts`.
