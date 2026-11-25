@@ -426,9 +426,9 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     name: 'Transluce',
     trace_slug: 'transluce',
   },
-  // The 501(c)(3) sister of Secure AI Project, a 501(c)(4). Legal fields are from
-  // secureaiproject.org/donate (2026-11-25); it is too new for the IRS data ProPublica shows. Both accept
-  // donations only from US citizens and permanent residents.
+  // Foundation for Secure AI and Secure AI Project are sister orgs (a 501(c)(3) and a 501(c)(4)) with an entry
+  // each. Legal fields are from secureaiproject.org/donate (2026-11-25); the Foundation is too new for the IRS
+  // data ProPublica shows. Both accept donations only from US citizens and permanent residents.
   {
     slug: 'foundation-for-secure-ai',
     cause: 'AI safety',
@@ -444,9 +444,9 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     city: 'San Francisco, CA',
     donation_url: 'https://donorbox.org/foundation-for-secure-ai',
     trace_slug: 'foundation-for-secure-ai',
-    // Secure AI Project's logo: the Foundation has none of its own.
-    logo_url:
-      'https://cdn.sanity.io/images/o476cx8p/production/2590e35c49d322867f82b884ed938f49df99c443-1000x268.svg',
+    // Secure AI Project's shield mark (the Foundation has no logo of its own): their wordmark SVG with the text
+    // removed, in their favicon's color, since the wordmark is near-white and tiny in a square tile.
+    logo_url: '/org-logos/secure-ai-project.svg',
     about: {
       type: 'doc',
       content: [
@@ -480,6 +480,57 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
       ],
     },
     sources: ['https://secureaiproject.org/donate/', 'https://secureaiproject.org/about/'],
+  },
+  {
+    slug: 'secure-ai-project',
+    cause: 'AI safety',
+    focus: ['Policy & advocacy'],
+    legal_structure: '501c4',
+    legal_name: 'Secure AI Project',
+    ein: '332394289',
+    country: 'US',
+    name: 'Secure AI Project',
+    website: 'https://secureaiproject.org',
+    summary:
+      'Develops and advocates for policies that reduce the risk of severe harm from advanced AI, pushing for accountability beyond transparency laws.',
+    city: 'San Francisco, CA',
+    founded_year: 2024,
+    donation_url: 'https://donorbox.org/secure-ai-project-general-donations',
+    trace_slug: 'secure-ai-project',
+    logo_url: '/org-logos/secure-ai-project.svg',
+    about: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Secure AI Project is a 501(c)(4) AI policy organization. Donations to it are not tax-deductible; its sister 501(c)(3), Foundation for Secure AI, takes tax-deductible gifts. Both accept donations only from US citizens and permanent residents.',
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: "Secure AI Project develops and advocates for policies that reduce the risk of severe harm from advanced AI, and for public accountability in how it is governed. Major AI developers have voluntarily agreed to publish safety and security protocols for severe risks, and in part through Secure AI Project's work, California, Illinois and New York now require it. These are transparency laws: companies still decide for themselves how to respond if their systems show dangerous capabilities. No law yet requires a third party to assess whether an AI company's work endangers the public, or gives a government agency the power to intervene, and Secure AI Project is asking state legislatures and Congress to take those steps.",
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Secure AI Project was established in December 2024 in San Francisco. It was co-founded by Nick Beckstead, its CEO, and Thomas Woodside, its policy director. The About page lists a team of 19, most of them policy directors. It is funded by individual donors and nonprofit institutions, and accepts no corporate funding or money from foreign governments.',
+            },
+          ],
+        },
+      ],
+    },
+    sources: ['https://secureaiproject.org/about/', 'https://secureaiproject.org/donate/'],
   },
 ]
 
