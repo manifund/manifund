@@ -92,7 +92,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
     ).flat(),
     (project) => project.id
   )
-  const hasCause = (causes.data ?? []).length > 0
+  const showApplications = (causes.data ?? []).length > 0 && !extras.hideApplications
   const applySlug = causes.data?.find((cause) => cause.open)?.slug
 
   const { raised, granted, grants } = fundFigures(fund.id, fundTxns)
@@ -173,7 +173,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
   const sections: Section[] = [
     { id: 'about', label: 'About' },
     { id: 'grants', label: 'Grants', stat: grantCount > 0 ? `${grantCount}` : undefined },
-    ...(hasCause
+    ...(showApplications
       ? [
           {
             id: 'applications',
@@ -262,7 +262,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
         <main className="order-2 flex min-w-0 flex-1 flex-col gap-16 xl:order-1">
           <section id="about" className={sectionClass}>
             {fund.username === 'sunlight' ? (
-              <SunlightAbout admins={admins} applySlug={applySlug} />
+              <SunlightAbout admins={admins} />
             ) : fund.long_description ? (
               <RichContent
                 content={fund.long_description}
@@ -302,7 +302,7 @@ export default async function FundPage(props: { params: Promise<{ username: stri
             )}
           </section>
 
-          {hasCause && (
+          {showApplications && (
             <section id="applications" className={sectionClass}>
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h2 className={headingClass}>Applications</h2>
