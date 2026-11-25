@@ -440,11 +440,46 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     name: 'Foundation for Secure AI',
     website: 'https://secureaiproject.org',
     summary:
-      'The 501(c)(3) sister of Secure AI Project, which develops and advocates for policies that reduce the risk of severe harm from advanced AI.',
+      'The 501(c)(3) sister of Secure AI Project (a 501(c)(4)), which advocates for policies that reduce the risk of severe harm from advanced AI.',
     city: 'San Francisco, CA',
     donation_url: 'https://donorbox.org/foundation-for-secure-ai',
     trace_slug: 'foundation-for-secure-ai',
-    sources: ['https://secureaiproject.org/donate/'],
+    // Secure AI Project's logo: the Foundation has none of its own.
+    logo_url:
+      'https://cdn.sanity.io/images/o476cx8p/production/2590e35c49d322867f82b884ed938f49df99c443-1000x268.svg',
+    about: {
+      type: 'doc',
+      content: [
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Foundation for Secure AI is the 501(c)(3) sister organization of Secure AI Project, a 501(c)(4). They are separate legal entities: donations to Foundation for Secure AI are tax-deductible, while donations to Secure AI Project are not. Both accept donations only from US citizens and permanent residents.',
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: "Secure AI Project develops and advocates for policies that reduce the risk of severe harm from advanced AI, and for public accountability in how it is governed. Major AI developers have voluntarily agreed to publish safety and security protocols for severe risks, and in part through Secure AI Project's work, California, Illinois and New York now require it. These are transparency laws: companies still decide for themselves how to respond if their systems show dangerous capabilities. No law yet requires a third party to assess whether an AI company's work endangers the public, or gives a government agency the power to intervene, and Secure AI Project is asking state legislatures and Congress to take those steps.",
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          content: [
+            {
+              type: 'text',
+              text: 'Secure AI Project was established in December 2024 in San Francisco. It was co-founded by Nick Beckstead, its CEO, and Thomas Woodside, its policy director. The About page lists a team of 19, most of them policy directors. It is funded by individual donors and nonprofit institutions, and accepts no corporate funding or money from foreign governments.',
+            },
+          ],
+        },
+      ],
+    },
+    sources: ['https://secureaiproject.org/donate/', 'https://secureaiproject.org/about/'],
   },
 ]
 
