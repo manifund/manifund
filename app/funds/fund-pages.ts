@@ -4,6 +4,8 @@ export type FundPageExtras = {
   cover?: string
   mission?: string
   facts?: { label: string; value: string }[]
+  // Leave out the Applications section and its tab, for a fund that considers any public proposal
+  hideApplications?: boolean
 }
 
 export const FUND_PAGES: Record<string, FundPageExtras> = {
@@ -18,5 +20,6 @@ export const FUND_PAGES: Record<string, FundPageExtras> = {
       { label: 'Focus', value: 'AI safety' },
       { label: 'Fee', value: '5% of donations' },
     ],
+    hideApplications: true,
   },
 }

@@ -31,11 +31,11 @@ over later.
   A sticky bar jumps between its sections, and a link to one (`#grants`) opens there: **About** (a written section for Sunlight Fund, else the long description),
   **Grants** (newest first: each grant with an admin's comment (F11) as that comment in full, tagged "$10k to <recipient>
   for <project>" and linking to it on the project; then a card for each other project it paid or offered, topped by
-  what the fund granted and offered; then rows for grants to people), **Applications** (when the fund has a cause) and **Donations** (who
+  what the fund granted and offered; then rows for grants to people), **Applications** (when the fund has a cause, and not for Sunlight Fund, which considers any public proposal) and **Donations** (who
   gave to the fund). Beside them: the figures (F4), the donate box and the fund's facts. Cover, mission and facts live
   in `app/funds/fund-pages.ts`.
 - **F6** Applications are the projects tagged with any of the fund's causes, hidden and draft ones left out. While a
-  cause is open, "Apply for a grant" opens the create form with it chosen. The cause's own page links to the fund.
+  cause is open, "Start an application" opens the create form with it chosen. The cause's own page links to the fund.
 - **F7** Funds and their admins are created by hand (`scripts/create-fund.ts`).
 - **F8** A fund's admins can withdraw its pending offers from the project's Offers tab, as anyone withdraws their own
   (`/api/withdraw-fund-bid`, which checks `fund_admins`).
@@ -54,6 +54,7 @@ over later.
 
 | Date       | Decided by | Decision                                                                                                                                         | Why                                                       |
 | ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------- |
+| 2026-11-25 | Caroline   | No Applications section for Sunlight Fund (F5)                                                                                                   | It considers any public proposal; no cause to apply to    |
 | 2026-11-11 | Caroline   | Build on the existing `fund` profile type, with `fund_admins`, for the new fund                                                                  | One page instead of a profile, a project and a cause      |
 | 2026-11-11 | Caroline   | Falcon Fund stays as it is for now                                                                                                               | Prove the model on the new fund before moving a live fund |
 | 2026-11-11 | Caroline   | Applications through a cause, as Falcon does (F6)                                                                                                | The create form already handles it                        |

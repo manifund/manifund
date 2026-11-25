@@ -1,7 +1,5 @@
 import Link from 'next/link'
-import clsx from 'clsx'
 import { Avatar } from '@/components/avatar'
-import { buttonClass } from '@/components/button'
 import type { MiniProfile } from '@/db/profile'
 
 // Sunlight Fund's About section: the fund's announcement, as written, with each part of the ethos paired with
@@ -34,25 +32,19 @@ const ETHOS: { title: string; light: string; body: React.ReactNode }[] = [
     title: 'Early-stage',
     light: 'Sunlight nurtures and incubates seedlings.',
     body: (
-      <>
-        <p>
-          We think the best way to donate effectively is to make fast grants to early-stage
-          opportunities as they come up. Large, established orgs with plenty of runway don’t need
-          the money as much as projects that are just starting up do, and existing funders already
-          serve them well. See{' '}
-          <a
-            href="https://manifund.substack.com/p/when-you-donate-can-matter-more-than"
-            className="text-orange-600 hover:underline"
-          >
-            When you donate can matter more than where
-          </a>{' '}
-          for more thoughts on this.
-        </p>
-        <p>
-          Currently we expect check sizes to be in the range of $1k-$50k—this may grow if we get
-          more funding.
-        </p>
-      </>
+      <p>
+        We think the best way to donate effectively is to make fast grants to early-stage
+        opportunities as they come up. Large, established orgs with plenty of runway don’t need the
+        money as much as projects that are just starting up do, and existing funders already serve
+        them well. See{' '}
+        <a
+          href="https://manifund.substack.com/p/when-you-donate-can-matter-more-than"
+          className="text-orange-600 hover:underline"
+        >
+          When you donate can matter more than where
+        </a>{' '}
+        for more thoughts on this.
+      </p>
     ),
   },
   {
@@ -99,8 +91,8 @@ const INTERESTS: { username: string; name: string; intro: string; items: string[
   },
 ]
 
-export function SunlightAbout(props: { admins: MiniProfile[]; applySlug?: string }) {
-  const { admins, applySlug } = props
+export function SunlightAbout(props: { admins: MiniProfile[] }) {
+  const { admins } = props
   const h2 = 'text-2xl font-normal tracking-tight text-gray-900'
   const prose = 'max-w-[68ch] text-[15px] leading-relaxed text-gray-700'
   return (
@@ -177,46 +169,35 @@ export function SunlightAbout(props: { admins: MiniProfile[]; applySlug?: string
       <section className="flex flex-col gap-4">
         <h2 className={h2}>How do I apply?</h2>
         <div className={prose}>
-          <p>All applications are made as public project proposals on Manifund.</p>
+          <p>To have your project considered, just post a public proposal on Manifund.</p>
           <p className="mt-3">
             We aim to get back to all applicants in 1 week or less, up to the end of the year. At
             that point, we’ll reevaluate.
           </p>
         </div>
-        {applySlug ? (
-          <Link
-            href={`/create?prize=${applySlug}`}
-            className={clsx(buttonClass('lg', 'orange'), 'w-fit')}
-          >
-            Apply for a grant
-          </Link>
-        ) : (
-          <p className="w-fit rounded-md bg-amber-50 px-4 py-2.5 text-sm text-amber-900">
-            Applications open soon.
-          </p>
-        )}
       </section>
 
       <section className="flex flex-col gap-5">
         <h2 className={h2}>Who should donate</h2>
         <p className={prose}>We’ve heard from many people lately who fit this description:</p>
         <blockquote className="max-w-[62ch] border-l-2 border-amber-400 pl-5 text-lg font-light italic leading-relaxed text-gray-800">
-          “I’m planning to donate $10-100k this year. In the past, I’ve donated to GiveWell: I trust
+          I’m planning to donate $10-100k this year. In the past, I’ve donated to GiveWell: I trust
           them and I think they do good work identifying the top charities. I’m increasingly
           convinced that mitigating risk from advanced AI is a better donation target, but there’s
           no GiveWell equivalent and I don’t know what to donate to. I don’t want to spend a ton of
           effort evaluating opportunities. I get the sense that there’s lots of money floating
-          around, and more coming, and maybe AI safety orgs just don’t need my money?”
+          around, and more coming, and maybe AI safety orgs just don’t need my money?
         </blockquote>
         <div className={prose}>
           <p>We’re hoping the Sunlight Fund can be an answer to that.</p>
           <p className="mt-3">
-            You can also see Austin’s grantmaking history as a regrantor at his profile:{' '}
+            The best indicator of whether you should donate is whether you would have wanted to fund
+            our grants so far. You can also see Austin’s grantmaking history as a regrantor at his
+            profile:{' '}
             <Link href="/Austin" className="text-orange-600 hover:underline">
               https://manifund.org/Austin
             </Link>
-            —whether you would have wanted to support his grants in the past might be a good
-            indicator of whether you want to donate to this fund.
+            .
           </p>
         </div>
       </section>
