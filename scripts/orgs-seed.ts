@@ -426,6 +426,25 @@ export const ORGS: (OrgInsert & { slug: string; name: string })[] = [
     name: 'Transluce',
     trace_slug: 'transluce',
   },
+  // The 501(c)(3) sister of Secure AI Project, a 501(c)(4). Legal fields are from
+  // secureaiproject.org/donate (2026-11-25); it is too new for the IRS data ProPublica shows. Both accept
+  // donations only from US citizens and permanent residents.
+  {
+    slug: 'foundation-for-secure-ai',
+    cause: 'AI safety',
+    focus: ['Policy & advocacy'],
+    legal_structure: '501c3',
+    legal_name: 'Foundation for Secure AI',
+    ein: '393470913',
+    country: 'US',
+    name: 'Foundation for Secure AI',
+    website: 'https://secureaiproject.org',
+    summary:
+      'The 501(c)(3) sister of Secure AI Project, which develops and advocates for policies that reduce the risk of severe harm from advanced AI.',
+    city: 'San Francisco, CA',
+    donation_url: 'https://donorbox.org/foundation-for-secure-ai',
+    sources: ['https://secureaiproject.org/donate/'],
+  },
 ]
 
 // Each org's own projects on Manifund, by project slug: what the org itself raised or is raising for. Projects
