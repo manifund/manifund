@@ -171,8 +171,8 @@ export function SunlightAbout(props: { admins: MiniProfile[] }) {
         <div className={prose}>
           <p>To have your project considered, just post a public proposal on Manifund.</p>
           <p className="mt-3">
-            We aim to get back to all applicants in 1 week or less, up to the end of the year. At
-            that point, we’ll reevaluate.
+            We’ll reach out to the projects we’re considering—unfortunately we don’t have the
+            capacity to reply to every project at this time.
           </p>
         </div>
       </section>
