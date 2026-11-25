@@ -15,12 +15,11 @@ import {
   GivingLine,
   HeaderActions,
   ProfileNav,
-  ProfileRail,
   ProjectsSection,
   SECTIONS,
   TransactionsSection,
 } from '@/app/[usernameSlug]/sections/sections'
-import { RailSkeleton, SectionSkeleton } from '@/app/[usernameSlug]/sections/skeletons'
+import { SectionSkeleton } from '@/app/[usernameSlug]/sections/skeletons'
 import { OldTabLink } from '@/app/[usernameSlug]/sections/old-tab-link'
 
 export async function generateMetadata(props: { params: Promise<{ usernameSlug: string }> }) {
@@ -51,12 +50,10 @@ export default async function UserProfilePage(props: {
   }
   const isOwn = viewer?.id === profile.id
   const sectionProps = { profile, isOwn }
-  // Below xl the rail joins the column: first when there's something to do in it (donating to a
-  // regrantor, or your own money), otherwise after the sections.
-  const railFirst = isOwn || profile.regranter_status
 
   return (
-    <div className="px-4 pb-16 pt-7 font-light">
+    // One column, narrow enough to read comfortably; balances live in About.
+    <div className="mx-auto w-full max-w-[720px] px-4 pb-16 pt-7 font-light">
       <OldTabLink />
       <div className="flex gap-1.5 text-[13px] text-gray-500">
         <Link href="/people" className="hover:underline">
@@ -93,38 +90,25 @@ export default async function UserProfilePage(props: {
         <ProfileNav {...sectionProps} />
       </Suspense>
 
-      <div className="flex flex-col gap-7 pt-7 xl:flex-row xl:items-start">
-        <main className="order-2 flex min-w-0 flex-1 flex-col gap-16 xl:order-1">
-          <Suspense fallback={<SectionSkeleton id="about" shape="text" />}>
-            <AboutSection {...sectionProps} />
-          </Suspense>
-          <Suspense fallback={<SectionSkeleton id="projects" title="Projects" shape="cards" />}>
-            <ProjectsSection {...sectionProps} />
-          </Suspense>
-          <Suspense fallback={<SectionSkeleton id="comments" title="Comments" shape="text" />}>
-            <CommentsSection {...sectionProps} />
-          </Suspense>
-          <Suspense fallback={<SectionSkeleton id="donations" title="Donations" shape="rows" />}>
-            <DonationsSection {...sectionProps} />
-          </Suspense>
-          <Suspense
-            fallback={<SectionSkeleton id="transactions" title="Transactions" shape="rows" />}
-          >
-            <TransactionsSection {...sectionProps} />
-          </Suspense>
-        </main>
-
-        <aside
-          className={
-            (railFirst ? 'order-1' : 'order-3') +
-            ' flex flex-col gap-4 xl:sticky xl:top-16 xl:order-2 xl:w-80 xl:flex-none'
-          }
+      <main className="flex flex-col gap-16 pt-8">
+        <Suspense fallback={<SectionSkeleton id="about" shape="text" />}>
+          <AboutSection {...sectionProps} />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton id="projects" title="Projects" shape="cards" />}>
+          <ProjectsSection {...sectionProps} />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton id="comments" title="Comments" shape="text" />}>
+          <CommentsSection {...sectionProps} />
+        </Suspense>
+        <Suspense fallback={<SectionSkeleton id="donations" title="Donations" shape="rows" />}>
+          <DonationsSection {...sectionProps} />
+        </Suspense>
+        <Suspense
+          fallback={<SectionSkeleton id="transactions" title="Transactions" shape="rows" />}
         >
-          <Suspense fallback={<RailSkeleton />}>
-            <ProfileRail {...sectionProps} />
-          </Suspense>
-        </aside>
-      </div>
+          <TransactionsSection {...sectionProps} />
+        </Suspense>
+      </main>
     </div>
   )
 }

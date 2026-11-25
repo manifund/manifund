@@ -66,7 +66,10 @@ async function sectionCounts(profile: Profile, isOwn: boolean) {
   ])
   const legacy = ledger.proposalBids.length + ledger.activeBids.length + ledger.investments.length
   return {
-    about: !!profile.long_description || followingCount(following) > 0 || isOwn,
+    about:
+      !!profile.long_description ||
+      followingCount(following) > 0 ||
+      showsBalance(profile, isOwn, ledger),
     projects: projects.ids.length,
     comments: comments.total,
     donations: ledger.donations.length,
@@ -166,14 +169,26 @@ export async function DonorLink({ profile, isOwn }: Props) {
   )
 }
 
+// Whether to show someone's balance: always on your own profile and a regrantor's; for anyone else, once
+// money has moved through their account
+const showsBalance = (profile: Profile, isOwn: boolean, ledger: { txns: unknown[] }) =>
+  isOwn || profile.regranter_status || ledger.txns.length > 0
+
+// Who they are in their own words, their balance (with the box to give to a regrantor's budget, E15), then what
+// they follow (F9)
 export async function AboutSection({ profile, isOwn }: Props) {
-  const following = await getFollowingFor(profile.id, isOwn)
+  const [following, ledger, viewerFunds] = await Promise.all([
+    getFollowingFor(profile.id, isOwn),
+    getLedger(profile.id, profile.accreditation_status, isOwn),
+    profile.regranter_status && !isOwn ? getViewerFunds() : null,
+  ])
   const hasFollows = followingCount(following) > 0
-  if (!profile.long_description && !hasFollows && !isOwn) return null
+  const balance = showsBalance(profile, isOwn, ledger)
+  if (!profile.long_description && !hasFollows && !balance && !isOwn) return null
   return (
-    <section id="about" className={SECTION_CLASS}>
+    <section id="about" className="flex scroll-mt-20 flex-col gap-10">
       {profile.long_description ? (
-        <RichContent content={profile.long_description} className="max-w-[720px] text-gray-700" />
+        <RichContent content={profile.long_description} className="text-gray-700" />
       ) : isOwn ? (
         <p className="max-w-[60ch] text-[15px] leading-relaxed text-gray-500">
           Say who you are and what you work on, so people know whose projects and comments these
@@ -183,14 +198,31 @@ export async function AboutSection({ profile, isOwn }: Props) {
           </Link>
         </p>
       ) : null}
-      {(hasFollows || isOwn) && (
-        <div className={profile.long_description || isOwn ? 'mt-4' : undefined}>
-          <FollowsSummary
-            following={following}
-            isOwnProfile={isOwn}
-            firstName={firstName(profile)}
-          />
+      {(balance || viewerFunds) && (
+        <div className="flex flex-col gap-4">
+          {balance && (
+            <BalanceDisplay
+              balance={ledger.balance}
+              cashBalance={ledger.cashBalance}
+              charityBalance={ledger.charityBalance}
+              pending={ledger.pending}
+              accredited={profile.accreditation_status}
+              isOwnProfile={isOwn}
+              userId={isOwn ? profile.id : undefined}
+              regrantor={profile.regranter_status}
+            />
+          )}
+          {viewerFunds && (
+            <DonateBox
+              charity={profile}
+              profile={viewerFunds.profile}
+              maxDonation={viewerFunds.charityBalance}
+            />
+          )}
         </div>
+      )}
+      {(hasFollows || isOwn) && (
+        <FollowsSummary following={following} isOwnProfile={isOwn} firstName={firstName(profile)} />
       )}
     </section>
   )
@@ -298,34 +330,5 @@ export async function TransactionsSection({ profile, isOwn }: Props) {
       <h2 className={HEADING_CLASS}>Transactions</h2>
       <TxnTable profileId={profile.id} first={firstPage(txns)} total={txns.length} />
     </section>
-  )
-}
-
-// The rail: balances for everyone (public, L5), the ways to move money on your own profile, and on a
-// regrantor's profile a box to give to their budget (E15)
-export async function ProfileRail({ profile, isOwn }: Props) {
-  const [ledger, viewerFunds] = await Promise.all([
-    getLedger(profile.id, profile.accreditation_status, isOwn),
-    profile.regranter_status && !isOwn ? getViewerFunds() : null,
-  ])
-  return (
-    <>
-      {viewerFunds && (
-        <DonateBox
-          charity={profile}
-          profile={viewerFunds.profile}
-          maxDonation={viewerFunds.charityBalance}
-        />
-      )}
-      <BalanceDisplay
-        balance={ledger.balance}
-        cashBalance={ledger.cashBalance}
-        charityBalance={ledger.charityBalance}
-        pending={ledger.pending}
-        accredited={profile.accreditation_status}
-        isOwnProfile={isOwn}
-        userId={isOwn ? profile.id : undefined}
-      />
-    </>
   )
 }

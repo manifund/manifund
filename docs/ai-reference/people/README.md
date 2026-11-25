@@ -81,7 +81,7 @@ Ids are stable once merged: tests name them. All observed (code,
   (R); other kinds of account (charities, the market maker) show "Profile type not supported".
 - **E12** A profile shows the name, `@username`, bio, website (a link, with `https://` added when it doesn't start
   with `http`), then the sections of `docs/product/people/README.md` U7: About, projects, comments (C30),
-  donations (with pending offers and investments) and USD transactions, with balances (L5-L12) in the rail.
+  donations (with pending offers and investments) and USD transactions, with balances (L5-L12) in About.
 - **E13** Hidden and draft projects show on a profile only to its owner; so does an empty "Projects" section.
 - **E14** A person's email address shows only on their own profile (Lily, #117, 2024-03-21).
 - **E15** On their own profile, a person gets a link to edit it and a sign-out button. On a regrantor's profile,

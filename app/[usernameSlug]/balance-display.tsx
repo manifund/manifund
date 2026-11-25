@@ -19,8 +19,9 @@ import { useRouter } from 'next/navigation'
 import { formatMoneyPrecise } from '@/utils/formatting'
 import clsx from 'clsx'
 
-// A profile's balances (L5-L12), in the rail: public, like the rest of the profile. On your own profile, the
-// ways to add, withdraw and move money sit under them.
+// A profile's balances (L5-L12), in About: public, like the rest of the profile. The bar splits the total into
+// what can only be donated (charity), what can be withdrawn (cash) and what's promised in pending offers. On your
+// own profile, the ways to add, withdraw and move money sit under it.
 export function BalanceDisplay(props: {
   balance: number
   cashBalance: number
@@ -29,34 +30,71 @@ export function BalanceDisplay(props: {
   accredited: boolean
   isOwnProfile?: boolean
   userId?: string
+  regrantor?: boolean
 }) {
-  const { balance, cashBalance, charityBalance, pending, accredited, isOwnProfile, userId } = props
-  const figures = [
-    { label: 'Charity balance', value: charityBalance },
-    { label: 'Cash balance', value: cashBalance },
-    ...(Math.round(pending) !== 0 ? [{ label: 'In pending offers', value: pending }] : []),
+  const {
+    balance,
+    cashBalance,
+    charityBalance,
+    pending,
+    accredited,
+    isOwnProfile,
+    userId,
+    regrantor,
+  } = props
+  const parts = [
+    { label: 'Charity', value: charityBalance, dot: 'bg-orange-500', note: 'for donating' },
+    { label: 'Cash', value: cashBalance, dot: 'bg-emerald-500', note: 'withdrawable' },
+    ...(Math.round(pending) !== 0
+      ? [{ label: 'Pending', value: pending, dot: 'bg-amber-300', note: 'in open offers' }]
+      : []),
   ]
-  const actionClass = clsx(
-    'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500'
-  )
+  const barTotal = parts.reduce((sum, part) => sum + Math.max(part.value, 0), 0)
+  const actionClass =
+    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500'
   return (
-    <div className="rounded-lg bg-white shadow-sm">
-      <div className="px-5 pb-4 pt-5">
-        <div className="text-[13px] text-gray-500">Total balance</div>
-        <div className="mt-1 text-[32px] font-normal leading-none tracking-tight tabular-nums text-gray-900">
-          {formatMoneyPrecise(balance)}
-        </div>
-      </div>
-      <dl className="border-t border-gray-100 px-5 py-3">
-        {figures.map((figure) => (
-          <div key={figure.label} className="flex items-baseline justify-between py-1 text-sm">
-            <dt className="text-gray-500">{figure.label}</dt>
-            <dd className="tabular-nums text-gray-900">{formatMoneyPrecise(figure.value)}</dd>
+    <div className="rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 px-6 pb-5 pt-5">
+        <div>
+          <div className="text-[13px] text-gray-500">
+            {regrantor ? 'Regranting balance' : 'Balance'}
           </div>
-        ))}
-      </dl>
+          <div className="mt-1 text-[36px] font-normal leading-none tracking-tight tabular-nums text-gray-900">
+            {formatMoneyPrecise(balance)}
+          </div>
+        </div>
+        <dl className="flex flex-wrap gap-x-7 gap-y-2">
+          {parts.map((part) => (
+            <div key={part.label} title={part.note}>
+              <dt className="flex items-center gap-1.5 text-[13px] text-gray-500">
+                <span className={clsx('h-2 w-2 rounded-full', part.dot)} aria-hidden />
+                {part.label}
+              </dt>
+              <dd className="mt-0.5 text-[15px] tabular-nums text-gray-900">
+                {formatMoneyPrecise(part.value)}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      {barTotal > 0 && (
+        <div
+          className="mx-6 mb-5 flex h-1.5 gap-0.5 overflow-hidden rounded-full bg-gray-100"
+          aria-hidden
+        >
+          {parts.map((part) =>
+            part.value > 0 ? (
+              <div
+                key={part.label}
+                className={part.dot}
+                style={{ width: `${(part.value / barTotal) * 100}%` }}
+              />
+            ) : null
+          )}
+        </div>
+      )}
       {isOwnProfile && userId && (
-        <div className="flex flex-col border-t border-gray-100 p-2">
+        <div className="flex flex-wrap gap-1 border-t border-gray-100 px-4 py-2">
           <DepositButton userId={userId}>
             <span className={actionClass}>
               <PlusCircleIcon className="h-4 w-4 text-orange-500" />

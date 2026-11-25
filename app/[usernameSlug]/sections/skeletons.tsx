@@ -32,26 +32,13 @@ export function SectionSkeleton(props: {
         </div>
       )}
       {shape === 'text' && (
-        <div className="flex max-w-[720px] flex-col gap-2.5">
+        <div className="flex flex-col gap-2.5">
           <div className={clsx(bar, 'h-4 w-full')} />
           <div className={clsx(bar, 'h-4 w-11/12')} />
           <div className={clsx(bar, 'h-4 w-2/3')} />
         </div>
       )}
     </section>
-  )
-}
-
-export function RailSkeleton() {
-  return (
-    <div className="rounded-lg bg-white p-5 shadow-sm" aria-busy="true">
-      <div className={clsx(bar, 'h-3 w-24')} />
-      <div className={clsx(bar, 'mt-3 h-8 w-36')} />
-      <div className="mt-5 flex flex-col gap-2.5 border-t border-gray-100 pt-4">
-        <div className={clsx(bar, 'h-3 w-full')} />
-        <div className={clsx(bar, 'h-3 w-full')} />
-      </div>
-    </div>
   )
 }
 

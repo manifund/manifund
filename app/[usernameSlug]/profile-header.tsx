@@ -73,9 +73,7 @@ export function ProfileHeader(props: {
           </div>
         </div>
         {profile.bio && (
-          <p className="mt-3 max-w-[680px] text-pretty text-lg leading-normal text-gray-700">
-            {profile.bio}
-          </p>
+          <p className="mt-3 text-pretty text-lg leading-normal text-gray-700">{profile.bio}</p>
         )}
         {(website || donorPage || links || (isOwnProfile && email)) && (
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-gray-500">
