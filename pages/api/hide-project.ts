@@ -17,6 +17,10 @@ export default async function handler(req: NextRequest) {
   const { supabase, user } = await getUserAndClient(req)
   const project = await getProjectById(supabase, projectId)
   if (!user || user.id !== project.creator) return NextResponse.error()
+  // An approved project stays public as the record of what was funded (P7); the database refuses it too.
+  if (project.approved === true) {
+    return NextResponse.json('Approved projects cannot be hidden.', { status: 403 })
+  }
 
   await updateProjectStage(supabase, projectId, 'hidden')
   invalidateProjectsCache()

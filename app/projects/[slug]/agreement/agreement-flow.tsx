@@ -195,7 +195,14 @@ export function AgreementFlow(props: {
           <OrgSignatureBlock agreement={agreement} values={values} />
         ) : (
           <SignatureDisplay
-            fullName={project.profiles.full_name}
+            // a signed agreement keeps the name it was signed under, whatever the profile says now
+            fullName={
+              agreement?.signed_at
+                ? (agreement.signatory_name ??
+                  agreement.recipient_name ??
+                  project.profiles.full_name)
+                : project.profiles.full_name
+            }
             signatoryTitle="Recipient"
             signedAt={agreement?.signed_at ? new Date(agreement.signed_at) : undefined}
           />

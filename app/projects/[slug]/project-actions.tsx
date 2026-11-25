@@ -20,10 +20,20 @@ import { BookmarkIcon as BookmarkSolid } from '@heroicons/react/20/solid'
 import { Cause, SimpleCause } from '@/db/cause'
 import { FullProject } from '@/db/project'
 import { checkReactivateEligible } from '@/utils/activate-project'
+import { Tooltip } from '@/components/tooltip'
 import { CloseProject, Edit, HideProject, ProgressUpdate, Reactivate } from './owner-modals'
 
+const HIDE_APPROVED_REASON =
+  "For the sake of public transparency and accountability on how funds are spent, we don't allow creators to hide approved projects."
+
 type ModalId = 'edit' | 'update' | 'close' | 'reactivate' | 'hide'
-type MenuItem = { label: string; icon: typeof PencilIcon; onClick: () => void }
+// An item with a disabledReason is shown greyed out, and the reason shows on hover or tap.
+type MenuItem = {
+  label: string
+  icon: typeof PencilIcon
+  onClick: () => void
+  disabledReason?: string
+}
 
 const quietButton =
   'inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400'
@@ -65,8 +75,16 @@ export function ProjectActions(props: {
         ...(checkReactivateEligible(project, prizeCause)
           ? [{ label: 'Reactivate project', icon: FireIcon, onClick: () => setModal('reactivate') }]
           : []),
+        // an approved project stays public as the record of what was funded (P7)
         ...(!isDraft && project.stage !== 'hidden'
-          ? [{ label: 'Hide project', icon: EyeSlashIcon, onClick: () => setModal('hide') }]
+          ? [
+              {
+                label: 'Hide project',
+                icon: EyeSlashIcon,
+                onClick: () => setModal('hide'),
+                disabledReason: project.approved === true ? HIDE_APPROVED_REASON : undefined,
+              },
+            ]
           : []),
       ]
   const otherItems: MenuItem[] = creatorEmail
@@ -145,22 +163,36 @@ function MoreMenu(props: { groups: MenuItem[][] }) {
         <Menu.Items className="absolute right-0 z-20 mt-1 w-52 origin-top-right divide-y divide-gray-100 rounded-lg bg-white py-0 text-sm shadow-lg ring-1 ring-black/5 focus:outline-none">
           {props.groups.map((group, i) => (
             <div key={i} className="py-1">
-              {group.map((item) => (
-                <Menu.Item key={item.label}>
-                  {({ active }) => (
-                    <button
-                      onClick={item.onClick}
-                      className={clsx(
-                        'flex w-full items-center gap-2.5 px-3 py-2 text-left text-gray-700',
-                        active && 'bg-gray-50 text-gray-900'
-                      )}
-                    >
-                      <item.icon className="h-4 w-4 text-gray-400" aria-hidden />
-                      {item.label}
-                    </button>
-                  )}
-                </Menu.Item>
-              ))}
+              {group.map((item) =>
+                item.disabledReason ? (
+                  <Menu.Item key={item.label} disabled>
+                    <Tooltip text={item.disabledReason} placement="left" className="block">
+                      <div
+                        aria-disabled
+                        className="flex w-full cursor-not-allowed items-center gap-2.5 px-3 py-2 text-left text-gray-400"
+                      >
+                        <item.icon className="h-4 w-4 text-gray-300" aria-hidden />
+                        {item.label}
+                      </div>
+                    </Tooltip>
+                  </Menu.Item>
+                ) : (
+                  <Menu.Item key={item.label}>
+                    {({ active }) => (
+                      <button
+                        onClick={item.onClick}
+                        className={clsx(
+                          'flex w-full items-center gap-2.5 px-3 py-2 text-left text-gray-700',
+                          active && 'bg-gray-50 text-gray-900'
+                        )}
+                      >
+                        <item.icon className="h-4 w-4 text-gray-400" aria-hidden />
+                        {item.label}
+                      </button>
+                    )}
+                  </Menu.Item>
+                )
+              )}
             </div>
           ))}
         </Menu.Items>

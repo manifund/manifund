@@ -6,10 +6,18 @@ import { join } from 'node:path'
 import { actAs, inRollback, type Tx } from '../helpers/db'
 import { getPeople, makeProject, type People } from '../helpers/fixtures'
 
-const migration = readFileSync(
-  join(import.meta.dir, '../../supabase/migrations/20261016120000_project_stage_server_only.sql'),
-  'utf8'
-)
+const migration =
+  readFileSync(
+    join(import.meta.dir, '../../supabase/migrations/20261016120000_project_stage_server_only.sql'),
+    'utf8'
+  ) +
+  readFileSync(
+    join(
+      import.meta.dir,
+      '../../supabase/migrations/20261125000000_keep_approved_project_record.sql'
+    ),
+    'utf8'
+  )
 
 let p: People
 beforeAll(async () => {
@@ -23,9 +31,10 @@ async function row(tx: Tx, id: string) {
 }
 
 // The creator moves their own project from one stage to another; returns the stage that was saved.
-async function creatorMoves(tx: Tx, from: string, to: string) {
+async function creatorMoves(tx: Tx, from: string, to: string, approved: boolean | null = null) {
   await tx`reset role`
   const project = await makeProject(tx, p.alice.id, from, `stage-${from}-${to}-${Date.now()}`)
+  await tx`update projects set approved = ${approved} where id = ${project.id}`
   await actAs(tx, p.alice.id)
   await tx`update projects set stage = ${to}::project_stage, title = 'Edited' where id = ${project.id}`
   const r = await row(tx, project.id)
@@ -54,6 +63,19 @@ describe('P7: project stage is set by the server, apart from the moves people ma
       expect(await creatorMoves(tx, 'hidden', 'proposal')).toBe('hidden')
       expect(await creatorMoves(tx, 'complete', 'active')).toBe('complete')
       expect(await creatorMoves(tx, 'proposal', 'complete')).toBe('proposal')
+    }))
+
+  test('people cannot hide a project once it is approved; the server can', () =>
+    inRollback(async (tx) => {
+      await tx.unsafe(migration)
+      expect(await creatorMoves(tx, 'active', 'hidden', true)).toBe('active')
+      expect(await creatorMoves(tx, 'complete', 'hidden', true)).toBe('complete')
+      expect(await creatorMoves(tx, 'proposal', 'hidden', false)).toBe('hidden')
+      const project = await makeProject(tx, p.alice.id, 'active', `stage-admin-hide-${Date.now()}`)
+      await tx`update projects set approved = true where id = ${project.id}`
+      await tx`set local role service_role`
+      await tx`update projects set stage = 'hidden' where id = ${project.id}`
+      expect((await row(tx, project.id)).stage).toBe('hidden')
     }))
 
   test('a project inserted by a signed-in person starts as a proposal or a draft', () =>

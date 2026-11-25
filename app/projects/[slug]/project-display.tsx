@@ -209,6 +209,15 @@ function ProjectDisplayInner(props: ProjectDisplayProps) {
                   year: 'numeric',
                 })}
               </time>
+              {project.approved === true && project.signed_agreement && (
+                // the agreement page keeps the project as it was when signed (P22)
+                <Link
+                  href={`/projects/${project.slug}/agreement`}
+                  className="text-gray-500 underline decoration-gray-300 hover:text-gray-700"
+                >
+                  Grant agreement
+                </Link>
+              )}
               {pendingTransfer && (
                 <span className="text-gray-500">
                   pending transfer to {pendingProjectTransfers[0].recipient_name}
