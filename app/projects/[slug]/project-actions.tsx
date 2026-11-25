@@ -65,7 +65,8 @@ export function ProjectActions(props: {
         ...(checkReactivateEligible(project, prizeCause)
           ? [{ label: 'Reactivate project', icon: FireIcon, onClick: () => setModal('reactivate') }]
           : []),
-        ...(!isDraft && project.stage !== 'hidden'
+        // an approved project stays public as the record of what was funded (P7)
+        ...(!isDraft && project.stage !== 'hidden' && project.approved !== true
           ? [{ label: 'Hide project', icon: EyeSlashIcon, onClick: () => setModal('hide') }]
           : []),
       ]

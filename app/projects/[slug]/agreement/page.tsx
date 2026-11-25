@@ -8,6 +8,8 @@ import { AdminTaxPanel } from './admin-tax-panel'
 import { getGrantAgreement, getGrantAgreementPrivate } from '@/db/grant_agreement'
 import { Row } from '@/components/layout/row'
 import { Tag } from '@/components/tags'
+import { RichContent } from '@/components/editor'
+import { format } from 'date-fns'
 
 export default async function GrantAgreementPage(props: { params: Promise<{ slug: string }> }) {
   const { slug } = await props.params
@@ -68,6 +70,18 @@ export default async function GrantAgreementPage(props: { params: Promise<{ slug
           tokenSentTo={canSeePrivate ? (priv?.token_sent_to ?? null) : null}
           tokenSentAt={canSeePrivate ? (priv?.token_sent_at ?? null) : null}
         />
+      )}
+      {agreement?.signed_at && !agreement.signed_off_site && agreement.project_description && (
+        <section className="mt-10 border-t border-gray-200 pt-6">
+          <h2 className="text-lg font-semibold">The project as signed</h2>
+          <p className="mb-4 text-sm text-gray-500">
+            The project&apos;s title and description when this agreement was signed on{' '}
+            {format(new Date(agreement.signed_at), 'MMMM do, yyyy')}. The project page shows the
+            current version, which its creator may have edited since.
+          </p>
+          <h3 className="mb-2 font-medium">{agreement.project_title}</h3>
+          <RichContent content={agreement.project_description} className="text-sm" />
+        </section>
       )}
       {userIsAdmin && agreement?.recipient_type === 'organization' && (
         <div className="mt-10">

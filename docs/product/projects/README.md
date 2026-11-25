@@ -61,9 +61,11 @@ is simulated for the mean, median, p10 and p90. An admin runs it by hand from Cl
 
 - **P7** Only the server moves a project into a stage that follows a decision or a funding outcome: active, not
   funded, or back to proposal. People publish their draft as a proposal, close their active project (complete) and
-  hide their project; a project they create starts as a draft or a proposal. A certificate program without a
+  hide their project until Manifund approves it; an approved project stays public as the record of what was funded
+  (admins can still hide one). A project they create starts as a draft or a proposal. A certificate program without a
   proposal phase starts its projects active only while it's open, as stored in the database. Regrants always create a
-  grant proposal. Enforced by the trigger `protect_project_stage`; test: `tests/db/project-stage.test.ts`.
+  grant proposal. Enforced by the trigger `protect_project_stage` (and `pages/api/hide-project.ts` for the hide rule); test:
+  `tests/db/project-stage.test.ts`.
 
 ## Regrants and votes
 
@@ -88,3 +90,10 @@ is simulated for the mean, median, p10 and p90. An admin runs it by hand from Cl
   page under a sticky section bar, as on org pages. Old tab links (`?tab=<id>`), which emails, the digest and
   notifications use (`?tab=comments#<comment id>`, `?tab=bids`, `?tab=shareholders#tabs`), scroll to that section; a
   comment's own `#<id>` scrolls to the comment.
+
+## Record of what was agreed
+
+- **P22** A signed grant agreement keeps what was signed: the agreement page shows the recipient's name, the project
+  title and description as saved at signing (`grant_agreements`), not the current profile or project, so renaming or
+  editing later doesn't change it. An approved project with a signed agreement links to it from its byline.
+  Deleting the countersigning admin's profile keeps the agreement (`approved_by` is set to null).
