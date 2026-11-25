@@ -64,12 +64,12 @@ email settings: `../notifications/README.md`.
   two-people icon only if no face is known). Cards side by side stay aligned
   whether or not they have a line. Drafts and hidden projects never count. No "From your network" label (Vals,
   2026-10-12); screen readers and the hover text say "People you follow". On a card the line stays on one line.
-- **F9** A profile's **Following** tab, after "About" and "By" (`/<username>?tab=following`; Vals, 2026-10-15),
-  lists the people, projects and saved searches that person follows, for anyone (drafts and hidden projects only
-  for the owner). Others see the tab only when it isn't empty; your own profile always has it. On your own profile
-  it lets you unfollow or remove, each button with an icon (no pausing a search: Vals, 2026-10-14); what you
-  remove stays, faded, with Undo until you leave the page. Long lists show five rows and "Show all". There's no
-  separate Following page (Vals, 2026-10-14).
+- **F9** A profile's **About** section ends with what the person follows (`?tab=following` links land there): faces
+  for people, titles for projects and chips for saved searches, for anyone (drafts and hidden projects only for the
+  owner). Others see it only when it isn't empty; your own profile always has it. On your own profile, "Manage"
+  opens the full lists, where you can unfollow or remove, each button with an icon (no pausing a search: Vals,
+  2026-10-14); what you remove stays, faded, with Undo until you leave the page. Long lists show five rows and "Show
+  all". There's no separate Following page (Vals, 2026-10-14).
 - **F10** Home has a Network tab for signed-in people: the newest 50 things people you follow did (new projects,
   comments anywhere with a short excerpt, donations and offers with their amounts), each linking to the project or
   comment, in the same words as notifications ("posted a new project:", "donated $X to", "offered $X on"). Comments

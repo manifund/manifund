@@ -1,6 +1,4 @@
 'use client'
-import { Col } from '@/components/layout/col'
-import { Row } from '@/components/layout/row'
 import { Tooltip } from '@/components/tooltip'
 import {
   ArrowDownTrayIcon,
@@ -10,12 +8,9 @@ import {
   PlusCircleIcon,
 } from '@heroicons/react/24/outline'
 import { HeartIcon } from '@heroicons/react/24/solid'
-import React from 'react'
-import { Stat } from '@/components/stat'
-import { Card } from '@/components/layout/card'
 import { DepositButton } from '@/components/deposit-buttons'
 import Link from 'next/link'
-import { Button, buttonClass } from '@/components/button'
+import { Button } from '@/components/button'
 import { Modal } from '@/components/modal'
 import { Dialog } from '@headlessui/react'
 import { AmountInput } from '@/components/input'
@@ -24,60 +19,52 @@ import { useRouter } from 'next/navigation'
 import { formatMoneyPrecise } from '@/utils/formatting'
 import clsx from 'clsx'
 
+// A profile's balances (L5-L12), in the rail: public, like the rest of the profile. On your own profile, the
+// ways to add, withdraw and move money sit under them.
 export function BalanceDisplay(props: {
   balance: number
   cashBalance: number
   charityBalance: number
+  pending: number
   accredited: boolean
   isOwnProfile?: boolean
   userId?: string
 }) {
-  const { balance, cashBalance, charityBalance, accredited, isOwnProfile, userId } = props
-  const stats = [
-    { name: 'charity balance', value: charityBalance },
-    { name: 'cash balance', value: cashBalance },
+  const { balance, cashBalance, charityBalance, pending, accredited, isOwnProfile, userId } = props
+  const figures = [
+    { label: 'Charity balance', value: charityBalance },
+    { label: 'Cash balance', value: cashBalance },
+    ...(Math.round(pending) !== 0 ? [{ label: 'In pending offers', value: pending }] : []),
   ]
-  const actionClass = clsx(buttonClass('2xs', 'light-orange'), 'gap-1 whitespace-nowrap')
+  const actionClass = clsx(
+    'flex w-full items-center gap-2 rounded-md px-3 py-2 text-left text-sm text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500'
+  )
   return (
-    <Col className="h-fit">
-      <Row className="h-fit items-start justify-between gap-1 sm:gap-4 lg:gap-8">
-        <div className="w-full min-w-fit rounded border-none bg-orange-500 px-2 py-1">
-          <Stat
-            label="total balance"
-            value={balance.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              minimumFractionDigits: 0,
-            })}
-            theme="white"
-          />
+    <div className="rounded-lg bg-white shadow-sm">
+      <div className="px-5 pb-4 pt-5">
+        <div className="text-[13px] text-gray-500">Total balance</div>
+        <div className="mt-1 text-[32px] font-normal leading-none tracking-tight tabular-nums text-gray-900">
+          {formatMoneyPrecise(balance)}
         </div>
-        {stats.map((stat) => (
-          <Card key={stat.name} className="w-full min-w-fit border-none px-2 py-1">
-            <Stat
-              label={stat.name}
-              value={stat.value.toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-              })}
-            />
-          </Card>
+      </div>
+      <dl className="border-t border-gray-100 px-5 py-3">
+        {figures.map((figure) => (
+          <div key={figure.label} className="flex items-baseline justify-between py-1 text-sm">
+            <dt className="text-gray-500">{figure.label}</dt>
+            <dd className="tabular-nums text-gray-900">{formatMoneyPrecise(figure.value)}</dd>
+          </div>
         ))}
-      </Row>
-      <p className="mt-2 w-full rounded bg-gray-100 p-1 text-center text-sm tracking-wider text-gray-400">
-        {formatMoneyPrecise(balance - cashBalance - charityBalance)} in pending offers
-      </p>
+      </dl>
       {isOwnProfile && userId && (
-        <Row className="mt-3 flex-wrap justify-center gap-2">
+        <div className="flex flex-col border-t border-gray-100 p-2">
           <DepositButton userId={userId}>
             <span className={actionClass}>
-              <PlusCircleIcon className="h-4 w-4 stroke-2" />
+              <PlusCircleIcon className="h-4 w-4 text-orange-500" />
               Add funds to charity
             </span>
           </DepositButton>
           <Link href="/withdraw" className={actionClass}>
-            <ArrowDownTrayIcon className="h-4 w-4 stroke-2" />
+            <ArrowDownTrayIcon className="h-4 w-4 text-orange-500" />
             Withdraw cash
           </Link>
           {accredited && (
@@ -86,16 +73,16 @@ export function BalanceDisplay(props: {
               target="_blank"
               className={actionClass}
             >
-              <BanknotesIcon className="h-4 w-4 stroke-2" />
+              <BanknotesIcon className="h-4 w-4 text-orange-500" />
               Add funds to cash
             </a>
           )}
           {cashBalance > 0 && (
             <CashToCharityButton cashBalance={cashBalance} className={actionClass} />
           )}
-        </Row>
+        </div>
       )}
-    </Col>
+    </div>
   )
 }
 
@@ -126,7 +113,7 @@ function CashToCharityButton(props: { cashBalance: number; className?: string })
           setOpen(true)
         }}
       >
-        <ArrowLeftCircleIcon className="h-4 w-4 stroke-2" />
+        <ArrowLeftCircleIcon className="h-4 w-4 text-orange-500" />
         Move cash to charity
       </button>
       <Modal open={open} setOpen={close}>

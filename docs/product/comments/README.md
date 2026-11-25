@@ -173,8 +173,8 @@ Ids are stable once merged: tests name them, and a removed rule keeps its id in 
 - **C29** Project comments keep the creator badge and "gave $X" tags (a fund admin's comment on the fund's grant
   says what the fund gave instead: F11 in `docs/product/funds/README.md`); after donating or voting, the comment box
   invites people to say why.
-- **C30** A profile shows the comments on it and, in a second tab, the comments the person wrote elsewhere (on every
-  other target). Their replies on their own profile stay with their threads in the first tab.
+- **C30** A profile's Comments section lists the comments the person wrote on projects and orgs, newest first, 25 at a
+  time with "Show more" (U7). Comments on profiles, and on hidden projects, aren't listed.
 - **C31** The home feed includes comments on every target, tagged with where they were posted (and, for a reply,
   whom it answers); comments on hidden projects, removed comments and held comments (C40) stay out. Filters show only updates (progress
   updates and final reports), grant reasoning, or discussion (plain comments). The weekly digest covers project
