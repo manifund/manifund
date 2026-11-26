@@ -25,11 +25,10 @@ describe('pages render', () => {
       expect((await anonymous().get(path)).status).toBe(200)
     })
   }
-  standard("C30 a profile shows comments on it (first tab) and comments the person wrote elsewhere (second tab)", async () => {
-    const alicePage = await anonymous().get('/alice')
-    expect(alicePage.text).toContain('id="comments-on-profile"')
-    const bobWritten = await anonymous().get('/bob?tab=by')
-    expect(bobWritten.text).toContain('Seen on the feed')
+  standard('C30 a profile lists the comments the person wrote', async () => {
+    const bobPage = await anonymous().get('/bob')
+    expect(bobPage.text).toContain('id="comments"')
+    expect(bobPage.text).toContain('Seen on the feed')
   })
   standard('C31 the home feed includes profile comments, tagged with where', async () => {
     const feed = await anonymous().get('/?tab=comments')

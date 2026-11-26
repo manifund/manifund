@@ -122,11 +122,12 @@ test('C35 a free reaction shows under the comment, and clicking it again takes i
   expect(await (await undo).json()).toEqual({ reacted: false, tipped: false })
 })
 
-test('C30 a profile keeps its sections in order: donations, then the comment tabs', async ({ page }) => {
+test('C30 U7 a profile lists its sections in order, comments before donations', async ({ page }) => {
   await page.goto('/alice')
-  const donations = page.getByRole('heading', { name: 'Outgoing donations' })
-  const tabs = page.locator('nav[aria-label="Tabs"]')
+  const comments = page.locator('section#comments')
+  const donations = page.locator('section#donations')
+  await expect(comments).toBeVisible()
   await expect(donations).toBeVisible()
-  const [d, t] = [await donations.boundingBox(), await tabs.boundingBox()]
-  expect(d && t && d.y < t.y).toBe(true)
+  const [c, d] = [await comments.boundingBox(), await donations.boundingBox()]
+  expect(c && d && c.y < d.y).toBe(true)
 })

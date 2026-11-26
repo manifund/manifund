@@ -24,15 +24,19 @@ export function ActiveBids(props: { bids: BidAndProject[]; isOwnProfile?: boolea
         />
       }
       href={`/projects/${bid.projects.slug}`}
-      deleteFunction={async () => {
-        await deleteBid(supabase, bid.id)
-        router.refresh()
-      }}
+      deleteFunction={
+        isOwnProfile
+          ? async () => {
+              await deleteBid(supabase, bid.id)
+              router.refresh()
+            }
+          : undefined
+      }
     />
   ))
   return (
     <div>
-      <h1 className="mb-2 text-xl font-medium sm:text-2xl">Trade offers</h1>
+      <h3 className="mb-2 text-lg font-normal tracking-tight text-gray-900">Trade offers</h3>
       <Table>{bidsDisplay}</Table>
     </div>
   )

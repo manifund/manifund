@@ -35,7 +35,7 @@ export function ProposalBids(props: { bids: BidAndProject[]; isOwnProfile?: bool
   ))
   return (
     <div>
-      <h1 className="mb-2 text-xl font-medium sm:text-2xl">Proposal bids</h1>
+      <h3 className="mb-2 text-lg font-normal tracking-tight text-gray-900">Offers on proposals</h3>
       <Table>{bidsDisplay}</Table>
     </div>
   )

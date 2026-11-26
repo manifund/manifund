@@ -32,12 +32,14 @@ export function Avatar(props: {
       width={sizeInPx * 2}
       height={sizeInPx * 2}
       className={clsx(
-        'my-0 flex-shrink-0 rounded-full bg-white object-cover',
+        'my-0 aspect-square flex-shrink-0 rounded-full bg-white object-cover',
         `w-${s} h-${s}`,
         !noLink && 'cursor-pointer',
         className
       )}
-      style={{ maxWidth: `${s * 0.25}rem` }}
+      // Sizes without a Tailwind class (e.g. 22) still get a square box, so photos that aren't square are
+      // cropped to a circle instead of keeping their own shape
+      style={{ width: `${s * 0.25}rem`, height: `${s * 0.25}rem`, maxWidth: `${s * 0.25}rem` }}
       src={avatarUrl}
       onClick={onClick}
       alt={`${username ?? 'Unknown user'} avatar`}

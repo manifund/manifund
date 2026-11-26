@@ -1,6 +1,4 @@
 'use client'
-import { Col } from '@/components/layout/col'
-import { Row } from '@/components/layout/row'
 import { Tooltip } from '@/components/tooltip'
 import {
   ArrowDownTrayIcon,
@@ -10,12 +8,9 @@ import {
   PlusCircleIcon,
 } from '@heroicons/react/24/outline'
 import { HeartIcon } from '@heroicons/react/24/solid'
-import React from 'react'
-import { Stat } from '@/components/stat'
-import { Card } from '@/components/layout/card'
 import { DepositButton } from '@/components/deposit-buttons'
 import Link from 'next/link'
-import { Button, buttonClass } from '@/components/button'
+import { Button } from '@/components/button'
 import { Modal } from '@/components/modal'
 import { Dialog } from '@headlessui/react'
 import { AmountInput } from '@/components/input'
@@ -24,60 +19,90 @@ import { useRouter } from 'next/navigation'
 import { formatMoneyPrecise } from '@/utils/formatting'
 import clsx from 'clsx'
 
+// A profile's balances (L5-L12), in About: public, like the rest of the profile. The bar splits the total into
+// what can only be donated (charity), what can be withdrawn (cash) and what's promised in pending offers. On your
+// own profile, the ways to add, withdraw and move money sit under it.
 export function BalanceDisplay(props: {
   balance: number
   cashBalance: number
   charityBalance: number
+  pending: number
   accredited: boolean
   isOwnProfile?: boolean
   userId?: string
+  regrantor?: boolean
 }) {
-  const { balance, cashBalance, charityBalance, accredited, isOwnProfile, userId } = props
-  const stats = [
-    { name: 'charity balance', value: charityBalance },
-    { name: 'cash balance', value: cashBalance },
+  const {
+    balance,
+    cashBalance,
+    charityBalance,
+    pending,
+    accredited,
+    isOwnProfile,
+    userId,
+    regrantor,
+  } = props
+  const parts = [
+    { label: 'Charity', value: charityBalance, dot: 'bg-orange-500', note: 'for donating' },
+    { label: 'Cash', value: cashBalance, dot: 'bg-emerald-500', note: 'withdrawable' },
+    ...(Math.round(pending) !== 0
+      ? [{ label: 'Pending', value: pending, dot: 'bg-amber-300', note: 'in open offers' }]
+      : []),
   ]
-  const actionClass = clsx(buttonClass('2xs', 'light-orange'), 'gap-1 whitespace-nowrap')
+  const barTotal = parts.reduce((sum, part) => sum + Math.max(part.value, 0), 0)
+  const actionClass =
+    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] text-gray-700 transition-colors hover:bg-orange-50 hover:text-orange-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500'
   return (
-    <Col className="h-fit">
-      <Row className="h-fit items-start justify-between gap-1 sm:gap-4 lg:gap-8">
-        <div className="w-full min-w-fit rounded border-none bg-orange-500 px-2 py-1">
-          <Stat
-            label="total balance"
-            value={balance.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD',
-              minimumFractionDigits: 0,
-            })}
-            theme="white"
-          />
+    <div className="rounded-xl bg-white shadow-sm ring-1 ring-gray-900/5">
+      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 px-6 pb-5 pt-5">
+        <div>
+          <div className="text-[13px] text-gray-500">
+            {regrantor ? 'Regranting balance' : 'Balance'}
+          </div>
+          <div className="mt-1 text-[36px] font-normal leading-none tracking-tight tabular-nums text-gray-900">
+            {formatMoneyPrecise(balance)}
+          </div>
         </div>
-        {stats.map((stat) => (
-          <Card key={stat.name} className="w-full min-w-fit border-none px-2 py-1">
-            <Stat
-              label={stat.name}
-              value={stat.value.toLocaleString('en-US', {
-                style: 'currency',
-                currency: 'USD',
-                minimumFractionDigits: 0,
-              })}
-            />
-          </Card>
-        ))}
-      </Row>
-      <p className="mt-2 w-full rounded bg-gray-100 p-1 text-center text-sm tracking-wider text-gray-400">
-        {formatMoneyPrecise(balance - cashBalance - charityBalance)} in pending offers
-      </p>
+        <dl className="flex flex-wrap gap-x-7 gap-y-2">
+          {parts.map((part) => (
+            <div key={part.label} title={part.note}>
+              <dt className="flex items-center gap-1.5 text-[13px] text-gray-500">
+                <span className={clsx('h-2 w-2 rounded-full', part.dot)} aria-hidden />
+                {part.label}
+              </dt>
+              <dd className="mt-0.5 text-[15px] tabular-nums text-gray-900">
+                {formatMoneyPrecise(part.value)}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      {barTotal > 0 && (
+        <div
+          className="mx-6 mb-5 flex h-1.5 gap-0.5 overflow-hidden rounded-full bg-gray-100"
+          aria-hidden
+        >
+          {parts.map((part) =>
+            part.value > 0 ? (
+              <div
+                key={part.label}
+                className={part.dot}
+                style={{ width: `${(part.value / barTotal) * 100}%` }}
+              />
+            ) : null
+          )}
+        </div>
+      )}
       {isOwnProfile && userId && (
-        <Row className="mt-3 flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap gap-1 border-t border-gray-100 px-4 py-2">
           <DepositButton userId={userId}>
             <span className={actionClass}>
-              <PlusCircleIcon className="h-4 w-4 stroke-2" />
+              <PlusCircleIcon className="h-4 w-4 text-orange-500" />
               Add funds to charity
             </span>
           </DepositButton>
           <Link href="/withdraw" className={actionClass}>
-            <ArrowDownTrayIcon className="h-4 w-4 stroke-2" />
+            <ArrowDownTrayIcon className="h-4 w-4 text-orange-500" />
             Withdraw cash
           </Link>
           {accredited && (
@@ -86,16 +111,16 @@ export function BalanceDisplay(props: {
               target="_blank"
               className={actionClass}
             >
-              <BanknotesIcon className="h-4 w-4 stroke-2" />
+              <BanknotesIcon className="h-4 w-4 text-orange-500" />
               Add funds to cash
             </a>
           )}
           {cashBalance > 0 && (
             <CashToCharityButton cashBalance={cashBalance} className={actionClass} />
           )}
-        </Row>
+        </div>
       )}
-    </Col>
+    </div>
   )
 }
 
@@ -126,7 +151,7 @@ function CashToCharityButton(props: { cashBalance: number; className?: string })
           setOpen(true)
         }}
       >
-        <ArrowLeftCircleIcon className="h-4 w-4 stroke-2" />
+        <ArrowLeftCircleIcon className="h-4 w-4 text-orange-500" />
         Move cash to charity
       </button>
       <Modal open={open} setOpen={close}>

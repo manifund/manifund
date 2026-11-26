@@ -13,6 +13,20 @@ Until then: the overview is in `../intent.md` ("People"); comments on profiles a
   (`protect_profile_payment_columns`) keeps those columns unchanged when anyone else updates a profile. Profiles
   are created by the sign-up trigger, with these fields at their defaults. Tests: `tests/db/profile-payment-fields.test.ts`.
 
+### The profile page
+
+- **U7** `/<username>` is one column, narrower than the org and fund pages for reading: a header (avatar, name,
+  @username, regrantor tag, karma, bio, website, and how much they've given), a sticky section bar, and the sections
+  About, Projects, Comments (C30), Donations (pending offers first, then gifts; old certificate trades and
+  investments under them) and Transactions (their USD txns, with names instead of ids). About holds their own
+  words, their balance (public: total, split into charity, cash and pending, with the owner's deposit and withdraw
+  actions), the donate box on a regrantor's profile (E15), and what they follow (F9). Each list shows 25 and a "Show
+  more" that loads the next 25. A section with nothing in it is left out for visitors; the owner sees it with a
+  prompt. Old `?tab=` links scroll to the matching section.
+- **U8** The page shows the header as soon as the profile is read, and streams each section in as its data arrives.
+  Visitors get public data cached for a minute; the owner always reads fresh. Balances and the lists read every
+  txn and bid, past PostgREST's 1,000-row cap.
+
 ### Account holds
 
 - **U2** A new account's username and display name are checked for impersonation (of Manifund, its staff, or the
@@ -31,7 +45,8 @@ Until then: the overview is in `../intent.md` ("People"); comments on profiles a
   post; the same names aren't held again) or ban (superban: the account and everything it posted are deleted).
 - **U6** The hold and its reason are visible to the person and admins only; nobody can lift their own hold.
 
-| Date       | Decided by | Decision                                                                                                                        | Why                                                                                       |
-| ---------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| 2026-11-05 | Carol      | Hold accounts whose names look like impersonation or are offensive until an admin reviews them; enforced from the start (U2-U6) | The 2026-11-04 phishing account was named "Manifund_Support" and nothing stopped the name |
-| 2026-11-23 | Caroline   | Don't hold names just for containing "admin", "moderator" or similar; only when they present as Manifund staff (U2)             | Ordinary handles like "sysadmin" were being held                                          |
+| Date       | Decided by | Decision                                                                                                                                                                                           | Why                                                                                       |
+| ---------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| 2026-11-25 | Austin     | Profile redesigned like orgs and funds: sections with a section bar, 25 per list with "Show more", one column with balances and Following in About; balances and transactions stay public (U7, U8) | Match the modernized pages; load fast                                                     |
+| 2026-11-05 | Carol      | Hold accounts whose names look like impersonation or are offensive until an admin reviews them; enforced from the start (U2-U6)                                                                    | The 2026-11-04 phishing account was named "Manifund_Support" and nothing stopped the name |
+| 2026-11-23 | Caroline   | Don't hold names just for containing "admin", "moderator" or similar; only when they present as Manifund staff (U2)                                                                                | Ordinary handles like "sysadmin" were being held                                          |

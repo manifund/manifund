@@ -1,118 +1,103 @@
 'use client'
-import { Avatar } from '@/components/avatar'
-import { PencilIcon, LinkIcon, GiftIcon } from '@heroicons/react/24/outline'
+import { ReactNode } from 'react'
 import Link from 'next/link'
+import { GiftIcon, PencilIcon } from '@heroicons/react/20/solid'
+import { Avatar } from '@/components/avatar'
 import { Database } from '@/db/database.types'
 import { RegranterTag } from '@/components/tags'
 import { Karma } from '@/components/karma'
 import { addHttpToUrl } from '@/utils/formatting'
-import { Row } from '@/components/layout/row'
-import { Col } from '@/components/layout/col'
+import { buttonClass } from '@/components/button'
 import { SignOutButton } from './sign-out-button'
-import { FollowButton } from '@/components/follows/follow-button'
-import { SuperBanButton } from './superban-dialog'
-import { FullProject } from '@/db/project'
-import { CommentAndProjectAndRxns } from '@/db/comment'
 
 type Profile = Database['public']['Tables']['profiles']['Row']
 
+const hostname = (url: string) =>
+  url
+    .replace(/^https?:\/\//, '')
+    .replace(/^www\./, '')
+    .replace(/\/$/, '')
+
+// The top of a profile (E12): who they are, in the same shape as an org's or a fund's page. `actions` (follow,
+// admin tools) and `giving` stream in after it; the header itself needs only the profile.
 export function ProfileHeader(props: {
   profile: Profile
   isOwnProfile: boolean
   email?: string
-  isAdmin?: boolean
-  projects?: FullProject[]
-  comments?: CommentAndProjectAndRxns[]
   donorPage?: boolean
-  follow?: { signedIn: boolean; following: boolean }
+  actions?: ReactNode
+  links?: ReactNode
+  giving?: ReactNode
 }) {
-  const { profile, isOwnProfile, email, isAdmin, projects, comments, donorPage, follow } = props
-  const website = addHttpToUrl(profile.website ?? '')
+  const { profile, isOwnProfile, email, donorPage, actions, links, giving } = props
+  const website = profile.website ? addHttpToUrl(profile.website) : null
   return (
-    <div className="flex flex-col gap-3">
-      <Row className="w-full items-start justify-between">
-        <Row>
-          <Avatar
-            username={profile.username}
-            avatarUrl={profile.avatar_url}
-            id={profile.id}
-            noLink
-            className="hidden sm:block"
-            size={24}
-          />
-          <Avatar
-            username={profile.username}
-            avatarUrl={profile.avatar_url}
-            id={profile.id}
-            noLink
-            size={12}
-            className="sm:hidden"
-          />
-          {isOwnProfile && (
-            <div className="relative right-4 top-8 h-5 w-5 rounded-full bg-orange-500 hover:bg-orange-600 sm:right-6 sm:top-14 sm:h-10 sm:w-10">
-              <Link href="/edit-profile">
-                <PencilIcon className="h-5 w-5 p-1 text-white sm:h-10 sm:w-10 sm:p-2" aria-hidden />
-              </Link>
+    <header className="flex flex-wrap items-start gap-x-6 gap-y-4">
+      <Avatar
+        username={profile.username}
+        avatarUrl={profile.avatar_url}
+        id={profile.id}
+        noLink
+        size={22}
+        className="shadow-sm ring-4 ring-white"
+      />
+      <div className="min-w-0 flex-[1_1_420px]">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-[34px] font-medium leading-tight tracking-tight text-gray-900">
+              {profile.full_name || profile.username}
+            </h1>
+            <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1.5 text-[15px] text-gray-500">
+              <span>@{profile.username}</span>
+              {profile.regranter_status && <RegranterTag />}
+              <Karma
+                value={profile.karma}
+                breakdown={profile.karma_breakdown}
+                kind="profile"
+                size="md"
+                placement="right-start"
+              />
             </div>
-          )}
-          <Col className="ml-2 w-full">
-            <Row className="justify-between">
-              <Col>
-                <div className="text-xl font-bold leading-none sm:text-2xl">
-                  {profile.full_name}
-                </div>
-                <Row className="mt-1 flex-wrap items-center gap-2 text-gray-500">
-                  <p>@{profile.username}</p>
-                  {profile.regranter_status && <RegranterTag />}
-                </Row>
-                <Karma
-                  value={profile.karma}
-                  breakdown={profile.karma_breakdown}
-                  kind="profile"
-                  size="md"
-                  placement="right-start"
-                  className="mt-1 self-start"
-                />
-                {isOwnProfile && (
-                  <Row className="mt-1 flex-wrap items-center gap-2 text-gray-400">
-                    <p>{email}</p>
-                  </Row>
-                )}
-              </Col>
-            </Row>
-          </Col>
-        </Row>
-        <Row className="gap-2">
-          {isAdmin && !isOwnProfile && projects && comments && (
-            <SuperBanButton profile={profile} projects={projects} comments={comments} />
-          )}
-          {!isOwnProfile && follow?.signedIn && (
-            <FollowButton followedId={profile.id} following={follow.following} />
-          )}
-          {isOwnProfile && <SignOutButton />}
-        </Row>
-      </Row>
-      <div>
-        <p>{profile.bio}</p>
-        {profile.website && (
-          <a
-            className="flex gap-1 text-gray-500 hover:cursor-pointer hover:underline"
-            href={website}
-          >
-            <LinkIcon className="relative top-1 h-4 w-4" strokeWidth={2.5} />
-            {profile.website}
-          </a>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {actions}
+            {isOwnProfile && (
+              <>
+                <Link href="/edit-profile" className={buttonClass('xs', 'light-orange')}>
+                  <PencilIcon className="mr-1 h-4 w-4" aria-hidden />
+                  Edit profile
+                </Link>
+                <SignOutButton />
+              </>
+            )}
+          </div>
+        </div>
+        {profile.bio && (
+          <p className="mt-3 text-pretty text-lg leading-normal text-gray-700">{profile.bio}</p>
         )}
-        {donorPage && (
-          <Link
-            className="flex gap-1 text-gray-500 hover:cursor-pointer hover:underline"
-            href={`/${profile.username}/donor`}
-          >
-            <GiftIcon className="relative top-1 h-4 w-4" strokeWidth={2.5} />
-            Donor survey answers
-          </Link>
+        {(website || donorPage || links || (isOwnProfile && email)) && (
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[13px] text-gray-500">
+            {website && profile.website && (
+              <a href={website} className="text-orange-600 hover:underline">
+                {hostname(profile.website)} ↗
+              </a>
+            )}
+            {donorPage && (
+              <Link
+                href={`/${profile.username}/donor`}
+                className="inline-flex items-center gap-1 text-orange-600 hover:underline"
+              >
+                <GiftIcon className="h-3.5 w-3.5" aria-hidden />
+                Donor survey answers
+              </Link>
+            )}
+            {links}
+            {/* Only on your own profile (E14) */}
+            {isOwnProfile && email && <span>{email}</span>}
+          </div>
         )}
+        {giving}
       </div>
-    </div>
+    </header>
   )
 }

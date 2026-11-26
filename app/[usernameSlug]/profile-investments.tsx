@@ -1,6 +1,6 @@
 'use client'
 import { formatMoney } from '@/utils/formatting'
-import { Investment } from './profile-content'
+import type { Investment } from './profile-data'
 import { Table, TableRow } from '@/components/table'
 
 export function Investments(props: { investments: Investment[] }) {
@@ -30,7 +30,7 @@ export function Investments(props: { investments: Investment[] }) {
     })
   return (
     <div>
-      <h1 className="mb-2 text-xl font-medium sm:text-2xl">Investments</h1>
+      <h3 className="mb-2 text-lg font-normal tracking-tight text-gray-900">Investments</h3>
       <Table>{investmentsDisplay}</Table>
     </div>
   )

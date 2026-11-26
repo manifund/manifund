@@ -4,23 +4,21 @@ import { Modal } from '@/components/modal'
 import { Col } from '@/components/layout/col'
 import { Row } from '@/components/layout/row'
 import { Profile } from '@/db/profile'
-import { FullProject } from '@/db/project'
-import { CommentAndProjectAndRxns } from '@/db/comment'
 import { useRouter } from 'next/navigation'
 
 export function SuperBanButton(props: {
   profile: Profile
-  projects: FullProject[]
-  comments: CommentAndProjectAndRxns[]
+  projectTitles: string[]
+  commentCount: number
 }) {
-  const { profile, projects, comments } = props
+  const { profile, projectTitles, commentCount } = props
   const [open, setOpen] = useState(false)
 
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white shadow hover:bg-red-700"
+        className="rounded-md bg-red-600 px-2.5 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-red-700"
       >
         Superban
       </button>
@@ -28,8 +26,8 @@ export function SuperBanButton(props: {
         open={open}
         setOpen={setOpen}
         profile={profile}
-        projects={projects}
-        comments={comments}
+        projectTitles={projectTitles}
+        commentCount={commentCount}
       />
     </>
   )
@@ -39,10 +37,10 @@ function SuperBanDialog(props: {
   open: boolean
   setOpen: (open: boolean) => void
   profile: Profile
-  projects: FullProject[]
-  comments: CommentAndProjectAndRxns[]
+  projectTitles: string[]
+  commentCount: number
 }) {
-  const { open, setOpen, profile, projects, comments } = props
+  const { open, setOpen, profile, projectTitles: projects, commentCount } = props
   const [confirmText, setConfirmText] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -95,18 +93,14 @@ function SuperBanDialog(props: {
               {projects.length > 0 && (
                 <span className="text-red-600">
                   {' '}
-                  (
-                  {projects
-                    .slice(0, 3)
-                    .map((p) => p.title)
-                    .join(', ')}
+                  ({projects.slice(0, 3).join(', ')}
                   {projects.length > 3 && `, +${projects.length - 3} more`})
                 </span>
               )}
             </li>
             <li>
-              <strong>{comments.length}</strong> comment
-              {comments.length !== 1 ? 's' : ''}
+              <strong>{commentCount}</strong> comment
+              {commentCount !== 1 ? 's' : ''}
             </li>
             <li>
               User profile: <strong>{profile.full_name}</strong> (@
