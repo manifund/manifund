@@ -14,13 +14,6 @@ const KIND_LABEL: Record<DonationRow['kind'], string> = {
   charity: 'Charity',
 }
 
-const KIND_DOT: Record<DonationRow['kind'], string> = {
-  project: 'bg-sky-400',
-  person: 'bg-orange-400',
-  fund: 'bg-emerald-400',
-  charity: 'bg-rose-400',
-}
-
 export function DonationList(props: {
   profileId: string
   first: Page<DonationRow>
@@ -39,11 +32,6 @@ export function DonationList(props: {
               href={row.href}
               className="group flex items-center gap-3 px-5 py-3 focus:outline-none focus-visible:bg-orange-50"
             >
-              <span
-                className={clsx('h-2 w-2 flex-none rounded-full', KIND_DOT[row.kind])}
-                title={KIND_LABEL[row.kind]}
-                aria-hidden
-              />
               <span className="min-w-0 flex-1 truncate text-[15px] font-normal text-gray-900 group-hover:underline">
                 {row.name}
               </span>

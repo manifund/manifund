@@ -188,7 +188,10 @@ export async function AboutSection({ profile, isOwn }: Props) {
   return (
     <section id="about" className="flex scroll-mt-20 flex-col gap-10">
       {profile.long_description ? (
-        <RichContent content={profile.long_description} className="text-gray-700" />
+        <RichContent
+          content={profile.long_description}
+          className="text-gray-700 [&_a:hover]:text-orange-800 [&_a:hover]:decoration-orange-500 [&_a]:font-normal [&_a]:underline [&_a]:decoration-orange-300 [&_a]:underline-offset-2 [&_a]:transition-colors"
+        />
       ) : isOwn ? (
         <p className="max-w-[60ch] text-[15px] leading-relaxed text-gray-500">
           Say who you are and what you work on, so people know whose projects and comments these
